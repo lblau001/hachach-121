@@ -1,0 +1,1542 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#f3ecdd">
+<title>הח״כ ה-121</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Suez+One&family=Rubik:wght@400;500;700;900&display=swap" rel="stylesheet">
+<!-- GA4 placeholder — המגדלור: הכניסו כאן את קוד ה-Google Analytics שלכם
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-XXXXXXXXXX');</script>
+-->
+<style>
+
+  :root{
+    --paper:#f3ecdd;--paper2:#ece2cd;--ink:#161310;
+    --blue:#2b4cff;--red:#ff5240;--yellow:#ffd23f;--green:#22c98e;
+    --purple:#b06bff;--sky:#37c4ff;--orange:#ff8e3a;--pink:#ff6b9d;
+    --bd:3px solid var(--ink);
+    --hard:5px 6px 0 var(--ink);
+    --hard-lg:7px 8px 0 var(--ink);
+    --hard-sm:3px 4px 0 var(--ink);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;height:100dvh}
+  body{font-family:'Rubik',system-ui,sans-serif;background:var(--ink);color:var(--ink);overflow:hidden;display:flex;align-items:center;justify-content:center;height:100vh;height:100dvh;height:calc(var(--vh, 1vh) * 100)}
+  .display{font-family:'Suez One',serif;font-weight:400}
+  .app{position:relative;width:min(440px,100vw);height:min(900px,100vh);height:min(900px,100dvh);height:min(900px,calc(var(--vh, 1vh) * 100));background:var(--paper);overflow:hidden;display:flex;flex-direction:column;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+  @media (max-width:480px), (max-height:900px){
+    body{align-items:stretch;justify-content:stretch}
+    .app{width:100vw;max-width:100vw;height:100vh;height:100dvh;height:calc(var(--vh, 1vh) * 100);max-height:none;box-shadow:none}
+  }
+  .app::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;opacity:.4;background-image:radial-gradient(var(--ink) .5px,transparent .5px);background-size:14px 14px}
+  .screen{position:absolute;inset:0;display:none;flex-direction:column;z-index:1}
+  .screen.active{display:flex}
+  .scroll{overflow-y:auto}.scroll::-webkit-scrollbar{width:0}
+
+  /* mute button — global */
+  .mute-btn{position:absolute;top:12px;left:12px;z-index:50;background:#fff;border:2px solid var(--ink);border-radius:50%;width:36px;height:36px;display:grid;place-items:center;font-size:16px;cursor:pointer;box-shadow:1px 2px 0 var(--ink)}
+  .mute-btn:active{transform:translate(1px,2px);box-shadow:0 0 0 var(--ink)}
+
+  /* ============ INTRO ============ */
+  #intro{padding:22px;justify-content:space-between;text-align:center;align-items:center;overflow-y:auto}
+  #intro::-webkit-scrollbar{width:0}
+  @media (max-height:640px){
+    #intro{padding:14px 20px}
+    .intro-hero h1{font-size:clamp(38px,12vw,60px)!important}
+    .intro-hero p{margin-top:8px!important;font-size:14px!important}
+    .intro-hero .sub{margin-top:8px!important;font-size:16px!important}
+    .cta{font-size:22px!important;padding:16px!important}
+  }
+  .intro-tag{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:900;background:#fff;border:var(--bd);padding:6px 12px;border-radius:999px;box-shadow:var(--hard-sm);margin-top:8px}
+  .intro-tag .dot{width:9px;height:9px;border-radius:50%;background:var(--red);border:2px solid var(--ink);animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.3);opacity:.7}}
+  .intro-hero{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1}
+  .intro-hero h1{font-size:clamp(50px,15vw,82px);line-height:.9;letter-spacing:-.025em;font-weight:400}
+  .intro-hero h1 .box{display:inline-block;background:var(--yellow);border:var(--bd);box-shadow:var(--hard);padding:0 18px;transform:rotate(-2deg);margin-top:6px}
+  .intro-hero .sub{font-family:'Suez One';font-size:19px;margin-top:14px;line-height:1.2}
+  .intro-hero p{font-size:15px;line-height:1.5;font-weight:500;margin-top:14px;max-width:30ch;opacity:.85}
+  .cta{appearance:none;cursor:pointer;width:100%;background:var(--blue);color:#fff;border:var(--bd);font-family:'Suez One';font-size:26px;padding:20px;border-radius:18px;box-shadow:var(--hard-lg);transition:transform .15s,box-shadow .15s;position:relative;overflow:hidden}
+  .cta:active{transform:translate(6px,7px);box-shadow:0 0 0 var(--ink)}
+  .cta::before{content:"";position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);animation:shine 3s infinite}
+  @keyframes shine{0%{left:-100%}50%,100%{left:100%}}
+  .intro-note{font-size:11.5px;font-weight:600;opacity:.6;margin-top:10px;text-align:center;line-height:1.4}
+
+  /* ============ AVATAR + PROFILE ============ */
+  #avatar{padding:20px;text-align:center;overflow-y:auto}
+  #avatar::-webkit-scrollbar{width:0}
+  .avatar-back{align-self:flex-start;cursor:pointer;background:#fff;border:2px solid var(--ink);border-radius:999px;font-weight:900;font-size:13px;padding:6px 14px;box-shadow:1px 2px 0 var(--ink);margin-bottom:10px}
+  #avatar h2{font-family:'Suez One';font-size:24px;margin:6px 0 4px;line-height:1.2}
+  #avatar .sub{font-size:13.5px;font-weight:500;opacity:.75;line-height:1.5;margin-bottom:14px}
+  .avatar-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+  .avatar-card{background:#fff;border:2.5px solid var(--ink);border-radius:14px;padding:6px 4px;cursor:pointer;box-shadow:1px 2px 0 var(--ink);transition:transform .15s;position:relative}
+  .avatar-card:active{transform:scale(.95)}
+  .avatar-card.selected{background:var(--yellow);transform:scale(1.08);box-shadow:var(--hard-sm);z-index:2}
+  .avatar-card svg{width:100%;height:auto;aspect-ratio:1;display:block}
+  .name-input-wrap{background:#fff;border:var(--bd);border-radius:14px;padding:10px 14px;margin-bottom:12px;box-shadow:var(--hard-sm)}
+  .name-input-wrap label{font-size:12px;font-weight:900;display:block;margin-bottom:5px}
+  .name-input-wrap input{width:100%;font-family:'Rubik';font-size:16px;font-weight:700;padding:9px 12px;border:2px solid var(--ink);border-radius:10px;background:var(--paper);text-align:center;direction:rtl}
+  .name-input-wrap input:focus{outline:none;background:#fff}
+  .gender-row{display:flex;gap:8px;margin-bottom:12px}
+  .gender-chip{flex:1;background:#fff;border:2.5px solid var(--ink);border-radius:12px;padding:9px;font-size:13px;font-weight:900;cursor:pointer;box-shadow:1px 2px 0 var(--ink)}
+  .gender-chip.selected{background:var(--yellow);box-shadow:var(--hard-sm)}
+  .guest-card{display:flex;align-items:center;gap:12px;background:transparent;border:2px dashed rgba(0,0,0,.28);border-radius:14px;padding:13px 14px;cursor:pointer;margin-top:10px;width:100%;font-family:'Rubik';direction:rtl;transition:opacity .12s,background .12s;box-sizing:border-box}
+  .guest-card:active{opacity:.65;background:rgba(0,0,0,.04)}
+  .guest-card-emoji{font-size:26px;flex-shrink:0}
+  .guest-card-text{flex:1;text-align:right}
+  .guest-card-title{font-size:14px;font-weight:900}
+  .guest-card-sub{font-size:11.5px;font-weight:500;opacity:.6;margin-top:2px}
+  .guest-card-arrow{font-size:18px;font-weight:300;opacity:.35;flex-shrink:0}
+
+  /* ============ HOME ============ */
+  #home{padding:0;overflow-y:auto}
+  #home::-webkit-scrollbar{width:0}
+  .home-sticky{position:sticky;top:0;background:var(--paper);z-index:5;padding-bottom:10px;box-shadow:0 4px 8px -4px rgba(0,0,0,.15)}
+  .home-top{padding:14px 18px 8px;display:flex;align-items:center;gap:10px}
+  .user-mini{display:flex;align-items:center;gap:8px;background:#fff;border:2px solid var(--ink);border-radius:999px;padding:4px 14px 4px 4px;box-shadow:1px 2px 0 var(--ink);cursor:pointer}
+  .user-mini svg{width:32px;height:32px;border:2px solid var(--ink);border-radius:50%;background:var(--paper)}
+  .user-mini .un{font-size:13px;font-weight:900}
+  .coin-chip{display:flex;align-items:center;gap:5px;background:var(--yellow);border:2px solid var(--ink);border-radius:999px;padding:5px 11px;font-size:13px;font-weight:900;box-shadow:1px 2px 0 var(--ink);white-space:nowrap}
+  .issue-coins{flex:none;font-size:13px;animation:coinbump .3s}
+  @keyframes coinbump{0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
+  .end-card{background:var(--paper2);border:3px solid var(--ink);border-radius:20px;padding:22px 18px;text-align:center;box-shadow:3px 4px 0 var(--ink);margin-bottom:14px}
+  .end-big{font-size:52px;line-height:1}
+  .end-title{font-size:24px;font-weight:900;margin-top:4px}
+  .end-coins{display:inline-block;background:var(--yellow);border:2px solid var(--ink);border-radius:999px;padding:6px 16px;font-weight:900;font-size:15px;margin:12px 0 8px;box-shadow:1px 2px 0 var(--ink)}
+  .end-progress{font-size:14px;margin-top:6px}
+  .end-bar{height:12px;background:var(--paper);border:2px solid var(--ink);border-radius:999px;overflow:hidden;margin-top:8px}
+  .end-bar i{display:block;height:100%;background:var(--green);transition:width .8s cubic-bezier(.2,.9,.3,1)}
+  /* ===== scroll feed ===== */
+  .feed{display:flex;flex-direction:column;gap:14px;padding:4px 0 20px}
+  .card-in{animation:cardIn .4s cubic-bezier(.2,.9,.3,1)}
+  @keyframes cardIn{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+  .feed-you{background:var(--ink);color:var(--paper);border-radius:18px;padding:16px;text-align:center;box-shadow:3px 4px 0 rgba(0,0,0,.25)}
+  .feed-tag{font-size:12px;font-weight:900;opacity:.75}
+  .feed-you-vote{font-size:26px;font-weight:900;margin:6px 0}
+  .feed-you-sub{font-size:13px;opacity:.9}
+  .feed-mk{background:var(--paper2);border:3px solid var(--ink);border-radius:18px;padding:16px;box-shadow:3px 4px 0 var(--ink)}
+  .feed-mk.answered{opacity:.96}
+  .feed-mk-top{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+  .feed-mk-photo{width:56px;height:56px;border-radius:50%;border:3px solid var(--ink);overflow:hidden;flex:none;background:var(--yellow);display:grid;place-items:center;font-weight:900;font-size:20px}
+  .feed-mk-photo img{width:100%;height:100%;object-fit:cover;display:block}
+  .feed-mk-name{font-weight:900;font-size:18px}
+  .feed-mk-party{font-size:13px;color:var(--muted,#666);font-weight:700}
+  .feed-q{font-weight:900;font-size:15px;margin-bottom:10px;text-align:center}
+  .feed-btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .feed-btn{padding:12px 6px;border-radius:12px;border:2.5px solid var(--ink);background:var(--paper);font-weight:900;font-size:14px;cursor:pointer;box-shadow:1px 2px 0 var(--ink);transition:transform .1s}
+  .feed-btn:active{transform:translate(1px,2px);box-shadow:0 0 0 var(--ink)}
+  .feed-btn.f{background:#d9f5e3}.feed-btn.a{background:#fde0dc}.feed-btn.n{background:#eef1f5}
+  .feed-btn.locked{opacity:.5;pointer-events:none}
+  .feed-btn.chosen{opacity:1;outline:3px solid var(--ink);transform:scale(1.03)}
+  .reveal-btn.big{width:100%;padding:16px;font-size:16px;font-weight:900;border-radius:16px;border:3px solid var(--ink);background:var(--yellow);box-shadow:3px 4px 0 var(--ink);cursor:pointer}
+  /* ===== results modal ===== */
+  .results-modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:flex-end;justify-content:center;z-index:60}
+  .results-modal.open{display:flex}
+  .rm-sheet{background:var(--paper);border-radius:22px 22px 0 0;border-top:4px solid var(--ink);width:100%;max-width:520px;max-height:88vh;overflow-y:auto;padding:20px 18px 30px;animation:sheetUp .35s cubic-bezier(.2,.9,.3,1)}
+  @keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  .rm-title{font-size:22px;font-weight:900;text-align:center;margin-bottom:12px}
+  .pv-compare{border:3px solid var(--ink);border-radius:16px;padding:12px;text-align:center;margin-bottom:12px;font-size:14px;line-height:1.7}
+  .pv-compare.match{background:#d9f5e3}.pv-compare.diff{background:#fff3d6}
+  .pv-verdict{font-weight:900;font-size:15px;margin-top:4px}
+  .rm-score{text-align:center;font-size:15px;font-weight:700;margin-bottom:12px}
+  .rm-table{width:100%;border-collapse:collapse;margin-bottom:16px;font-size:13px}
+  .rm-table th,.rm-table td{border:1.5px solid var(--ink);padding:7px 5px;text-align:center}
+  .rm-table th{background:var(--ink);color:var(--paper);font-size:12px}
+  .rm-table .rmk{text-align:right;font-weight:700}
+  .rm-table tr.ok td{background:#eafaf0}.rm-table tr.no td{background:#fdeeec}
+  .home-meter{margin:6px 18px 0;padding:11px 14px;background:linear-gradient(135deg,var(--blue),#1a3acc);color:#fff;border:var(--bd);border-radius:16px;box-shadow:var(--hard)}
+  .home-meter .lbl{font-size:12px;font-weight:900;display:flex;justify-content:space-between;margin-bottom:6px}
+  .home-meter .bar{height:12px;background:rgba(255,255,255,.2);border-radius:999px;overflow:hidden;border:1.5px solid rgba(255,255,255,.35)}
+  .home-meter .bar i{display:block;height:100%;background:var(--yellow);transition:width .8s cubic-bezier(.2,.9,.3,1.2);border-radius:999px}
+  .home-meter .sub-lbl{font-size:11px;font-weight:600;opacity:.85;margin-top:6px;line-height:1.35}
+  .home-hdr{padding:12px 22px 2px;display:flex;justify-content:space-between;align-items:baseline}
+  .home-hdr h2{font-family:'Suez One';font-size:20px;line-height:1.15}
+  .feedback-link{font-size:11px;font-weight:900;color:var(--blue);text-decoration:underline;cursor:pointer}
+
+  .topic-grid{padding:10px 16px 16px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .topic-card{background:#fff;border:var(--bd);border-radius:16px;padding:10px 8px;text-align:center;cursor:pointer;box-shadow:var(--hard-sm);position:relative;transition:transform .15s;min-height:108px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .topic-card:active{transform:scale(.95)}
+  .topic-card.done{background:linear-gradient(135deg,var(--tc,#fff),var(--tc2,#fff));box-shadow:var(--hard)}
+  .topic-card .em{font-size:36px;line-height:1}
+  .topic-card .nm{font-family:'Suez One';font-size:13.5px;line-height:1.1;margin-top:4px}
+  .topic-card .tsub{font-size:10px;font-weight:700;opacity:.7;margin-top:2px;line-height:1.2}
+  .topic-card .status{font-size:9.5px;font-weight:900;margin-top:5px;background:var(--paper2);border-radius:999px;padding:2px 8px}
+  .topic-card.done .status{background:rgba(255,255,255,.7)}
+  .topic-card .check{position:absolute;top:-6px;left:-6px;background:var(--green);color:#fff;border:2px solid var(--ink);border-radius:50%;width:24px;height:24px;display:grid;place-items:center;font-weight:900;font-size:12px;box-shadow:1px 2px 0 var(--ink)}
+  .data-notice{background:var(--yellow);border:var(--bd);border-radius:14px;padding:11px 13px;margin:0 18px 20px;font-size:12px;font-weight:600;line-height:1.5;box-shadow:var(--hard-sm)}
+  .data-notice b{font-weight:900}
+
+  /* ============ ISSUE FLOW ============ */
+  #issue{padding:0;overflow-y:auto}
+  #issue::-webkit-scrollbar{width:0}
+  .issue-top{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 6px;position:sticky;top:0;background:var(--paper);z-index:5;gap:10px}
+  .issue-top .back{cursor:pointer;background:#fff;border:2px solid var(--ink);border-radius:999px;font-weight:900;font-size:12px;padding:5px 10px;box-shadow:1px 2px 0 var(--ink);white-space:nowrap}
+  .issue-top .step-info{font-size:10.5px;font-weight:900;background:var(--yellow);border:2px solid var(--ink);border-radius:999px;padding:2px 8px;white-space:nowrap}
+  .issue-top .step-bars{display:flex;gap:3px;flex:1}
+  .issue-top .step-bar{flex:1;height:6px;border:2px solid var(--ink);border-radius:999px;background:#fff}
+  .issue-top .step-bar.done{background:var(--ink)}
+  .issue-top .step-bar.cur{background:var(--yellow)}
+  .issue-content{padding:12px 18px 20px}
+  .issue-topic-tag{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:900;background:var(--ink);color:var(--paper);padding:4px 10px;border-radius:999px}
+  .issue-title{font-family:'Suez One';font-size:20px;margin-top:6px;line-height:1.2}
+  .explain-word{display:inline;cursor:pointer;border-bottom:2px dotted var(--blue);color:var(--blue);font-weight:900}
+  .float-explain{position:absolute;top:0;left:0;background:var(--sky);color:#fff;border:2px solid var(--ink);border-radius:999px;padding:5px 11px;font-size:12px;font-weight:900;cursor:pointer;box-shadow:1px 2px 0 var(--ink);z-index:10}
+  .float-explain:active{transform:translate(1px,2px);box-shadow:0 0 0 var(--ink)}
+  .src-link{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:900;color:var(--blue);text-decoration:none;border-bottom:1.5px solid var(--blue);margin-top:8px}
+
+  /* TF */
+  .tf-card{background:#fff;border:var(--bd);border-radius:22px;padding:20px 18px;margin-top:14px;box-shadow:var(--hard);cursor:grab;user-select:none;position:relative;overflow:hidden;min-height:250px;display:flex;flex-direction:column;justify-content:space-between}
+  .tf-card::before{content:"";position:absolute;inset:0;border-radius:19px;pointer-events:none;background:radial-gradient(circle at top right,rgba(255,210,63,.15),transparent 60%)}
+  .tf-card:active{cursor:grabbing}
+  .tf-icon{font-size:44px;text-align:center;line-height:1;margin-bottom:10px}
+  .tf-question{font-family:'Suez One';font-size:19px;line-height:1.3;text-align:center;margin-bottom:12px}
+  .tf-statement{background:var(--paper2);border:2.5px solid var(--ink);border-radius:14px;padding:14px 16px;font-size:15.5px;font-weight:700;line-height:1.5;text-align:center;font-style:italic}
+  .tf-hint{font-size:11.5px;font-weight:700;text-align:center;opacity:.7;margin-top:12px}
+  .tf-stamp{position:absolute;top:20px;font-family:'Suez One';font-size:26px;padding:4px 16px;border:4px solid var(--ink);border-radius:12px;background:#fff;opacity:0;transition:opacity .08s;z-index:2}
+  .tf-stamp.true{right:18px;color:#0a8f5f;transform:rotate(-8deg)}
+  .tf-stamp.false{left:18px;color:#c8281a;transform:rotate(8deg)}
+  .tf-buttons{display:flex;gap:12px;margin-top:14px}
+  .tf-btn{flex:1;appearance:none;cursor:pointer;border:var(--bd);font-family:'Suez One';font-size:19px;padding:14px;border-radius:16px;box-shadow:var(--hard);transition:transform .15s,box-shadow .15s;color:var(--ink)}
+  .tf-btn:active{transform:translate(4px,5px);box-shadow:0 0 0 var(--ink)}
+  .tf-btn.true{background:linear-gradient(135deg,var(--green),#1ba36f);color:#fff}
+  .tf-btn.false{background:linear-gradient(135deg,var(--red),#d62e1d);color:#fff}
+
+  /* Reveal */
+  .reveal-box{background:#fff;border:var(--bd);border-radius:20px;padding:20px 18px;margin-top:14px;box-shadow:var(--hard);animation:fadeIn .4s}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  .verdict{font-family:'Suez One';font-size:30px;line-height:1;text-align:center;padding:6px 18px;display:inline-block;border:var(--bd);border-radius:12px;box-shadow:var(--hard-sm)}
+  .verdict.true{background:var(--green);color:#fff}
+  .verdict.false{background:var(--red);color:#fff}
+  .verdict.partial{background:var(--orange);color:#fff}
+  .verdict-emoji{font-size:52px;line-height:1}
+  .user-guess{font-size:13px;font-weight:700;opacity:.8;margin-top:10px;text-align:center}
+  .user-guess.right{color:#0a8f5f}
+  .user-guess.wrong{color:#c8281a}
+  .user-guess.partial-guess{color:#c67300}
+  .explanation{background:var(--paper2);border:2.5px solid var(--ink);border-radius:12px;padding:12px 14px;font-size:13.5px;font-weight:500;line-height:1.6;margin-top:12px;text-align:right}
+  .coin-pop{display:inline-flex;align-items:center;gap:5px;background:var(--yellow);border:2px solid var(--ink);border-radius:999px;padding:4px 12px;font-size:13px;font-weight:900;margin-top:10px;animation:popIn .5s cubic-bezier(.5,1.5,.5,1)}
+  @keyframes popIn{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)}}
+
+  /* Bill */
+  .bill-card{background:linear-gradient(135deg,#fff,var(--paper2));border:var(--bd);border-radius:20px;padding:18px 16px;margin-top:14px;box-shadow:var(--hard)}
+  .bill-label{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:900;background:var(--blue);color:#fff;padding:3px 10px;border-radius:999px;margin-bottom:8px}
+  .bill-label.stance{background:var(--purple)}
+  .bill-title{font-family:'Suez One';font-size:18px;line-height:1.25}
+  .bill-year{font-size:12px;font-weight:700;opacity:.65;margin-top:4px}
+  .bill-summary{font-size:14px;font-weight:500;line-height:1.6;margin-top:12px;padding:12px 14px;background:#fff;border:2.5px solid var(--ink);border-radius:12px}
+  .vote-prompt{font-family:'Suez One';font-size:20px;text-align:center;margin:18px 0 12px}
+  .vote-buttons{display:flex;flex-direction:column;gap:10px}
+  .vote-btn{appearance:none;cursor:pointer;border:var(--bd);font-family:'Suez One';font-size:18px;padding:14px;border-radius:16px;box-shadow:var(--hard);transition:transform .15s,box-shadow .15s;color:var(--ink);display:flex;align-items:center;justify-content:center;gap:10px}
+  .vote-btn:active{transform:translate(4px,5px);box-shadow:0 0 0 var(--ink)}
+  .vote-btn.for{background:linear-gradient(135deg,var(--green),#1ba36f);color:#fff}
+  .vote-btn.against{background:linear-gradient(135deg,var(--red),#d62e1d);color:#fff}
+  .vote-btn.abstain{background:#fff}
+
+  /* Drag */
+  .drag-intro{background:var(--yellow);border:var(--bd);border-radius:14px;padding:10px 12px;margin-top:12px;box-shadow:var(--hard-sm);font-size:13px;font-weight:700;line-height:1.4;text-align:center}
+  .drag-area{margin-top:12px}
+  .pol-pool{display:flex;flex-wrap:wrap;gap:6px;padding:12px;background:#fff;border:var(--bd);border-radius:14px;box-shadow:var(--hard-sm);margin-bottom:12px;min-height:90px}
+  .pol-pool.empty::before{content:"גררו את כולם לעמודות 👇";width:100%;text-align:center;font-size:12px;font-weight:700;opacity:.4;align-self:center}
+  .pol-card{background:#fff;border:2.5px solid var(--ink);border-radius:11px;padding:5px 8px;display:flex;align-items:center;gap:6px;cursor:grab;box-shadow:1px 2px 0 var(--ink);user-select:none;touch-action:none;transition:transform .1s;font-size:11.5px}
+  .pol-card:active{cursor:grabbing;transform:scale(1.05);z-index:100}
+  .pol-card.dragging{opacity:.5}
+  .pol-avatar{width:26px;height:26px;border-radius:50%;background:var(--paper);border:1.5px solid var(--ink);display:grid;place-items:center;font-size:13px;flex:none}
+  .pol-info{line-height:1.15;min-width:0}
+  .pol-info .pn{font-weight:900;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:82px}
+  .pol-info .pp{font-weight:500;font-size:9.5px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:82px}
+  .drop-columns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+  .drop-col{background:#fff;border:var(--bd);border-radius:14px;padding:8px 6px;min-height:170px;transition:background .2s}
+  .drop-col.for{background:rgba(34,201,142,.12);border-color:var(--green)}
+  .drop-col.against{background:rgba(255,82,64,.12);border-color:var(--red)}
+  .drop-col.abstain{background:rgba(0,0,0,.05)}
+  .drop-col.over{background:var(--yellow)!important;border-width:4px}
+  .drop-col-hdr{font-family:'Suez One';font-size:12.5px;text-align:center;margin-bottom:6px;padding-bottom:5px;border-bottom:2px solid var(--ink)}
+  .drop-col .pol-card{width:100%;margin-bottom:5px}
+  .drop-col .pol-card.correct{background:var(--green)!important;color:#fff}
+  .drop-col .pol-card.correct .pol-info .pp{color:rgba(255,255,255,.85)}
+  .drop-col .pol-card.wrong{background:var(--red)!important;color:#fff}
+  .drop-col .pol-card.wrong .pol-info .pp{color:rgba(255,255,255,.85)}
+  .drop-col .pol-card .note{display:none;font-size:9px;font-weight:500;line-height:1.3;margin-top:3px;white-space:normal;max-width:100%}
+  .drop-col .pol-card .basis-tag{display:none;font-size:8px;font-weight:900;opacity:.8;margin-top:2px}
+  .drop-col .pol-card.revealed .note,.drop-col .pol-card.revealed .basis-tag{display:block}
+  .drop-col .pol-card.revealed{flex-direction:column;align-items:flex-start;padding:6px}
+  .drop-col .pol-card.revealed .pol-avatar{align-self:center}
+  .reveal-btn{width:100%;margin-top:12px;background:var(--blue);color:#fff;border:var(--bd);font-family:'Suez One';font-size:18px;padding:13px;border-radius:14px;box-shadow:var(--hard);cursor:pointer;transition:transform .15s,box-shadow .15s}
+  .reveal-btn:active{transform:translate(4px,5px);box-shadow:0 0 0 var(--ink)}
+  .reveal-btn:disabled{opacity:.5;cursor:not-allowed}
+  .score-msg{background:var(--yellow);border:var(--bd);border-radius:14px;padding:12px 14px;margin-top:14px;font-size:14px;font-weight:700;text-align:center;line-height:1.4;box-shadow:var(--hard-sm);animation:fadeIn .4s}
+
+  /* End screen */
+  .end-actions{display:flex;flex-direction:column;gap:12px;margin-top:16px}
+  .bigbtn{appearance:none;cursor:pointer;width:100%;border:var(--bd);font-family:'Suez One';font-size:17px;padding:16px;border-radius:14px;box-shadow:var(--hard);transition:transform .15s,box-shadow .15s;text-align:center}
+  .bigbtn:active{transform:translate(5px,6px);box-shadow:0 0 0 var(--ink)}
+  .bigbtn.next{background:linear-gradient(135deg,var(--green),#1ba36f);color:#fff;font-size:19px;padding:19px}
+  .bigbtn.home{background:var(--ink);color:var(--paper)}
+  .expand-row{display:flex;gap:10px;align-items:stretch}
+  .expand-row .bigbtn{flex:1}
+  .lock-btn{flex:none;width:56px;background:var(--paper2);border:var(--bd);border-radius:14px;font-size:20px;cursor:pointer;box-shadow:var(--hard-sm)}
+  .lock-btn:active{transform:translate(2px,3px);box-shadow:0 0 0 var(--ink)}
+  .bigbtn.expand{background:var(--sky);color:#fff}
+  .topic-done-banner{background:linear-gradient(135deg,var(--purple),var(--pink));color:#fff;border:var(--bd);border-radius:18px;padding:16px;text-align:center;margin-top:14px;box-shadow:var(--hard-lg);animation:popIn .5s cubic-bezier(.5,1.5,.5,1)}
+  .topic-done-banner h3{font-family:'Suez One';font-size:22px;line-height:1.15}
+  .topic-done-banner p{font-size:13px;font-weight:500;margin-top:6px;line-height:1.5;opacity:.95}
+
+  /* Explain sheet */
+  .explain-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;justify-content:center;z-index:100;backdrop-filter:blur(2px)}
+  .explain-overlay.active{display:flex;animation:fadeIn .25s}
+  .explain-sheet{width:min(440px,100vw);background:var(--paper);border-top:var(--bd);border-radius:24px 24px 0 0;padding:20px 20px 24px;max-height:80vh;overflow-y:auto;position:relative;animation:slideUp .35s cubic-bezier(.2,.9,.3,1.2)}
+  @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  .explain-sheet h3{font-family:'Suez One';font-size:22px;margin-bottom:10px;padding-left:38px}
+  .explain-sheet p{font-size:14.5px;font-weight:500;line-height:1.6}
+  .explain-sheet .close{position:absolute;top:12px;left:14px;cursor:pointer;background:#fff;border:2px solid var(--ink);border-radius:50%;width:32px;height:32px;display:grid;place-items:center;font-weight:900}
+  .explain-sheet .grab{width:40px;height:5px;background:var(--ink);border-radius:3px;margin:-8px auto 14px;opacity:.3}
+  .explain-sheet .credit{margin-top:14px;padding-top:12px;border-top:1.5px dashed rgba(0,0,0,.15);font-size:11.5px;font-weight:600;opacity:.65}
+
+  /* Avatar callout toast */
+  .callout{position:absolute;bottom:18px;right:14px;left:14px;z-index:60;background:#fff;border:var(--bd);border-radius:16px;padding:10px 14px;display:flex;align-items:center;gap:10px;box-shadow:var(--hard);transform:translateY(140%);transition:transform .4s cubic-bezier(.2,.9,.3,1.2);pointer-events:none}
+  .callout.show{transform:translateY(0)}
+  .callout svg{width:42px;height:42px;border:2px solid var(--ink);border-radius:50%;background:var(--paper);flex:none}
+  .callout .ctxt{font-size:14px;font-weight:900;line-height:1.3}
+
+  /* Celebration */
+  #celebrate{padding:22px;text-align:center;overflow-y:auto;justify-content:center;align-items:center}
+  #celebrate::-webkit-scrollbar{width:0}
+  .cel-big{font-size:64px;line-height:1;animation:popIn .7s cubic-bezier(.5,1.5,.5,1) both,float 3.2s ease-in-out infinite .7s}
+  .cel-title{font-family:'Suez One';font-size:32px;margin-top:10px;line-height:1.1}
+  .cel-sub{font-size:14px;font-weight:600;margin-top:10px;line-height:1.5;max-width:32ch}
+  .cel-budget{background:var(--yellow);border:var(--bd);border-radius:18px;padding:14px 22px;margin-top:16px;box-shadow:var(--hard);font-family:'Suez One';font-size:24px}
+  .share-box{width:100%;background:#fff;border:var(--bd);border-radius:16px;padding:14px;margin-top:16px;box-shadow:var(--hard-sm);text-align:right}
+  .share-box label{font-size:13px;font-weight:900;display:block;margin-bottom:8px;text-align:center}
+  .share-box input{width:100%;font-family:'Rubik';font-size:15px;font-weight:700;padding:10px 12px;border:2px solid var(--ink);border-radius:10px;background:var(--paper);direction:rtl}
+  .share-box input:focus{outline:none;background:#fff}
+  .share-box .count{font-size:10px;font-weight:700;opacity:.6;margin-top:4px}
+  .share-warn{font-size:11px;font-weight:900;color:#c8281a;margin-top:6px;display:none}
+  .share-actions{display:flex;gap:8px;margin-top:10px}
+  .share-actions .bigbtn{font-size:14px;padding:12px}
+  .report-link{font-size:10.5px;font-weight:700;opacity:.6;text-decoration:underline;cursor:pointer;margin-top:10px;background:none;border:none}
+  .confetti-piece{position:absolute;width:10px;height:14px;top:-20px;z-index:80;pointer-events:none;animation:confallv3 linear forwards}
+  @keyframes confallv3{to{transform:translateY(110vh) rotate(720deg)}}
+
+  /* ============ AVATAR BUILDER ============ */
+  .builder-preview{width:130px;height:130px;margin:12px auto 16px;border:3px solid var(--ink);border-radius:50%;overflow:hidden;background:var(--paper2);box-shadow:4px 5px 0 var(--ink);transition:transform .2s cubic-bezier(.2,.9,.3,1.2)}
+  .builder-preview:active{transform:scale(.95)}
+  .builder-preview svg{width:100%;height:100%;display:block}
+  .builder-label{font-size:11px;font-weight:900;margin-bottom:7px;opacity:.65;text-transform:uppercase;letter-spacing:.04em}
+  .builder-section{margin-bottom:14px}
+  .builder-chips{display:flex;flex-wrap:nowrap;gap:7px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:2px 0 6px 0}
+  .builder-chips::-webkit-scrollbar{display:none}
+  .b-chip{border:2.5px solid var(--ink);border-radius:999px;cursor:pointer;box-shadow:1px 2px 0 var(--ink);transition:transform .12s;font-size:12px;font-weight:900;padding:6px 13px;background:#fff;appearance:none;line-height:1;scroll-snap-align:start;flex-shrink:0}
+  .b-chip.color{width:38px;height:38px;padding:0;border-radius:50%;display:grid;place-items:center;flex:none}
+  .b-chip:active{transform:scale(.93)}
+  .b-chip.selected{outline:3px solid var(--blue);outline-offset:1px;transform:scale(1.12);box-shadow:var(--hard-sm)}
+
+  /* ============ SHARE PLATFORMS ============ */
+  .share-platforms{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+  .share-plat-btn{appearance:none;cursor:pointer;border:var(--bd);font-family:'Rubik';font-size:13px;font-weight:900;padding:12px 6px;border-radius:12px;box-shadow:var(--hard-sm);transition:transform .12s,box-shadow .12s;display:flex;align-items:center;justify-content:center;gap:6px;line-height:1}
+  .share-plat-btn:active{transform:translate(2px,3px);box-shadow:0 0 0 var(--ink)}
+  .share-plat-btn.wa{background:#25D366;color:#fff}
+  .share-plat-btn.tg{background:#229ED9;color:#fff}
+  .share-plat-btn.xb{background:#000;color:#fff}
+  .share-plat-btn.fb{background:#1877F2;color:#fff}
+  .share-copy-btn{grid-column:1/-1;appearance:none;cursor:pointer;border:var(--bd);font-family:'Suez One';font-size:15px;padding:13px;border-radius:12px;box-shadow:var(--hard-sm);background:var(--paper2);transition:transform .12s,box-shadow .12s}
+  .share-copy-btn:active{transform:translate(2px,3px);box-shadow:0 0 0 var(--ink)}
+
+  /* ============ BACK STEP BUTTON ============ */
+  .back-step{display:none;cursor:pointer;background:var(--paper2);border:2px solid var(--ink);border-radius:999px;font-weight:900;font-size:12px;padding:8px 12px;box-shadow:1px 2px 0 var(--ink);white-space:nowrap;line-height:1}
+  .back-step:active{transform:translate(1px,2px);box-shadow:0 0 0 var(--ink)}
+
+  /* ═══════════════════════════════════════════
+     GEN-Z FLOW — design polish
+  ═══════════════════════════════════════════ */
+
+  /* ── מעברי מסכים חלקים ── */
+  @keyframes screenIn{from{opacity:0;transform:translateY(14px) scale(.99)}to{opacity:1;transform:translateY(0) scale(1)}}
+  @keyframes screenOut{from{opacity:1}to{opacity:0;transform:scale(.98)}}
+  .screen.active{animation:screenIn .32s cubic-bezier(.2,.9,.3,1) both}
+  .screen.leaving{display:flex!important;animation:screenOut .22s ease both;z-index:0!important;pointer-events:none!important}
+
+  /* ── touch targets + ביטול עיכוב 300ms ── */
+  button,.topic-card,.gender-chip,.b-chip,.avatar-card,.avatar-back,.guest-card{touch-action:manipulation}
+
+  /* ── גדלי לחיצה מינימליים (56px לפי Material) ── */
+  .vote-btn{min-height:56px}
+  .tf-btn{min-height:52px}
+  .cta{min-height:58px;transition:transform .15s,box-shadow .15s,filter .15s}
+
+  /* ── hover states (עכבר בלבד) ── */
+  @media(hover:hover){
+    .cta:hover{filter:brightness(1.08)}
+    .bigbtn:hover:not(:active){transform:translate(3px,4px);box-shadow:3px 3px 0 var(--ink)}
+    .topic-card:hover{transform:translateY(-4px) scale(1.02);box-shadow:var(--hard-lg)}
+    .topic-card.done:hover{transform:translateY(-4px)}
+    .tf-btn:hover,.vote-btn:hover{filter:brightness(1.08)}
+    .share-plat-btn:hover{filter:brightness(1.12)}
+    .b-chip:hover{transform:scale(1.07);box-shadow:var(--hard-sm)}
+    .gender-chip:hover{background:var(--yellow)}
+    .feed-btn:hover:not(.locked){outline:2px solid rgba(0,0,0,.2)}
+  }
+
+  /* ── transitions ── */
+  .tf-btn,.vote-btn{transition:transform .15s,box-shadow .15s,filter .15s}
+  .share-plat-btn{transition:transform .12s,box-shadow .12s,filter .15s}
+  .topic-card{transition:transform .2s cubic-bezier(.2,.9,.3,1),box-shadow .2s!important}
+  .b-chip{transition:transform .12s,box-shadow .12s}
+  .gender-chip{transition:background .12s}
+
+  /* ── spring easing על progress bars ── */
+  .home-meter .bar i,.end-bar i{transition:width 1s cubic-bezier(.34,1.56,.64,1)!important}
+
+  /* ── מניעת זליגה (overflow guard) ── */
+  .pol-info{min-width:0;overflow:hidden}
+  .pol-info .pn,.pol-info .pp{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:78px}
+  .drop-col,.drop-columns{min-width:0;overflow:hidden}
+  .tf-statement,.explanation,.bill-summary,.issue-title,.pv-compare{overflow-wrap:anywhere;word-break:break-word}
+  .rm-table{table-layout:fixed}
+  .rm-table td{word-break:break-word;overflow-wrap:anywhere}
+  .feed-mk-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px}
+
+  /* ── stagger כניסה לאינטרו ── */
+  #intro.active .intro-tag{animation:cardIn .5s cubic-bezier(.2,.9,.3,1) both .04s}
+  #intro.active .intro-hero h1{animation:cardIn .65s cubic-bezier(.2,.9,.3,1) both .14s}
+  #intro.active .intro-hero .sub{animation:cardIn .5s cubic-bezier(.2,.9,.3,1) both .24s}
+  #intro.active .intro-hero p{animation:cardIn .5s cubic-bezier(.2,.9,.3,1) both .3s}
+  #intro.active .cta{animation:cardIn .55s cubic-bezier(.2,.9,.3,1) both .37s}
+  #intro.active .intro-note{animation:cardIn .5s cubic-bezier(.2,.9,.3,1) both .44s}
+
+  /* ── pulse על step bar נוכחי ── */
+  @keyframes stepPulse{0%,100%{opacity:1}50%{opacity:.45}}
+  .step-bar.cur{animation:stepPulse 2s ease-in-out infinite}
+
+  /* ── trophy float ── */
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+
+  /* ── typography scale ── */
+  .issue-title{font-size:22px}
+  .home-hdr h2{font-size:22px}
+  .tf-question{font-size:20px}
+  .intro-hero .sub{font-size:20px}
+
+  /* ── reduced motion ── */
+  @media(prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  }
+
+  /* ═══════════════════════════════════════════
+     MOBILE: safe areas, overscroll, background
+  ═══════════════════════════════════════════ */
+  html,body{overscroll-behavior:none}
+  @media(max-width:480px),(max-height:900px){body{background:var(--paper)}}
+
+  :root{
+    --safe-t:env(safe-area-inset-top,0px);
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+
+  /* top safe area — notch / Dynamic Island */
+  #intro{padding-top:max(22px,calc(var(--safe-t) + 12px))}
+  #celebrate{padding-top:max(22px,calc(var(--safe-t) + 12px))}
+  .home-top{padding-top:max(14px,calc(var(--safe-t) + 6px))}
+  .issue-top{padding-top:max(12px,calc(var(--safe-t) + 4px))}
+  #avatar{padding-top:max(20px,calc(var(--safe-t) + 8px))}
+  .mute-btn{top:max(12px,calc(var(--safe-t) + 4px))}
+
+  /* bottom safe area — home indicator */
+  #intro{padding-bottom:max(22px,var(--safe-b))}
+  #avatar{padding-bottom:calc(20px + var(--safe-b))}
+  #celebrate{padding-bottom:max(22px,var(--safe-b))}
+  #home{padding-bottom:var(--safe-b)}
+  .issue-content{padding-bottom:calc(20px + var(--safe-b))}
+
+  /* native share — מוסתר עד שנוסיף .has-native-share */
+  .share-native-btn{display:none;width:100%;margin-bottom:8px}
+  .has-native-share .share-native-btn{display:flex}
+  .has-native-share .share-platforms{display:none}
+
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- INTRO -->
+  <section class="screen active" id="intro">
+    <button class="mute-btn" onclick="toggleMute()">🔊</button>
+    <div><span class="intro-tag"><span class="dot"></span> מבית המגדלור · פרוטוטייפ</span></div>
+    <div class="intro-hero">
+      <h1 class="display">הח״כ<br><span class="box">ה-121</span></h1>
+      <div class="sub">מה באמת קורה בכנסת?</div>
+      <p>לא בוחן ידע. לא אומר למי להצביע. משחק שמראה מה קרה — ומה אתם חושבים על זה.</p>
+    </div>
+    <div style="width:100%">
+      <button class="cta" onclick="startFast()">בואו נשחק 🎮</button>
+      <div class="intro-note">סוגיה אחת = דקה · אפשר לשחק כמה שרוצים</div>
+    </div>
+  </section>
+
+  <!-- AVATAR + PROFILE -->
+  <section class="screen scroll" id="avatar">
+    <button class="mute-btn" onclick="toggleMute()">🔊</button>
+    <div style="padding:14px 18px 4px">
+      <button class="avatar-back" onclick="show('intro')">→ חזרה</button>
+    </div>
+    <div style="padding:0 20px 20px">
+      <h2>בחרו את הדמות שלכם</h2>
+      <div class="sub">בחרו דמות שתלווה אתכם במפה</div>
+      <div class="name-input-wrap">
+        <label>איך לקרוא לכם? (אופציונלי)</label>
+        <input type="text" id="userName" placeholder="השם שלכם" maxlength="15">
+      </div>
+      <div class="gender-row">
+        <div class="gender-chip" data-g="f">🙋‍♀️ לשון נקבה</div>
+        <div class="gender-chip" data-g="m">🙋‍♂️ לשון זכר</div>
+      </div>
+      <div class="builder-preview" id="builderPreview"></div>
+      <div class="builder-section">
+        <div class="builder-label">🎨 גוון עור</div>
+        <div class="builder-chips" id="skinChips"></div>
+      </div>
+      <div class="builder-section">
+        <div class="builder-label">💇 שיער</div>
+        <div class="builder-chips" id="hairChips"></div>
+      </div>
+      <div class="builder-section" id="hairColorSection">
+        <div class="builder-label">🎨 צבע שיער</div>
+        <div class="builder-chips" id="hairColorChips"></div>
+      </div>
+      <div class="builder-section">
+        <div class="builder-label">👔 חליפה</div>
+        <div class="builder-chips" id="clothesChips"></div>
+      </div>
+      <div class="builder-section">
+        <div class="builder-label">👁️ עיניים</div>
+        <div class="builder-chips" id="eyesChips"></div>
+      </div>
+      <button class="cta" onclick="confirmAvatar()">קדימה למפה ›</button>
+      <div class="guest-card" onclick="skipAvatar()">
+        <span class="guest-card-emoji">👤</span>
+        <div class="guest-card-text">
+          <div class="guest-card-title">כניסה כאורח/ת</div>
+          <div class="guest-card-sub">דלג על בחירת הדמות — ממשיכים ישר למשחק</div>
+        </div>
+        <span class="guest-card-arrow">←</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOME -->
+  <section class="screen" id="home">
+    <div class="home-sticky">
+      <div class="home-top">
+        <div class="user-mini" id="userMini" onclick="goAvatar()"></div>
+        <div style="flex:1"></div>
+        <div class="coin-chip" id="coinChip">🪙 0</div>
+        <button class="mute-btn" style="position:static;box-shadow:1px 2px 0 var(--ink)" onclick="toggleMute()">🔊</button>
+      </div>
+      <div class="home-meter">
+        <div class="lbl"><span>⭐ כמה סיימת</span><span id="meterCount">0/8</span></div>
+        <div class="bar"><i id="meterFill" style="width:0%"></i></div>
+        <div class="sub-lbl" id="meterSub">בחר נושא ותתחיל לשחק 🚀</div>
+      </div>
+    </div>
+    <div class="home-hdr">
+      <h2>מפת הנושאים</h2>
+      <span class="feedback-link" onclick="openFeedbackForm()">💬 משוב</span>
+    </div>
+    <div class="topic-grid" id="topicGrid"></div>
+    <div class="data-notice" id="allDoneNote" style="display:none;background:var(--green);color:#fff">
+      🎊 <b>סיימתם את כל המפה!</b> <span onclick="openCelebration()" style="text-decoration:underline;cursor:pointer">לחזור לחגיגה ›</span>
+    </div>
+    <div class="data-notice">
+      📚 <b>מאיפה המידע?</b> כל ההצבעות מבוססות על תיעוד אמיתי מהכנסת ה-25, עם קישור למקור בכל סוגיה. שימו לב: זהו פרוטוטייפ — לפני פרסום, צוות המגדלור מאמת כל פרט מול פרוטוקול הכנסת.
+    </div>
+  </section>
+
+  <!-- ISSUE -->
+  <section class="screen" id="issue">
+    <div class="issue-top">
+      <button class="back" onclick="backToHome()">→ מפה</button>
+      <button class="back-step" id="backStepBtn" onclick="prevStep()">→ צעד</button>
+      <div class="step-bars" id="stepBars"></div>
+      <div class="coin-chip issue-coins" id="issueCoins">🪙 0</div>
+    </div>
+    <div class="issue-content" id="issueContent"></div>
+    <div class="results-modal" id="resultsModal"><div class="rm-sheet"><div class="rm-body"></div></div></div>
+  </section>
+
+  <!-- CELEBRATION -->
+  <section class="screen" id="celebrate">
+    <div class="cel-big">🏆</div>
+    <div class="cel-title">סיימתם את כל המפה!</div>
+    <div class="cel-sub">עכשיו אתם יודעים על הכנסת יותר מרוב הישראלים. הגיע הזמן להחליט מה חשוב לכם.</div>
+    <div class="cel-budget" id="celBudget">🪙 0 מטבעות</div>
+    <div class="share-box">
+      <label>בחרתי להקצות את הכספים לטובת:</label>
+      <input type="text" id="shareInput" placeholder="חינוך, בריאות, סביבה, ביטחון..." maxlength="100" oninput="onShareInput()">
+      <div class="count" id="shareCount">0/100</div>
+      <div class="share-warn" id="shareWarn">⚠️ הטקסט מכיל תוכן שלא ניתן לשתף. אנא נסחו מחדש.</div>
+      <button class="bigbtn next share-native-btn" onclick="doShare()">📤 שתף עם חברים</button>
+      <div class="share-platforms">
+        <button class="share-plat-btn wa" onclick="shareTo('whatsapp')">📱 ווצאפ</button>
+        <button class="share-plat-btn tg" onclick="shareTo('telegram')">✈️ טלגרם</button>
+        <button class="share-plat-btn xb" onclick="shareTo('x')">✖ X</button>
+        <button class="share-plat-btn fb" onclick="shareTo('facebook')">👥 פייסבוק</button>
+        <button class="share-copy-btn" onclick="copyShare()">📋 העתק טקסט</button>
+      </div>
+      <button class="bigbtn home" style="margin-top:10px" onclick="goHome()">🗺️ חזרה למפה</button>
+      <button class="report-link" onclick="reportContent()">🚩 דיווח על תוכן פוגעני</button>
+    </div>
+  </section>
+
+  <div class="callout" id="callout"><div class="ctxt"></div></div>
+
+  <!-- Explain sheet -->
+  <div class="explain-overlay" id="explainOverlay" onclick="closeExplain(event)">
+    <div class="explain-sheet" onclick="event.stopPropagation()">
+      <button class="close" onclick="closeExplain()">✕</button>
+      <div class="grab"></div>
+      <h3 id="explainTitle">—</h3>
+      <p id="explainBody">—</p>
+      <div class="credit" id="explainCredit">📖 מבית המגדלור</div>
+    </div>
+  </div>
+
+</div>
+<script>
+
+const DATA = {"topics": [{"id": "religion", "label": "דת ומדינה", "sub": "כמה דת יש במדינה?", "icon": "🕍", "color": "#ffd23f", "color2": "#ffb800"}, {"id": "economy", "label": "כלכלה וחברה", "sub": "למה כל כך יקר פה?", "icon": "💸", "color": "#ff5240", "color2": "#d62e1d"}, {"id": "branches", "label": "מי מחליט פה?", "sub": "כנסת, ממשלה ובג\"ץ", "icon": "⚖️", "color": "#2b4cff", "color2": "#1a3acc"}, {"id": "gender", "label": "מגדר ושוויון", "sub": "שווים? שוות?", "icon": "⚧️", "color": "#ff6b9d", "color2": "#e0518a"}, {"id": "accountability", "label": "אחריות ציבורית", "sub": "מי לוקח אחריות?", "icon": "🔎", "color": "#b06bff", "color2": "#8a4dd6"}, {"id": "environment", "label": "סביבה ואקלים", "sub": "יהיה פה חם. מה עושים?", "icon": "🌍", "color": "#22c98e", "color2": "#1ba36f"}, {"id": "internal_sec", "label": "ביטחון פנים", "sub": "משטרה, פשיעה ונשק", "icon": "🛡️", "color": "#37c4ff", "color2": "#1a9ed1"}, {"id": "military", "label": "מדיני-ביטחוני", "sub": "מלחמה, שלום ומה שביניהם", "icon": "🎖️", "color": "#8a9663", "color2": "#6b7549"}], "politicians": {"netanyahu": {"name": "בנימין נתניהו", "party": "הליכוד", "avatar": "👨🏻‍💼", "mk_id": 30064}, "lapid": {"name": "יאיר לפיד", "party": "יש עתיד", "avatar": "🧔🏻‍♂️", "mk_id": 796}, "gantz": {"name": "בני גנץ", "party": "המחנה הממלכתי", "avatar": "👨🏼", "mk_id": 30070}, "liberman": {"name": "אביגדור ליברמן", "party": "ישראל ביתנו", "avatar": "🧔🏻", "mk_id": 186}, "smotrich": {"name": "בצלאל סמוטריץ'", "party": "הציונות הדתית", "avatar": "🧑🏻", "mk_id": 842}, "ben_gvir": {"name": "איתמר בן-גביר", "party": "עוצמה יהודית", "avatar": "🧑🏻‍💼", "mk_id": 952}, "deri": {"name": "אריה דרעי", "party": "ש\"ס", "avatar": "👨🏻‍🦳", "mk_id": 56}, "gafni": {"name": "משה גפני", "party": "יהדות התורה", "avatar": "🧑🏻‍🦳", "mk_id": 111}, "michaeli": {"name": "מרב מיכאלי", "party": "העבודה", "avatar": "👩🏻", "mk_id": 826}, "odeh": {"name": "איימן עודה", "party": "חד\"ש-תע\"ל", "avatar": "🧔🏽", "mk_id": 938}, "abbas": {"name": "מנסור עבאס", "party": "רע\"ם", "avatar": "👨🏽‍💼", "mk_id": 906}, "saar": {"name": "גדעון סער", "party": "הימין הממלכתי", "avatar": "🧑🏻‍💼", "mk_id": 720}, "eisenkot": {"name": "גדי איזנקוט", "party": "המחנה הממלכתי", "avatar": "👨🏻‍🦲", "mk_id": 1108}, "galant": {"name": "יואב גלנט", "party": "הליכוד", "avatar": "👨🏻‍✈️", "mk_id": 768}, "edelstein": {"name": "יולי אדלשטיין", "party": "הליכוד", "avatar": "👴🏻", "mk_id": 1}, "elkin": {"name": "זאב אלקין", "party": "הימין הממלכתי", "avatar": "👨🏻‍🏫", "mk_id": 724}, "gotliv": {"name": "טלי גוטליב", "party": "הליכוד", "avatar": "👩🏻‍⚖️", "mk_id": 1063}, "levin": {"name": "יריב לוין", "party": "הליכוד", "avatar": "🧑🏻‍⚖️", "mk_id": 602}, "silman": {"name": "עידית סילמן", "party": "הליכוד", "avatar": "👩🏻‍💼", "mk_id": 1052}, "son_harmelech": {"name": "לימור סון הר-מלך", "party": "עוצמה יהודית", "avatar": "👩🏻‍🦱", "mk_id": 1109}, "lahav": {"name": "יוראי להב-הרצנו", "party": "יש עתיד", "avatar": "👨🏻‍🎓", "mk_id": 1096}}, "issues": [{"id": "r1", "topic": "religion", "title": "חוק הגיוס", "emoji": "🪖", "tf": "הצעת חוק הגיוס שהקואליציה קידמה ב-2024 מבוססת על מתווה שכתב... בני גנץ.", "tf_answer": "true", "tf_explain": "נכון! המתווה נוסח כשגנץ היה שר הביטחון בממשלת בנט-לפיד, ועבר קריאה ראשונה ב-2022. ב-2024 נתניהו החיה בדיוק את אותו מתווה (\"דין רציפות\") — וגנץ עצמו הצביע נגד המתווה של עצמו, בטענה שהמציאות השתנתה אחרי 7/10.", "bill_title": "החלת דין רציפות על חוק הגיוס", "bill_date": "11 ביוני 2024", "bill_summary": "להמשיך לקדם את חוק הגיוס מהכנסת הקודמת בלי להתחיל את החקיקה מאפס. בפועל: פטור מגיוס לרוב בני הישיבות, עם יעדי גיוס הדרגתיים. עבר 63 מול 57.", "verification": "verified", "source": {"name": "ישראל היום", "url": "https://www.israelhayom.co.il/news/politics/article/15896765"}, "politicians": [{"id": "galant", "vote": "against", "key": true, "basis": "doc", "note": "היחיד מהקואליציה שהצביע נגד: \"אסור לעשות פוליטיקה קטנה על גבם של לוחמי צה\"ל\". בכיר בליכוד קרא לפטר אותו"}, {"id": "gantz", "vote": "against", "key": true, "basis": "doc", "note": "הצביע נגד המתווה שהוא עצמו כתב — כי לטענתו 7/10 שינה הכל"}, {"id": "netanyahu", "vote": "for", "key": true, "basis": "doc", "note": "קידם את המהלך וגייס את הקולות ברגע האחרון"}, {"id": "gafni", "vote": "for", "basis": "doc", "note": "החרדים תמכו אחרי אישור האדמו\"רים — למרות שבעבר כינו את החוק הזה \"עלוב ומשפיל\""}, {"id": "lapid", "vote": "against", "basis": "doc", "note": "\"אחד מרגעי החרפה הבזויים ביותר של כנסת ישראל אי פעם\""}, {"id": "edelstein", "vote": "for", "basis": "doc", "note": "הצביע בעד, אבל הבהיר שבוועדה שלו החוק יעבור רק אם ייתן מענה אמיתי לצה\"ל"}, {"id": "gotliv", "vote": "for", "basis": "doc", "note": "איימה להתנגד — ואז הצביעה בעד, לדבריה בגלל מחאה שהתקיימה מול ביתה"}, {"id": "liberman", "vote": "against", "basis": "doc", "note": "\"מעולם לא הבנתי למה ליהודי אסור להיות לוחם\""}, {"id": "deri", "vote": "for", "basis": "doc", "note": "ש\"ס הצביעה בעד כחלק מהקואליציה"}], "voteId": "41074", "knesset_url": "https://main.knesset.gov.il/Activity/plenum/Votes/Pages/vote.aspx?voteId=41074", "core": true, "_tally": {"for": 63, "against": 57}}, {"id": "r2", "topic": "religion", "title": "חוק החמץ", "emoji": "🍞", "tf": "לפי חוק החמץ, מאבטחים בבתי חולים רשאים לחפש לך חמץ בתיק בפסח.", "tf_answer": "false", "tf_explain": "לא נכון. בנוסח שאושר בסוף אין שום סמכות חיפוש — רק שילוט בכניסה ויידוע. מנהל בית החולים רשאי להגביל הכנסת חמץ, אבל אף אחד לא יפתח לך את התיק.", "bill_title": "חוק החמץ (תיקון לחוק זכויות החולה)", "bill_date": "22 בפברואר 2023", "bill_summary": "מנהל בית חולים רשאי להגביל או לאסור הכנסת חמץ לשטח בית החולים בפסח, כדי לשמור על כשרות. עבר 60 מול 52. החוק בא לעקוף פסיקת בג\"ץ מ-2020.", "verification": "verified", "source": {"name": "דבר", "url": "https://www.davar1.co.il/427098/"}, "politicians": [{"id": "gafni", "vote": "for", "key": true, "basis": "doc", "note": "\"מעולם לא חתמתי על חוק שאומר לאדם חילוני איך להתנהג\" — מיוזמי החוק"}, {"id": "lapid", "vote": "against", "key": true, "basis": "doc", "note": "\"אי אפשר לכפות על אדם להאמין ביציאת מצרים\" — הזהיר מאפקט הפוך"}, {"id": "michaeli", "vote": "against", "basis": "doc", "note": "האופוזיציה כולה התנגדה — \"כפייה דתית\""}, {"id": "ben_gvir", "vote": "for", "basis": "doc", "note": "הצביע עם הקואליציה"}], "voteId": "38312", "knesset_url": "https://main.knesset.gov.il/Activity/plenum/Votes/Pages/vote.aspx?voteId=38312", "core": false, "_tally": {"for": 60, "against": 52}}, {"id": "e1", "topic": "economy", "title": "תקציב המדינה", "emoji": "💰", "tf": "אם הכנסת לא מאשרת תקציב בזמן — היא מתפזרת אוטומטית והולכים לבחירות.", "tf_answer": "true", "tf_explain": "נכון! זה כתוב בחוק יסוד: משק המדינה. זו הסיבה שהצבעות תקציב הן רגעי מבחן קיומיים לכל ממשלה — מי ששולט בתקציב שולט בקואליציה.", "bill_title": "תקציב המדינה 2023–2024 + קרן הארנונה", "bill_date": "24 במאי 2023", "bill_summary": "תקציב דו-שנתי: 484 מיליארד ₪ ל-2023, 514 מיליארד ל-2024. כלל את \"קרן הארנונה\" שלוקחת חלק מהארנונה העסקית של ערים חזקות ומחלקת לרשויות שבונות מגורים. עבר 64 מול 55 אחרי לילה של אלפי הסתייגויות.", "verification": "verified", "source": {"name": "וואלה", "url": "https://news.walla.co.il/item/3581192"}, "politicians": [{"id": "smotrich", "vote": "for", "key": true, "basis": "bloc", "note": "שר האוצר: \"בשורה אדירה לכלכלת ישראל\" (עמדת סיעה — לא השתתף בהצבעה זו)"}, {"id": "lapid", "vote": "against", "key": true, "basis": "doc", "note": "\"נתניהו חלש מאי פעם, אז הוא נתן לחרדים 14 מיליארד שקל\""}, {"id": "liberman", "vote": "against", "basis": "doc", "note": "\"כתם שחור ענק בתולדות ישראל\""}, {"id": "netanyahu", "vote": "for", "basis": "doc", "note": "כל הקואליציה הצביעה בעד"}, {"id": "gafni", "vote": "for", "basis": "doc", "note": "יו\"ר ועדת הכספים שהעבירה את התקציב: \"מתארים אותנו כשודדי הקופה הציבורית\""}, {"id": "gantz", "vote": "against", "basis": "doc", "note": "האופוזיציה כולה נגד"}, {"id": "abbas", "vote": "against", "basis": "doc", "note": "האופוזיציה כולה נגד"}], "voteId": "39247", "knesset_url": "https://main.knesset.gov.il/Activity/plenum/Votes/Pages/vote.aspx?voteId=39247", "core": true, "_tally": {"for": 64, "against": 55}}, {"id": "e2", "topic": "economy", "title": "תקציב המלחמה", "emoji": "⚔️", "tf": "אחרי פרוץ המלחמה, הממשלה ביטלה את כל \"הכספים הקואליציוניים\" מהתקציב.", "tf_answer": "false", "tf_explain": "לא נכון. בתקציב המלחמה המעודכן של סוף 2023 נשארו כ-5 מיליארד ₪ של כספים קואליציוניים — למרות שאנשי המקצוע באוצר ובבנק ישראל המליצו לקצץ אותם. זה הוביל למשבר בתוך הממשלה עצמה.", "bill_title": "חוק תקציב נוסף לשנת 2023 (תקציב המלחמה)", "bill_date": "14 בדצמבר 2023", "bill_summary": "תוספת של כ-26 מיליארד ₪ לתקציב בגלל המלחמה: 17 מיליארד לביטחון, כ-9 מיליארד להוצאות אזרחיות (מפונים, פיצויים). הביקורת: נשארו בו מיליארדים לכספים קואליציוניים.", "verification": "verified", "source": {"name": "mako", "url": "https://www.mako.co.il/news-money/2023_q4/Article-971a2ecd9b76c81026.htm"}, "politicians": [{"id": "gantz", "vote": "against", "key": true, "basis": "doc", "note": "ההפתעה: המחנה הממלכתי הצביע נגד — למרות שישב אז בממשלת החירום!"}, {"id": "eisenkot", "vote": "against", "key": true, "basis": "doc", "note": "הצביע נגד יחד עם סיעתו, במחאה על הכספים הקואליציוניים"}, {"id": "edelstein", "vote": "abstain", "basis": "doc", "note": "מהליכוד — הודיע שיימנע בהצבעה המסכמת"}, {"id": "smotrich", "vote": "for", "basis": "doc", "note": "שר האוצר שהוביל את התקציב המעודכן"}, {"id": "netanyahu", "vote": "for", "basis": "bloc", "note": "הקואליציה העבירה בזכות הרוב המוצק"}, {"id": "lapid", "vote": "against", "basis": "bloc", "note": "האופוזיציה נגד"}, {"id": "gafni", "vote": "for", "basis": "bloc", "note": "הצביע עם הקואליציה"}], "core": false}, {"id": "b1", "topic": "branches", "title": "ביטול עילת הסבירות", "emoji": "⚖️", "tf": "לישראל אין חוקה כתובה אחת.", "tf_answer": "true", "tf_explain": "נכון! במקום חוקה יש לנו \"חוקי יסוד\" שנחקקים לאורך השנים. בדיוק בגלל זה השאלה מי מחליט — הכנסת או בג\"ץ — נשארת פתוחה ומתפוצצת שוב ושוב. עילת הסבירות הייתה הפרק הכי סוער בוויכוח הזה.", "bill_title": "ביטול עילת הסבירות (תיקון לחוק יסוד: השפיטה)", "bill_date": "11 ביולי 2023", "bill_summary": "לאסור על בג\"ץ לפסול החלטות של הממשלה והשרים בטענה שהן \"לא סבירות\". החוק הראשון של הרפורמה המשפטית. ההצבעה שמוצגת כאן היא הקריאה שבה החוק עבר לוועדה (64 מול 56); מאוחר יותר, בקריאה השלישית (24.7.2023), האופוזיציה החרימה את ההצבעה.", "verification": "verified", "source": {"name": "ynet", "url": "https://www.ynet.co.il/news/article/skd4x0iq3"}, "politicians": [{"id": "levin", "vote": "for", "key": true, "basis": "doc", "note": "שר המשפטים ואדריכל הרפורמה: \"אין בית ספר לסבירות\""}, {"id": "galant", "vote": "for", "key": true, "basis": "doc", "note": "ההפתעה: לחץ עד הרגע האחרון לרכך את החוק — ובסוף הצביע בעד"}, {"id": "liberman", "vote": "against", "key": true, "basis": "doc", "note": "הצביע נגד בהעברה לוועדה. מאוחר יותר, בקריאה השלישית (24.7), הוא שהוביל את החרם"}, {"id": "netanyahu", "vote": "for", "basis": "doc", "note": "ליווה את ההצבעה מקרוב ותיווך בין לוין לגלנט במליאה"}, {"id": "ben_gvir", "vote": "for", "basis": "doc", "note": "\"כל פשרה תהיה חרפה לימין כולו\""}, {"id": "lapid", "vote": "against", "basis": "doc", "note": "הצביע נגד בהעברה לוועדה. בקריאה השלישית הצטרף לחרם האופוזיציה"}, {"id": "gantz", "vote": "against", "basis": "doc", "note": "הצביע נגד. \"מי שיצביע בעד יירשם בדברי הימים\""}, {"id": "odeh", "vote": "against", "basis": "doc", "note": "הצביע נגד יחד עם האופוזיציה"}], "voteId": "39566", "knesset_url": "https://main.knesset.gov.il/Activity/plenum/Votes/Pages/vote.aspx?voteId=39566", "core": true, "_tally": {"for": 64, "against": 56}}, {"id": "b2", "topic": "branches", "title": "חוק המדליפים", "emoji": "🤫", "tf": "הדלפת מסמך מסווג מצה\"ל לתקשורת היא עבירה פלילית.", "tf_answer": "true", "tf_explain": "נכון. ובדיוק סביב פרשה כזאת (פרשת דובר רה\"מ אלי פלדשטיין) נולדה הצעת חוק שתעניק חסינות למי שמדליף מידע מסווג — אם ההדלפה היא אל ראש הממשלה. דובר צה\"ל דאז הזהיר שהחוק \"מסוכן מאוד לביטחון המדינה\".", "bill_title": "חסינות למעבירי מידע מסווג לראש הממשלה", "bill_date": "4 בדצמבר 2024", "bill_summary": "מי שמדליף מידע מסווג לראש הממשלה — יקבל חסינות מהעמדה לדין. ההצעה הוגשה בעקבות כתב האישום נגד דובר רה\"מ בפרשת הדלפת המסמכים. עברה בקריאה טרומית 59 מול 52.", "verification": "verified", "source": {"name": "הארץ", "url": "https://www.haaretz.co.il/news/law/2024-12-04/ty-article/00000193-91c0-d408-a7d3-bbd97fd10000"}, "politicians": [{"id": "netanyahu", "vote": "for", "key": true, "basis": "bloc", "note": "ההצעה הוגשה בעקבות הפרשה של הדובר שלו — הקואליציה תמכה"}, {"id": "lapid", "vote": "against", "key": true, "basis": "bloc", "note": "האופוזיציה התנגדה"}, {"id": "levin", "vote": "for", "basis": "bloc", "note": "הצביע עם הקואליציה"}, {"id": "gantz", "vote": "against", "basis": "bloc", "note": "התנגד עם האופוזיציה"}, {"id": "liberman", "vote": "against", "basis": "bloc", "note": "התנגד עם האופוזיציה"}, {"id": "smotrich", "vote": "for", "basis": "bloc", "note": "הצביע עם הקואליציה"}], "core": false}, {"id": "g1", "topic": "gender", "title": "הפרדה מגדרית באקדמיה", "emoji": "🎓", "tf": "בג\"ץ אישר בעבר לימודים בהפרדה בין גברים לנשים באוניברסיטאות.", "tf_answer": "true", "tf_explain": "נכון — וזה מפתיע הרבה אנשים. ב-2021 בג\"ץ אישר לימודים בהפרדה מגדרית לציבור החרדי, אבל רק לתואר ראשון, רק בכיתות הלימוד, ובתנאי שמרצות לא יופלו. הצעת החוק החדשה רוצה להרחיב את זה הרבה מעבר.", "bill_title": "הרחבת הלימודים בהפרדה מגדרית לתארים מתקדמים", "bill_date": "קריאה טרומית: דצמבר 2024", "bill_summary": "לאפשר מסלולים בהפרדה בין גברים לנשים גם בתואר שני ושלישי, בכל מוסד אקדמי, לכל מי שמבקש \"מטעמי דת\". תומכים: הנגשת אקדמיה לחרדים. מתנגדים: הדרת נשים ופגיעה בשוויון. ביולי 2026 אושרה בוועדת החינוך לקריאה שנייה ושלישית.", "verification": "verified", "source": {"name": "הארץ", "url": "https://www.haaretz.co.il/news/politi/2026-07-06/ty-article/0000019f-3697-d0b8-ab9f-7fffc17a0000"}, "politicians": [{"id": "son_harmelech", "vote": "for", "key": true, "basis": "doc", "note": "יוזמת ההצעה: \"בג\"ץ כפה תפיסת עולם פרוגרסיבית רדיקלית. החוק מחזיר את חופש הבחירה\""}, {"id": "michaeli", "vote": "against", "key": true, "basis": "bloc", "note": "חברות האופוזיציה מחו עם שלטי \"גברים\"/\"נשים\" משני צידי האולם"}, {"id": "gafni", "vote": "for", "basis": "bloc", "note": "המפלגות החרדיות מקדמות את ההרחבה"}, {"id": "lapid", "vote": "against", "basis": "bloc", "note": "האופוזיציה: \"הדרת נשים\""}, {"id": "ben_gvir", "vote": "for", "basis": "bloc", "note": "ההצעה של ח\"כית ממפלגתו"}, {"id": "smotrich", "vote": "for", "basis": "bloc", "note": "הקואליציה תמכה"}], "core": true}, {"id": "g2", "topic": "gender", "title": "נישואים אזרחיים", "emoji": "💍", "mode": "stance", "tf": "אפשר היום להתחתן בישראל בנישואים אזרחיים.", "tf_answer": "false", "tf_explain": "לא נכון. נישואים בישראל מתקיימים רק דרך גופי דת (רבנות, כנסייה, בתי דין שרעיים). מי שלא יכול או לא רוצה — טס לקפריסין, מתחתן ב\"נישואי יוטה\" בזום, או נשאר בלי סטטוס. ישראל היא מהמדינות המערביות היחידות במצב כזה.", "bill_title": "ברית זוגיות אזרחית — הצעות שחוזרות שוב ושוב לכנסת", "bill_date": "עמדות ציבוריות מתועדות", "bill_summary": "הרעיון: מסלול משפטי מלא לזוגות בלי מעורבות הרבנות — כולל זוגות חד-מיניים ובני דתות שונות. הצעות כאלה הוגשו ונדחו לאורך שנים. כאן תסדרו לפי עמדות ציבוריות מוצהרות — לא לפי הצבעה ספציפית.", "verification": "stance", "source": {"name": "עמדות מפלגתיות פומביות", "url": ""}, "politicians": [{"id": "lapid", "vote": "for", "key": true, "basis": "doc", "note": "יש עתיד תומכת בנישואים אזרחיים כחלק מהמצע שלה מאז הקמתה"}, {"id": "gafni", "vote": "against", "key": true, "basis": "doc", "note": "המפלגות החרדיות מתנגדות עקרונית לכל עקיפה של הרבנות"}, {"id": "liberman", "vote": "for", "basis": "doc", "note": "ישראל ביתנו דוגלת בנישואים אזרחיים — בעיקר בגלל מאות אלפי עולים שאינם מוכרים כיהודים ברבנות"}, {"id": "deri", "vote": "against", "basis": "doc", "note": "ש\"ס מתנגדת בתוקף"}, {"id": "michaeli", "vote": "for", "basis": "doc", "note": "העבודה תומכת בהפרדת דת ממדינה בנישואין"}, {"id": "smotrich", "vote": "against", "basis": "doc", "note": "הציונות הדתית מתנגדת לנישואים אזרחיים"}], "core": false}, {"id": "a1", "topic": "accountability", "title": "ועדת חקירה ל-7/10", "emoji": "🕯️", "tf": "הוקמה ועדת חקירה ממלכתית לאירועי 7 באוקטובר.", "tf_answer": "false", "tf_explain": "לא נכון — נכון ליולי 2026 לא הוקמה ועדת חקירה ממלכתית (עצמאית, בראשות שופט). במקום זה הממשלה מקדמת חוק לוועדה שחבריה ימונו על ידי פוליטיקאים. משפחות שכולות מ\"מועצת אוקטובר\" מכנות אותה \"ועדת טיוח\".", "bill_title": "ועדת חקירה במינוי פוליטי לאירועי 7/10 (הצעת קלנר)", "bill_date": "24 בדצמבר 2025", "bill_summary": "במקום ועדה ממלכתית שממנה נשיא העליון — ועדה שממנים הקואליציה והאופוזיציה (ואם האופוזיציה מסרבת, יו\"ר הכנסת ממנה). עברה בקריאה טרומית 53 מול 48, בזמן שמשפחות שכולות מחו ביציע והפנו גב לנואם.", "verification": "verified", "source": {"name": "ynet", "url": "https://www.ynet.co.il/news/article/rkbnnxtq11e"}, "politicians": [{"id": "elkin", "vote": "abstain", "key": true, "basis": "bloc", "note": "ההפתעה: החרים את ההצבעה — \"אני תומך בוועדת חקירה ממלכתית שההרכב שלה ייקבע בידי השופט סולברג\" (עמדת סיעה — לא השתתף בהצבעה זו)"}, {"id": "edelstein", "vote": "abstain", "key": true, "basis": "bloc", "note": "גם הוא מהליכוד — החרים את ההצבעה בשל תמיכתו בוועדה ממלכתית (עמדת סיעה — לא השתתף בהצבעה זו)"}, {"id": "netanyahu", "vote": "abstain", "key": true, "basis": "bloc", "note": "נעדר מההצבעה — למרות שהחוק מקודם בעידודו (עמדת סיעה — לא השתתף בהצבעה זו)"}, {"id": "lapid", "vote": "against", "basis": "doc", "note": "\"בחודש הראשון של הממשלה הבאה נקים ועדת חקירה ממלכתית\""}, {"id": "ben_gvir", "vote": "for", "basis": "doc", "note": "סגן השר אלמוג כהן ממפלגתו הציג את עמדת הממשלה בעד"}, {"id": "gantz", "vote": "against", "basis": "doc", "note": "האופוזיציה נגד"}], "voteId": "44946", "knesset_url": "https://main.knesset.gov.il/Activity/plenum/Votes/Pages/vote.aspx?voteId=44946", "core": true, "_tally": {"for": 53, "against": 48}}, {"id": "a2", "topic": "accountability", "title": "חסינות חברי כנסת", "emoji": "🛡️", "tf": "אי אפשר להעמיד לדין חבר כנסת כל עוד הוא מכהן.", "tf_answer": "false", "tf_explain": "לא נכון. לח\"כים יש חסינות רק על פעולות במסגרת התפקיד (נאום, הצבעה) — לא על עבירות פליליות. ח\"כים ושרים נחקרו, הועמדו לדין ואף ישבו בכלא. הצעת חוק חדשה ביקשה לשנות בדיוק את זה.", "bill_title": "הרחבת החסינות: אין חקירה נגד ח\"כ בלי אישור 90 ח\"כים", "bill_date": "4 בדצמבר 2024", "bill_summary": "לא תיפתח חקירה פלילית נגד חבר כנסת אלא אם 90 ח\"כים אישרו שהמעשה לא קשור לתפקידו. לא חל על שוחד ומרמה. עברה בקריאה טרומית 57 מול 53.", "verification": "verified", "source": {"name": "הארץ", "url": "https://www.haaretz.co.il/news/law/2024-12-04/ty-article/00000193-91c0-d408-a7d3-bbd97fd10000"}, "politicians": [{"id": "gotliv", "vote": "for", "key": true, "basis": "doc", "note": "יוזמת ההצעה"}, {"id": "levin", "vote": "for", "key": true, "basis": "doc", "note": "שר המשפטים בירך על אישור ההצעה"}, {"id": "netanyahu", "vote": "for", "basis": "bloc", "note": "הקואליציה תמכה"}, {"id": "lapid", "vote": "against", "basis": "bloc", "note": "האופוזיציה התנגדה"}, {"id": "gantz", "vote": "against", "basis": "bloc", "note": "האופוזיציה התנגדה"}, {"id": "liberman", "vote": "against", "basis": "bloc", "note": "האופוזיציה התנגדה"}], "core": false}, {"id": "v1", "topic": "environment", "title": "חוק האקלים", "emoji": "🌡️", "tf": "ישראל קבעה בחוק יעד מחייב: אפס פליטות פחמן עד 2050.", "tf_answer": "partial", "tf_explain": "חלקית. הצעת חוק האקלים שעברה קריאה ראשונה ב-2024 אכן קובעת יעד של אפס פליטות עד 2050 (ו-30%- עד 2030) — אבל בנוסח \"גמיש\" שהממשלה יכולה לשנות בקלות, בלי תקציב וכמעט בלי שיניים. עד כדי כך שאפילו ארגוני הסביבה התנגדו לו.", "bill_title": "חוק האקלים", "bill_date": "3 באפריל 2024", "bill_summary": "מסגרת חוקית ראשונה בישראל לצמצום פליטות גזי חממה: 30%- עד 2030, אפס עד 2050. הטוויסט: משרדי האוצר והאנרגיה ריככו את הנוסח שוב ושוב, וארגוני הסביבה טענו שעדיף חוק חזק מאשר \"חוק בלי שיניים\".", "verification": "partial", "source": {"name": "infospot", "url": "https://infospot.co.il/n/The_climate_law1"}, "politicians": [{"id": "silman", "vote": "for", "key": true, "basis": "bloc", "note": "השרה להגנת הסביבה שהובילה את החוק דרך שלושה סבבים בוועדת השרים (עמדת סיעה — לא השתתף בהצבעה זו)"}, {"id": "smotrich", "vote": "for", "key": true, "basis": "bloc", "note": "האוצר תמך — אבל רק אחרי שהצליח לרכך משמעותית את היעדים ולמנוע תקציב (עמדת סיעה — לא השתתף בהצבעה זו)"}, {"id": "lahav", "vote": "against", "basis": "doc", "note": "תקף בחריפות בדיוני הוועדה את הנוסח המרוכך וחוסר המחויבות ליעדים"}], "voteId": "40922", "knesset_url": "https://main.knesset.gov.il/Activity/plenum/Votes/Pages/vote.aspx?voteId=40922", "core": true, "_tally": {"for": 49, "against": 32}}, {"id": "v2", "topic": "environment", "title": "המס על כלים חד-פעמיים", "emoji": "🥤", "mode": "stance", "tf": "בישראל הוטל מס על כלים חד-פעמיים — ובוטל אחרי כשנה.", "tf_answer": "true", "tf_explain": "נכון. בנובמבר 2021 שר האוצר דאז ליברמן הטיל מס שהקפיץ את מחירי החד-פעמי — הצריכה ירדה משמעותית. בינואר 2023 שר האוצר הנכנס סמוטריץ' ביטל את המס, בין השאר כמחווה לציבור החרדי שצורך הרבה חד-פעמי. סביבה מול פוליטיקה בקרב חזיתי.", "bill_title": "ביטול המס על כלים חד-פעמיים", "bill_date": "ינואר 2023 (אישור ועדת הכספים)", "bill_summary": "ביטול צו המס שהוטל ב-2021. תומכי הביטול: המס פוגע במשפחות גדולות ולא הוכיח תועלת. מתנגדים: המס עבד, הצריכה ירדה, והביטול הוא ויתור סביבתי לצרכים פוליטיים. סדרו לפי עמדות מתועדות.", "verification": "stance", "source": {"name": "עמדות מתועדות בתקשורת", "url": ""}, "politicians": [{"id": "smotrich", "vote": "for", "key": true, "basis": "doc", "note": "חתם על ביטול המס בין צעדיו הראשונים כשר אוצר"}, {"id": "liberman", "vote": "against", "key": true, "basis": "doc", "note": "הוא שהטיל את המס ב-2021 — והתנגד בפומבי לביטולו"}, {"id": "gafni", "vote": "for", "basis": "doc", "note": "יו\"ר ועדת הכספים שאישרה את הביטול — דרישה מרכזית של הציבור החרדי"}, {"id": "deri", "vote": "for", "basis": "doc", "note": "ש\"ס הובילה את הדרישה לביטול"}, {"id": "michaeli", "vote": "against", "basis": "doc", "note": "התנגדה לביטול — \"ויתור על כלי סביבתי שעובד\""}], "core": false}, {"id": "s1", "topic": "internal_sec", "title": "חוק המשטרה של בן-גביר", "emoji": "🚨", "tf": "השר לביטחון לאומי רשאי להורות למשטרה את מי לחקור.", "tf_answer": "false", "tf_explain": "לא נכון — ובג\"ץ דאג שזה יישאר ככה. \"חוק בן-גביר\" מ-2022 נתן לשר להתוות מדיניות כללית למשטרה, כולל בתחום החקירות. אבל ב-2024 בג\"ץ פסל את סעיף החקירות וקבע: השר קובע מדיניות כללית — אסור לו להתערב בחקירות ובפעולות ספציפיות.", "bill_title": "תיקון פקודת המשטרה (\"חוק בן-גביר\")", "bill_date": "28 בדצמבר 2022", "bill_summary": "המשטרה כפופה לממשלה, והשר לביטחון לאומי מתווה את מדיניותה — תוכניות עבודה, סדרי עדיפויות, ואפילו מדיניות חקירות. נחקק בהליך בזק לפני השבעת הממשלה, כתנאי של בן-גביר לכניסה לקואליציה. עבר 61 מול 55.", "verification": "verified", "source": {"name": "מעריב", "url": "https://www.maariv.co.il/news/politics/Article-968350"}, "politicians": [{"id": "ben_gvir", "vote": "for", "key": true, "basis": "doc", "note": "\"הצעה היסטורית\" — החוק שהוא דרש כתנאי להצטרפות לממשלה"}, {"id": "netanyahu", "vote": "for", "basis": "doc", "note": "הקואליציה המתגבשת העבירה את החוק לפני השבעת הממשלה"}, {"id": "deri", "vote": "for", "basis": "doc", "note": "הצביע עם הקואליציה"}, {"id": "lapid", "vote": "against", "basis": "doc", "note": "האופוזיציה: פוליטיזציה של המשטרה"}, {"id": "gantz", "vote": "against", "basis": "doc", "note": "האופוזיציה התנגדה"}, {"id": "michaeli", "vote": "against", "basis": "doc", "note": "האופוזיציה התנגדה"}], "voteId": "37885", "knesset_url": "https://main.knesset.gov.il/Activity/plenum/Votes/Pages/vote.aspx?voteId=37885", "core": true, "_tally": {"for": 61, "against": 55}}, {"id": "s2", "topic": "internal_sec", "title": "סנקציות על תומכי טרור", "emoji": "🚫", "tf": "הרשות הפלסטינית משלמת קצבאות למשפחות של מחבלים.", "tf_answer": "true", "tf_explain": "נכון — מדיניות התשלומים של הרשות הפלסטינית לאסירים ולמשפחות מחבלים מתועדת היטב ומכונה \"שלם כדי לרצוח\" (Pay for Slay). ישראל מנכה את הסכומים מכספי המסים שהיא מעבירה לרשות. על הרקע הזה נולדה ההצעה הבאה.", "bill_title": "סנקציות על ארגונים \"תומכי טרור\"", "bill_date": "4 בדצמבר 2024", "bill_summary": "המדינה תוכל להטיל סנקציות על ארגונים שמעבירים כסף למחבלים או למשפחותיהם: איסור כניסה לארץ, הקפאת רכוש, איסור עסקאות. עברה בקריאה טרומית 55 מול 10.", "verification": "verified", "source": {"name": "הארץ", "url": "https://www.haaretz.co.il/news/law/2024-12-04/ty-article/00000193-91c0-d408-a7d3-bbd97fd10000"}, "politicians": [{"id": "elkin", "vote": "for", "key": true, "basis": "doc", "note": "יוזם ההצעה (יחד עם ח\"כ צבי סוכות): \"להגביר את אפקטיביות המלחמה בטרור\""}, {"id": "ben_gvir", "vote": "for", "basis": "bloc", "note": "הקואליציה תמכה"}, {"id": "smotrich", "vote": "for", "basis": "bloc", "note": "הקואליציה תמכה"}, {"id": "netanyahu", "vote": "for", "basis": "bloc", "note": "הקואליציה תמכה"}, {"id": "odeh", "vote": "against", "basis": "bloc", "note": "עשרת המתנגדים — בעיקר מהמפלגות הערביות (לאימות מול הפרוטוקול)"}, {"id": "abbas", "vote": "against", "basis": "bloc", "note": "מהמתנגדים (לאימות מול הפרוטוקול)"}], "core": false}, {"id": "m1", "topic": "military", "title": "מדינה פלסטינית: הכרה חד-צדדית", "emoji": "🌐", "tf": "הכנסת קיבלה הצהרה שמתנגדת להכרה בינלאומית חד-צדדית במדינה פלסטינית.", "tf_answer": "true", "tf_explain": "נכון. בכנסת ה-25 עלו כמה הצהרות בנושא. הצהרה מרכזית נגד הכרה חד-צדדית במדינה פלסטינית זכתה לתמיכה רחבה חוצה-גושים — קואליציה ואופוזיציה יחד. שים לב: הפרטים המדויקים של כל הצבעה טעונים אימות מול אתר הכנסת.", "bill_title": "הצהרה נגד הכרה חד-צדדית במדינה פלסטינית", "bill_date": "פברואר 2024", "bill_summary": "ההצהרה: ישראל דוחה תכתיבים בינלאומיים, והסדר מדיני יושג רק במשא ומתן ישיר. [שים לב: יש לאמת את פרטי ההצבעה המדויקים מול אתר הכנסת לפני פרסום]", "verification": "verified", "source": {"name": "ynet", "url": "https://www.ynet.co.il/news/article/rkxhwox3t"}, "politicians": [{"id": "lapid", "vote": "for", "key": true, "basis": "bloc", "note": "ההפתעה: ראש האופוזיציה הצביע עם נתניהו — \"אני ומפלגתי נגד צעדים חד-צדדיים\""}, {"id": "odeh", "vote": "against", "key": true, "basis": "bloc", "note": "\"מגיעה לעם הפלסטיני זכות להגדרה עצמית ולהקים מדינה משלו\""}, {"id": "netanyahu", "vote": "for", "basis": "bloc", "note": "יוזם ההצהרה: \"רוב עצום וחסר תקדים של 99 חברי כנסת\""}, {"id": "gantz", "vote": "for", "basis": "bloc", "note": "המחנה הממלכתי תמך"}, {"id": "liberman", "vote": "for", "basis": "bloc", "note": "ישראל ביתנו תמכה"}, {"id": "michaeli", "vote": "abstain", "basis": "bloc", "note": "מפלגת העבודה נעדרה מהדיון — לא בעד ולא נגד"}, {"id": "abbas", "vote": "against", "basis": "bloc", "note": "רע\"ם בין 9 המתנגדים"}], "core": true}, {"id": "m2", "topic": "military", "title": "מדינה פלסטינית: התנגדות עקרונית", "emoji": "🗺️", "tf": "הכנסת קיבלה החלטה שמתנגדת להקמת מדינה פלסטינית — לא רק להכרה חד-צדדית בה.", "tf_answer": "true", "tf_explain": "נכון. חמישה חודשים אחרי הצבעת פברואר, ביולי 2024 הכנסת הרחיבה את הקו: הצהרה נגד עצם הקמתה של מדינה פלסטינית ממערב לירדן. הפעם התמונה הפוליטית הייתה שונה — ולפיד כבר לא היה באולם.", "bill_title": "הצהרה נגד הקמת מדינה פלסטינית", "bill_date": "18 ביולי 2024", "bill_summary": "\"הכנסת מתנגדת להקמת מדינה פלסטינית ממערב לירדן\" — הצהרה שיזמו סיעות הימין ימים לפני נסיעת נתניהו לוושינגטון. עברה 68 מול 9. הצעות נגדיות של רע\"ם וחד\"ש-תע\"ל להכרה במדינה פלסטינית נדחו 62 מול 9.", "verification": "verified", "source": {"name": "כאן חדשות", "url": "https://www.kan.org.il/content/kan-news/politic/774418/"}, "politicians": [{"id": "elkin", "vote": "for", "key": true, "basis": "doc", "note": "יוזם ההצעה: \"תראו כאן הרבה כיסאות ריקים של מפלגות שיעדיפו להיעדר\""}, {"id": "gantz", "vote": "for", "key": true, "basis": "doc", "note": "המחנה הממלכתי תמך: \"הכרה במדינה פלסטינית אחרי 7/10 — פרס לטרור\""}, {"id": "lapid", "vote": "abstain", "basis": "doc", "note": "הטוויסט: הפעם ראש האופוזיציה נעדר מההצבעה"}, {"id": "netanyahu", "vote": "abstain", "basis": "doc", "note": "גם ראש הממשלה נעדר — ימים לפני נאומו בקונגרס"}, {"id": "saar", "vote": "for", "basis": "doc", "note": "\"הקמת מדינה פלסטינית תסכן את ביטחון ישראל ועתידה\""}, {"id": "odeh", "vote": "against", "basis": "bloc", "note": "חד\"ש-תע\"ל בין 9 המתנגדים; הצעתם הנגדית להכרה במדינה פלסטינית נדחתה"}], "core": false, "voteId": "41304", "knesset_url": "https://main.knesset.gov.il/Activity/plenum/Votes/Pages/vote.aspx?voteId=41304", "_tally": {"for": 68, "against": 9}}], "glossary": {"עילת הסבירות": "כלי משפטי שאיפשר לבג\"ץ לפסול החלטות ממשלה \"לא סבירות באופן קיצוני\". בוטלה בחוק ב-2023 — ובג\"ץ פסל את הביטול ב-2024. כן, זה מבלבל. זו בדיוק המלחמה על הכוח.", "דין רציפות": "טריק פרלמנטרי: ממשיכים לקדם הצעת חוק מכנסת קודמת בלי להתחיל מאפס. חוסך שנים של חקיקה — ולכן שנוי במחלוקת.", "קריאה טרומית": "ההצבעה הראשונה על הצעת חוק פרטית. אם עוברת — ההצעה ממשיכה לוועדה. רוב ההצעות נופלות כאן.", "קריאה ראשונה": "ההצבעה שמכניסה הצעת חוק לוועדה להכנה מפורטת. אחריה יבואו קריאה שנייה ושלישית — ורק אז זה חוק.", "קריאה שנייה ושלישית": "ההצבעות הסופיות שהופכות הצעה לחוק מחייב. בדרך כלל מצביעים עליהן באותו יום.", "חוק ההסדרים": "ענק חקיקתי שמצורף לתקציב ומכיל עשרות רפורמות בבת אחת. מבקרים אומרים: דרך לעקוף דיון אמיתי.", "כספים קואליציוניים": "כסף שמפלגות הקואליציה מקבלות לחלוקה לפי ההסכמים הפוליטיים — מעבר לתקציב הרגיל של המשרדים.", "בג\"ץ": "בית המשפט העליון בכובעו כבית דין גבוה לצדק. הכתובת של אזרחים נגד החלטות המדינה.", "ועדת חקירה ממלכתית": "ועדה עצמאית מהממשלה, בראשות שופט, שאת חבריה ממנה נשיא בית המשפט העליון. הכלי החזק ביותר לחקירת מחדלים.", "ועדת בדיקה": "ועדה שהממשלה מקימה ושולטת בהרכבה. פחות עצמאית מוועדת חקירה ממלכתית.", "חסינות": "הגנה לח\"כים מפני תביעה על פעולות במסגרת התפקיד (נאום, הצבעה). לא מגנה מפני עבירות פליליות רגילות.", "משמעת קואליציונית": "הכלל הלא-כתוב: חברי קואליציה מצביעים ביחד. מי ששובר — משלם מחיר פוליטי. בגלל זה \"מורדים\" הם אירוע.", "אופוזיציה": "המפלגות שלא בממשלה. התפקיד: לבקר, להציע חלופות — ולנסות להפיל את הממשלה.", "קואליציה": "המפלגות שמרכיבות את הממשלה. צריכות לפחות 61 מתוך 120 ח\"כים.", "אי-אמון": "הצבעה שאם 61 ח\"כים תומכים בה — הממשלה נופלת. הנשק הכבד של האופוזיציה.", "ח\"כ": "חבר/ת כנסת. יש 120. אתם — ה-121.", "סטטוס-קוו": "ההסדר הלא-כתוב מ-1947 על יחסי דת ומדינה: שבת, כשרות, נישואין. כל צד טוען שהצד השני מפר אותו.", "לימודי ליבה": "מתמטיקה, אנגלית, מדעים — הבסיס שכל בית ספר מתוקצב אמור ללמד. במוקד הוויכוח על החינוך החרדי.", "רפורמה משפטית": "תוכנית הממשלה מ-2023 לצמצום כוחו של בג\"ץ. הציתה את המחאה הגדולה בתולדות המדינה. חלקה נעצר, חלקה נפסל.", "קרן הארנונה": "מנגנון שלוקח חלק מהארנונה העסקית של ערים חזקות ומחלק לרשויות שבונות דירות. הערים החזקות עתרו נגדו לבג\"ץ.", "הצהרת כנסת": "החלטה שמביעה עמדה של הכנסת בלי לחוקק חוק. אין לה תוקף משפטי מחייב — אבל יש לה משקל פוליטי ובינלאומי.", "נישואי יוטה": "נישואים אזרחיים מרחוק בזום מול פקיד במדינת יוטה בארה\"ב. ישראל נאלצה להכיר בהם אחרי פסיקת בג\"ץ."}};
+const AVATARS = [{"id": "a1", "name": "רוני", "svg": "<svg viewBox=\"0 0 100 100\"><rect x=\"4\" y=\"4\" width=\"92\" height=\"92\" fill=\"#f4c9a5\" stroke=\"#161310\" stroke-width=\"3\" rx=\"12\"/><rect x=\"4\" y=\"60\" width=\"92\" height=\"36\" fill=\"#37c4ff\" stroke=\"none\" opacity=\".3\"/><path d=\"M20 96 Q20 68 50 68 Q80 68 80 96 Z\" fill=\"#4a4a4a\" stroke=\"#161310\" stroke-width=\"2.5\"/><path d=\"M42 68 L50 78 L58 68 L58 96 L42 96 Z\" fill=\"#fff\" stroke=\"#161310\" stroke-width=\"2\"/><path d=\"M50 72 L46 78 L47 92 L50 96 L53 92 L54 78 Z\" fill=\"#2b4cff\" stroke=\"#161310\" stroke-width=\"1.5\"/><rect x=\"45\" y=\"60\" width=\"10\" height=\"10\" fill=\"#f4c9a5\" stroke=\"#161310\" stroke-width=\"2\"/><circle cx=\"50\" cy=\"42\" r=\"20\" fill=\"#f4c9a5\" stroke=\"#161310\" stroke-width=\"2.5\"/><path d=\"M30 40 Q30 24 50 24 Q70 24 70 40 Q66 32 62 30 L60 32 Q55 28 50 28 Q45 28 40 32 L38 30 Q34 32 30 40 Z\" fill=\"#c8c8c8\" stroke=\"#161310\" stroke-width=\"2\"/><circle cx=\"42\" cy=\"43\" r=\"5\" fill=\"none\" stroke=\"#161310\" stroke-width=\"2\"/><circle cx=\"58\" cy=\"43\" r=\"5\" fill=\"none\" stroke=\"#161310\" stroke-width=\"2\"/><line x1=\"47\" y1=\"43\" x2=\"53\" y2=\"43\" stroke=\"#161310\" stroke-width=\"2\"/><circle cx=\"42\" cy=\"43\" r=\"1.5\" fill=\"#161310\"/><circle cx=\"58\" cy=\"43\" r=\"1.5\" fill=\"#161310\"/><path d=\"M50 46 L48 51 L50 52 L52 51 Z\" fill=\"none\" stroke=\"#161310\" stroke-width=\"1.2\"/><path d=\"M45 55 Q50 57 55 55\" stroke=\"#161310\" stroke-width=\"1.5\" fill=\"none\"/></svg>"}, {"id": "a2", "name": "מיכל", "svg": "<svg viewBox=\"0 0 100 100\"><rect x=\"4\" y=\"4\" width=\"92\" height=\"92\" fill=\"#f0c090\" stroke=\"#161310\" stroke-width=\"3\" rx=\"12\"/><rect x=\"4\" y=\"60\" width=\"92\" height=\"36\" fill=\"#ff6b9d\" stroke=\"none\" opacity=\".3\"/><path d=\"M20 96 Q20 68 50 68 Q80 68 80 96 Z\" fill=\"#2b4cff\" stroke=\"#161310\" stroke-width=\"2.5\"/><path d=\"M42 68 L50 76 L58 68 L58 96 L42 96 Z\" fill=\"#fff\" stroke=\"#161310\" stroke-width=\"2\"/><circle cx=\"42\" cy=\"76\" r=\"3\" fill=\"#ffd23f\" stroke=\"#161310\" stroke-width=\"1.5\"/><rect x=\"45\" y=\"60\" width=\"10\" height=\"10\" fill=\"#f0c090\" stroke=\"#161310\" stroke-width=\"2\"/><circle cx=\"50\" cy=\"42\" r=\"20\" fill=\"#f0c090\" stroke=\"#161310\" stroke-width=\"2.5\"/><path d=\"M28 40 Q28 20 50 20 Q72 20 72 40 Q72 52 70 58 L64 52 Q66 40 62 36 Q58 30 50 30 Q42 30 38 36 Q34 40 36 52 L30 58 Q28 52 28 40 Z\" fill=\"#8b4513\" stroke=\"#161310\" stroke-width=\"2\"/><circle cx=\"31\" cy=\"46\" r=\"2\" fill=\"#ffd23f\" stroke=\"#161310\" stroke-width=\"1\"/><circle cx=\"69\" cy=\"46\" r=\"2\" fill=\"#ffd23f\" stroke=\"#161310\" stroke-width=\"1\"/><ellipse cx=\"43\" cy=\"42\" rx=\"2\" ry=\"2.5\" fill=\"#161310\"/><ellipse cx=\"57\" cy=\"42\" rx=\"2\" ry=\"2.5\" fill=\"#161310\"/><path d=\"M39 37 L47 37\" stroke=\"#161310\" stroke-width=\"1.5\"/><path d=\"M53 37 L61 37\" stroke=\"#161310\" stroke-width=\"1.5\"/><path d=\"M48 48 L50 52 L52 48\" fill=\"none\" stroke=\"#161310\" stroke-width=\"1.2\"/><path d=\"M44 55 Q50 58 56 55\" stroke=\"#c8281a\" stroke-width=\"2\" fill=\"none\"/></svg>"}, {"id": "a3", "name": "אמיר", "svg": "<svg viewBox=\"0 0 100 100\"><rect x=\"4\" y=\"4\" width=\"92\" height=\"92\" fill=\"#c68b5c\" stroke=\"#161310\" stroke-width=\"3\" rx=\"12\"/><rect x=\"4\" y=\"60\" width=\"92\" height=\"36\" fill=\"#22c98e\" stroke=\"none\" opacity=\".3\"/><path d=\"M20 96 Q20 68 50 68 Q80 68 80 96 Z\" fill=\"#3a3a3a\" stroke=\"#161310\" stroke-width=\"2.5\"/><path d=\"M42 68 L50 78 L58 68 L58 96 L42 96 Z\" fill=\"#fff\" stroke=\"#161310\" stroke-width=\"2\"/><path d=\"M50 72 L46 78 L47 92 L50 96 L53 92 L54 78 Z\" fill=\"#ff5240\" stroke=\"#161310\" stroke-width=\"1.5\"/><rect x=\"45\" y=\"60\" width=\"10\" height=\"10\" fill=\"#c68b5c\" stroke=\"#161310\" stroke-width=\"2\"/><circle cx=\"50\" cy=\"42\" r=\"20\" fill=\"#c68b5c\" stroke=\"#161310\" stroke-width=\"2.5\"/><path d=\"M30 44 Q28 40 30 36 Q32 32 34 34 Q38 30 42 30\" fill=\"#333\" stroke=\"#161310\" stroke-width=\"1.5\"/><path d=\"M70 44 Q72 40 70 36 Q68 32 66 34 Q62 30 58 30\" fill=\"#333\" stroke=\"#161310\" stroke-width=\"1.5\"/><circle cx=\"43\" cy=\"43\" r=\"1.8\" fill=\"#161310\"/><circle cx=\"57\" cy=\"43\" r=\"1.8\" fill=\"#161310\"/><path d=\"M38 38 L48 38\" stroke=\"#161310\" stroke-width=\"2\"/><path d=\"M52 38 L62 38\" stroke=\"#161310\" stroke-width=\"2\"/><path d=\"M50 47 L47 52 L50 53 L53 52 Z\" fill=\"none\" stroke=\"#161310\" stroke-width=\"1.2\"/><path d=\"M40 55 Q45 53 50 54 Q55 53 60 55 Q55 57 50 56 Q45 57 40 55 Z\" fill=\"#333\" stroke=\"#161310\" stroke-width=\"1.2\"/><path d=\"M45 58 Q50 60 55 58\" stroke=\"#161310\" stroke-width=\"1.5\" fill=\"none\"/></svg>"}, {"id": "a4", "name": "נועה", "svg": "<svg viewBox=\"0 0 100 100\"><rect x=\"4\" y=\"4\" width=\"92\" height=\"92\" fill=\"#e8b088\" stroke=\"#161310\" stroke-width=\"3\" rx=\"12\"/><rect x=\"4\" y=\"60\" width=\"92\" height=\"36\" fill=\"#b06bff\" stroke=\"none\" opacity=\".3\"/><path d=\"M28 44 Q22 55 24 78 L28 88 L34 78 Q30 60 32 44 Z\" fill=\"#161310\"/><path d=\"M72 44 Q78 55 76 78 L72 88 L66 78 Q70 60 68 44 Z\" fill=\"#161310\"/><path d=\"M20 96 Q20 68 50 68 Q80 68 80 96 Z\" fill=\"#8b0000\" stroke=\"#161310\" stroke-width=\"2.5\"/><path d=\"M42 68 L50 76 L58 68 L58 96 L42 96 Z\" fill=\"#fff\" stroke=\"#161310\" stroke-width=\"2\"/><path d=\"M42 72 Q50 78 58 72\" fill=\"none\" stroke=\"#ffd23f\" stroke-width=\"1.5\"/><circle cx=\"50\" cy=\"76\" r=\"1.5\" fill=\"#ffd23f\" stroke=\"#161310\" stroke-width=\"0.8\"/><rect x=\"45\" y=\"60\" width=\"10\" height=\"10\" fill=\"#e8b088\" stroke=\"#161310\" stroke-width=\"2\"/><circle cx=\"50\" cy=\"42\" r=\"20\" fill=\"#e8b088\" stroke=\"#161310\" stroke-width=\"2.5\"/><path d=\"M30 42 Q30 20 50 20 Q70 20 70 42 Q64 34 60 32 Q55 30 50 30 Q45 30 40 32 Q36 34 30 42 Z\" fill=\"#161310\"/><ellipse cx=\"43\" cy=\"42\" rx=\"2\" ry=\"2.5\" fill=\"#161310\"/><ellipse cx=\"57\" cy=\"42\" rx=\"2\" ry=\"2.5\" fill=\"#161310\"/><path d=\"M39 37 Q43 35 47 37\" stroke=\"#161310\" stroke-width=\"1.5\" fill=\"none\"/><path d=\"M53 37 Q57 35 61 37\" stroke=\"#161310\" stroke-width=\"1.5\" fill=\"none\"/><path d=\"M48 48 L50 52 L52 48\" fill=\"none\" stroke=\"#161310\" stroke-width=\"1.2\"/><path d=\"M44 55 Q50 58 56 55\" stroke=\"#c8281a\" stroke-width=\"1.8\" fill=\"none\"/></svg>"}, {"id": "a5", "name": "יעקב", "svg": "<svg viewBox=\"0 0 100 100\"><rect x=\"4\" y=\"4\" width=\"92\" height=\"92\" fill=\"#e8b088\" stroke=\"#161310\" stroke-width=\"3\" rx=\"12\"/><rect x=\"4\" y=\"60\" width=\"92\" height=\"36\" fill=\"#ffd23f\" stroke=\"none\" opacity=\".3\"/><path d=\"M20 96 Q20 68 50 68 Q80 68 80 96 Z\" fill=\"#1a1a1a\" stroke=\"#161310\" stroke-width=\"2.5\"/><path d=\"M42 68 L50 78 L58 68 L58 96 L42 96 Z\" fill=\"#fff\" stroke=\"#161310\" stroke-width=\"2\"/><path d=\"M50 72 L46 78 L47 92 L50 96 L53 92 L54 78 Z\" fill=\"#333\" stroke=\"#161310\" stroke-width=\"1.5\"/><rect x=\"45\" y=\"60\" width=\"10\" height=\"10\" fill=\"#e8b088\" stroke=\"#161310\" stroke-width=\"2\"/><circle cx=\"50\" cy=\"42\" r=\"20\" fill=\"#e8b088\" stroke=\"#161310\" stroke-width=\"2.5\"/><path d=\"M35 52 Q40 68 50 68 Q60 68 65 52 Q60 60 50 62 Q40 60 35 52 Z\" fill=\"#3a2418\" stroke=\"#161310\" stroke-width=\"1.5\"/><path d=\"M32 40 Q30 26 42 24 Q50 22 58 24 Q70 26 68 40 Q66 34 62 34 Q56 30 50 30 Q44 30 38 34 Q34 34 32 40 Z\" fill=\"#3a2418\" stroke=\"#161310\" stroke-width=\"2\"/><ellipse cx=\"50\" cy=\"24\" rx=\"12\" ry=\"4\" fill=\"#1a1a1a\" stroke=\"#161310\" stroke-width=\"1.5\"/><circle cx=\"43\" cy=\"43\" r=\"1.8\" fill=\"#161310\"/><circle cx=\"57\" cy=\"43\" r=\"1.8\" fill=\"#161310\"/><path d=\"M39 38 L47 38\" stroke=\"#161310\" stroke-width=\"1.8\"/><path d=\"M53 38 L61 38\" stroke=\"#161310\" stroke-width=\"1.8\"/><path d=\"M50 46 L48 51 L50 52 L52 51 Z\" fill=\"none\" stroke=\"#161310\" stroke-width=\"1.2\"/><path d=\"M45 55 Q50 57 55 55\" stroke=\"#161310\" stroke-width=\"1.3\" fill=\"none\"/></svg>"}, {"id": "a6", "name": "סמדר", "svg": "<svg viewBox=\"0 0 100 100\"><rect x=\"4\" y=\"4\" width=\"92\" height=\"92\" fill=\"#f4c9a5\" stroke=\"#161310\" stroke-width=\"3\" rx=\"12\"/><rect x=\"4\" y=\"60\" width=\"92\" height=\"36\" fill=\"#37c4ff\" stroke=\"none\" opacity=\".3\"/><path d=\"M20 96 Q20 68 50 68 Q80 68 80 96 Z\" fill=\"#2a5f5f\" stroke=\"#161310\" stroke-width=\"2.5\"/><path d=\"M42 68 L50 76 L58 68 L58 96 L42 96 Z\" fill=\"#f5f0e8\" stroke=\"#161310\" stroke-width=\"2\"/><path d=\"M42 72 Q50 80 58 72\" fill=\"none\" stroke=\"#161310\" stroke-width=\"1.5\"/><rect x=\"45\" y=\"60\" width=\"10\" height=\"10\" fill=\"#f4c9a5\" stroke=\"#161310\" stroke-width=\"2\"/><circle cx=\"50\" cy=\"42\" r=\"20\" fill=\"#f4c9a5\" stroke=\"#161310\" stroke-width=\"2.5\"/><path d=\"M28 44 Q26 24 50 20 Q74 24 72 44 Q72 55 68 62 L70 68 Q60 65 50 65 Q40 65 30 68 L32 62 Q28 55 28 44 Z\" fill=\"#8b4a5f\" stroke=\"#161310\" stroke-width=\"2\"/><ellipse cx=\"50\" cy=\"42\" rx=\"16\" ry=\"18\" fill=\"#f4c9a5\" stroke=\"#161310\" stroke-width=\"2\"/><ellipse cx=\"43\" cy=\"42\" rx=\"2\" ry=\"2.5\" fill=\"#161310\"/><ellipse cx=\"57\" cy=\"42\" rx=\"2\" ry=\"2.5\" fill=\"#161310\"/><path d=\"M39 37 Q43 36 47 37\" stroke=\"#161310\" stroke-width=\"1.5\" fill=\"none\"/><path d=\"M53 37 Q57 36 61 37\" stroke=\"#161310\" stroke-width=\"1.5\" fill=\"none\"/><path d=\"M48 47 L50 51 L52 47\" fill=\"none\" stroke=\"#161310\" stroke-width=\"1.2\"/><path d=\"M44 55 Q50 57 56 55\" stroke=\"#a52a2a\" stroke-width=\"1.8\" fill=\"none\"/></svg>"}, {"id": "a7", "name": "דניאל", "svg": "<svg viewBox=\"0 0 100 100\"><rect x=\"4\" y=\"4\" width=\"92\" height=\"92\" fill=\"#e8b088\" stroke=\"#161310\" stroke-width=\"3\" rx=\"12\"/><rect x=\"4\" y=\"60\" width=\"92\" height=\"36\" fill=\"#2b4cff\" stroke=\"none\" opacity=\".3\"/><path d=\"M20 96 Q20 68 50 68 Q80 68 80 96 Z\" fill=\"#1a3acc\" stroke=\"#161310\" stroke-width=\"2.5\"/><path d=\"M42 68 L50 78 L58 68 L58 96 L42 96 Z\" fill=\"#fff\" stroke=\"#161310\" stroke-width=\"2\"/><path d=\"M50 72 L46 78 L47 92 L50 96 L53 92 L54 78 Z\" fill=\"#22c98e\" stroke=\"#161310\" stroke-width=\"1.5\"/><path d=\"M47 82 L53 82\" stroke=\"#161310\" stroke-width=\"0.6\"/><path d=\"M47 88 L53 88\" stroke=\"#161310\" stroke-width=\"0.6\"/><rect x=\"45\" y=\"60\" width=\"10\" height=\"10\" fill=\"#e8b088\" stroke=\"#161310\" stroke-width=\"2\"/><circle cx=\"50\" cy=\"42\" r=\"20\" fill=\"#e8b088\" stroke=\"#161310\" stroke-width=\"2.5\"/><path d=\"M30 40 Q30 22 50 22 Q70 22 70 40 Q66 30 62 30 Q56 26 50 26 Q44 26 38 30 Q34 30 30 40 Z\" fill=\"#3a2418\" stroke=\"#161310\" stroke-width=\"2\"/><rect x=\"37\" y=\"39\" width=\"10\" height=\"8\" rx=\"1\" fill=\"none\" stroke=\"#161310\" stroke-width=\"2\"/><rect x=\"53\" y=\"39\" width=\"10\" height=\"8\" rx=\"1\" fill=\"none\" stroke=\"#161310\" stroke-width=\"2\"/><line x1=\"47\" y1=\"43\" x2=\"53\" y2=\"43\" stroke=\"#161310\" stroke-width=\"2\"/><circle cx=\"42\" cy=\"43\" r=\"1.5\" fill=\"#161310\"/><circle cx=\"58\" cy=\"43\" r=\"1.5\" fill=\"#161310\"/><path d=\"M50 47 L48 52 L50 53 L52 52 Z\" fill=\"none\" stroke=\"#161310\" stroke-width=\"1.2\"/><path d=\"M44 57 Q50 59 56 57\" stroke=\"#161310\" stroke-width=\"1.5\" fill=\"none\"/></svg>"}, {"id": "a8", "name": "רותי", "svg": "<svg viewBox=\"0 0 100 100\"><rect x=\"4\" y=\"4\" width=\"92\" height=\"92\" fill=\"#f4c9a5\" stroke=\"#161310\" stroke-width=\"3\" rx=\"12\"/><rect x=\"4\" y=\"60\" width=\"92\" height=\"36\" fill=\"#ff5240\" stroke=\"none\" opacity=\".3\"/><path d=\"M20 96 Q20 68 50 68 Q80 68 80 96 Z\" fill=\"#4a4a4a\" stroke=\"#161310\" stroke-width=\"2.5\"/><path d=\"M42 68 L50 76 L58 68 L58 96 L42 96 Z\" fill=\"#fff\" stroke=\"#161310\" stroke-width=\"2\"/><circle cx=\"46\" cy=\"73\" r=\"1.5\" fill=\"#fff\" stroke=\"#161310\" stroke-width=\"0.8\"/><circle cx=\"50\" cy=\"75\" r=\"1.5\" fill=\"#fff\" stroke=\"#161310\" stroke-width=\"0.8\"/><circle cx=\"54\" cy=\"73\" r=\"1.5\" fill=\"#fff\" stroke=\"#161310\" stroke-width=\"0.8\"/><rect x=\"45\" y=\"60\" width=\"10\" height=\"10\" fill=\"#f4c9a5\" stroke=\"#161310\" stroke-width=\"2\"/><circle cx=\"50\" cy=\"42\" r=\"20\" fill=\"#f4c9a5\" stroke=\"#161310\" stroke-width=\"2.5\"/><path d=\"M28 42 Q28 22 50 20 Q72 22 72 42 Q72 50 68 54 L64 48 Q64 32 58 30 Q52 28 50 28 Q48 28 42 30 Q36 32 36 48 L32 54 Q28 50 28 42 Z\" fill=\"#a0a0a0\" stroke=\"#161310\" stroke-width=\"2\"/><circle cx=\"31\" cy=\"46\" r=\"2\" fill=\"#fff\" stroke=\"#161310\" stroke-width=\"1\"/><circle cx=\"69\" cy=\"46\" r=\"2\" fill=\"#fff\" stroke=\"#161310\" stroke-width=\"1\"/><ellipse cx=\"43\" cy=\"42\" rx=\"2\" ry=\"2.5\" fill=\"#161310\"/><ellipse cx=\"57\" cy=\"42\" rx=\"2\" ry=\"2.5\" fill=\"#161310\"/><path d=\"M38 45 Q40 46 42 45\" stroke=\"#161310\" stroke-width=\"0.5\" fill=\"none\"/><path d=\"M58 45 Q60 46 62 45\" stroke=\"#161310\" stroke-width=\"0.5\" fill=\"none\"/><path d=\"M39 37 L47 37\" stroke=\"#161310\" stroke-width=\"1.5\"/><path d=\"M53 37 L61 37\" stroke=\"#161310\" stroke-width=\"1.5\"/><path d=\"M48 47 L50 51 L52 47\" fill=\"none\" stroke=\"#161310\" stroke-width=\"1.2\"/><path d=\"M44 55 Q50 58 56 55\" stroke=\"#c8281a\" stroke-width=\"2\" fill=\"none\"/></svg>"}];
+const TOPICS = DATA.topics, POLS = DATA.politicians, ISSUES = DATA.issues, GLOSSARY = DATA.glossary || {};
+
+// ===== Avatar Builder =====
+const SKINS = [
+  {id:'s1',color:'#f4c9a5',label:'🏻'},{id:'s2',color:'#e8b088',label:'🏼'},
+  {id:'s3',color:'#c68b5c',label:'🏽'},{id:'s4',color:'#8b5e3c',label:'🏾'},{id:'s5',color:'#5c3a1e',label:'🏿'}
+];
+const HAIRS = [
+  {id:'short',label:'קצר'},{id:'long',label:'ארוך'},{id:'curly',label:'מתולתל'},
+  {id:'kippah',label:'כיפה'},{id:'hijab',label:"חיג'אב"},{id:'bald',label:'קרח'}
+];
+const HAIR_COLORS = [
+  {id:'hc1',color:'#1a1a1a',label:'שחור'},{id:'hc2',color:'#3a2418',label:'חום'},
+  {id:'hc3',color:'#c8a832',label:'בלונד'},{id:'hc4',color:'#888',label:'אפור'},{id:'hc5',color:'#8b1a1a',label:'אדום'}
+];
+const CLOTHES = [
+  {id:'cl1',color:'#2b4cff',label:'כחול'},{id:'cl2',color:'#ff5240',label:'אדום'},
+  {id:'cl3',color:'#22c98e',label:'ירוק'},{id:'cl4',color:'#3a3a3a',label:'שחור'},{id:'cl5',color:'#b06bff',label:'סגול'}
+];
+const EYES_OPTS = [
+  {id:'normal',label:'רגיל'},{id:'glasses',label:'משקפיים'},{id:'sunglasses',label:'משקפי שמש'}
+];
+
+function buildAvatarSvg(cfg, gnd) {
+  var c = cfg || {}, gen = gnd || player.gender || 'm';
+  var skin = c.skin || '#f4c9a5';
+  var hairStyle = c.hair || 'short';
+  var hairColor = c.hairColor || '#1a1a1a';
+  var clothesColor = c.clothes || '#2b4cff';
+  var eyeStyle = c.eyes || 'normal';
+
+  var body = gen === 'f'
+    ? '<path d="M20 96 Q20 68 50 68 Q80 68 80 96 Z" fill="'+clothesColor+'" stroke="#161310" stroke-width="2.5"/><path d="M38 68 Q50 80 62 68 Q56 76 44 76 Z" fill="#fff" stroke="#161310" stroke-width="1.5" opacity="0.7"/>'
+    : '<path d="M20 96 Q20 68 50 68 Q80 68 80 96 Z" fill="'+clothesColor+'" stroke="#161310" stroke-width="2.5"/><path d="M42 68 L50 78 L58 68 L58 96 L42 96 Z" fill="#fff" stroke="#161310" stroke-width="2"/><path d="M50 72 L46 78 L47 92 L50 96 L53 92 L54 78 Z" fill="'+clothesColor+'" stroke="#161310" stroke-width="1.5"/>';
+
+  var neck = '<rect x="45" y="60" width="10" height="10" fill="'+skin+'" stroke="#161310" stroke-width="2"/>';
+  var face = '<circle cx="50" cy="42" r="20" fill="'+skin+'" stroke="#161310" stroke-width="2.5"/>';
+
+  var hair = '';
+  switch(hairStyle) {
+    case 'short':
+      hair = '<path d="M30 40 Q30 22 50 22 Q70 22 70 40 Q66 32 62 30 Q55 26 50 26 Q45 26 38 30 Q34 32 30 40 Z" fill="'+hairColor+'" stroke="#161310" stroke-width="2"/>'; break;
+    case 'long':
+      hair = '<path d="M30 40 Q30 22 50 22 Q70 22 70 40 Q66 32 62 30 Q55 26 50 26 Q45 26 38 30 Q34 32 30 40 Z" fill="'+hairColor+'" stroke="#161310" stroke-width="2"/>'
+           + '<path d="M28 44 Q22 60 24 80 L30 90 L34 78 Q30 60 32 44 Z" fill="'+hairColor+'" stroke="#161310" stroke-width="1.5"/>'
+           + '<path d="M72 44 Q78 60 76 80 L70 90 L66 78 Q70 60 68 44 Z" fill="'+hairColor+'" stroke="#161310" stroke-width="1.5"/>'; break;
+    case 'curly':
+      hair = '<path d="M28 42 Q26 22 50 20 Q74 22 72 42 Q72 56 65 62 Q60 65 50 65 Q40 65 35 62 Q28 56 28 42 Z" fill="'+hairColor+'" stroke="#161310" stroke-width="2"/>'
+           + '<ellipse cx="50" cy="43" rx="16" ry="19" fill="'+skin+'" stroke="#161310" stroke-width="1.5"/>'
+           + '<circle cx="30" cy="35" r="5" fill="'+hairColor+'" stroke="#161310" stroke-width="1.5"/>'
+           + '<circle cx="70" cy="35" r="5" fill="'+hairColor+'" stroke="#161310" stroke-width="1.5"/>'
+           + '<circle cx="36" cy="24" r="5" fill="'+hairColor+'" stroke="#161310" stroke-width="1.5"/>'
+           + '<circle cx="64" cy="24" r="5" fill="'+hairColor+'" stroke="#161310" stroke-width="1.5"/>'
+           + '<circle cx="50" cy="21" r="5" fill="'+hairColor+'" stroke="#161310" stroke-width="1.5"/>'; break;
+    case 'kippah':
+      hair = '<path d="M38 32 Q38 20 50 20 Q62 20 62 32 Z" fill="'+hairColor+'" stroke="#161310" stroke-width="2"/>'
+           + '<ellipse cx="50" cy="32" rx="12" ry="3.5" fill="'+hairColor+'" stroke="#161310" stroke-width="1.5"/>'; break;
+    case 'hijab':
+      hair = '<path d="M28 46 Q26 22 50 20 Q74 22 72 46 Q72 72 50 72 Q28 72 28 46 Z" fill="'+hairColor+'" stroke="#161310" stroke-width="2"/>'
+           + '<ellipse cx="50" cy="44" rx="17" ry="20" fill="'+skin+'" stroke="#161310" stroke-width="1.5"/>'; break;
+    default: break;
+  }
+
+  var eyes = '';
+  switch(eyeStyle) {
+    case 'glasses':
+      eyes = '<rect x="37" y="39" width="10" height="8" rx="1" fill="rgba(150,200,255,0.3)" stroke="#161310" stroke-width="2"/>'
+           + '<rect x="53" y="39" width="10" height="8" rx="1" fill="rgba(150,200,255,0.3)" stroke="#161310" stroke-width="2"/>'
+           + '<line x1="47" y1="43" x2="53" y2="43" stroke="#161310" stroke-width="2"/>'
+           + '<line x1="27" y1="43" x2="37" y2="43" stroke="#161310" stroke-width="1.5"/>'
+           + '<line x1="63" y1="43" x2="73" y2="43" stroke="#161310" stroke-width="1.5"/>'
+           + '<circle cx="42" cy="43" r="1.5" fill="#161310"/><circle cx="58" cy="43" r="1.5" fill="#161310"/>'
+           + '<path d="M39 37 Q43 36 47 37" stroke="#161310" stroke-width="1.5" fill="none"/>'
+           + '<path d="M53 37 Q57 36 61 37" stroke="#161310" stroke-width="1.5" fill="none"/>'; break;
+    case 'sunglasses':
+      eyes = '<rect x="37" y="39" width="10" height="8" rx="1" fill="#1a1a1a" stroke="#161310" stroke-width="2"/>'
+           + '<rect x="53" y="39" width="10" height="8" rx="1" fill="#1a1a1a" stroke="#161310" stroke-width="2"/>'
+           + '<line x1="47" y1="43" x2="53" y2="43" stroke="#161310" stroke-width="2"/>'
+           + '<line x1="27" y1="43" x2="37" y2="43" stroke="#161310" stroke-width="1.5"/>'
+           + '<line x1="63" y1="43" x2="73" y2="43" stroke="#161310" stroke-width="1.5"/>'; break;
+    default:
+      eyes = '<ellipse cx="43" cy="42" rx="2" ry="2.5" fill="#161310"/><ellipse cx="57" cy="42" rx="2" ry="2.5" fill="#161310"/>'
+           + '<path d="M39 37 Q43 36 47 37" stroke="#161310" stroke-width="1.5" fill="none"/>'
+           + '<path d="M53 37 Q57 36 61 37" stroke="#161310" stroke-width="1.5" fill="none"/>'; break;
+  }
+
+  var nose = '<path d="M50 46 L48 51 L50 52 L52 51 Z" fill="none" stroke="#161310" stroke-width="1.2"/>';
+  var mouth = '<path d="M44 55 Q50 58 56 55" stroke="#161310" stroke-width="1.5" fill="none"/>';
+  var bg = '<rect x="4" y="4" width="92" height="92" fill="'+clothesColor+'" stroke="#161310" stroke-width="3" rx="12" opacity="0.15"/>';
+
+  return '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">'+bg+body+neck+face+hair+eyes+nose+mouth+'</svg>';
+}
+const STORAGE_KEY = 'khav-121-v3';
+const COINS_PER_STEP = 25; // TF + bill + drag = 3 steps => 75 coins/issue; 16 issues => 1200 total
+
+// ===== Player state =====
+let player = { name:"", avatarId:AVATARS[0].id, gender:"" }; // gender: 'm' | 'f' | ''
+let progress = {}; // topicId -> { issues: { issueId: {completed, coins, completedAt} } }
+let totalCoins = 0;
+
+// ===== Mobile viewport fix =====
+function setVh(){ document.documentElement.style.setProperty('--vh', (window.innerHeight*0.01)+'px'); }
+setVh();
+window.addEventListener('resize', setVh);
+window.addEventListener('orientationchange', () => setTimeout(setVh, 100));
+
+// ===== Storage =====
+function loadProgress(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){ const p = JSON.parse(raw); if(p.player) player = Object.assign(player,p.player); if(p.progress) progress = p.progress; if(typeof p.totalCoins==='number') totalCoins = p.totalCoins; }
+  }catch(e){}
+}
+function saveProgress(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({player, progress, totalCoins})); }catch(e){}
+}
+
+// ===== Sound (synthetic WebAudio — no external files) =====
+let audioCtx = null, muted = false;
+function initAudio(){ if(!audioCtx){ try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } }
+function beep(freq, dur, type, vol){
+  if(muted || !audioCtx) return;
+  try{
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = type||'sine'; o.frequency.value = freq;
+    g.gain.value = vol||0.06;
+    o.connect(g); g.connect(audioCtx.destination);
+    const t = audioCtx.currentTime;
+    g.gain.setValueAtTime(vol||0.06, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + (dur||0.12));
+    o.start(t); o.stop(t + (dur||0.12));
+  }catch(e){}
+}
+function sfxTap(){ beep(420, 0.07, 'triangle', 0.05); }
+function sfxCorrect(){ beep(660,0.09,'sine',0.06); setTimeout(()=>beep(880,0.12,'sine',0.06),90); navigator.vibrate&&navigator.vibrate(50); }
+function sfxWrong(){ beep(200,0.16,'sawtooth',0.05); navigator.vibrate&&navigator.vibrate([50,40,80]); }
+function sfxCoin(){ beep(1050,0.06,'square',0.04); setTimeout(()=>beep(1400,0.08,'square',0.04),60); }
+function sfxWhoosh(){ beep(300,0.18,'sine',0.04); }
+function sfxCelebrate(){ [523,659,784,1046].forEach((f,i)=>setTimeout(()=>beep(f,0.18,'triangle',0.06), i*120)); }
+function toggleMute(){
+  muted = !muted;
+  document.querySelectorAll('.mute-btn').forEach(b=> b.textContent = muted ? '🔇' : '🔊');
+  if(!muted){ initAudio(); sfxTap(); }
+  saveMute();
+}
+function saveMute(){ try{ localStorage.setItem('khav-121-muted', muted?'1':'0'); }catch(e){} }
+function loadMute(){ try{ muted = localStorage.getItem('khav-121-muted')==='1'; }catch(e){} }
+
+// ===== Gender-aware phrasing =====
+// g('אתה','את') returns correct form; default masculine if unset
+function g(m, f){ return player.gender==='f' ? f : m; }
+
+// ===== Navigation =====
+function show(id){
+  const prev=document.querySelector('.screen.active');
+  const next=document.getElementById(id);
+  if(prev===next){next.scrollTop=0;return;}
+  if(prev){
+    prev.classList.add('leaving');
+    prev.classList.remove('active');
+    const rm=()=>prev.classList.remove('leaving');
+    prev.addEventListener('animationend',rm,{once:true});
+    setTimeout(rm,400);
+  }
+  next.classList.add('active');
+  next.scrollTop=0;
+}
+function startFast(){ initAudio(); sfxTap(); if(!player.name){ goAvatar(); } else { goHome(); } }
+function goAvatar(){ renderAvatarBuilder(); renderGender(); document.getElementById('userName').value = player.name||''; show('avatar'); }
+function confirmAvatar(){
+  sfxTap();
+  player.name = (document.getElementById('userName').value.trim() || g("אורח","אורחת"));
+  if(!player.avatarCfg) player.avatarCfg = getDefaultCfg();
+  if(!player.gender) player.gender='m';
+  saveProgress(); goHome();
+}
+function skipAvatar(){ sfxTap(); player.name = g("אורח","אורחת"); if(!player.gender) player.gender='m'; saveProgress(); goHome(); }
+function goHome(){ renderHome(); show('home'); }
+function backToHome(){ sfxWhoosh(); goHome(); }
+
+// ===== Avatar Builder =====
+function getDefaultCfg(){ return {skin:'#f4c9a5',hair:'short',hairColor:'#1a1a1a',clothes:'#2b4cff',eyes:'normal'}; }
+function getAvatarSvg(){ return buildAvatarSvg(player.avatarCfg || getDefaultCfg(), player.gender); }
+
+function updateBuilderPreview(){
+  var el = document.getElementById('builderPreview'); if(!el) return;
+  el.innerHTML = buildAvatarSvg(player.avatarCfg || getDefaultCfg(), player.gender);
+}
+
+function renderAvatarBuilder(){
+  if(!player.avatarCfg) player.avatarCfg = getDefaultCfg();
+  updateBuilderPreview();
+  buildChips('skinChips', SKINS, true,
+    function(o){ return player.avatarCfg.skin === o.color; },
+    function(o){ player.avatarCfg.skin = o.color; });
+  buildChips('hairChips', HAIRS, false,
+    function(o){ return player.avatarCfg.hair === o.id; },
+    function(o){ player.avatarCfg.hair = o.id; updateHairColorVisibility(); });
+  buildChips('hairColorChips', HAIR_COLORS, true,
+    function(o){ return player.avatarCfg.hairColor === o.color; },
+    function(o){ player.avatarCfg.hairColor = o.color; });
+  buildChips('clothesChips', CLOTHES, true,
+    function(o){ return player.avatarCfg.clothes === o.color; },
+    function(o){ player.avatarCfg.clothes = o.color; });
+  buildChips('eyesChips', EYES_OPTS, false,
+    function(o){ return player.avatarCfg.eyes === o.id; },
+    function(o){ player.avatarCfg.eyes = o.id; });
+  updateHairColorVisibility();
+}
+
+function buildChips(containerId, opts, isColor, isSelected, onPick){
+  var wrap = document.getElementById(containerId); if(!wrap) return;
+  wrap.innerHTML='';
+  opts.forEach(function(opt){
+    var btn = document.createElement('button');
+    btn.className = 'b-chip' + (isColor?' color':'') + (isSelected(opt)?' selected':'');
+    if(isColor){ btn.style.background = opt.color; btn.setAttribute('title', opt.label); }
+    else btn.textContent = opt.label;
+    btn.onclick = function(){ sfxTap(); onPick(opt); renderAvatarBuilder(); };
+    wrap.appendChild(btn);
+  });
+}
+
+function updateHairColorVisibility(){
+  var sec = document.getElementById('hairColorSection'); if(!sec) return;
+  sec.style.display = (player.avatarCfg && (player.avatarCfg.hair==='bald'||player.avatarCfg.hair==='hijab')) ? 'none' : 'block';
+}
+
+function renderGender(){
+  document.querySelectorAll('.gender-chip').forEach(function(chip){
+    chip.classList.toggle('selected', chip.dataset.g===player.gender);
+    chip.onclick = function(){ player.gender=chip.dataset.g; sfxTap(); renderGender(); updateBuilderPreview(); };
+  });
+}
+
+// ===== Home =====
+function renderHome(){
+  const mini = document.getElementById('userMini');
+  mini.innerHTML = getAvatarSvg() + '<span class="un">'+(player.name||g("אורח","אורחת"))+'</span>';
+  document.getElementById('coinChip').innerHTML = '🪙 '+totalCoins;
+
+  // Fast completion: one core issue per topic = 8 to finish the map
+  const coreIssues = ISSUES.filter(i=>i.core);
+  const totalCore = coreIssues.length;
+  const doneCore = coreIssues.filter(i=>issueIsDone(i.topic,i.id)).length;
+  document.getElementById('meterCount').textContent = doneCore+'/'+totalCore;
+  const pct = Math.round(doneCore/totalCore*100);
+  setTimeout(()=>document.getElementById('meterFill').style.width = pct+'%', 100);
+
+  const sub = document.getElementById('meterSub');
+  const left = totalCore-doneCore;
+  if(doneCore===0) sub.textContent = g('בחר נושא ותתחיל לשחק 🚀','בחרי נושא ותתחילי לשחק 🚀');
+  else if(doneCore===totalCore) sub.textContent = '🏆 סיימת את המפה! יש עוד סוגיות בונוס';
+  else if(left===1) sub.textContent = 'עוד סוגיה אחת ואת/ה מסיים/ת! 🔥';
+  else sub.textContent = 'עוד '+left+' סוגיות וסיימת 💪';
+
+  const grid = document.getElementById('topicGrid'); grid.innerHTML='';
+  TOPICS.forEach(t=>{
+    const done = topicIsDone(t.id);
+    const half = !done && topicHasProgress(t.id);
+    const card = document.createElement('div');
+    card.className = 'topic-card'+(done?' done':'');
+    card.style.setProperty('--tc',t.color); card.style.setProperty('--tc2',t.color2);
+    card.innerHTML =
+      (done?'<div class="check">✔</div>':'') +
+      '<div class="em">'+t.icon+'</div>' +
+      '<div class="nm">'+t.label+'</div>' +
+      '<div class="tsub">'+t.sub+'</div>' +
+      '<div class="status">'+(done?'✓ הושלם':(half?'1/2 סוגיות':'2 סוגיות'))+'</div>';
+    card.onclick = ()=>{ sfxTap(); enterTopic(t.id); };
+    grid.appendChild(card);
+  });
+
+  // if all core issues done, offer celebration again
+  if(doneCore===totalCore){
+    const note = document.getElementById('allDoneNote');
+    if(note) note.style.display='block';
+  }
+}
+function topicIsDone(id){ const p=progress[id]; if(!p||!p.issues) return false; return ISSUES.filter(i=>i.topic===id).every(i=>p.issues[i.id]&&p.issues[i.id].completed); }
+function topicHasProgress(id){ const p=progress[id]; if(!p||!p.issues) return false; return Object.values(p.issues).some(x=>x.completed); }
+function issueIsDone(topicId, issueId){ const p=progress[topicId]; return !!(p&&p.issues&&p.issues[issueId]&&p.issues[issueId].completed); }
+
+// ===== Explain sheet & glossary =====
+function openExplain(title, body, credit){
+  document.getElementById('explainTitle').textContent = title;
+  document.getElementById('explainBody').innerHTML = body;
+  document.getElementById('explainCredit').textContent = credit || '📖 מבית המגדלור';
+  document.getElementById('explainOverlay').classList.add('active');
+  sfxTap();
+}
+function closeExplain(e){
+  if(e && e.target.closest('.explain-sheet') && !e.target.classList.contains('close')) return;
+  document.getElementById('explainOverlay').classList.remove('active');
+}
+function explainWord(w){ const d=GLOSSARY[w]; if(!d) return; openExplain(w, d, '📖 מילון · המגדלור'); }
+function explainIssue(){
+  if(!currentIssue) return;
+  const t = currentTopic;
+  let body = '<b>למה זה חשוב?</b><br>'+currentIssue.tf_explain+'<br><br><b>מה עמד להצבעה?</b><br>'+currentIssue.bill_title+' ('+currentIssue.bill_date+')<br>'+currentIssue.bill_summary;
+  if(currentIssue.source && currentIssue.source.url){
+    body += '<br><br><a class="src-link" href="'+currentIssue.source.url+'" target="_blank" rel="noopener">🔗 מקור: '+currentIssue.source.name+'</a>';
+  }
+  if(currentIssue.knesset_url){
+    body += '<br><a class="src-link" href="'+currentIssue.knesset_url+'" target="_blank" rel="noopener">🏛️ הצבעה רשמית בכנסת (voteId '+currentIssue.voteId+')</a>';
+  }
+  openExplain(t.icon+' '+currentIssue.title, body, '📖 הסבר על הסוגיה');
+}
+function markupText(text){
+  if(!text) return '';
+  let out = text;
+  const terms = Object.keys(GLOSSARY).sort((a,b)=>b.length-a.length);
+  terms.forEach(term=>{
+    const escaped = term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    const regex = new RegExp('(^|[\\s"\'\\(])('+escaped+')(?=[\\s.,;:!?\\)"\']|$)','g');
+    out = out.replace(regex, (match,before,m)=> before+'<span class="explain-word" onclick="event.stopPropagation();explainWord(\''+term.replace(/'/g,"\\'")+'\')">'+m+'</span>');
+  });
+  return out;
+}
+
+// ===== Avatar callouts (floating toast in the player's name) =====
+let calloutTimer = null;
+function callout(msg){
+  const el = document.getElementById('callout');
+  if(!el) return;
+  el.querySelector('.ctxt').textContent = msg;
+  el.querySelector('svg')?.remove();
+  const wrap = document.createElement('div');
+  wrap.innerHTML = getAvatarSvg();
+  el.insertBefore(wrap.firstChild, el.firstChild);
+  el.classList.add('show');
+  clearTimeout(calloutTimer);
+  calloutTimer = setTimeout(()=>el.classList.remove('show'), 2600);
+}
+function praiseName(){
+  const nm = player.name && player.name!=='אורח' && player.name!=='אורחת' ? player.name : '';
+  const opts = nm ? [
+    'כל הכבוד '+nm+'! 👏',
+    'יפה '+nm+', ממשיכים!',
+    nm+', '+g('אתה','את')+' בכיוון טוב! 🔥',
+  ] : ['כל הכבוד! 👏','יפה מאוד! 🔥','ממשיכים!'];
+  callout(opts[Math.floor(Math.random()*opts.length)]);
+}
+
+// ===== Issue flow =====
+let currentTopic=null, currentIssue=null, currentStep=0;
+let userTfAnswer=null, userBillVote=null, dragState={}, dragRevealed=false;
+let issueCoinsEarned=0;
+let sampledPolitded=null;
+let stepsAwarded=new Set();
+
+function enterTopic(topicId){
+  currentTopic = TOPICS.find(t=>t.id===topicId);
+  const tIssues = ISSUES.filter(i=>i.topic===topicId);
+  const p = progress[topicId]||{issues:{}};
+  let next = tIssues.find(i=>!p.issues||!p.issues[i.id]||!p.issues[i.id].completed);
+  if(!next) next = tIssues[0];
+  startIssue(next);
+}
+function startIssue(issue){
+  currentIssue = issue; currentStep=0; userTfAnswer=null; userBillVote=null;
+  dragState={}; dragRevealed=false; issueCoinsEarned=0; stepsAwarded=new Set();
+  // sample politicians: always include key:true, then random fill up to 5
+  const keyPols = issue.politicians.filter(p=>p.key);
+  const rest = issue.politicians.filter(p=>!p.key).slice();
+  for(let i=rest.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [rest[i],rest[j]]=[rest[j],rest[i]]; }
+  const target = Math.min(5, issue.politicians.length);
+  sampledPolitded = keyPols.concat(rest).slice(0, Math.max(target, keyPols.length));
+  // keep original order by bill logic? shuffle final display
+  for(let i=sampledPolitded.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [sampledPolitded[i],sampledPolitded[j]]=[sampledPolitded[j],sampledPolitded[i]]; }
+  sampledPolitded.forEach(p=> dragState[p.id]='pool');
+  show('issue'); renderIssueStep();
+}
+function renderStepBars(){
+  const bars = document.getElementById('stepBars'); bars.innerHTML='';
+  for(let s=0;s<3;s++){ const b=document.createElement('div'); b.className='step-bar'+(s<currentStep?' done':s===currentStep?' cur':''); bars.appendChild(b); }
+  const bsb = document.getElementById('backStepBtn');
+  if(bsb) bsb.style.display = (currentStep>0 && currentStep<4) ? 'block' : 'none';
+  updateCoinDisplays();
+}
+
+function prevStep(){
+  if(currentStep<=0 || currentStep>=4) return;
+  if(currentStep===3){ scrollGuesses={}; scrollIdx=0; }
+  if(currentStep===2){ userBillVote=null; }
+  if(currentStep===1){ userTfAnswer=null; }
+  currentStep--;
+  renderIssueStep();
+}
+function renderIssueStep(){
+  renderStepBars();
+  const c = document.getElementById('issueContent');
+  const header =
+    '<div style="position:relative;padding-top:2px">'+
+      '<button class="float-explain" onclick="explainIssue()">🤔 מה זה?</button>'+
+      '<span class="issue-topic-tag">'+currentTopic.icon+' '+currentTopic.label+'</span>'+
+      '<div class="issue-title">'+currentIssue.emoji+' '+currentIssue.title+'</div>'+
+    '</div>';
+
+  if(currentStep===0){
+    c.innerHTML = header +
+      '<div class="tf-card" id="tfCard">'+
+        '<div>'+
+          '<div class="tf-icon">'+currentIssue.emoji+'</div>'+
+          '<div class="tf-question">אמת או שקר?</div>'+
+          '<div class="tf-statement">"'+markupText(currentIssue.tf)+'"</div>'+
+        '</div>'+
+        '<div class="tf-hint">↔ '+g("החלק","החליקי")+' את הכרטיס או '+g("לחץ","לחצי")+' למטה</div>'+
+        '<span class="tf-stamp true">אמת!</span>'+
+        '<span class="tf-stamp false">שקר!</span>'+
+      '</div>'+
+      '<div class="tf-buttons">'+
+        '<button class="tf-btn false" onclick="pickTF(\'false\')">❌ שקר</button>'+
+        '<button class="tf-btn true" onclick="pickTF(\'true\')">✅ אמת</button>'+
+      '</div>';
+    setupTfSwipe();
+  }
+  else if(currentStep===1){
+    const ans = currentIssue.tf_answer, guess = userTfAnswer;
+    const isPartial = ans==='partial';
+    const isCorrect = isPartial || guess===ans;
+    const vTxt = ans==='true'?'אמת':ans==='false'?'שקר':'חלקית נכון';
+    const vEmoji = ans==='true'?'✅':ans==='false'?'❌':'⚖️';
+    let gm='', gc='';
+    if(guess){ const gl = guess==='true'?'אמת':'שקר';
+      if(isPartial){ gm='ניחשת: "'+gl+'" · 🤔 שאלה מורכבת — התשובה חלקית'; gc='partial-guess'; }
+      else if(isCorrect){ gm='ניחשת: "'+gl+'" · ✓ '+g("צדקת","צדקת")+'!'; gc='right'; }
+      else { gm='ניחשת: "'+gl+'" · ✗ '+g("טעית","טעית"); gc='wrong'; }
+    }
+    let srcLink = '';
+    if(currentIssue.source && currentIssue.source.url){
+      srcLink = '<a class="src-link" href="'+currentIssue.source.url+'" target="_blank" rel="noopener">🔗 מקור: '+currentIssue.source.name+'</a>';
+    }
+    if (currentIssue.knesset_url){
+      srcLink += ' <a class="src-link" href="'+currentIssue.knesset_url+'" target="_blank" rel="noopener">🏛️ הצבעה רשמית בכנסת</a>';
+    }
+    c.innerHTML = header +
+      '<div class="reveal-box" style="text-align:center">'+
+        '<div class="verdict-emoji">'+vEmoji+'</div>'+
+        '<div class="verdict '+ans+'">'+vTxt+'</div>'+
+        '<div class="user-guess '+gc+'">'+gm+'</div>'+
+        '<div class="coin-pop">🪙 +'+COINS_PER_STEP+' מטבעות</div>'+
+        '<div class="explanation">'+markupText(currentIssue.tf_explain)+'<br>'+srcLink+'</div>'+
+      '</div>'+
+      '<button class="bigbtn next" style="margin-top:14px" onclick="nextStep()">'+g("בוא","בואי")+' נראה מה קרה בכנסת ›</button>';
+  }
+  else if(currentStep===2){
+    const isStance = currentIssue.mode==='stance';
+    c.innerHTML = header +
+      '<div class="bill-card">'+
+        '<div class="bill-label'+(isStance?' stance':'')+'">'+(isStance?'💭 עמדות מוצהרות':'🏛️ הצעה אמיתית בכנסת')+'</div>'+
+        '<div class="bill-title">'+currentIssue.bill_title+'</div>'+
+        '<div class="bill-year">'+currentIssue.bill_date+'</div>'+
+        '<div class="bill-summary">'+markupText(currentIssue.bill_summary)+'</div>'+
+      '</div>'+
+      '<div class="vote-prompt">איך '+g("היית מצביע","היית מצביעה")+'?</div>'+
+      '<div class="vote-buttons">'+
+        '<button class="vote-btn for" onclick="pickBill(\'for\')">🟢 בעד</button>'+
+        '<button class="vote-btn against" onclick="pickBill(\'against\')">🔴 נגד</button>'+
+        '<button class="vote-btn abstain" onclick="pickBill(\'abstain\')">⚪ '+g("נמנע","נמנעת")+'</button>'+
+      '</div>';
+  }
+  else if(currentStep===3){
+    renderScrollGuess(header);
+  }
+  else if(currentStep===4){
+    renderEndScreen(header);
+  }
+}
+
+// ===== Step interactions =====
+function pickTF(ans){ userTfAnswer=ans; if(!stepsAwarded.has(0)){awardCoins();stepsAwarded.add(0);} (ans===currentIssue.tf_answer||currentIssue.tf_answer==='partial')?sfxCorrect():sfxWrong(); nextStep(); }
+function pickBill(v){ userBillVote=v; if(!stepsAwarded.has(2)){awardCoins();stepsAwarded.add(2);} sfxTap(); nextStep(); }
+function awardCoins(){ issueCoinsEarned += COINS_PER_STEP; totalCoins += COINS_PER_STEP; sfxCoin(); updateCoinDisplays(); saveProgress(); }
+function updateCoinDisplays(){
+  const ic=document.getElementById('issueCoins'); if(ic) ic.innerHTML='🪙 '+totalCoins;
+  const hc=document.getElementById('coinChip'); if(hc) hc.innerHTML='🪙 '+totalCoins;
+}
+function nextStep(){ currentStep++; renderIssueStep(); }
+
+function completeIssue(){
+  if(!progress[currentTopic.id]) progress[currentTopic.id] = {issues:{}};
+  const rec = progress[currentTopic.id].issues[currentIssue.id] || {};
+  if(!rec.completed){
+    rec.completed = true;
+    rec.coins = issueCoinsEarned;
+    rec.completedAt = Date.now();
+    progress[currentTopic.id].issues[currentIssue.id] = rec;
+  }
+  saveProgress();
+}
+
+// ===== End screen (map-return, lock tooltip) =====
+function renderEndScreen(header){
+  completeIssue();
+  const c = document.getElementById('issueContent');
+  const isTopicDone = topicIsDone(currentTopic.id);
+  const tIssues = ISSUES.filter(i=>i.topic===currentTopic.id);
+  const other = tIssues.find(i=>i.id!==currentIssue.id);
+  const otherDone = other && issueIsDone(currentTopic.id, other.id);
+  // core progress
+  const coreIssues = ISSUES.filter(i=>i.core);
+  const doneCore = coreIssues.filter(i=>issueIsDone(i.topic,i.id)).length;
+  const totalCore = coreIssues.length;
+  const allCoreDone = doneCore>=totalCore;
+  praiseName();
+
+  // Find next unfinished CORE issue (fast path to finish the map)
+  let nextCore = null;
+  for(const t of TOPICS){
+    const ci = ISSUES.find(i=>i.topic===t.id && i.core && !issueIsDone(t.id,i.id));
+    if(ci){ nextCore=ci; break; }
+  }
+
+  let primary = '';
+  if(nextCore){
+    const nt = TOPICS.find(t=>t.id===nextCore.topic);
+    primary = '<button class="bigbtn next" onclick="startIssue(ISSUES.find(i=>i.id===\''+nextCore.id+'\'))">🔥 '+g("בוא","בואי")+' לסוגיה הבאה: '+nt.icon+' '+nt.label+'</button>';
+  } else if(!otherDone && other){
+    primary = '<button class="bigbtn next" onclick="startIssue(ISSUES.find(i=>i.id===\''+other.id+'\'))">🎁 סוגיית בונוס בנושא הזה</button>';
+  }
+
+  const celebrate = allCoreDone ? '<button class="bigbtn next" onclick="openCelebration()">🎊 סיימת את המפה — לחגיגה!</button>' : '';
+
+  c.innerHTML = header +
+    '<div class="end-card">'+
+      '<div class="end-big">🎉</div>'+
+      '<div class="end-title">'+g("כל הכבוד","כל הכבוד")+'!</div>'+
+      '<div class="end-coins">🪙 +'+issueCoinsEarned+' מטבעות · סה״כ '+totalCoins+'</div>'+
+      '<div class="end-progress"><b>'+doneCore+' מתוך '+totalCore+'</b> נושאים הושלמו</div>'+
+      '<div class="end-bar"><i style="width:'+Math.round(doneCore/totalCore*100)+'%"></i></div>'+
+    '</div>'+
+    '<div class="end-actions">'+
+      primary +
+      celebrate +
+      '<button class="bigbtn home" onclick="goHome()">🗺️ חזרה למפה</button>'+
+    '</div>';
+  sfxTap();
+}
+function lockTip(){
+  openExplain('🔒 הרחבה נעולה', 'ההרחבה על הנושא — עם קישורים למקורות, פרוטוקולים ומאמרים — תיפתח אחרי ש'+g("תסיים","תסיימי")+' את <b>שתי הסוגיות</b> בנושא. '+g("נשאר","נשארת")+' '+g("לך","לך")+' רק עוד סוגיה אחת!', '🔓 איך פותחים?');
+}
+function showExpansion(){
+  let body = 'בגרסה הסופית יופיע כאן הסבר מעמיק על '+currentTopic.label+', עם קישורים לפרוטוקולי הכנסת, מאמרים באתר המגדלור ומקורות נוספים.';
+  if(currentIssue.source && currentIssue.source.url){
+    body += '<br><br><a class="src-link" href="'+currentIssue.source.url+'" target="_blank" rel="noopener">🔗 מקור לדוגמה: '+currentIssue.source.name+'</a>';
+  }
+  body += '<br><br><i>(פרוטוטייפ — התוכן יורחב על ידי צוות המגדלור)</i>';
+  openExplain('📚 הרחבה: '+currentTopic.label, body, '📚 המגדלור');
+}
+
+// ===== TF swipe =====
+function setupTfSwipe(){
+  const el = document.getElementById('tfCard'); if(!el) return;
+  const tS = el.querySelector('.tf-stamp.true'), fS = el.querySelector('.tf-stamp.false');
+  let sx=0,dx=0,drag=false;
+  const down = e=>{ if(e.target.closest('.explain-word')||e.target.closest('.float-explain')) return; drag=true; sx=e.touches?e.touches[0].clientX:e.clientX; el.style.transition='none'; };
+  const move = e=>{ if(!drag) return; const cx=e.touches?e.touches[0].clientX:e.clientX; dx=cx-sx; el.style.transform='translate('+dx+'px,0) rotate('+(dx/25)+'deg)'; const o=Math.min(Math.abs(dx)/110,1); tS.style.opacity=dx>0?o:0; fS.style.opacity=dx<0?o:0; };
+  const up = ()=>{ if(!drag) return; drag=false; el.style.transition='transform .3s ease, opacity .3s';
+    if(Math.abs(dx)>110){ el.style.transform='translate('+(dx>0?600:-600)+'px,-20px) rotate('+(dx>0?25:-25)+'deg)'; el.style.opacity=0; sfxWhoosh(); setTimeout(()=>pickTF(dx>0?'true':'false'),220); }
+    else { el.style.transform=''; tS.style.opacity=0; fS.style.opacity=0; } dx=0; };
+  el.addEventListener('mousedown',down); el.addEventListener('mousemove',move); el.addEventListener('mouseup',up); el.addEventListener('mouseleave',up);
+  el.addEventListener('touchstart',down,{passive:true}); el.addEventListener('touchmove',move,{passive:true}); el.addEventListener('touchend',up);
+}
+
+
+// ===== Scroll-based guessing (social-feed style) =====
+// Flow: player's own vote card first, then scroll card-by-card through MKs,
+// guessing each, then a "reveal results" button opens a summary modal.
+let scrollGuesses = {};   // polId -> 'for'/'against'/'abstain'
+let scrollIdx = 0;        // how many MK cards revealed so far
+
+function renderScrollGuess(header){
+  scrollGuesses = {}; scrollIdx = 0;
+  const c = document.getElementById('issueContent');
+  const pv = userBillVote; // player's own vote from step 2
+  const pvTxt = pv==='for'?'🟢 בעד':pv==='against'?'🔴 נגד':'⚪ נמנע';
+  c.innerHTML = header +
+    '<div class="feed" id="feed">'+
+      '<div class="feed-you card-in">'+
+        '<div class="feed-tag">איך שאת/ה הצבעת</div>'+
+        '<div class="feed-you-vote">'+pvTxt+'</div>'+
+        '<div class="feed-you-sub">'+g("עכשיו בוא נראה","עכשיו בואי נראה")+' איך הצביעו הח״כים האמיתיים 👇</div>'+
+      '</div>'+
+      '<div id="feedCards"></div>'+
+    '</div>';
+  showNextMk(); // reveal first MK card
+}
+
+function guessMk(idx, vote){
+  const p = sampledPolitded[idx];
+  if(!p || scrollGuesses[p.id]) return; // already answered or invalid
+  scrollGuesses[p.id]=vote;
+  const card=document.getElementById('mk-'+idx);
+  if(card){
+    card.querySelectorAll('.feed-btn').forEach(b=>b.classList.add('locked'));
+    const cls = vote==='for'?'f':vote==='against'?'a':'n';
+    const chosen=card.querySelector('.feed-btn.'+cls);
+    if(chosen) chosen.classList.add('chosen');
+    card.classList.add('answered');
+  }
+  sfxTap();
+  scrollIdx = Math.max(scrollIdx, idx+1);
+  setTimeout(showNextMk, 260);
+}
+function showNextMk(){
+  const pols = sampledPolitded;
+  if(scrollIdx >= pols.length){ renderRevealButton(); return; }
+  // guard: don't create a card that already exists
+  if(document.getElementById('mk-'+scrollIdx)) return;
+  const p = pols[scrollIdx];
+  const pol = DATA.politicians[p.id];
+  const wrap = document.getElementById('feedCards');
+  if(!wrap) return;
+  const card = document.createElement('div');
+  card.className='feed-mk card-in';
+  card.id='mk-'+scrollIdx;
+  card.innerHTML =
+    '<div class="feed-mk-top">'+
+      mkAvatar(pol)+
+      '<div class="feed-mk-id"><div class="feed-mk-name">'+pol.name+'</div>'+
+        '<div class="feed-mk-party">'+pol.party+'</div></div>'+
+    '</div>'+
+    '<div class="feed-q">מה '+g("לדעתך הוא/היא","לדעתך הוא/היא")+' '+g("הצביע","הצביע/ה")+'?</div>'+
+    '<div class="feed-btns">'+
+      '<button class="feed-btn f" onclick="guessMk('+scrollIdx+',\'for\')">✔ בעד</button>'+
+      '<button class="feed-btn a" onclick="guessMk('+scrollIdx+',\'against\')">✖ נגד</button>'+
+      '<button class="feed-btn n" onclick="guessMk('+scrollIdx+',\'abstain\')">➖ נמנע</button>'+
+    '</div>';
+  wrap.appendChild(card);
+  setTimeout(()=>card.scrollIntoView({behavior:'smooth',block:'center'}),80);
+}
+
+function renderRevealButton(){
+  const wrap=document.getElementById('feedCards');
+  const b=document.createElement('div');
+  b.className='feed-reveal-wrap card-in';
+  b.innerHTML='<button class="reveal-btn big" onclick="openResultsModal()">🏛️ '+g("חשוף","חשפי")+' את תוצאות ההצבעה</button>';
+  wrap.appendChild(b);
+  setTimeout(()=>b.scrollIntoView({behavior:'smooth',block:'center'}),80);
+}
+
+function mkAvatar(pol){
+  // Uses official Knesset photo when a URL base is configured; falls back to initials badge.
+  if(window.MK_PHOTO_BASE && pol.mk_id){
+    const url = window.MK_PHOTO_BASE.replace('{id}', pol.mk_id);
+    return '<div class="feed-mk-photo"><img src="'+url+'" alt="'+pol.name+'" '+
+           'onerror="this.parentNode.innerHTML=\''+mkInitials(pol)+'\'"></div>';
+  }
+  return mkInitials(pol);
+}
+function mkInitials(pol){
+  const parts=pol.name.split(' ');
+  const ini=(parts[0][0]||'')+(parts[1]?parts[1][0]:'');
+  return '<div class="feed-mk-photo initials">'+ini+'</div>';
+}
+
+function openResultsModal(){
+  // compute how player voted vs the law outcome + per-MK accuracy
+  const pols = sampledPolitded;
+  let correct=0;
+  pols.forEach(p=>{ if(scrollGuesses[p.id]===p.vote) correct++; });
+  // award coins per correct guess
+  const gained = correct * COINS_PER_STEP;
+  issueCoinsEarned += gained; totalCoins += gained; updateCoinDisplays(); saveProgress();
+  if(correct>0) sfxCoin();
+
+  // law outcome + player comparison
+  const tally = currentIssue.knesset_url ? billOutcome() : null;
+  const pv=userBillVote;
+  const rows = pols.map(p=>{
+    const pol=DATA.politicians[p.id];
+    const guess=scrollGuesses[p.id];
+    const ok = guess===p.vote;
+    const vt=v=>v==='for'?'בעד':v==='against'?'נגד':'נמנע';
+    return '<tr class="'+(ok?'ok':'no')+'">'+
+      '<td class="rmk">'+pol.name+'</td>'+
+      '<td>'+vt(guess||'—')+'</td>'+
+      '<td><b>'+vt(p.vote)+'</b></td>'+
+      '<td>'+(ok?'✅':'❌')+'</td>'+
+    '</tr>';
+  }).join('');
+
+  // player-vs-knesset banner
+  let pvBanner='';
+  if(tally){
+    const passed = tally.for>tall_against(tally);
+    const playerMatch = (pv==='for'&&passed)||(pv==='against'&&!passed);
+    pvBanner =
+      '<div class="pv-compare '+(playerMatch?'match':'diff')+'">'+
+        '<div>איך שהצבעת: <b>'+(pv==='for'?'בעד':pv==='against'?'נגד':'נמנע')+'</b></div>'+
+        '<div>הכנסת: <b>'+(passed?'העבירה':'דחתה')+'</b> את ההצעה ('+tally.for+'-'+tally.against+')</div>'+
+        '<div class="pv-verdict">'+(playerMatch?'🤝 הצבעת כמו רוב הכנסת':'🙃 הצבעת אחרת מרוב הכנסת')+'</div>'+
+      '</div>';
+  }
+
+  const modal=document.getElementById('resultsModal');
+  modal.querySelector('.rm-body').innerHTML =
+    '<div class="rm-title">🏛️ תוצאות ההצבעה</div>'+
+    pvBanner+
+    '<div class="rm-score">ניחשת נכון <b>'+correct+'</b> מתוך '+pols.length+' · +'+gained+' 🪙</div>'+
+    '<table class="rm-table"><tr><th>ח״כ</th><th>הניחוש שלך</th><th>הצביע/ה</th><th></th></tr>'+rows+'</table>'+
+    '<button class="bigbtn next" onclick="closeResultsModal()">'+g("המשך","המשיכי")+' ←</button>';
+  modal.classList.add('open');
+  spawnConfetti();
+}
+
+function tall_against(t){ return t.against; }
+function billOutcome(){
+  // from stored data if available
+  if(currentIssue._tally) return currentIssue._tally;
+  return null;
+}
+
+function closeResultsModal(){
+  document.getElementById('resultsModal').classList.remove('open');
+  currentStep=4; renderIssueStep();
+}
+
+
+// ===== Drag politicians =====
+function renderDragStep(header){
+  const c = document.getElementById('issueContent');
+  c.innerHTML = header +
+    '<div class="drag-intro">👇 '+g("גרור","גררי")+' כל '+g("פוליטיקאי","פוליטיקאי/ת")+' לעמודה — לפי מה שאת/ה '+g("חושב","חושבת")+' שהוא/היא '+g("הצביע","הצביעה")+'</div>'+
+    '<div class="drag-area">'+
+      '<div class="pol-pool" id="polPool" data-col="pool"></div>'+
+      '<div class="drop-columns">'+
+        '<div class="drop-col for" data-col="for"><div class="drop-col-hdr">🟢 בעד</div></div>'+
+        '<div class="drop-col against" data-col="against"><div class="drop-col-hdr">🔴 נגד</div></div>'+
+        '<div class="drop-col abstain" data-col="abstain"><div class="drop-col-hdr">⚪ נמנע</div></div>'+
+      '</div>'+
+      '<button class="reveal-btn" id="revealBtn" onclick="revealVotes()" disabled>גילוי — איך הם '+g("הצביעו","הצביעו")+' באמת?</button>'+
+      '<div id="scoreMsg"></div>'+
+      '<div id="dragActions"></div>'+
+    '</div>';
+  renderPolCards(); updateRevealBtn();
+}
+function renderPolCards(){
+  ['polPool','for','against','abstain'].forEach(col=>{
+    const el = col==='polPool'?document.getElementById('polPool'):document.querySelector('.drop-col[data-col="'+col+'"]');
+    if(col==='polPool') el.innerHTML='';
+    else Array.from(el.children).forEach(ch=>{ if(!ch.classList.contains('drop-col-hdr')) ch.remove(); });
+  });
+  sampledPolitded.forEach(pol=>{
+    const data = POLS[pol.id];
+    const col = dragState[pol.id];
+    const card = createPolCard(pol.id, data);
+    (col==='pool'?document.getElementById('polPool'):document.querySelector('.drop-col[data-col="'+col+'"]')).appendChild(card);
+  });
+  const pool = document.getElementById('polPool');
+  pool.classList.toggle('empty', pool.children.length===0);
+}
+function createPolCard(id, data){
+  const card = document.createElement('div');
+  card.className='pol-card'; card.dataset.polId=id;
+  card.innerHTML = '<div class="pol-avatar">'+data.avatar+'</div><div class="pol-info"><div class="pn">'+data.name+'</div><div class="pp">'+data.party+'</div><div class="note"></div><div class="basis-tag"></div></div>';
+  setupCardDrag(card);
+  return card;
+}
+// single delegated listeners
+let activeDragCard=null, dragGhost=null;
+function onCardDragStart(card,e){
+  if(dragRevealed) return;
+  activeDragCard=card; const t=e.touches?e.touches[0]:e;
+  card.classList.add('dragging');
+  dragGhost=card.cloneNode(true);
+  Object.assign(dragGhost.style,{position:'fixed',pointerEvents:'none',zIndex:'1000',opacity:'0.9',transform:'scale(1.1)',boxShadow:'3px 4px 0 var(--ink)'});
+  const r=card.getBoundingClientRect();
+  dragGhost.style.width=r.width+'px'; dragGhost.style.left=r.left+'px'; dragGhost.style.top=r.top+'px';
+  document.body.appendChild(dragGhost); e.preventDefault();
+}
+function onCardDragMove(e){
+  if(!activeDragCard) return; const t=e.touches?e.touches[0]:e;
+  if(dragGhost){ const r=activeDragCard.getBoundingClientRect(); dragGhost.style.left=(t.clientX-r.width/2)+'px'; dragGhost.style.top=(t.clientY-r.height/2)+'px'; }
+  const target=document.elementFromPoint(t.clientX,t.clientY);
+  document.querySelectorAll('.drop-col, .pol-pool').forEach(c=>c.classList.remove('over'));
+  const col=target?target.closest('.drop-col, .pol-pool'):null; if(col) col.classList.add('over');
+  e.preventDefault();
+}
+function onCardDragEnd(e){
+  if(!activeDragCard) return; const card=activeDragCard; activeDragCard=null;
+  card.classList.remove('dragging'); if(dragGhost){ dragGhost.remove(); dragGhost=null; }
+  document.querySelectorAll('.drop-col, .pol-pool').forEach(c=>c.classList.remove('over'));
+  const t=e.changedTouches?e.changedTouches[0]:e;
+  const target=document.elementFromPoint(t.clientX,t.clientY);
+  const col=target?target.closest('.drop-col, .pol-pool'):null;
+  if(col){ const cn=col.classList.contains('pol-pool')?'pool':col.dataset.col; dragState[card.dataset.polId]=cn; sfxTap(); renderPolCards(); updateRevealBtn(); }
+}
+window.addEventListener('mousemove',onCardDragMove); window.addEventListener('mouseup',onCardDragEnd);
+window.addEventListener('touchmove',onCardDragMove,{passive:false}); window.addEventListener('touchend',onCardDragEnd);
+function setupCardDrag(card){
+  card.addEventListener('mousedown',e=>onCardDragStart(card,e));
+  card.addEventListener('touchstart',e=>onCardDragStart(card,e),{passive:false});
+}
+function updateRevealBtn(){
+  const btn=document.getElementById('revealBtn'); if(!btn) return;
+  const all = sampledPolitded.every(p=>dragState[p.id]!=='pool');
+  btn.disabled=!all;
+  btn.textContent = all ? ('גילוי — איך הם '+g("הצביעו","הצביעו")+' באמת?') : ('גרור את כולם קודם...');
+}
+function revealVotes(){
+  dragRevealed=true; let correct=0;
+  sampledPolitded.forEach(pol=>{
+    const guess=dragState[pol.id], real=pol.vote;
+    const card=document.querySelector('.pol-card[data-pol-id="'+pol.id+'"]'); if(!card) return;
+    const curCol=card.parentElement, rightCol=document.querySelector('.drop-col[data-col="'+real+'"]');
+    const ok = guess===real; if(ok) correct++;
+    card.querySelector('.note').textContent = pol.note;
+    const bt = card.querySelector('.basis-tag');
+    bt.textContent = pol.basis==='doc' ? '📌 מתועד' : '📊 לפי הצבעת הסיעה';
+    card.classList.add('revealed');
+    if(!ok && rightCol && curCol!==rightCol){ setTimeout(()=>{ rightCol.appendChild(card); card.classList.add('wrong'); },300); }
+    else card.classList.add('correct');
+  });
+  const total=sampledPolitded.length;
+  correct===total?sfxCorrect():sfxTap();
+  // coins for drag step
+  awardCoins();
+  const msg=document.getElementById('scoreMsg');
+  let txt = correct===total?('🏆 מושלם! '+correct+'/'+total+' — הכרת כל אחד!') : correct>=total/2?('👍 יפה! '+correct+'/'+total+' נכונים'):('📚 '+correct+'/'+total+' — '+g("למדת","למדת")+' משהו חדש');
+  msg.innerHTML='<div class="score-msg">'+txt+'<br><span style="font-size:12px">🪙 +'+COINS_PER_STEP+' מטבעות</span></div>';
+  document.getElementById('dragActions').innerHTML='<button class="bigbtn next" style="margin-top:12px" onclick="nextStep()">'+g("בוא","בואי")+' '+g("תמשיך","תמשיכי")+' ›</button>';
+  document.getElementById('revealBtn').style.display='none';
+}
+
+// ===== Celebration & share =====
+function openCelebration(){
+  document.getElementById('celBudget').textContent = '🪙 '+totalCoins+' מטבעות';
+  show('celebrate');
+  sfxCelebrate();
+  spawnConfetti();
+}
+function spawnConfetti(){
+  const colors=['#2b4cff','#ff5240','#ffd23f','#22c98e','#b06bff','#ff6b9d'];
+  const app=document.querySelector('.app');
+  for(let i=0;i<60;i++){
+    const p=document.createElement('div'); p.className='confetti-piece';
+    p.style.left=Math.random()*100+'%';
+    p.style.background=colors[Math.floor(Math.random()*colors.length)];
+    p.style.animationDuration=(2+Math.random()*2)+'s';
+    p.style.animationDelay=(Math.random()*0.6)+'s';
+    app.appendChild(p);
+    setTimeout(()=>p.remove(),4600);
+  }
+}
+// Basic profanity/racism filter (Hebrew + common). Prototype-level.
+const BLOCKLIST = ['כושי','ערבוש','מוות לערבים','מוות ליהודים','נאצי','שרמוטה','זונה','בן זונה','מניאק','הומו','נאצים','תמותו'];
+function containsBad(txt){
+  const norm = (txt||'').replace(/[\s\u0591-\u05C7]/g,'').toLowerCase();
+  return BLOCKLIST.some(w=> norm.includes(w.replace(/\s/g,'')));
+}
+function onShareInput(){
+  const inp=document.getElementById('shareInput');
+  document.getElementById('shareCount').textContent = inp.value.length+'/100';
+  const warn=document.getElementById('shareWarn');
+  warn.style.display = containsBad(inp.value) ? 'block' : 'none';
+}
+function _shareText(){
+  const inp=document.getElementById('shareInput');
+  const txt=(inp?inp.value.trim():'');
+  if(containsBad(txt)){ const w=document.getElementById('shareWarn'); if(w) w.style.display='block'; sfxWrong(); return null; }
+  const cause = txt || g("מה שחשוב לי","מה שחשוב לי");
+  return 'שיחקתי "הח״כ ה-121" 🏛️ צברתי '+totalCoins+' מטבעות, ובחרתי: '+cause+' 💪 #המגדלור';
+}
+function shareTo(platform){
+  const shareText = _shareText(); if(!shareText) return;
+  const encoded = encodeURIComponent(shareText);
+  const urls = {
+    whatsapp:'https://wa.me/?text='+encoded,
+    telegram:'https://t.me/share/url?text='+encoded,
+    x:'https://twitter.com/intent/tweet?text='+encoded,
+    facebook:'https://www.facebook.com/sharer/sharer.php?quote='+encoded
+  };
+  sfxTap();
+  if(urls[platform]) window.open(urls[platform],'_blank');
+  trackEvent('share_'+platform,{coins:totalCoins});
+}
+function copyShare(){
+  const shareText = _shareText(); if(!shareText) return;
+  sfxTap();
+  try{ navigator.clipboard.writeText(shareText); callout(g("הועתק! הדבק ברשת 📋","הועתק! הדביקי ברשת 📋")); }
+  catch(e){ openExplain('📤 שיתוף',shareText.replace(/\n/g,'<br>'),'📋 העתיקו והדביקו'); }
+  trackEvent('share_copy',{coins:totalCoins});
+}
+async function doShare(){
+  const txt=_shareText(); if(!txt) return;
+  if(navigator.share){ try{ await navigator.share({text:txt}); return; }catch(e){} }
+  copyShare();
+}
+function reportContent(){
+  openExplain('🚩 דיווח על תוכן', 'תודה. בגרסה הסופית, דיווח על תוכן פוגעני יישלח אוטומטית לצוות המגדלור לבדיקה.<br><br><i>(פרוטוטייפ — מנגנון הדיווח יחובר למערכת שלכם)</i>', '🚩 מנגנון דיווח');
+}
+
+// ===== Analytics placeholder (GA4 / Google Form) =====
+function trackEvent(name, params){
+  // Placeholder — wire GA4 here:
+  // if(window.gtag){ gtag('event', name, params||{}); }
+  try{ console.log('[analytics]', name, params||{}); }catch(e){}
+}
+function openFeedbackForm(){
+  // Placeholder — replace with your Google Form URL
+  const FORM_URL = ''; // TODO: המגדלור — הכניסו כאן קישור לטופס גוגל
+  if(FORM_URL){ window.open(FORM_URL,'_blank'); }
+  else { openExplain('💬 משוב', 'כאן ייפתח טופס המשוב שלכם (Google Form).<br><br><b>למגדלור:</b> החליפו את המשתנה FORM_URL בקוד בקישור לטופס גוגל שלכם, וכל לחיצה תוביl אליו.', '💬 טופס משוב'); }
+}
+
+// ===== Init =====
+(function init(){
+  loadMute(); loadProgress();
+  if(navigator.share) document.body.classList.add('has-native-share');
+  document.querySelectorAll('.mute-btn').forEach(b=> b.textContent = muted?'🔇':'🔊');
+  trackEvent('app_open', {});
+  // self-tests
+  const tests = [
+    ['8 topics', TOPICS.length===8],
+    ['16 issues', ISSUES.length===16],
+    ['every topic has 2 issues', TOPICS.every(t=>ISSUES.filter(i=>i.topic===t.id).length===2)],
+    ['every pol ref exists', ISSUES.every(i=>i.politicians.every(p=>POLS[p.id]))],
+    ['every issue has key pol', ISSUES.every(i=>i.politicians.some(p=>p.key))],
+    ['every issue has source', ISSUES.every(i=>i.source!==undefined)],
+    ['glossary >15', Object.keys(GLOSSARY).length>15],
+    ['8 avatars', AVATARS.length===8],
+    ['localStorage', (function(){try{localStorage.setItem('__t','1');localStorage.removeItem('__t');return true}catch(e){return false}})()],
+  ];
+  let ok=true; tests.forEach(([n,v])=>{ if(!v) ok=false; console.log((v?'✓':'✗')+' '+n); });
+  console.log(ok?'%c ALL TESTS PASSED ':'%c TESTS FAILED ','background:#22c98e;color:#fff;font-weight:bold;padding:2px 8px');
+})();
+
+</script>
+</body>
+</html>
