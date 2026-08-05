@@ -67,8 +67,9 @@
   .intro-note{font-size:11.5px;font-weight:600;opacity:.6;margin-top:10px;text-align:center;line-height:1.4}
 
   /* ============ AVATAR + PROFILE ============ */
-  #avatar{padding:20px;text-align:center;overflow-y:auto}
-  #avatar::-webkit-scrollbar{width:0}
+  #avatar{text-align:center}
+  .avatar-content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 20px}
+  .avatar-content::-webkit-scrollbar{width:0}
   .avatar-back{align-self:flex-start;cursor:pointer;background:#fff;border:2px solid var(--ink);border-radius:999px;font-weight:900;font-size:13px;padding:6px 14px;box-shadow:1px 2px 0 var(--ink);margin-bottom:10px}
   #avatar h2{font-family:'Suez One';font-size:24px;margin:6px 0 4px;line-height:1.2}
   #avatar .sub{font-size:13.5px;font-weight:500;opacity:.75;line-height:1.5;margin-bottom:14px}
@@ -446,7 +447,7 @@
 
   /* bottom safe area — home indicator */
   #intro{padding-bottom:max(22px,var(--safe-b))}
-  #avatar{padding-bottom:calc(20px + var(--safe-b))}
+  .avatar-content{padding-bottom:calc(20px + var(--safe-b))}
   #celebrate{padding-bottom:max(22px,var(--safe-b))}
   #home{padding-bottom:var(--safe-b)}
   .issue-content{padding-bottom:calc(20px + var(--safe-b))}
@@ -477,12 +478,12 @@
   </section>
 
   <!-- AVATAR + PROFILE -->
-  <section class="screen scroll" id="avatar">
+  <section class="screen" id="avatar">
     <button class="mute-btn" onclick="toggleMute()">🔊</button>
     <div style="padding:14px 18px 4px">
       <button class="avatar-back" onclick="show('intro')">→ חזרה</button>
     </div>
-    <div style="padding:0 20px 20px">
+    <div class="avatar-content">
       <h2>בחרו את הדמות שלכם</h2>
       <div class="sub">בחרו דמות שתלווה אתכם במפה</div>
       <div class="name-input-wrap">
