@@ -669,62 +669,6 @@
   /* ── Neon glow on done topic icon ── */
   .topic-card.done .em{filter:drop-shadow(0 0 8px rgba(0,82,255,.7))}
 
-  /* ── STITCH DESIGN: Coin pill in app bar ── */
-  .app-bar-coins{
-    display:flex;align-items:center;gap:5px;
-    background:rgba(255,215,0,.12);
-    border:2px solid rgba(255,215,0,.3);
-    border-radius:999px;padding:4px 12px;
-    font-size:13px;font-weight:900;color:#ffd23f
-  }
-
-  /* App bar avatar is now the right-side clickable element */
-  .app-bar-avatar{cursor:pointer}
-
-  /* ── STITCH: step bar done → neon green ── */
-  .step-bar.done{background:var(--green)!important}
-
-  /* ── STITCH: TF card — subtle grid texture ── */
-  .tf-card{
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Crect width='8' height='8' fill='%231a1c20'/%3E%3Cpath d='M0 0L8 8M8 0L0 8' stroke='%23222530' stroke-width='1'/%3E%3C/svg%3E")!important
-  }
-
-  /* ── STITCH: TF buttons — cleaner colors ── */
-  .tf-btn.false{background:#ff8878!important;color:#fff!important}
-  .tf-btn.true{background:var(--green)!important;color:#111!important}
-
-  /* ── STITCH: vote-row for side-by-side נגד+נמנע ── */
-  .vote-row{display:flex;gap:10px}
-  .vote-row .vote-btn{flex:1}
-
-  /* ── STITCH: LIVE SESSION badge ── */
-  .live-badge{
-    display:inline-flex;align-items:center;gap:6px;
-    background:#ff8878;color:#111;
-    border:2px solid rgba(0,0,0,.4);border-radius:999px;
-    padding:4px 14px;font-size:11px;font-weight:900;letter-spacing:.05em;
-    box-shadow:2px 2px 0 rgba(0,0,0,.4)
-  }
-
-  /* ── STITCH: YOUR DESK section ── */
-  .your-desk{
-    display:flex;align-items:center;gap:12px;
-    background:var(--paper2);border:2px solid rgba(255,255,255,.12);
-    border-radius:14px;padding:12px 14px;margin:10px 0
-  }
-  .your-desk-avatar{
-    width:44px;height:44px;border-radius:50%;
-    border:2px solid rgba(255,255,255,.2);
-    overflow:hidden;flex-shrink:0;background:var(--blue);
-    display:grid;place-items:center;font-size:22px
-  }
-  .your-desk-avatar svg{width:100%;height:100%;display:block}
-  .your-desk-label{font-size:10px;font-weight:900;letter-spacing:.08em;color:#b7c4ff;text-transform:uppercase}
-  .your-desk-sub{font-size:13px;font-weight:700;color:#fff;margin-top:2px}
-
-  /* ── STITCH: Bottom nav SVG icon sizing ── */
-  .bnav-icon svg{width:22px;height:22px;display:block}
-
 </style>
 </head>
 <body>
@@ -732,28 +676,31 @@
 
   <!-- APP BAR -->
   <header class="app-bar" id="appBar">
-    <div class="app-bar-avatar" id="appBarAvatar" onclick="goAvatar()"></div>
-    <span class="app-bar-title">THE 121ST MK</span>
-    <div class="app-bar-coins" id="appBarCoins">🪙 0</div>
+    <div class="app-bar-left">
+      <div class="app-bar-avatar" id="appBarAvatar"></div>
+      <span class="app-bar-coins" id="appBarCoins">🪙 0</span>
+    </div>
+    <span class="app-bar-title">הח״כ ה-121</span>
+    <div class="app-bar-right" onclick="goAvatar()">👤</div>
   </header>
 
   <!-- BOTTOM NAV -->
   <nav class="bottom-nav" id="bottomNav">
-    <div class="bnav-item active" id="bnavMap" onclick="goHome()">
-      <span class="bnav-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg></span>
-      <span>MAP</span>
-    </div>
-    <div class="bnav-item" onclick="openExplain('הצבעה','תכונה זו תהיה זמינה בקרוב!','')">
-      <span class="bnav-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5.5 11.5-3.75-3.75 1.06-1.06 2.69 2.69 5.44-5.44 1.06 1.06L13.5 14.5z"/></svg></span>
-      <span>VOTE</span>
+    <div class="bnav-item active" onclick="goHome()">
+      <span class="bnav-icon">🗺️</span>
+      <span>מפה</span>
     </div>
     <div class="bnav-item" onclick="openExplain('דירוג','תכונה זו תהיה זמינה בקרוב!','')">
-      <span class="bnav-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7.5 21H2V9h5.5v12zm7.25-18h-5.5v18h5.5V3zM22 11h-5.5v10H22V11z"/></svg></span>
-      <span>RANK</span>
+      <span class="bnav-icon">🏆</span>
+      <span>דירוג</span>
     </div>
     <div class="bnav-item" onclick="openExplain('ממשלה','פרופיל ממשלה — בקרוב!','')">
-      <span class="bnav-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7v2h20V7L12 2zm-8 8v8h3v-8H4zm5 0v8h3v-8H9zm5 0v8h3v-8h-3zm5 0v8h3v-8h-3zM2 20v2h20v-2H2z"/></svg></span>
-      <span>GOV</span>
+      <span class="bnav-icon">🏛️</span>
+      <span>ממשלה</span>
+    </div>
+    <div class="bnav-item" onclick="openExplain('אודות','המגדלור — אוריינות פוליטית לדור הצעיר 🇮🇱','📖 המגדלור')">
+      <span class="bnav-icon">ℹ️</span>
+      <span>אודות</span>
     </div>
   </nav>
 
@@ -1322,8 +1269,8 @@ function renderIssueStep(){
         '<span class="tf-stamp false">שקר!</span>'+
       '</div>'+
       '<div class="tf-buttons">'+
-        '<button class="tf-btn false" onclick="pickTF(\'false\')">שקר</button>'+
-        '<button class="tf-btn true" onclick="pickTF(\'true\')">אמת</button>'+
+        '<button class="tf-btn false" onclick="pickTF(\'false\')">❌ שקר</button>'+
+        '<button class="tf-btn true" onclick="pickTF(\'true\')">✅ אמת</button>'+
       '</div>';
     setupTfSwipe();
   }
@@ -1359,28 +1306,18 @@ function renderIssueStep(){
   else if(currentStep===2){
     const isStance = currentIssue.mode==='stance';
     c.innerHTML = header +
-      (isStance ? '' : '<div style="text-align:center;margin:4px 0 8px"><span class="live-badge">🔴 LIVE SESSION</span></div>') +
       '<div class="bill-card">'+
         '<div class="bill-label'+(isStance?' stance':'')+'">'+(isStance?'💭 עמדות מוצהרות':'🏛️ הצעה אמיתית בכנסת')+'</div>'+
         '<div class="bill-title">'+currentIssue.bill_title+'</div>'+
         '<div class="bill-year">'+currentIssue.bill_date+'</div>'+
         '<div class="bill-summary">'+markupText(currentIssue.bill_summary)+'</div>'+
       '</div>'+
-      '<div class="your-desk">'+
-        '<div class="your-desk-avatar" id="voteAvatar">👤</div>'+
-        '<div>'+
-          '<div class="your-desk-label">YOUR DESK</div>'+
-          '<div class="your-desk-sub">'+g("ממתין","ממתינה")+' להצבעתך...</div>'+
-        '</div>'+
-      '</div>'+
+      '<div class="vote-prompt">איך '+g("היית מצביע","היית מצביעה")+'?</div>'+
       '<div class="vote-buttons">'+
-        '<button class="vote-btn for" onclick="pickBill(\'for\')">👍 בעד</button>'+
-        '<div class="vote-row">'+
-          '<button class="vote-btn against" onclick="pickBill(\'against\')">👎 נגד</button>'+
-          '<button class="vote-btn abstain" onclick="pickBill(\'abstain\')">🤚 '+g("נמנע","נמנעת")+'</button>'+
-        '</div>'+
+        '<button class="vote-btn for" onclick="pickBill(\'for\')">🟢 בעד</button>'+
+        '<button class="vote-btn against" onclick="pickBill(\'against\')">🔴 נגד</button>'+
+        '<button class="vote-btn abstain" onclick="pickBill(\'abstain\')">⚪ '+g("נמנע","נמנעת")+'</button>'+
       '</div>';
-    const vd=document.getElementById('voteAvatar');if(vd&&player.avatarId){vd.innerHTML=getAvatarSvg();}
   }
   else if(currentStep===3){
     renderScrollGuess(header);
