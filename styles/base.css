@@ -1,0 +1,38 @@
+  @font-face{font-family:'SimplerPro';src:url('../fonts/SimplerPro_HLAR-Black.woff2') format('woff2');font-weight:900;font-style:normal;font-display:swap}
+  
+  :root{
+    --paper:#111318;--paper2:#1c1f26;--ink:#161310;
+    --blue:#0052ff;--red:#ff5f5f;--yellow:#ffd23f;--green:#39ff14;
+    --purple:#b06bff;--sky:#37c4ff;--orange:#ff8e3a;--pink:#ff6b9d;
+    --bd:3px solid var(--ink);
+    --hard:4px 4px 0 0 rgba(0,0,0,1);
+    --hard-lg:6px 6px 0 0 rgba(0,0,0,1);
+    --hard-sm:3px 3px 0 0 rgba(0,0,0,1);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;height:100dvh}
+  body{font-family:'SimplerPro',system-ui,sans-serif;background:#0a0c10;color:#fff;overflow:hidden;display:flex;align-items:center;justify-content:center;height:100vh;height:100dvh;height:calc(var(--vh, 1vh) * 100)}
+  .display{font-family:'SimplerPro',serif;font-weight:400}
+  .app{position:relative;width:min(440px,100vw);height:min(900px,100vh);height:min(900px,100dvh);height:min(900px,calc(var(--vh, 1vh) * 100));background:var(--paper);overflow:hidden;display:flex;flex-direction:column;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+  @media (max-width:480px), (max-height:900px){
+    body{align-items:stretch;justify-content:stretch}
+    .app{width:100vw;max-width:100vw;height:100vh;height:100dvh;height:calc(var(--vh, 1vh) * 100);max-height:none;box-shadow:none}
+  }
+  .app::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;opacity:.4;background-image:radial-gradient(rgba(255,255,255,.05) .5px,transparent .5px);background-size:14px 14px}
+  .screen{position:absolute;inset:0;display:none;flex-direction:column;z-index:1}
+  .screen.active{display:flex}
+  .scroll{overflow-y:auto}.scroll::-webkit-scrollbar{width:0}
+
+  /* mute button — global */
+  .mute-btn{position:absolute;top:12px;left:12px;z-index:50;background:#fff;border:2px solid var(--ink);border-radius:50%;width:36px;height:36px;display:grid;place-items:center;font-size:16px;cursor:pointer;box-shadow:1px 2px 0 var(--ink)}
+  .mute-btn:active{transform:translate(1px,2px);box-shadow:0 0 0 var(--ink)}
+
+  /* Avatar callout toast */
+  .callout{position:absolute;bottom:18px;right:14px;left:14px;z-index:60;background:#fff;border:var(--bd);border-radius:16px;padding:10px 14px;display:flex;align-items:center;gap:10px;box-shadow:var(--hard);transform:translateY(140%);transition:transform .4s cubic-bezier(.2,.9,.3,1.2);pointer-events:none}
+  .callout.show{transform:translateY(0)}
+  .callout svg{width:42px;height:42px;border:2px solid var(--ink);border-radius:50%;background:var(--paper);flex:none}
+  .callout .ctxt{font-size:14px;font-weight:900;line-height:1.3}
+
+  /* ============ BACK STEP BUTTON ============ */
+  .back-step{display:none;cursor:pointer;background:var(--paper2);border:2px solid var(--ink);border-radius:999px;font-weight:900;font-size:12px;padding:8px 12px;box-shadow:1px 2px 0 var(--ink);white-space:nowrap;line-height:1}
+  .back-step:active{transform:translate(1px,2px);box-shadow:0 0 0 var(--ink)}
