@@ -8,7 +8,7 @@
     .intro-hero .sub{margin-top:8px!important;font-size:16px!important}
     .cta{font-size:22px!important;padding:16px!important}
   }
-  .intro-tag{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:900;background:#fff;border:var(--bd);padding:6px 12px;border-radius:999px;box-shadow:var(--hard-sm);margin-top:8px}
+  .intro-tag{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:900;background:var(--white);border:var(--bd);padding:6px 12px;border-radius:999px;box-shadow:var(--hard-sm);margin-top:8px}
   .intro-tag .dot{width:9px;height:9px;border-radius:50%;background:var(--red);border:2px solid var(--ink);animation:pulse 2s infinite}
   @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.3);opacity:.7}}
   .intro-hero{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1}
@@ -16,7 +16,7 @@
   .intro-hero h1 .box{display:inline-block;background:var(--yellow);border:var(--bd);box-shadow:var(--hard);padding:0 18px;transform:rotate(-2deg);margin-top:6px}
   .intro-hero .sub{font-family:'SimplerPro';font-size:19px;margin-top:14px;line-height:1.2}
   .intro-hero p{font-size:15px;line-height:1.5;font-weight:500;margin-top:14px;max-width:30ch;opacity:.85}
-  .cta{appearance:none;cursor:pointer;width:100%;background:var(--blue);color:#fff;border:var(--bd);font-family:'SimplerPro';font-size:26px;padding:20px;border-radius:18px;box-shadow:var(--hard-lg);transition:transform .15s,box-shadow .15s;position:relative;overflow:hidden}
+  .cta{appearance:none;cursor:pointer;width:100%;background:var(--blue);color:var(--white);border:var(--bd);font-family:'SimplerPro';font-size:26px;padding:20px;border-radius:18px;box-shadow:var(--hard-lg);transition:transform .15s,box-shadow .15s;position:relative;overflow:hidden}
   .cta:active{transform:translate(6px,7px);box-shadow:0 0 0 var(--ink)}
   .cta::before{content:"";position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);animation:shine 3s infinite}
   @keyframes shine{0%{left:-100%}50%,100%{left:100%}}
