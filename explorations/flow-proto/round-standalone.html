@@ -1,0 +1,1318 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>flow-proto / round loop</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: #e3e3e3; color: #111;
+    font-family: system-ui, sans-serif;
+    font-size: 14px; line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+  }
+  #app { max-width: 390px; margin: 0 auto; padding: 10px 10px 60px; }
+
+  h1, h2, h3 { font-size: 14px; font-weight: 700; margin: 0 0 6px; }
+  p { margin: 0 0 8px; }
+
+  .lbl {
+    font-size: 10px; letter-spacing: .06em; text-transform: uppercase;
+    color: #666; margin: 0 0 4px;
+  }
+  /* cards sit above the page: white on grey, with an edge */
+  .box { border: 1px solid #9a9a9a; padding: 8px; margin: 0 0 8px; background: #fff;
+         box-shadow: 0 1px 2px rgba(0,0,0,.22); }
+  .box.grey { background: #ededed; }
+  .rule { border: 0; border-top: 1px solid #ccc; margin: 10px 0; }
+  .mut { color: #666; }
+  .small { font-size: 11px; }
+  .mono { font-family: ui-monospace, Menlo, monospace; font-size: 11px; }
+
+  button {
+    font-family: inherit; font-size: 13px;
+    background: #fff; color: #111; border: 1px solid #666;
+    padding: 8px 10px; cursor: pointer; border-radius: 0;
+  }
+  button:hover { background: #eee; }
+  button:disabled { color: #999; border-color: #ccc; cursor: default; background: #fafafa; }
+  .row { display: flex; gap: 6px; }
+  .row > button { flex: 1; }
+
+  /* ---- entry list ---- */
+  table { border-collapse: collapse; width: 100%; font-size: 11px; }
+  table { background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.22); }
+  th, td { border: 1px solid #ccc; padding: 4px 5px; text-align: right; vertical-align: top; }
+  th { background: #ededed; font-weight: 700; }
+  tr.pick:hover td { background: #f3f3f3; cursor: pointer; }
+  .flag { border: 1px solid #666; padding: 0 3px; font-size: 10px; white-space: nowrap; }
+
+  #langbar { display: flex; gap: 0; margin: 0 0 10px; }
+  #langbar button {
+    flex: 1; border: 1px solid #9a9a9a; background: #d8d8d8; color: #444;
+    padding: 10px; font-size: 13px; box-shadow: 0 1px 2px rgba(0,0,0,.18);
+  }
+  #langbar button.on { background: #fff; color: #111; font-weight: 700; border-color: #333; }
+
+  /* ---- controls ---- */
+  #controls { border: 1px solid #9a9a9a; padding: 8px; margin: 0 0 10px; background: #fff;
+              box-shadow: 0 1px 2px rgba(0,0,0,.22); }
+  #controls label { display: block; margin: 0 0 4px; font-size: 11px; }
+  #controls input { accent-color: #555; }
+  input:focus-visible, button:focus-visible { outline: 2px solid #555; outline-offset: 1px; }
+  #controls input[type=number] { width: 60px; font-family: inherit; font-size: 12px; padding: 2px 4px; }
+  .ctlrow { display: flex; gap: 10px; align-items: center; margin: 0 0 6px; flex-wrap: wrap; }
+
+  /* ---- round ---- */
+  #strip { border: 1px solid #888; background: #cfcfcf; padding: 6px 8px; margin: 0 0 10px; }
+  .beatnum { font-size: 10px; color: #666; letter-spacing: .06em; margin: 0 0 6px; }
+  .claim { font-size: 16px; line-height: 1.4; margin: 0 0 8px; }
+  .term {
+    font: inherit; background: #e4e4e4; border: 0; border-bottom: 1px dashed #555;
+    padding: 0 2px; cursor: pointer; color: inherit;
+  }
+  .gloss { border: 1px solid #666; background: #ededed; padding: 6px 8px; margin: 0 0 8px; font-size: 12px; }
+  /* a card owns the screen: content centred, actions at thumb height */
+  .card, .claimcard {
+    border: 2px solid #333; padding: 10px; margin: 0 0 8px;
+    min-height: 60vh; display: flex; flex-direction: column;
+    background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,.28);
+  }
+  .claimcard { border-width: 1px; border-color: #9a9a9a; }
+  .card.key { border-style: double; border-width: 4px; }
+  .cardbody { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+  .cardactions { margin-top: auto; padding-top: 10px; }
+  .cardactions button { padding: 14px 10px; }
+  .who { margin: 0 0 10px; }
+  .who h2 { font-size: 28px; line-height: 1.15; margin: 0 0 4px; }
+
+  /* the verdict is a stamp, not a footnote */
+  .stamp {
+    font-size: 30px; font-weight: 700; text-align: center; letter-spacing: .02em;
+    border: 3px solid #111; padding: 14px 10px; margin: 0 0 10px; background: #fff;
+  }
+  .stamp.wrong { background: #1c1c1c; color: #fff; border-color: #1c1c1c; }
+
+  /* basis: a documented vote is quiet, a bloc inference is not */
+  .basis { margin: 0 0 8px; }
+  .basis.doc { font-size: 12px; color: #555; }
+  .basis.bloc {
+    border: 2px dashed #333; background: #ededed;
+    padding: 8px; font-size: 13px; font-weight: 700;
+  }
+  .verdict { border: 1px solid #333; padding: 8px; margin: 0 0 8px; background: #fff; font-size: 13px; }
+  .tallybar { display: flex; justify-content: space-between; font-size: 22px; font-variant-numeric: tabular-nums; }
+  .gap {
+    border: 2px dashed #333; background: #fff; padding: 8px;
+    margin: 0 0 8px; font-size: 12px;
+  }
+  .gap b { display: block; font-size: 10px; letter-spacing: .06em; color: #444; }
+  .progress { font-size: 11px; color: #666; margin: 0 0 6px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* data.js inlined at build time — edit /data.js, not here */
+const DATA = {"topics": [{"id": "religion", "label": "דת ומדינה", "sub": "כמה דת יש במדינה?", "icon": "🕍", "color": "#ffd23f", "color2": "#ffb800"}, {"id": "economy", "label": "כלכלה וחברה", "sub": "למה כל כך יקר פה?", "icon": "💸", "color": "#ff5240", "color2": "#d62e1d"}, {"id": "branches", "label": "מי מחליט פה?", "sub": "כנסת, ממשלה ובג\"ץ", "icon": "⚖️", "color": "#2b4cff", "color2": "#1a3acc"}, {"id": "gender", "label": "מגדר ושוויון", "sub": "שווים? שוות?", "icon": "⚧️", "color": "#ff6b9d", "color2": "#e0518a"}, {"id": "accountability", "label": "אחריות ציבורית", "sub": "מי לוקח אחריות?", "icon": "🔎", "color": "#b06bff", "color2": "#8a4dd6"}, {"id": "environment", "label": "סביבה ואקלים", "sub": "יהיה פה חם. מה עושים?", "icon": "🌍", "color": "#22c98e", "color2": "#1ba36f"}, {"id": "internal_sec", "label": "ביטחון פנים", "sub": "משטרה, פשיעה ונשק", "icon": "🛡️", "color": "#37c4ff", "color2": "#1a9ed1"}, {"id": "military", "label": "מדיני-ביטחוני", "sub": "מלחמה, שלום ומה שביניהם", "icon": "🎖️", "color": "#8a9663", "color2": "#6b7549"}], "politicians": {"netanyahu": {"name": "בנימין נתניהו", "party": "הליכוד", "avatar": "👨🏻‍💼", "mk_id": 30064}, "lapid": {"name": "יאיר לפיד", "party": "יש עתיד", "avatar": "🧔🏻‍♂️", "mk_id": 796}, "gantz": {"name": "בני גנץ", "party": "המחנה הממלכתי", "avatar": "👨🏼", "mk_id": 30070}, "liberman": {"name": "אביגדור ליברמן", "party": "ישראל ביתנו", "avatar": "🧔🏻", "mk_id": 186}, "smotrich": {"name": "בצלאל סמוטריץ'", "party": "הציונות הדתית", "avatar": "🧑🏻", "mk_id": 842}, "ben_gvir": {"name": "איתמר בן-גביר", "party": "עוצמה יהודית", "avatar": "🧑🏻‍💼", "mk_id": 952}, "deri": {"name": "אריה דרעי", "party": "ש\"ס", "avatar": "👨🏻‍🦳", "mk_id": 56}, "gafni": {"name": "משה גפני", "party": "יהדות התורה", "avatar": "🧑🏻‍🦳", "mk_id": 111}, "michaeli": {"name": "מרב מיכאלי", "party": "העבודה", "avatar": "👩🏻", "mk_id": 826}, "odeh": {"name": "איימן עודה", "party": "חד\"ש-תע\"ל", "avatar": "🧔🏽", "mk_id": 938}, "abbas": {"name": "מנסור עבאס", "party": "רע\"ם", "avatar": "👨🏽‍💼", "mk_id": 906}, "saar": {"name": "גדעון סער", "party": "הימין הממלכתי", "avatar": "🧑🏻‍💼", "mk_id": 720}, "eisenkot": {"name": "גדי איזנקוט", "party": "המחנה הממלכתי", "avatar": "👨🏻‍🦲", "mk_id": 1108}, "galant": {"name": "יואב גלנט", "party": "הליכוד", "avatar": "👨🏻‍✈️", "mk_id": 768}, "edelstein": {"name": "יולי אדלשטיין", "party": "הליכוד", "avatar": "👴🏻", "mk_id": 1}, "elkin": {"name": "זאב אלקין", "party": "הימין הממלכתי", "avatar": "👨🏻‍🏫", "mk_id": 724}, "gotliv": {"name": "טלי גוטליב", "party": "הליכוד", "avatar": "👩🏻‍⚖️", "mk_id": 1063}, "levin": {"name": "יריב לוין", "party": "הליכוד", "avatar": "🧑🏻‍⚖️", "mk_id": 602}, "silman": {"name": "עידית סילמן", "party": "הליכוד", "avatar": "👩🏻‍💼", "mk_id": 1052}, "son_harmelech": {"name": "לימור סון הר-מלך", "party": "עוצמה יהודית", "avatar": "👩🏻‍🦱", "mk_id": 1109}, "lahav": {"name": "יוראי להב-הרצנו", "party": "יש עתיד", "avatar": "👨🏻‍🎓", "mk_id": 1096}}, "issues": [{"id": "r1", "topic": "religion", "title": "חוק הגיוס", "emoji": "🪖", "tf": "הצעת חוק הגיוס שהקואליציה קידמה ב-2024 מבוססת על מתווה שכתב... בני גנץ.", "tf_answer": "true", "tf_explain": "נכון! המתווה נוסח כשגנץ היה שר הביטחון בממשלת בנט-לפיד, ועבר קריאה ראשונה ב-2022. ב-2024 נתניהו החיה בדיוק את אותו מתווה (\"דין רציפות\") — וגנץ עצמו הצביע נגד המתווה של עצמו, בטענה שהמציאות השתנתה אחרי 7/10.", "bill_title": "החלת דין רציפות על חוק הגיוס", "bill_date": "11 ביוני 2024", "bill_summary": "להמשיך לקדם את חוק הגיוס מהכנסת הקודמת בלי להתחיל את החקיקה מאפס. בפועל: פטור מגיוס לרוב בני הישיבות, עם יעדי גיוס הדרגתיים. עבר 63 מול 57.", "verification": "verified", "source": {"name": "ישראל היום", "url": "https://www.israelhayom.co.il/news/politics/article/15896765"}, "politicians": [{"id": "galant", "vote": "against", "key": true, "basis": "doc", "note": "היחיד מהקואליציה שהצביע נגד: \"אסור לעשות פוליטיקה קטנה על גבם של לוחמי צה\"ל\". בכיר בליכוד קרא לפטר אותו"}, {"id": "gantz", "vote": "against", "key": true, "basis": "doc", "note": "הצביע נגד המתווה שהוא עצמו כתב — כי לטענתו 7/10 שינה הכל"}, {"id": "netanyahu", "vote": "for", "key": true, "basis": "doc", "note": "קידם את המהלך וגייס את הקולות ברגע האחרון"}, {"id": "gafni", "vote": "for", "basis": "doc", "note": "החרדים תמכו אחרי אישור האדמו\"רים — למרות שבעבר כינו את החוק הזה \"עלוב ומשפיל\""}, {"id": "lapid", "vote": "against", "basis": "doc", "note": "\"אחד מרגעי החרפה הבזויים ביותר של כנסת ישראל אי פעם\""}, {"id": "edelstein", "vote": "for", "basis": "doc", "note": "הצביע בעד, אבל הבהיר שבוועדה שלו החוק יעבור רק אם ייתן מענה אמיתי לצה\"ל"}, {"id": "gotliv", "vote": "for", "basis": "doc", "note": "איימה להתנגד — ואז הצביעה בעד, לדבריה בגלל מחאה שהתקיימה מול ביתה"}, {"id": "liberman", "vote": "against", "basis": "doc", "note": "\"מעולם לא הבנתי למה ליהודי אסור להיות לוחם\""}, {"id": "deri", "vote": "for", "basis": "doc", "note": "ש\"ס הצביעה בעד כחלק מהקואליציה"}], "voteId": "41074", "knesset_url": "https://main.knesset.gov.il/Activity/plenum/Votes/Pages/vote.aspx?voteId=41074", "core": true, "_tally": {"for": 63, "against": 57}}, {"id": "r2", "topic": "religion", "title": "חוק החמץ", "emoji": "🍞", "tf": "לפי חוק החמץ, מאבטחים בבתי חולים רשאים לחפש לך חמץ בתיק בפסח.", "tf_answer": "false", "tf_explain": "לא נכון. בנוסח שאושר בסוף אין שום סמכות חיפוש — רק שילוט בכניסה ויידוע. מנהל בית החולים רשאי להגביל הכנסת חמץ, אבל אף אחד לא יפתח לך את התיק.", "bill_title": "חוק החמץ (תיקון לחוק זכויות החולה)", "bill_date": "22 בפברואר 2023", "bill_summary": "מנהל בית חולים רשאי להגביל או לאסור הכנסת חמץ לשטח בית החולים בפסח, כדי לשמור על כשרות. עבר 60 מול 52. החוק בא לעקוף פסיקת בג\"ץ מ-2020.", "verification": "verified", "source": {"name": "דבר", "url": "https://www.davar1.co.il/427098/"}, "politicians": [{"id": "gafni", "vote": "for", "key": true, "basis": "doc", "note": "\"מעולם לא חתמתי על חוק שאומר לאדם חילוני איך להתנהג\" — מיוזמי החוק"}, {"id": "lapid", "vote": "against", "key": true, "basis": "doc", "note": "\"אי אפשר לכפות על אדם להאמין ביציאת מצרים\" — הזהיר מאפקט הפוך"}, {"id": "michaeli", "vote": "against", "basis": "doc", "note": "האופוזיציה כולה התנגדה — \"כפייה דתית\""}, {"id": "ben_gvir", "vote": "for", "basis": "doc", "note": "הצביע עם הקואליציה"}], "voteId": "38312", "knesset_url": "https://main.knesset.gov.il/Activity/plenum/Votes/Pages/vote.aspx?voteId=38312", "core": false, "_tally": {"for": 60, "against": 52}}, {"id": "e1", "topic": "economy", "title": "תקציב המדינה", "emoji": "💰", "tf": "אם הכנסת לא מאשרת תקציב בזמן — היא מתפזרת אוטומטית והולכים לבחירות.", "tf_answer": "true", "tf_explain": "נכון! זה כתוב בחוק יסוד: משק המדינה. זו הסיבה שהצבעות תקציב הן רגעי מבחן קיומיים לכל ממשלה — מי ששולט בתקציב שולט בקואליציה.", "bill_title": "תקציב המדינה 2023–2024 + קרן הארנונה", "bill_date": "24 במאי 2023", "bill_summary": "תקציב דו-שנתי: 484 מיליארד ₪ ל-2023, 514 מיליארד ל-2024. כלל את \"קרן הארנונה\" שלוקחת חלק מהארנונה העסקית של ערים חזקות ומחלקת לרשויות שבונות מגורים. עבר 64 מול 55 אחרי לילה של אלפי הסתייגויות.", "verification": "verified", "source": {"name": "וואלה", "url": "https://news.walla.co.il/item/3581192"}, "politicians": [{"id": "smotrich", "vote": "for", "key": true, "basis": "bloc", "note": "שר האוצר: \"בשורה אדירה לכלכלת ישראל\" (עמדת סיעה — לא השתתף בהצבעה זו)"}, {"id": "lapid", "vote": "against", "key": true, "basis": "doc", "note": "\"נתניהו חלש מאי פעם, אז הוא נתן לחרדים 14 מיליארד שקל\""}, {"id": "liberman", "vote": "against", "basis": "doc", "note": "\"כתם שחור ענק בתולדות ישראל\""}, {"id": "netanyahu", "vote": "for", "basis": "doc", "note": "כל הקואליציה הצביעה בעד"}, {"id": "gafni", "vote": "for", "basis": "doc", "note": "יו\"ר ועדת הכספים שהעבירה את התקציב: \"מתארים אותנו כשודדי הקופה הציבורית\""}, {"id": "gantz", "vote": "against", "basis": "doc", "note": "האופוזיציה כולה נגד"}, {"id": "abbas", "vote": "against", "basis": "doc", "note": "האופוזיציה כולה נגד"}], "voteId": "39247", "knesset_url": "https://main.knesset.gov.il/Activity/plenum/Votes/Pages/vote.aspx?voteId=39247", "core": true, "_tally": {"for": 64, "against": 55}}, {"id": "e2", "topic": "economy", "title": "תקציב המלחמה", "emoji": "⚔️", "tf": "אחרי פרוץ המלחמה, הממשלה ביטלה את כל \"הכספים הקואליציוניים\" מהתקציב.", "tf_answer": "false", "tf_explain": "לא נכון. בתקציב המלחמה המעודכן של סוף 2023 נשארו כ-5 מיליארד ₪ של כספים קואליציוניים — למרות שאנשי המקצוע באוצר ובבנק ישראל המליצו לקצץ אותם. זה הוביל למשבר בתוך הממשלה עצמה.", "bill_title": "חוק תקציב נוסף לשנת 2023 (תקציב המלחמה)", "bill_date": "14 בדצמבר 2023", "bill_summary": "תוספת של כ-26 מיליארד ₪ לתקציב בגלל המלחמה: 17 מיליארד לביטחון, כ-9 מיליארד להוצאות אזרחיות (מפונים, פיצויים). הביקורת: נשארו בו מיליארדים לכספים קואליציוניים.", "verification": "verified", "source": {"name": "mako", "url": "https://www.mako.co.il/news-money/2023_q4/Article-971a2ecd9b76c81026.htm"}, "politicians": [{"id": "gantz", "vote": "against", "key": true, "basis": "doc", "note": "ההפתעה: המחנה הממלכתי הצביע נגד — למרות שישב אז בממשלת החירום!"}, {"id": "eisenkot", "vote": "against", "key": true, "basis": "doc", "note": "הצביע נגד יחד עם סיעתו, במחאה על הכספים הקואליציוניים"}, {"id": "edelstein", "vote": "abstain", "basis": "doc", "note": "מהליכוד — הודיע שיימנע בהצבעה המסכמת"}, {"id": "smotrich", "vote": "for", "basis": "doc", "note": "שר האוצר שהוביל את התקציב המעודכן"}, {"id": "netanyahu", "vote": "for", "basis": "bloc", "note": "הקואליציה העבירה בזכות הרוב המוצק"}, {"id": "lapid", "vote": "against", "basis": "bloc", "note": "האופוזיציה נגד"}, {"id": "gafni", "vote": "for", "basis": "bloc", "note": "הצביע עם הקואליציה"}], "core": false}, {"id": "b1", "topic": "branches", "title": "ביטול עילת הסבירות", "emoji": "⚖️", "tf": "לישראל אין חוקה כתובה אחת.", "tf_answer": "true", "tf_explain": "נכון! במקום חוקה יש לנו \"חוקי יסוד\" שנחקקים לאורך השנים. בדיוק בגלל זה השאלה מי מחליט — הכנסת או בג\"ץ — נשארת פתוחה ומתפוצצת שוב ושוב. עילת הסבירות הייתה הפרק הכי סוער בוויכוח הזה.", "bill_title": "ביטול עילת הסבירות (תיקון לחוק יסוד: השפיטה)", "bill_date": "11 ביולי 2023", "bill_summary": "לאסור על בג\"ץ לפסול החלטות של הממשלה והשרים בטענה שהן \"לא סבירות\". החוק הראשון של הרפורמה המשפטית. ההצבעה שמוצגת כאן היא הקריאה שבה החוק עבר לוועדה (64 מול 56); מאוחר יותר, בקריאה השלישית (24.7.2023), האופוזיציה החרימה את ההצבעה.", "verification": "verified", "source": {"name": "ynet", "url": "https://www.ynet.co.il/news/article/skd4x0iq3"}, "politicians": [{"id": "levin", "vote": "for", "key": true, "basis": "doc", "note": "שר המשפטים ואדריכל הרפורמה: \"אין בית ספר לסבירות\""}, {"id": "galant", "vote": "for", "key": true, "basis": "doc", "note": "ההפתעה: לחץ עד הרגע האחרון לרכך את החוק — ובסוף הצביע בעד"}, {"id": "liberman", "vote": "against", "key": true, "basis": "doc", "note": "הצביע נגד בהעברה לוועדה. מאוחר יותר, בקריאה השלישית (24.7), הוא שהוביל את החרם"}, {"id": "netanyahu", "vote": "for", "basis": "doc", "note": "ליווה את ההצבעה מקרוב ותיווך בין לוין לגלנט במליאה"}, {"id": "ben_gvir", "vote": "for", "basis": "doc", "note": "\"כל פשרה תהיה חרפה לימין כולו\""}, {"id": "lapid", "vote": "against", "basis": "doc", "note": "הצביע נגד בהעברה לוועדה. בקריאה השלישית הצטרף לחרם האופוזיציה"}, {"id": "gantz", "vote": "against", "basis": "doc", "note": "הצביע נגד. \"מי שיצביע בעד יירשם בדברי הימים\""}, {"id": "odeh", "vote": "against", "basis": "doc", "note": "הצביע נגד יחד עם האופוזיציה"}], "voteId": "39566", "knesset_url": "https://main.knesset.gov.il/Activity/plenum/Votes/Pages/vote.aspx?voteId=39566", "core": true, "_tally": {"for": 64, "against": 56}}, {"id": "b2", "topic": "branches", "title": "חוק המדליפים", "emoji": "🤫", "tf": "הדלפת מסמך מסווג מצה\"ל לתקשורת היא עבירה פלילית.", "tf_answer": "true", "tf_explain": "נכון. ובדיוק סביב פרשה כזאת (פרשת דובר רה\"מ אלי פלדשטיין) נולדה הצעת חוק שתעניק חסינות למי שמדליף מידע מסווג — אם ההדלפה היא אל ראש הממשלה. דובר צה\"ל דאז הזהיר שהחוק \"מסוכן מאוד לביטחון המדינה\".", "bill_title": "חסינות למעבירי מידע מסווג לראש הממשלה", "bill_date": "4 בדצמבר 2024", "bill_summary": "מי שמדליף מידע מסווג לראש הממשלה — יקבל חסינות מהעמדה לדין. ההצעה הוגשה בעקבות כתב האישום נגד דובר רה\"מ בפרשת הדלפת המסמכים. עברה בקריאה טרומית 59 מול 52.", "verification": "verified", "source": {"name": "הארץ", "url": "https://www.haaretz.co.il/news/law/2024-12-04/ty-article/00000193-91c0-d408-a7d3-bbd97fd10000"}, "politicians": [{"id": "netanyahu", "vote": "for", "key": true, "basis": "bloc", "note": "ההצעה הוגשה בעקבות הפרשה של הדובר שלו — הקואליציה תמכה"}, {"id": "lapid", "vote": "against", "key": true, "basis": "bloc", "note": "האופוזיציה התנגדה"}, {"id": "levin", "vote": "for", "basis": "bloc", "note": "הצביע עם הקואליציה"}, {"id": "gantz", "vote": "against", "basis": "bloc", "note": "התנגד עם האופוזיציה"}, {"id": "liberman", "vote": "against", "basis": "bloc", "note": "התנגד עם האופוזיציה"}, {"id": "smotrich", "vote": "for", "basis": "bloc", "note": "הצביע עם הקואליציה"}], "core": false}, {"id": "g1", "topic": "gender", "title": "הפרדה מגדרית באקדמיה", "emoji": "🎓", "tf": "בג\"ץ אישר בעבר לימודים בהפרדה בין גברים לנשים באוניברסיטאות.", "tf_answer": "true", "tf_explain": "נכון — וזה מפתיע הרבה אנשים. ב-2021 בג\"ץ אישר לימודים בהפרדה מגדרית לציבור החרדי, אבל רק לתואר ראשון, רק בכיתות הלימוד, ובתנאי שמרצות לא יופלו. הצעת החוק החדשה רוצה להרחיב את זה הרבה מעבר.", "bill_title": "הרחבת הלימודים בהפרדה מגדרית לתארים מתקדמים", "bill_date": "קריאה טרומית: דצמבר 2024", "bill_summary": "לאפשר מסלולים בהפרדה בין גברים לנשים גם בתואר שני ושלישי, בכל מוסד אקדמי, לכל מי שמבקש \"מטעמי דת\". תומכים: הנגשת אקדמיה לחרדים. מתנגדים: הדרת נשים ופגיעה בשוויון. ביולי 2026 אושרה בוועדת החינוך לקריאה שנייה ושלישית.", "verification": "verified", "source": {"name": "הארץ", "url": "https://www.haaretz.co.il/news/politi/2026-07-06/ty-article/0000019f-3697-d0b8-ab9f-7fffc17a0000"}, "politicians": [{"id": "son_harmelech", "vote": "for", "key": true, "basis": "doc", "note": "יוזמת ההצעה: \"בג\"ץ כפה תפיסת עולם פרוגרסיבית רדיקלית. החוק מחזיר את חופש הבחירה\""}, {"id": "michaeli", "vote": "against", "key": true, "basis": "bloc", "note": "חברות האופוזיציה מחו עם שלטי \"גברים\"/\"נשים\" משני צידי האולם"}, {"id": "gafni", "vote": "for", "basis": "bloc", "note": "המפלגות החרדיות מקדמות את ההרחבה"}, {"id": "lapid", "vote": "against", "basis": "bloc", "note": "האופוזיציה: \"הדרת נשים\""}, {"id": "ben_gvir", "vote": "for", "basis": "bloc", "note": "ההצעה של ח\"כית ממפלגתו"}, {"id": "smotrich", "vote": "for", "basis": "bloc", "note": "הקואליציה תמכה"}], "core": true}, {"id": "g2", "topic": "gender", "title": "נישואים אזרחיים", "emoji": "💍", "mode": "stance", "tf": "אפשר היום להתחתן בישראל בנישואים אזרחיים.", "tf_answer": "false", "tf_explain": "לא נכון. נישואים בישראל מתקיימים רק דרך גופי דת (רבנות, כנסייה, בתי דין שרעיים). מי שלא יכול או לא רוצה — טס לקפריסין, מתחתן ב\"נישואי יוטה\" בזום, או נשאר בלי סטטוס. ישראל היא מהמדינות המערביות היחידות במצב כזה.", "bill_title": "ברית זוגיות אזרחית — הצעות שחוזרות שוב ושוב לכנסת", "bill_date": "עמדות ציבוריות מתועדות", "bill_summary": "הרעיון: מסלול משפטי מלא לזוגות בלי מעורבות הרבנות — כולל זוגות חד-מיניים ובני דתות שונות. הצעות כאלה הוגשו ונדחו לאורך שנים. כאן תסדרו לפי עמדות ציבוריות מוצהרות — לא לפי הצבעה ספציפית.", "verification": "stance", "source": {"name": "עמדות מפלגתיות פומביות", "url": ""}, "politicians": [{"id": "lapid", "vote": "for", "key": true, "basis": "doc", "note": "יש עתיד תומכת בנישואים אזרחיים כחלק מהמצע שלה מאז הקמתה"}, {"id": "gafni", "vote": "against", "key": true, "basis": "doc", "note": "המפלגות החרדיות מתנגדות עקרונית לכל עקיפה של הרבנות"}, {"id": "liberman", "vote": "for", "basis": "doc", "note": "ישראל ביתנו דוגלת בנישואים אזרחיים — בעיקר בגלל מאות אלפי עולים שאינם מוכרים כיהודים ברבנות"}, {"id": "deri", "vote": "against", "basis": "doc", "note": "ש\"ס מתנגדת בתוקף"}, {"id": "michaeli", "vote": "for", "basis": "doc", "note": "העבודה תומכת בהפרדת דת ממדינה בנישואין"}, {"id": "smotrich", "vote": "against", "basis": "doc", "note": "הציונות הדתית מתנגדת לנישואים אזרחיים"}], "core": false}, {"id": "a1", "topic": "accountability", "title": "ועדת חקירה ל-7/10", "emoji": "🕯️", "tf": "הוקמה ועדת חקירה ממלכתית לאירועי 7 באוקטובר.", "tf_answer": "false", "tf_explain": "לא נכון — נכון ליולי 2026 לא הוקמה ועדת חקירה ממלכתית (עצמאית, בראשות שופט). במקום זה הממשלה מקדמת חוק לוועדה שחבריה ימונו על ידי פוליטיקאים. משפחות שכולות מ\"מועצת אוקטובר\" מכנות אותה \"ועדת טיוח\".", "bill_title": "ועדת חקירה במינוי פוליטי לאירועי 7/10 (הצעת קלנר)", "bill_date": "24 בדצמבר 2025", "bill_summary": "במקום ועדה ממלכתית שממנה נשיא העליון — ועדה שממנים הקואליציה והאופוזיציה (ואם האופוזיציה מסרבת, יו\"ר הכנסת ממנה). עברה בקריאה טרומית 53 מול 48, בזמן שמשפחות שכולות מחו ביציע והפנו גב לנואם.", "verification": "verified", "source": {"name": "ynet", "url": "https://www.ynet.co.il/news/article/rkbnnxtq11e"}, "politicians": [{"id": "elkin", "vote": "abstain", "key": true, "basis": "bloc", "note": "ההפתעה: החרים את ההצבעה — \"אני תומך בוועדת חקירה ממלכתית שההרכב שלה ייקבע בידי השופט סולברג\" (עמדת סיעה — לא השתתף בהצבעה זו)"}, {"id": "edelstein", "vote": "abstain", "key": true, "basis": "bloc", "note": "גם הוא מהליכוד — החרים את ההצבעה בשל תמיכתו בוועדה ממלכתית (עמדת סיעה — לא השתתף בהצבעה זו)"}, {"id": "netanyahu", "vote": "abstain", "key": true, "basis": "bloc", "note": "נעדר מההצבעה — למרות שהחוק מקודם בעידודו (עמדת סיעה — לא השתתף בהצבעה זו)"}, {"id": "lapid", "vote": "against", "basis": "doc", "note": "\"בחודש הראשון של הממשלה הבאה נקים ועדת חקירה ממלכתית\""}, {"id": "ben_gvir", "vote": "for", "basis": "doc", "note": "סגן השר אלמוג כהן ממפלגתו הציג את עמדת הממשלה בעד"}, {"id": "gantz", "vote": "against", "basis": "doc", "note": "האופוזיציה נגד"}], "voteId": "44946", "knesset_url": "https://main.knesset.gov.il/Activity/plenum/Votes/Pages/vote.aspx?voteId=44946", "core": true, "_tally": {"for": 53, "against": 48}}, {"id": "a2", "topic": "accountability", "title": "חסינות חברי כנסת", "emoji": "🛡️", "tf": "אי אפשר להעמיד לדין חבר כנסת כל עוד הוא מכהן.", "tf_answer": "false", "tf_explain": "לא נכון. לח\"כים יש חסינות רק על פעולות במסגרת התפקיד (נאום, הצבעה) — לא על עבירות פליליות. ח\"כים ושרים נחקרו, הועמדו לדין ואף ישבו בכלא. הצעת חוק חדשה ביקשה לשנות בדיוק את זה.", "bill_title": "הרחבת החסינות: אין חקירה נגד ח\"כ בלי אישור 90 ח\"כים", "bill_date": "4 בדצמבר 2024", "bill_summary": "לא תיפתח חקירה פלילית נגד חבר כנסת אלא אם 90 ח\"כים אישרו שהמעשה לא קשור לתפקידו. לא חל על שוחד ומרמה. עברה בקריאה טרומית 57 מול 53.", "verification": "verified", "source": {"name": "הארץ", "url": "https://www.haaretz.co.il/news/law/2024-12-04/ty-article/00000193-91c0-d408-a7d3-bbd97fd10000"}, "politicians": [{"id": "gotliv", "vote": "for", "key": true, "basis": "doc", "note": "יוזמת ההצעה"}, {"id": "levin", "vote": "for", "key": true, "basis": "doc", "note": "שר המשפטים בירך על אישור ההצעה"}, {"id": "netanyahu", "vote": "for", "basis": "bloc", "note": "הקואליציה תמכה"}, {"id": "lapid", "vote": "against", "basis": "bloc", "note": "האופוזיציה התנגדה"}, {"id": "gantz", "vote": "against", "basis": "bloc", "note": "האופוזיציה התנגדה"}, {"id": "liberman", "vote": "against", "basis": "bloc", "note": "האופוזיציה התנגדה"}], "core": false}, {"id": "v1", "topic": "environment", "title": "חוק האקלים", "emoji": "🌡️", "tf": "ישראל קבעה בחוק יעד מחייב: אפס פליטות פחמן עד 2050.", "tf_answer": "partial", "tf_explain": "חלקית. הצעת חוק האקלים שעברה קריאה ראשונה ב-2024 אכן קובעת יעד של אפס פליטות עד 2050 (ו-30%- עד 2030) — אבל בנוסח \"גמיש\" שהממשלה יכולה לשנות בקלות, בלי תקציב וכמעט בלי שיניים. עד כדי כך שאפילו ארגוני הסביבה התנגדו לו.", "bill_title": "חוק האקלים", "bill_date": "3 באפריל 2024", "bill_summary": "מסגרת חוקית ראשונה בישראל לצמצום פליטות גזי חממה: 30%- עד 2030, אפס עד 2050. הטוויסט: משרדי האוצר והאנרגיה ריככו את הנוסח שוב ושוב, וארגוני הסביבה טענו שעדיף חוק חזק מאשר \"חוק בלי שיניים\".", "verification": "partial", "source": {"name": "infospot", "url": "https://infospot.co.il/n/The_climate_law1"}, "politicians": [{"id": "silman", "vote": "for", "key": true, "basis": "bloc", "note": "השרה להגנת הסביבה שהובילה את החוק דרך שלושה סבבים בוועדת השרים (עמדת סיעה — לא השתתף בהצבעה זו)"}, {"id": "smotrich", "vote": "for", "key": true, "basis": "bloc", "note": "האוצר תמך — אבל רק אחרי שהצליח לרכך משמעותית את היעדים ולמנוע תקציב (עמדת סיעה — לא השתתף בהצבעה זו)"}, {"id": "lahav", "vote": "against", "basis": "doc", "note": "תקף בחריפות בדיוני הוועדה את הנוסח המרוכך וחוסר המחויבות ליעדים"}], "voteId": "40922", "knesset_url": "https://main.knesset.gov.il/Activity/plenum/Votes/Pages/vote.aspx?voteId=40922", "core": true, "_tally": {"for": 49, "against": 32}}, {"id": "v2", "topic": "environment", "title": "המס על כלים חד-פעמיים", "emoji": "🥤", "mode": "stance", "tf": "בישראל הוטל מס על כלים חד-פעמיים — ובוטל אחרי כשנה.", "tf_answer": "true", "tf_explain": "נכון. בנובמבר 2021 שר האוצר דאז ליברמן הטיל מס שהקפיץ את מחירי החד-פעמי — הצריכה ירדה משמעותית. בינואר 2023 שר האוצר הנכנס סמוטריץ' ביטל את המס, בין השאר כמחווה לציבור החרדי שצורך הרבה חד-פעמי. סביבה מול פוליטיקה בקרב חזיתי.", "bill_title": "ביטול המס על כלים חד-פעמיים", "bill_date": "ינואר 2023 (אישור ועדת הכספים)", "bill_summary": "ביטול צו המס שהוטל ב-2021. תומכי הביטול: המס פוגע במשפחות גדולות ולא הוכיח תועלת. מתנגדים: המס עבד, הצריכה ירדה, והביטול הוא ויתור סביבתי לצרכים פוליטיים. סדרו לפי עמדות מתועדות.", "verification": "stance", "source": {"name": "עמדות מתועדות בתקשורת", "url": ""}, "politicians": [{"id": "smotrich", "vote": "for", "key": true, "basis": "doc", "note": "חתם על ביטול המס בין צעדיו הראשונים כשר אוצר"}, {"id": "liberman", "vote": "against", "key": true, "basis": "doc", "note": "הוא שהטיל את המס ב-2021 — והתנגד בפומבי לביטולו"}, {"id": "gafni", "vote": "for", "basis": "doc", "note": "יו\"ר ועדת הכספים שאישרה את הביטול — דרישה מרכזית של הציבור החרדי"}, {"id": "deri", "vote": "for", "basis": "doc", "note": "ש\"ס הובילה את הדרישה לביטול"}, {"id": "michaeli", "vote": "against", "basis": "doc", "note": "התנגדה לביטול — \"ויתור על כלי סביבתי שעובד\""}], "core": false}, {"id": "s1", "topic": "internal_sec", "title": "חוק המשטרה של בן-גביר", "emoji": "🚨", "tf": "השר לביטחון לאומי רשאי להורות למשטרה את מי לחקור.", "tf_answer": "false", "tf_explain": "לא נכון — ובג\"ץ דאג שזה יישאר ככה. \"חוק בן-גביר\" מ-2022 נתן לשר להתוות מדיניות כללית למשטרה, כולל בתחום החקירות. אבל ב-2024 בג\"ץ פסל את סעיף החקירות וקבע: השר קובע מדיניות כללית — אסור לו להתערב בחקירות ובפעולות ספציפיות.", "bill_title": "תיקון פקודת המשטרה (\"חוק בן-גביר\")", "bill_date": "28 בדצמבר 2022", "bill_summary": "המשטרה כפופה לממשלה, והשר לביטחון לאומי מתווה את מדיניותה — תוכניות עבודה, סדרי עדיפויות, ואפילו מדיניות חקירות. נחקק בהליך בזק לפני השבעת הממשלה, כתנאי של בן-גביר לכניסה לקואליציה. עבר 61 מול 55.", "verification": "verified", "source": {"name": "מעריב", "url": "https://www.maariv.co.il/news/politics/Article-968350"}, "politicians": [{"id": "ben_gvir", "vote": "for", "key": true, "basis": "doc", "note": "\"הצעה היסטורית\" — החוק שהוא דרש כתנאי להצטרפות לממשלה"}, {"id": "netanyahu", "vote": "for", "basis": "doc", "note": "הקואליציה המתגבשת העבירה את החוק לפני השבעת הממשלה"}, {"id": "deri", "vote": "for", "basis": "doc", "note": "הצביע עם הקואליציה"}, {"id": "lapid", "vote": "against", "basis": "doc", "note": "האופוזיציה: פוליטיזציה של המשטרה"}, {"id": "gantz", "vote": "against", "basis": "doc", "note": "האופוזיציה התנגדה"}, {"id": "michaeli", "vote": "against", "basis": "doc", "note": "האופוזיציה התנגדה"}], "voteId": "37885", "knesset_url": "https://main.knesset.gov.il/Activity/plenum/Votes/Pages/vote.aspx?voteId=37885", "core": true, "_tally": {"for": 61, "against": 55}}, {"id": "s2", "topic": "internal_sec", "title": "סנקציות על תומכי טרור", "emoji": "🚫", "tf": "הרשות הפלסטינית משלמת קצבאות למשפחות של מחבלים.", "tf_answer": "true", "tf_explain": "נכון — מדיניות התשלומים של הרשות הפלסטינית לאסירים ולמשפחות מחבלים מתועדת היטב ומכונה \"שלם כדי לרצוח\" (Pay for Slay). ישראל מנכה את הסכומים מכספי המסים שהיא מעבירה לרשות. על הרקע הזה נולדה ההצעה הבאה.", "bill_title": "סנקציות על ארגונים \"תומכי טרור\"", "bill_date": "4 בדצמבר 2024", "bill_summary": "המדינה תוכל להטיל סנקציות על ארגונים שמעבירים כסף למחבלים או למשפחותיהם: איסור כניסה לארץ, הקפאת רכוש, איסור עסקאות. עברה בקריאה טרומית 55 מול 10.", "verification": "verified", "source": {"name": "הארץ", "url": "https://www.haaretz.co.il/news/law/2024-12-04/ty-article/00000193-91c0-d408-a7d3-bbd97fd10000"}, "politicians": [{"id": "elkin", "vote": "for", "key": true, "basis": "doc", "note": "יוזם ההצעה (יחד עם ח\"כ צבי סוכות): \"להגביר את אפקטיביות המלחמה בטרור\""}, {"id": "ben_gvir", "vote": "for", "basis": "bloc", "note": "הקואליציה תמכה"}, {"id": "smotrich", "vote": "for", "basis": "bloc", "note": "הקואליציה תמכה"}, {"id": "netanyahu", "vote": "for", "basis": "bloc", "note": "הקואליציה תמכה"}, {"id": "odeh", "vote": "against", "basis": "bloc", "note": "עשרת המתנגדים — בעיקר מהמפלגות הערביות (לאימות מול הפרוטוקול)"}, {"id": "abbas", "vote": "against", "basis": "bloc", "note": "מהמתנגדים (לאימות מול הפרוטוקול)"}], "core": false}, {"id": "m1", "topic": "military", "title": "מדינה פלסטינית: הכרה חד-צדדית", "emoji": "🌐", "tf": "הכנסת קיבלה הצהרה שמתנגדת להכרה בינלאומית חד-צדדית במדינה פלסטינית.", "tf_answer": "true", "tf_explain": "נכון. בכנסת ה-25 עלו כמה הצהרות בנושא. הצהרה מרכזית נגד הכרה חד-צדדית במדינה פלסטינית זכתה לתמיכה רחבה חוצה-גושים — קואליציה ואופוזיציה יחד. שים לב: הפרטים המדויקים של כל הצבעה טעונים אימות מול אתר הכנסת.", "bill_title": "הצהרה נגד הכרה חד-צדדית במדינה פלסטינית", "bill_date": "פברואר 2024", "bill_summary": "ההצהרה: ישראל דוחה תכתיבים בינלאומיים, והסדר מדיני יושג רק במשא ומתן ישיר. [שים לב: יש לאמת את פרטי ההצבעה המדויקים מול אתר הכנסת לפני פרסום]", "verification": "verified", "source": {"name": "ynet", "url": "https://www.ynet.co.il/news/article/rkxhwox3t"}, "politicians": [{"id": "lapid", "vote": "for", "key": true, "basis": "bloc", "note": "ההפתעה: ראש האופוזיציה הצביע עם נתניהו — \"אני ומפלגתי נגד צעדים חד-צדדיים\""}, {"id": "odeh", "vote": "against", "key": true, "basis": "bloc", "note": "\"מגיעה לעם הפלסטיני זכות להגדרה עצמית ולהקים מדינה משלו\""}, {"id": "netanyahu", "vote": "for", "basis": "bloc", "note": "יוזם ההצהרה: \"רוב עצום וחסר תקדים של 99 חברי כנסת\""}, {"id": "gantz", "vote": "for", "basis": "bloc", "note": "המחנה הממלכתי תמך"}, {"id": "liberman", "vote": "for", "basis": "bloc", "note": "ישראל ביתנו תמכה"}, {"id": "michaeli", "vote": "abstain", "basis": "bloc", "note": "מפלגת העבודה נעדרה מהדיון — לא בעד ולא נגד"}, {"id": "abbas", "vote": "against", "basis": "bloc", "note": "רע\"ם בין 9 המתנגדים"}], "core": true}, {"id": "m2", "topic": "military", "title": "מדינה פלסטינית: התנגדות עקרונית", "emoji": "🗺️", "tf": "הכנסת קיבלה החלטה שמתנגדת להקמת מדינה פלסטינית — לא רק להכרה חד-צדדית בה.", "tf_answer": "true", "tf_explain": "נכון. חמישה חודשים אחרי הצבעת פברואר, ביולי 2024 הכנסת הרחיבה את הקו: הצהרה נגד עצם הקמתה של מדינה פלסטינית ממערב לירדן. הפעם התמונה הפוליטית הייתה שונה — ולפיד כבר לא היה באולם.", "bill_title": "הצהרה נגד הקמת מדינה פלסטינית", "bill_date": "18 ביולי 2024", "bill_summary": "\"הכנסת מתנגדת להקמת מדינה פלסטינית ממערב לירדן\" — הצהרה שיזמו סיעות הימין ימים לפני נסיעת נתניהו לוושינגטון. עברה 68 מול 9. הצעות נגדיות של רע\"ם וחד\"ש-תע\"ל להכרה במדינה פלסטינית נדחו 62 מול 9.", "verification": "verified", "source": {"name": "כאן חדשות", "url": "https://www.kan.org.il/content/kan-news/politic/774418/"}, "politicians": [{"id": "elkin", "vote": "for", "key": true, "basis": "doc", "note": "יוזם ההצעה: \"תראו כאן הרבה כיסאות ריקים של מפלגות שיעדיפו להיעדר\""}, {"id": "gantz", "vote": "for", "key": true, "basis": "doc", "note": "המחנה הממלכתי תמך: \"הכרה במדינה פלסטינית אחרי 7/10 — פרס לטרור\""}, {"id": "lapid", "vote": "abstain", "basis": "doc", "note": "הטוויסט: הפעם ראש האופוזיציה נעדר מההצבעה"}, {"id": "netanyahu", "vote": "abstain", "basis": "doc", "note": "גם ראש הממשלה נעדר — ימים לפני נאומו בקונגרס"}, {"id": "saar", "vote": "for", "basis": "doc", "note": "\"הקמת מדינה פלסטינית תסכן את ביטחון ישראל ועתידה\""}, {"id": "odeh", "vote": "against", "basis": "bloc", "note": "חד\"ש-תע\"ל בין 9 המתנגדים; הצעתם הנגדית להכרה במדינה פלסטינית נדחתה"}], "core": false, "voteId": "41304", "knesset_url": "https://main.knesset.gov.il/Activity/plenum/Votes/Pages/vote.aspx?voteId=41304", "_tally": {"for": 68, "against": 9}}], "glossary": {"עילת הסבירות": "כלי משפטי שאיפשר לבג\"ץ לפסול החלטות ממשלה \"לא סבירות באופן קיצוני\". בוטלה בחוק ב-2023 — ובג\"ץ פסל את הביטול ב-2024. כן, זה מבלבל. זו בדיוק המלחמה על הכוח.", "דין רציפות": "טריק פרלמנטרי: ממשיכים לקדם הצעת חוק מכנסת קודמת בלי להתחיל מאפס. חוסך שנים של חקיקה — ולכן שנוי במחלוקת.", "קריאה טרומית": "ההצבעה הראשונה על הצעת חוק פרטית. אם עוברת — ההצעה ממשיכה לוועדה. רוב ההצעות נופלות כאן.", "קריאה ראשונה": "ההצבעה שמכניסה הצעת חוק לוועדה להכנה מפורטת. אחריה יבואו קריאה שנייה ושלישית — ורק אז זה חוק.", "קריאה שנייה ושלישית": "ההצבעות הסופיות שהופכות הצעה לחוק מחייב. בדרך כלל מצביעים עליהן באותו יום.", "חוק ההסדרים": "ענק חקיקתי שמצורף לתקציב ומכיל עשרות רפורמות בבת אחת. מבקרים אומרים: דרך לעקוף דיון אמיתי.", "כספים קואליציוניים": "כסף שמפלגות הקואליציה מקבלות לחלוקה לפי ההסכמים הפוליטיים — מעבר לתקציב הרגיל של המשרדים.", "בג\"ץ": "בית המשפט העליון בכובעו כבית דין גבוה לצדק. הכתובת של אזרחים נגד החלטות המדינה.", "ועדת חקירה ממלכתית": "ועדה עצמאית מהממשלה, בראשות שופט, שאת חבריה ממנה נשיא בית המשפט העליון. הכלי החזק ביותר לחקירת מחדלים.", "ועדת בדיקה": "ועדה שהממשלה מקימה ושולטת בהרכבה. פחות עצמאית מוועדת חקירה ממלכתית.", "חסינות": "הגנה לח\"כים מפני תביעה על פעולות במסגרת התפקיד (נאום, הצבעה). לא מגנה מפני עבירות פליליות רגילות.", "משמעת קואליציונית": "הכלל הלא-כתוב: חברי קואליציה מצביעים ביחד. מי ששובר — משלם מחיר פוליטי. בגלל זה \"מורדים\" הם אירוע.", "אופוזיציה": "המפלגות שלא בממשלה. התפקיד: לבקר, להציע חלופות — ולנסות להפיל את הממשלה.", "קואליציה": "המפלגות שמרכיבות את הממשלה. צריכות לפחות 61 מתוך 120 ח\"כים.", "אי-אמון": "הצבעה שאם 61 ח\"כים תומכים בה — הממשלה נופלת. הנשק הכבד של האופוזיציה.", "ח\"כ": "חבר/ת כנסת. יש 120. אתם — ה-121.", "סטטוס-קוו": "ההסדר הלא-כתוב מ-1947 על יחסי דת ומדינה: שבת, כשרות, נישואין. כל צד טוען שהצד השני מפר אותו.", "לימודי ליבה": "מתמטיקה, אנגלית, מדעים — הבסיס שכל בית ספר מתוקצב אמור ללמד. במוקד הוויכוח על החינוך החרדי.", "רפורמה משפטית": "תוכנית הממשלה מ-2023 לצמצום כוחו של בג\"ץ. הציתה את המחאה הגדולה בתולדות המדינה. חלקה נעצר, חלקה נפסל.", "קרן הארנונה": "מנגנון שלוקח חלק מהארנונה העסקית של ערים חזקות ומחלק לרשויות שבונות דירות. הערים החזקות עתרו נגדו לבג\"ץ.", "הצהרת כנסת": "החלטה שמביעה עמדה של הכנסת בלי לחוקק חוק. אין לה תוקף משפטי מחייב — אבל יש לה משקל פוליטי ובינלאומי.", "נישואי יוטה": "נישואים אזרחיים מרחוק בזום מול פקיד במדינת יוטה בארה\"ב. ישראל נאלצה להכיר בהם אחרי פסיקת בג\"ץ."}};
+const AVATARS = [{"id": "a1", "name": "רוני", "svg": "<svg viewBox=\"0 0 100 100\"><rect x=\"4\" y=\"4\" width=\"92\" height=\"92\" fill=\"#f4c9a5\" stroke=\"#161310\" stroke-width=\"3\" rx=\"12\"/><rect x=\"4\" y=\"60\" width=\"92\" height=\"36\" fill=\"#37c4ff\" stroke=\"none\" opacity=\".3\"/><path d=\"M20 96 Q20 68 50 68 Q80 68 80 96 Z\" fill=\"#4a4a4a\" stroke=\"#161310\" stroke-width=\"2.5\"/><path d=\"M42 68 L50 78 L58 68 L58 96 L42 96 Z\" fill=\"#fff\" stroke=\"#161310\" stroke-width=\"2\"/><path d=\"M50 72 L46 78 L47 92 L50 96 L53 92 L54 78 Z\" fill=\"#2b4cff\" stroke=\"#161310\" stroke-width=\"1.5\"/><rect x=\"45\" y=\"60\" width=\"10\" height=\"10\" fill=\"#f4c9a5\" stroke=\"#161310\" stroke-width=\"2\"/><circle cx=\"50\" cy=\"42\" r=\"20\" fill=\"#f4c9a5\" stroke=\"#161310\" stroke-width=\"2.5\"/><path d=\"M30 40 Q30 24 50 24 Q70 24 70 40 Q66 32 62 30 L60 32 Q55 28 50 28 Q45 28 40 32 L38 30 Q34 32 30 40 Z\" fill=\"#c8c8c8\" stroke=\"#161310\" stroke-width=\"2\"/><circle cx=\"42\" cy=\"43\" r=\"5\" fill=\"none\" stroke=\"#161310\" stroke-width=\"2\"/><circle cx=\"58\" cy=\"43\" r=\"5\" fill=\"none\" stroke=\"#161310\" stroke-width=\"2\"/><line x1=\"47\" y1=\"43\" x2=\"53\" y2=\"43\" stroke=\"#161310\" stroke-width=\"2\"/><circle cx=\"42\" cy=\"43\" r=\"1.5\" fill=\"#161310\"/><circle cx=\"58\" cy=\"43\" r=\"1.5\" fill=\"#161310\"/><path d=\"M50 46 L48 51 L50 52 L52 51 Z\" fill=\"none\" stroke=\"#161310\" stroke-width=\"1.2\"/><path d=\"M45 55 Q50 57 55 55\" stroke=\"#161310\" stroke-width=\"1.5\" fill=\"none\"/></svg>"}, {"id": "a2", "name": "מיכל", "svg": "<svg viewBox=\"0 0 100 100\"><rect x=\"4\" y=\"4\" width=\"92\" height=\"92\" fill=\"#f0c090\" stroke=\"#161310\" stroke-width=\"3\" rx=\"12\"/><rect x=\"4\" y=\"60\" width=\"92\" height=\"36\" fill=\"#ff6b9d\" stroke=\"none\" opacity=\".3\"/><path d=\"M20 96 Q20 68 50 68 Q80 68 80 96 Z\" fill=\"#2b4cff\" stroke=\"#161310\" stroke-width=\"2.5\"/><path d=\"M42 68 L50 76 L58 68 L58 96 L42 96 Z\" fill=\"#fff\" stroke=\"#161310\" stroke-width=\"2\"/><circle cx=\"42\" cy=\"76\" r=\"3\" fill=\"#ffd23f\" stroke=\"#161310\" stroke-width=\"1.5\"/><rect x=\"45\" y=\"60\" width=\"10\" height=\"10\" fill=\"#f0c090\" stroke=\"#161310\" stroke-width=\"2\"/><circle cx=\"50\" cy=\"42\" r=\"20\" fill=\"#f0c090\" stroke=\"#161310\" stroke-width=\"2.5\"/><path d=\"M28 40 Q28 20 50 20 Q72 20 72 40 Q72 52 70 58 L64 52 Q66 40 62 36 Q58 30 50 30 Q42 30 38 36 Q34 40 36 52 L30 58 Q28 52 28 40 Z\" fill=\"#8b4513\" stroke=\"#161310\" stroke-width=\"2\"/><circle cx=\"31\" cy=\"46\" r=\"2\" fill=\"#ffd23f\" stroke=\"#161310\" stroke-width=\"1\"/><circle cx=\"69\" cy=\"46\" r=\"2\" fill=\"#ffd23f\" stroke=\"#161310\" stroke-width=\"1\"/><ellipse cx=\"43\" cy=\"42\" rx=\"2\" ry=\"2.5\" fill=\"#161310\"/><ellipse cx=\"57\" cy=\"42\" rx=\"2\" ry=\"2.5\" fill=\"#161310\"/><path d=\"M39 37 L47 37\" stroke=\"#161310\" stroke-width=\"1.5\"/><path d=\"M53 37 L61 37\" stroke=\"#161310\" stroke-width=\"1.5\"/><path d=\"M48 48 L50 52 L52 48\" fill=\"none\" stroke=\"#161310\" stroke-width=\"1.2\"/><path d=\"M44 55 Q50 58 56 55\" stroke=\"#c8281a\" stroke-width=\"2\" fill=\"none\"/></svg>"}, {"id": "a3", "name": "אמיר", "svg": "<svg viewBox=\"0 0 100 100\"><rect x=\"4\" y=\"4\" width=\"92\" height=\"92\" fill=\"#c68b5c\" stroke=\"#161310\" stroke-width=\"3\" rx=\"12\"/><rect x=\"4\" y=\"60\" width=\"92\" height=\"36\" fill=\"#22c98e\" stroke=\"none\" opacity=\".3\"/><path d=\"M20 96 Q20 68 50 68 Q80 68 80 96 Z\" fill=\"#3a3a3a\" stroke=\"#161310\" stroke-width=\"2.5\"/><path d=\"M42 68 L50 78 L58 68 L58 96 L42 96 Z\" fill=\"#fff\" stroke=\"#161310\" stroke-width=\"2\"/><path d=\"M50 72 L46 78 L47 92 L50 96 L53 92 L54 78 Z\" fill=\"#ff5240\" stroke=\"#161310\" stroke-width=\"1.5\"/><rect x=\"45\" y=\"60\" width=\"10\" height=\"10\" fill=\"#c68b5c\" stroke=\"#161310\" stroke-width=\"2\"/><circle cx=\"50\" cy=\"42\" r=\"20\" fill=\"#c68b5c\" stroke=\"#161310\" stroke-width=\"2.5\"/><path d=\"M30 44 Q28 40 30 36 Q32 32 34 34 Q38 30 42 30\" fill=\"#333\" stroke=\"#161310\" stroke-width=\"1.5\"/><path d=\"M70 44 Q72 40 70 36 Q68 32 66 34 Q62 30 58 30\" fill=\"#333\" stroke=\"#161310\" stroke-width=\"1.5\"/><circle cx=\"43\" cy=\"43\" r=\"1.8\" fill=\"#161310\"/><circle cx=\"57\" cy=\"43\" r=\"1.8\" fill=\"#161310\"/><path d=\"M38 38 L48 38\" stroke=\"#161310\" stroke-width=\"2\"/><path d=\"M52 38 L62 38\" stroke=\"#161310\" stroke-width=\"2\"/><path d=\"M50 47 L47 52 L50 53 L53 52 Z\" fill=\"none\" stroke=\"#161310\" stroke-width=\"1.2\"/><path d=\"M40 55 Q45 53 50 54 Q55 53 60 55 Q55 57 50 56 Q45 57 40 55 Z\" fill=\"#333\" stroke=\"#161310\" stroke-width=\"1.2\"/><path d=\"M45 58 Q50 60 55 58\" stroke=\"#161310\" stroke-width=\"1.5\" fill=\"none\"/></svg>"}, {"id": "a4", "name": "נועה", "svg": "<svg viewBox=\"0 0 100 100\"><rect x=\"4\" y=\"4\" width=\"92\" height=\"92\" fill=\"#e8b088\" stroke=\"#161310\" stroke-width=\"3\" rx=\"12\"/><rect x=\"4\" y=\"60\" width=\"92\" height=\"36\" fill=\"#b06bff\" stroke=\"none\" opacity=\".3\"/><path d=\"M28 44 Q22 55 24 78 L28 88 L34 78 Q30 60 32 44 Z\" fill=\"#161310\"/><path d=\"M72 44 Q78 55 76 78 L72 88 L66 78 Q70 60 68 44 Z\" fill=\"#161310\"/><path d=\"M20 96 Q20 68 50 68 Q80 68 80 96 Z\" fill=\"#8b0000\" stroke=\"#161310\" stroke-width=\"2.5\"/><path d=\"M42 68 L50 76 L58 68 L58 96 L42 96 Z\" fill=\"#fff\" stroke=\"#161310\" stroke-width=\"2\"/><path d=\"M42 72 Q50 78 58 72\" fill=\"none\" stroke=\"#ffd23f\" stroke-width=\"1.5\"/><circle cx=\"50\" cy=\"76\" r=\"1.5\" fill=\"#ffd23f\" stroke=\"#161310\" stroke-width=\"0.8\"/><rect x=\"45\" y=\"60\" width=\"10\" height=\"10\" fill=\"#e8b088\" stroke=\"#161310\" stroke-width=\"2\"/><circle cx=\"50\" cy=\"42\" r=\"20\" fill=\"#e8b088\" stroke=\"#161310\" stroke-width=\"2.5\"/><path d=\"M30 42 Q30 20 50 20 Q70 20 70 42 Q64 34 60 32 Q55 30 50 30 Q45 30 40 32 Q36 34 30 42 Z\" fill=\"#161310\"/><ellipse cx=\"43\" cy=\"42\" rx=\"2\" ry=\"2.5\" fill=\"#161310\"/><ellipse cx=\"57\" cy=\"42\" rx=\"2\" ry=\"2.5\" fill=\"#161310\"/><path d=\"M39 37 Q43 35 47 37\" stroke=\"#161310\" stroke-width=\"1.5\" fill=\"none\"/><path d=\"M53 37 Q57 35 61 37\" stroke=\"#161310\" stroke-width=\"1.5\" fill=\"none\"/><path d=\"M48 48 L50 52 L52 48\" fill=\"none\" stroke=\"#161310\" stroke-width=\"1.2\"/><path d=\"M44 55 Q50 58 56 55\" stroke=\"#c8281a\" stroke-width=\"1.8\" fill=\"none\"/></svg>"}, {"id": "a5", "name": "יעקב", "svg": "<svg viewBox=\"0 0 100 100\"><rect x=\"4\" y=\"4\" width=\"92\" height=\"92\" fill=\"#e8b088\" stroke=\"#161310\" stroke-width=\"3\" rx=\"12\"/><rect x=\"4\" y=\"60\" width=\"92\" height=\"36\" fill=\"#ffd23f\" stroke=\"none\" opacity=\".3\"/><path d=\"M20 96 Q20 68 50 68 Q80 68 80 96 Z\" fill=\"#1a1a1a\" stroke=\"#161310\" stroke-width=\"2.5\"/><path d=\"M42 68 L50 78 L58 68 L58 96 L42 96 Z\" fill=\"#fff\" stroke=\"#161310\" stroke-width=\"2\"/><path d=\"M50 72 L46 78 L47 92 L50 96 L53 92 L54 78 Z\" fill=\"#333\" stroke=\"#161310\" stroke-width=\"1.5\"/><rect x=\"45\" y=\"60\" width=\"10\" height=\"10\" fill=\"#e8b088\" stroke=\"#161310\" stroke-width=\"2\"/><circle cx=\"50\" cy=\"42\" r=\"20\" fill=\"#e8b088\" stroke=\"#161310\" stroke-width=\"2.5\"/><path d=\"M35 52 Q40 68 50 68 Q60 68 65 52 Q60 60 50 62 Q40 60 35 52 Z\" fill=\"#3a2418\" stroke=\"#161310\" stroke-width=\"1.5\"/><path d=\"M32 40 Q30 26 42 24 Q50 22 58 24 Q70 26 68 40 Q66 34 62 34 Q56 30 50 30 Q44 30 38 34 Q34 34 32 40 Z\" fill=\"#3a2418\" stroke=\"#161310\" stroke-width=\"2\"/><ellipse cx=\"50\" cy=\"24\" rx=\"12\" ry=\"4\" fill=\"#1a1a1a\" stroke=\"#161310\" stroke-width=\"1.5\"/><circle cx=\"43\" cy=\"43\" r=\"1.8\" fill=\"#161310\"/><circle cx=\"57\" cy=\"43\" r=\"1.8\" fill=\"#161310\"/><path d=\"M39 38 L47 38\" stroke=\"#161310\" stroke-width=\"1.8\"/><path d=\"M53 38 L61 38\" stroke=\"#161310\" stroke-width=\"1.8\"/><path d=\"M50 46 L48 51 L50 52 L52 51 Z\" fill=\"none\" stroke=\"#161310\" stroke-width=\"1.2\"/><path d=\"M45 55 Q50 57 55 55\" stroke=\"#161310\" stroke-width=\"1.3\" fill=\"none\"/></svg>"}, {"id": "a6", "name": "סמדר", "svg": "<svg viewBox=\"0 0 100 100\"><rect x=\"4\" y=\"4\" width=\"92\" height=\"92\" fill=\"#f4c9a5\" stroke=\"#161310\" stroke-width=\"3\" rx=\"12\"/><rect x=\"4\" y=\"60\" width=\"92\" height=\"36\" fill=\"#37c4ff\" stroke=\"none\" opacity=\".3\"/><path d=\"M20 96 Q20 68 50 68 Q80 68 80 96 Z\" fill=\"#2a5f5f\" stroke=\"#161310\" stroke-width=\"2.5\"/><path d=\"M42 68 L50 76 L58 68 L58 96 L42 96 Z\" fill=\"#f5f0e8\" stroke=\"#161310\" stroke-width=\"2\"/><path d=\"M42 72 Q50 80 58 72\" fill=\"none\" stroke=\"#161310\" stroke-width=\"1.5\"/><rect x=\"45\" y=\"60\" width=\"10\" height=\"10\" fill=\"#f4c9a5\" stroke=\"#161310\" stroke-width=\"2\"/><circle cx=\"50\" cy=\"42\" r=\"20\" fill=\"#f4c9a5\" stroke=\"#161310\" stroke-width=\"2.5\"/><path d=\"M28 44 Q26 24 50 20 Q74 24 72 44 Q72 55 68 62 L70 68 Q60 65 50 65 Q40 65 30 68 L32 62 Q28 55 28 44 Z\" fill=\"#8b4a5f\" stroke=\"#161310\" stroke-width=\"2\"/><ellipse cx=\"50\" cy=\"42\" rx=\"16\" ry=\"18\" fill=\"#f4c9a5\" stroke=\"#161310\" stroke-width=\"2\"/><ellipse cx=\"43\" cy=\"42\" rx=\"2\" ry=\"2.5\" fill=\"#161310\"/><ellipse cx=\"57\" cy=\"42\" rx=\"2\" ry=\"2.5\" fill=\"#161310\"/><path d=\"M39 37 Q43 36 47 37\" stroke=\"#161310\" stroke-width=\"1.5\" fill=\"none\"/><path d=\"M53 37 Q57 36 61 37\" stroke=\"#161310\" stroke-width=\"1.5\" fill=\"none\"/><path d=\"M48 47 L50 51 L52 47\" fill=\"none\" stroke=\"#161310\" stroke-width=\"1.2\"/><path d=\"M44 55 Q50 57 56 55\" stroke=\"#a52a2a\" stroke-width=\"1.8\" fill=\"none\"/></svg>"}, {"id": "a7", "name": "דניאל", "svg": "<svg viewBox=\"0 0 100 100\"><rect x=\"4\" y=\"4\" width=\"92\" height=\"92\" fill=\"#e8b088\" stroke=\"#161310\" stroke-width=\"3\" rx=\"12\"/><rect x=\"4\" y=\"60\" width=\"92\" height=\"36\" fill=\"#2b4cff\" stroke=\"none\" opacity=\".3\"/><path d=\"M20 96 Q20 68 50 68 Q80 68 80 96 Z\" fill=\"#1a3acc\" stroke=\"#161310\" stroke-width=\"2.5\"/><path d=\"M42 68 L50 78 L58 68 L58 96 L42 96 Z\" fill=\"#fff\" stroke=\"#161310\" stroke-width=\"2\"/><path d=\"M50 72 L46 78 L47 92 L50 96 L53 92 L54 78 Z\" fill=\"#22c98e\" stroke=\"#161310\" stroke-width=\"1.5\"/><path d=\"M47 82 L53 82\" stroke=\"#161310\" stroke-width=\"0.6\"/><path d=\"M47 88 L53 88\" stroke=\"#161310\" stroke-width=\"0.6\"/><rect x=\"45\" y=\"60\" width=\"10\" height=\"10\" fill=\"#e8b088\" stroke=\"#161310\" stroke-width=\"2\"/><circle cx=\"50\" cy=\"42\" r=\"20\" fill=\"#e8b088\" stroke=\"#161310\" stroke-width=\"2.5\"/><path d=\"M30 40 Q30 22 50 22 Q70 22 70 40 Q66 30 62 30 Q56 26 50 26 Q44 26 38 30 Q34 30 30 40 Z\" fill=\"#3a2418\" stroke=\"#161310\" stroke-width=\"2\"/><rect x=\"37\" y=\"39\" width=\"10\" height=\"8\" rx=\"1\" fill=\"none\" stroke=\"#161310\" stroke-width=\"2\"/><rect x=\"53\" y=\"39\" width=\"10\" height=\"8\" rx=\"1\" fill=\"none\" stroke=\"#161310\" stroke-width=\"2\"/><line x1=\"47\" y1=\"43\" x2=\"53\" y2=\"43\" stroke=\"#161310\" stroke-width=\"2\"/><circle cx=\"42\" cy=\"43\" r=\"1.5\" fill=\"#161310\"/><circle cx=\"58\" cy=\"43\" r=\"1.5\" fill=\"#161310\"/><path d=\"M50 47 L48 52 L50 53 L52 52 Z\" fill=\"none\" stroke=\"#161310\" stroke-width=\"1.2\"/><path d=\"M44 57 Q50 59 56 57\" stroke=\"#161310\" stroke-width=\"1.5\" fill=\"none\"/></svg>"}, {"id": "a8", "name": "רותי", "svg": "<svg viewBox=\"0 0 100 100\"><rect x=\"4\" y=\"4\" width=\"92\" height=\"92\" fill=\"#f4c9a5\" stroke=\"#161310\" stroke-width=\"3\" rx=\"12\"/><rect x=\"4\" y=\"60\" width=\"92\" height=\"36\" fill=\"#ff5240\" stroke=\"none\" opacity=\".3\"/><path d=\"M20 96 Q20 68 50 68 Q80 68 80 96 Z\" fill=\"#4a4a4a\" stroke=\"#161310\" stroke-width=\"2.5\"/><path d=\"M42 68 L50 76 L58 68 L58 96 L42 96 Z\" fill=\"#fff\" stroke=\"#161310\" stroke-width=\"2\"/><circle cx=\"46\" cy=\"73\" r=\"1.5\" fill=\"#fff\" stroke=\"#161310\" stroke-width=\"0.8\"/><circle cx=\"50\" cy=\"75\" r=\"1.5\" fill=\"#fff\" stroke=\"#161310\" stroke-width=\"0.8\"/><circle cx=\"54\" cy=\"73\" r=\"1.5\" fill=\"#fff\" stroke=\"#161310\" stroke-width=\"0.8\"/><rect x=\"45\" y=\"60\" width=\"10\" height=\"10\" fill=\"#f4c9a5\" stroke=\"#161310\" stroke-width=\"2\"/><circle cx=\"50\" cy=\"42\" r=\"20\" fill=\"#f4c9a5\" stroke=\"#161310\" stroke-width=\"2.5\"/><path d=\"M28 42 Q28 22 50 20 Q72 22 72 42 Q72 50 68 54 L64 48 Q64 32 58 30 Q52 28 50 28 Q48 28 42 30 Q36 32 36 48 L32 54 Q28 50 28 42 Z\" fill=\"#a0a0a0\" stroke=\"#161310\" stroke-width=\"2\"/><circle cx=\"31\" cy=\"46\" r=\"2\" fill=\"#fff\" stroke=\"#161310\" stroke-width=\"1\"/><circle cx=\"69\" cy=\"46\" r=\"2\" fill=\"#fff\" stroke=\"#161310\" stroke-width=\"1\"/><ellipse cx=\"43\" cy=\"42\" rx=\"2\" ry=\"2.5\" fill=\"#161310\"/><ellipse cx=\"57\" cy=\"42\" rx=\"2\" ry=\"2.5\" fill=\"#161310\"/><path d=\"M38 45 Q40 46 42 45\" stroke=\"#161310\" stroke-width=\"0.5\" fill=\"none\"/><path d=\"M58 45 Q60 46 62 45\" stroke=\"#161310\" stroke-width=\"0.5\" fill=\"none\"/><path d=\"M39 37 L47 37\" stroke=\"#161310\" stroke-width=\"1.5\"/><path d=\"M53 37 L61 37\" stroke=\"#161310\" stroke-width=\"1.5\"/><path d=\"M48 47 L50 51 L52 47\" fill=\"none\" stroke=\"#161310\" stroke-width=\"1.2\"/><path d=\"M44 55 Q50 58 56 55\" stroke=\"#c8281a\" stroke-width=\"2\" fill=\"none\"/></svg>"}];
+
+</script>
+<script>
+/* data.en.js inlined at build time — edit explorations/flow-proto/data.en.js */
+/* ---------------------------------------------------------------------------
+   WORKING ENGLISH TRANSLATION — not source data.
+   data.js holds the sourced Hebrew. Nothing here is quoted from a source:
+   every string below is a translation made for testing, including the passages
+   that appear in quotation marks, which are renderings of Hebrew quotes rather
+   than words the speaker said in English. Keyed by the ids in data.js.
+   Never edit data.js to match this file.
+--------------------------------------------------------------------------- */
+const DATA_EN = {
+
+topics: {
+  religion:       { label: "Religion and State",     sub: "How much religion is there in the state?" },
+  economy:        { label: "Economy and Society",    sub: "Why is everything so expensive here?" },
+  branches:       { label: "Who Decides Here?",      sub: "Knesset, government and the High Court" },
+  gender:         { label: "Gender and Equality",    sub: "Equal? For women too?" },
+  accountability: { label: "Public Accountability",  sub: "Who takes responsibility?" },
+  environment:    { label: "Environment and Climate",sub: "It is going to get hot here. What do we do?" },
+  internal_sec:   { label: "Internal Security",      sub: "Police, crime and guns" },
+  military:       { label: "Defense and Diplomacy",  sub: "War, peace and everything in between" }
+},
+
+politicians: {
+  netanyahu:     { name: "Benjamin Netanyahu",   party: "Likud" },
+  lapid:         { name: "Yair Lapid",           party: "Yesh Atid" },
+  gantz:         { name: "Benny Gantz",          party: "National Unity" },
+  liberman:      { name: "Avigdor Liberman",     party: "Yisrael Beiteinu" },
+  smotrich:      { name: "Bezalel Smotrich",     party: "Religious Zionism" },
+  ben_gvir:      { name: "Itamar Ben-Gvir",      party: "Otzma Yehudit" },
+  deri:          { name: "Aryeh Deri",           party: "Shas" },
+  gafni:         { name: "Moshe Gafni",          party: "United Torah Judaism" },
+  michaeli:      { name: "Merav Michaeli",       party: "Labor" },
+  odeh:          { name: "Ayman Odeh",           party: "Hadash-Ta'al" },
+  abbas:         { name: "Mansour Abbas",        party: "Ra'am" },
+  saar:          { name: "Gideon Sa'ar",         party: "The National Right" },
+  eisenkot:      { name: "Gadi Eisenkot",        party: "National Unity" },
+  galant:        { name: "Yoav Galant",          party: "Likud" },
+  edelstein:     { name: "Yuli Edelstein",       party: "Likud" },
+  elkin:         { name: "Ze'ev Elkin",          party: "The National Right" },
+  gotliv:        { name: "Tally Gotliv",         party: "Likud" },
+  levin:         { name: "Yariv Levin",          party: "Likud" },
+  silman:        { name: "Idit Silman",          party: "Likud" },
+  son_harmelech: { name: "Limor Son Har-Melech", party: "Otzma Yehudit" },
+  lahav:         { name: "Yorai Lahav-Hertzano", party: "Yesh Atid" }
+},
+
+/* keyed by the Hebrew term in data.js; `term` is the English string that gets
+   matched inside the English text, so it must appear verbatim in translations */
+glossary: {
+  "עילת הסבירות":        { term: "reasonableness standard", def: "A legal tool that let the High Court strike down government decisions that were \"extremely unreasonable\". It was abolished by law in 2023 — and the High Court struck down the abolition in 2024. Yes, this is confusing. That is exactly what the fight over power looks like." },
+  "דין רציפות":          { term: "legislative continuity", def: "A parliamentary trick: you carry on advancing a bill from a previous Knesset instead of starting from scratch. It saves years of legislation — which is why it is contested." },
+  "קריאה טרומית":        { term: "preliminary reading", def: "The first vote on a private member's bill. If it passes, the bill moves on to committee. Most bills die right here." },
+  "קריאה ראשונה":        { term: "first reading", def: "The vote that sends a bill to committee for detailed preparation. Second and third readings come after it — and only then is it law." },
+  "קריאה שנייה ושלישית": { term: "second and third readings", def: "The final votes that turn a bill into binding law. They are usually held on the same day." },
+  "חוק ההסדרים":         { term: "Arrangements Law", def: "A legislative giant attached to the budget, carrying dozens of reforms at once. Critics call it a way to bypass real debate." },
+  "כספים קואליציוניים":  { term: "coalition funds", def: "Money that coalition parties receive to distribute according to their political agreements — on top of the ministries' regular budgets." },
+  "בג\"ץ":               { term: "High Court", def: "The Supreme Court sitting as the High Court of Justice. Where citizens go to challenge decisions of the state." },
+  "ועדת חקירה ממלכתית":  { term: "state commission of inquiry", def: "A body independent of the government, headed by a judge, whose members are appointed by the President of the Supreme Court. The strongest tool there is for investigating failures." },
+  "ועדת בדיקה":          { term: "government examination committee", def: "A committee the government sets up and whose composition it controls. Less independent than a state commission of inquiry." },
+  "חסינות":              { term: "immunity", def: "Protection for members of Knesset against being sued over acts done as part of the job (a speech, a vote). It does not protect against ordinary criminal offences." },
+  "משמעת קואליציונית":   { term: "coalition discipline", def: "The unwritten rule: coalition members vote together. Whoever breaks it pays a political price. That is why \"rebels\" are an event." },
+  "אופוזיציה":           { term: "opposition", def: "The parties that are not in the government. The job: to criticise, to offer alternatives — and to try to bring the government down." },
+  "קואליציה":            { term: "coalition", def: "The parties that make up the government. They need at least 61 of the 120 members of Knesset." },
+  "אי-אמון":             { term: "no confidence", def: "A vote that brings the government down if 61 members support it. The opposition's heavy weapon." },
+  "ח\"כ":                { term: "MK", def: "Member of Knesset. There are 120 of them. You are the 121st." },
+  "סטטוס-קוו":           { term: "status quo", def: "The unwritten 1947 arrangement on religion and state: the Sabbath, kashrut, marriage. Each side claims the other is breaking it." },
+  "לימודי ליבה":         { term: "core curriculum", def: "Maths, English, science — the basics every publicly funded school is meant to teach. At the heart of the argument over ultra-Orthodox education." },
+  "רפורמה משפטית":       { term: "judicial overhaul", def: "The government's 2023 plan to cut back the power of the High Court. It set off the largest protest movement in the country's history. Part of it was halted, part struck down." },
+  "קרן הארנונה":         { term: "municipal tax fund", def: "A mechanism that takes part of the business property tax of wealthy cities and hands it to authorities that build housing. The wealthy cities petitioned the High Court against it." },
+  "הצהרת כנסת":          { term: "Knesset declaration", def: "A resolution expressing the Knesset's position without legislating. It has no binding legal force — but it carries political and international weight." },
+  "נישואי יוטה":         { term: "Utah marriage", def: "A civil marriage conducted remotely over Zoom before a clerk in the state of Utah. Israel was forced to recognise these after a High Court ruling." }
+},
+
+issues: {
+
+r1: {
+  title: "The Conscription Law",
+  tf: "The conscription bill the coalition advanced in 2024 is based on a framework written by... Benny Gantz.",
+  tf_explain: "True! The framework was drafted while Gantz was defense minister in the Bennett-Lapid government, and it passed a first reading in 2022. In 2024 Netanyahu revived exactly that same framework (\"legislative continuity\") — and Gantz himself voted against his own framework, arguing that reality had changed after 7 October.",
+  bill_title: "Applying legislative continuity to the Conscription Law",
+  bill_date: "11 June 2024",
+  bill_summary: "Carry on advancing the conscription bill from the previous Knesset instead of restarting the legislation from scratch. In practice: an exemption from service for most yeshiva students, with gradual recruitment targets. Passed 63 to 57.",
+  source_name: "Israel Hayom",
+  notes: {
+    galant: "The only coalition member who voted against: \"You must not play small politics on the backs of IDF combat soldiers.\" A senior Likud figure called for him to be fired",
+    gantz: "Voted against the framework he wrote himself — because, he argued, 7 October changed everything",
+    netanyahu: "Drove the move and rounded up the votes at the last moment",
+    gafni: "The ultra-Orthodox parties backed it once the rabbinic leaders approved — even though they had previously called this same law \"wretched and humiliating\"",
+    lapid: "\"One of the most contemptible moments of disgrace in the history of the Israeli Knesset\"",
+    edelstein: "Voted in favour, but made clear that in his committee the law would only pass if it genuinely answered the army's needs",
+    gotliv: "Threatened to oppose it — and then voted in favour, by her own account because of a protest held outside her home",
+    liberman: "\"I have never understood why a Jew is forbidden to be a fighter\"",
+    deri: "Shas voted in favour as part of the coalition"
+  }
+},
+
+r2: {
+  title: "The Chametz Law",
+  tf: "Under the Chametz Law, hospital security guards are allowed to search your bag for leavened bread on Passover.",
+  tf_explain: "False. The version finally approved contains no power of search at all — only signage at the entrance and notification. A hospital director may restrict bringing chametz in, but nobody is going to open your bag.",
+  bill_title: "The Chametz Law (amendment to the Patient's Rights Law)",
+  bill_date: "22 February 2023",
+  bill_summary: "A hospital director may restrict or prohibit bringing chametz onto hospital grounds over Passover, in order to maintain kashrut. Passed 60 to 52. The law was written to get around a 2020 ruling of the High Court.",
+  source_name: "Davar",
+  notes: {
+    gafni: "\"I have never signed a law that tells a secular person how to behave\" — one of the bill's sponsors",
+    lapid: "\"You cannot force a person to believe in the exodus from Egypt\" — warned it would backfire",
+    michaeli: "The entire opposition objected — \"religious coercion\"",
+    ben_gvir: "Voted with the coalition"
+  }
+},
+
+e1: {
+  title: "The State Budget",
+  tf: "If the Knesset fails to pass a budget on time, it dissolves automatically and the country goes to elections.",
+  tf_explain: "True! It is written into Basic Law: The State Economy. That is why budget votes are existential tests for every government — whoever controls the budget controls the coalition.",
+  bill_title: "The 2023–2024 state budget + the municipal tax fund",
+  bill_date: "24 May 2023",
+  bill_summary: "A two-year budget: 484 billion shekels for 2023, 514 billion for 2024. It included the municipal tax fund, which takes part of the business property tax of wealthy cities and distributes it to authorities that build housing. Passed 64 to 55 after a night of thousands of reservations.",
+  source_name: "Walla",
+  notes: {
+    smotrich: "The finance minister: \"Tremendous news for Israel's economy\" (party position — did not take part in this vote)",
+    lapid: "\"Netanyahu is weaker than ever, so he handed the ultra-Orthodox 14 billion shekels\"",
+    liberman: "\"An enormous black stain on Israel's history\"",
+    netanyahu: "The whole coalition voted in favour",
+    gafni: "Chair of the Finance Committee that moved the budget through: \"They describe us as robbers of the public purse\"",
+    gantz: "The entire opposition against",
+    abbas: "The entire opposition against"
+  }
+},
+
+e2: {
+  title: "The War Budget",
+  tf: "After the war broke out, the government cut all the coalition funds out of the budget.",
+  tf_explain: "False. The revised war budget of late 2023 still contained roughly 5 billion shekels of coalition funds — even though the professional staff at the finance ministry and the Bank of Israel recommended cutting them. That led to a crisis inside the government itself.",
+  bill_title: "Supplementary budget law for 2023 (the war budget)",
+  bill_date: "14 December 2023",
+  bill_summary: "An addition of roughly 26 billion shekels to the budget because of the war: 17 billion for defense, some 9 billion for civilian costs (evacuees, compensation). The criticism: billions in coalition funds were left inside it.",
+  source_name: "mako",
+  notes: {
+    gantz: "The surprise: National Unity voted against — even though it was sitting in the emergency government at the time!",
+    eisenkot: "Voted against together with his faction, in protest at the coalition funds",
+    edelstein: "From Likud — announced he would abstain in the concluding vote",
+    smotrich: "The finance minister who led the revised budget",
+    netanyahu: "The coalition passed it on the strength of its solid majority",
+    lapid: "The opposition against",
+    gafni: "Voted with the coalition"
+  }
+},
+
+b1: {
+  title: "Abolishing the reasonableness standard",
+  tf: "Israel has no single written constitution.",
+  tf_explain: "True! Instead of a constitution we have Basic Laws, enacted piecemeal over the years. That is precisely why the question of who decides — the Knesset or the High Court — stays open and keeps exploding. The reasonableness standard was the stormiest chapter of that argument.",
+  bill_title: "Abolition of the reasonableness standard (amendment to Basic Law: The Judiciary)",
+  bill_date: "11 July 2023",
+  bill_summary: "Bar the High Court from striking down decisions of the government and its ministers on the grounds that they are unreasonable. The first law of the judicial overhaul. The vote shown here is the reading that sent the law to committee (64 to 56); later, at the third reading on 24 July 2023, the opposition boycotted the vote.",
+  source_name: "ynet",
+  notes: {
+    levin: "The justice minister and architect of the overhaul: \"There is no school of reasonableness\"",
+    galant: "The surprise: pushed until the last moment to soften the law — and in the end voted in favour",
+    liberman: "Voted against sending it to committee. Later, at the third reading on 24 July, he was the one who led the boycott",
+    netanyahu: "Followed the vote closely and mediated between Levin and Galant on the floor",
+    ben_gvir: "\"Any compromise would be a disgrace to the entire right\"",
+    lapid: "Voted against sending it to committee. At the third reading he joined the opposition boycott",
+    gantz: "Voted against. \"Whoever votes in favour will be recorded in the chronicles\"",
+    odeh: "Voted against together with the opposition"
+  }
+},
+
+b2: {
+  title: "The Leakers Law",
+  tf: "Leaking a classified military document to the press is a criminal offence.",
+  tf_explain: "True. And it was out of exactly such an affair (the case of the prime minister's spokesman, Eli Feldstein) that a bill was born granting immunity to someone who leaks classified information — provided the leak goes to the prime minister. The then IDF spokesman warned the law was \"extremely dangerous to national security\".",
+  bill_title: "Immunity for those passing classified information to the prime minister",
+  bill_date: "4 December 2024",
+  bill_summary: "Anyone who leaks classified information to the prime minister would receive immunity from prosecution. The bill was tabled following the indictment of the prime minister's spokesman in the document leak affair. Passed a preliminary reading 59 to 52.",
+  source_name: "Haaretz",
+  notes: {
+    netanyahu: "The bill was tabled following the affair involving his own spokesman — the coalition backed it",
+    lapid: "The opposition objected",
+    levin: "Voted with the coalition",
+    gantz: "Opposed along with the opposition",
+    liberman: "Opposed along with the opposition",
+    smotrich: "Voted with the coalition"
+  }
+},
+
+g1: {
+  title: "Gender segregation in academia",
+  tf: "The High Court has previously permitted men and women to be taught separately at universities.",
+  tf_explain: "True — and it surprises a lot of people. In 2021 the High Court permitted gender-segregated study for the ultra-Orthodox public, but only for undergraduate degrees, only inside the classroom, and on condition that female lecturers were not discriminated against. The new bill wants to extend that far further.",
+  bill_title: "Extending gender-segregated study to advanced degrees",
+  bill_date: "Preliminary reading: December 2024",
+  bill_summary: "Allow tracks segregated between men and women in master's and doctoral programmes too, at any academic institution, for anyone who requests it \"on religious grounds\". Supporters: making academia accessible to the ultra-Orthodox. Opponents: the exclusion of women and a blow to equality. In July 2026 it was approved by the Education Committee for second and third readings.",
+  source_name: "Haaretz",
+  notes: {
+    son_harmelech: "The bill's sponsor: \"The High Court imposed a radical progressive worldview. This law restores freedom of choice\"",
+    michaeli: "Opposition members protested with \"men\" and \"women\" signs on either side of the chamber",
+    gafni: "The ultra-Orthodox parties are pushing the extension",
+    lapid: "The opposition: \"the exclusion of women\"",
+    ben_gvir: "The bill comes from a member of his own party",
+    smotrich: "The coalition backed it"
+  }
+},
+
+g2: {
+  title: "Civil marriage",
+  tf: "You can get married in Israel today in a civil ceremony.",
+  tf_explain: "False. Marriage in Israel takes place only through religious bodies (the Rabbinate, the church, sharia courts). Anyone who cannot or will not use them flies to Cyprus, marries over Zoom in a Utah marriage, or stays without any status at all. Israel is one of the only Western countries in this position.",
+  bill_title: "Civil partnership — bills that keep coming back to the Knesset",
+  bill_date: "Documented public positions",
+  bill_summary: "The idea: a full legal track for couples without any involvement of the Rabbinate — including same-sex couples and couples of different religions. Bills like this have been tabled and rejected over many years. Here you are ordering by stated public positions, not by one specific vote.",
+  source_name: "Public party positions",
+  notes: {
+    lapid: "Yesh Atid has supported civil marriage as part of its platform since the party was founded",
+    gafni: "The ultra-Orthodox parties object in principle to any bypassing of the Rabbinate",
+    liberman: "Yisrael Beiteinu champions civil marriage — largely because of the hundreds of thousands of immigrants the Rabbinate does not recognise as Jewish",
+    deri: "Shas is firmly opposed",
+    michaeli: "Labor supports separating religion from state in marriage",
+    smotrich: "Religious Zionism opposes civil marriage"
+  }
+},
+
+a1: {
+  title: "A commission of inquiry into 7 October",
+  tf: "A state commission of inquiry has been established into the events of 7 October.",
+  tf_explain: "False — as of July 2026 no state commission of inquiry (independent, headed by a judge) has been established. Instead the government is advancing a law for a commission whose members would be appointed by politicians. Bereaved families from the October Council call it a \"whitewash commission\".",
+  bill_title: "A politically appointed commission of inquiry into 7 October (the Kalner bill)",
+  bill_date: "24 December 2025",
+  bill_summary: "Instead of a state commission appointed by the President of the Supreme Court — a commission appointed by the coalition and the opposition (and if the opposition refuses, by the Knesset speaker). Passed a preliminary reading 53 to 48, while bereaved families protested from the gallery and turned their backs on the speaker.",
+  source_name: "ynet",
+  notes: {
+    elkin: "The surprise: boycotted the vote — \"I support a state commission of inquiry whose composition is determined by Justice Sohlberg\" (party position — did not take part in this vote)",
+    edelstein: "Also from Likud — boycotted the vote because he backs a state commission (party position — did not take part in this vote)",
+    netanyahu: "Absent from the vote — although the law is being advanced with his encouragement (party position — did not take part in this vote)",
+    lapid: "\"In the first month of the next government we will establish a state commission of inquiry\"",
+    ben_gvir: "Deputy minister Almog Cohen, from his party, presented the government's position in favour",
+    gantz: "The opposition against"
+  }
+},
+
+a2: {
+  title: "Immunity for members of Knesset",
+  tf: "A member of Knesset cannot be prosecuted while still in office.",
+  tf_explain: "False. Members of Knesset have immunity only for acts done as part of the job (a speech, a vote) — not for criminal offences. MKs and ministers have been investigated, prosecuted and even jailed. A new bill sought to change precisely that.",
+  bill_title: "Extending immunity: no investigation of an MK without the approval of 90 MKs",
+  bill_date: "4 December 2024",
+  bill_summary: "No criminal investigation could be opened against a member of Knesset unless 90 MKs confirmed that the act was unrelated to the job. It would not apply to bribery and fraud. Passed a preliminary reading 57 to 53.",
+  source_name: "Haaretz",
+  notes: {
+    gotliv: "The bill's sponsor",
+    levin: "The justice minister welcomed the bill's approval",
+    netanyahu: "The coalition backed it",
+    lapid: "The opposition objected",
+    gantz: "The opposition objected",
+    liberman: "The opposition objected"
+  }
+},
+
+v1: {
+  title: "The Climate Law",
+  tf: "Israel has set a binding target in law: net zero carbon emissions by 2050.",
+  tf_explain: "Partly. The climate bill that passed a first reading in 2024 does set a target of zero emissions by 2050 (and minus 30% by 2030) — but in a \"flexible\" wording the government can change easily, with no budget and almost no teeth. So much so that even the environmental organisations opposed it.",
+  bill_title: "The Climate Law",
+  bill_date: "3 April 2024",
+  bill_summary: "Israel's first legal framework for cutting greenhouse gas emissions: minus 30% by 2030, zero by 2050. The twist: the finance and energy ministries softened the wording again and again, and environmental groups argued that a strong law was better than a law with no teeth.",
+  source_name: "infospot",
+  notes: {
+    silman: "The environmental protection minister who steered the law through three rounds in the ministerial committee (party position — did not take part in this vote)",
+    smotrich: "The finance ministry backed it — but only after it managed to soften the targets substantially and keep a budget out (party position — did not take part in this vote)",
+    lahav: "Attacked the softened wording and the lack of commitment to the targets sharply in committee debates"
+  }
+},
+
+v2: {
+  title: "The tax on disposable tableware",
+  tf: "Israel imposed a tax on disposable tableware — and scrapped it about a year later.",
+  tf_explain: "True. In November 2021 the then finance minister, Liberman, imposed a tax that sent the price of disposables up — and consumption fell sharply. In January 2023 the incoming finance minister, Smotrich, abolished the tax, partly as a gesture to the ultra-Orthodox public, who use a great deal of disposable tableware. Environment against politics, head on.",
+  bill_title: "Abolition of the tax on disposable tableware",
+  bill_date: "January 2023 (Finance Committee approval)",
+  bill_summary: "Abolition of the tax order imposed in 2021. Supporters of the repeal: the tax hurts large families and never proved its worth. Opponents: the tax worked, consumption fell, and repealing it surrenders an environmental tool for political needs. Order these by documented positions.",
+  source_name: "Positions documented in the press",
+  notes: {
+    smotrich: "Signed the repeal of the tax among his first acts as finance minister",
+    liberman: "He was the one who imposed the tax in 2021 — and publicly opposed repealing it",
+    gafni: "Chair of the Finance Committee that approved the repeal — a central demand of the ultra-Orthodox public",
+    deri: "Shas led the demand for repeal",
+    michaeli: "Opposed the repeal — \"giving up an environmental tool that works\""
+  }
+},
+
+s1: {
+  title: "Ben-Gvir's police law",
+  tf: "The national security minister is entitled to instruct the police whom to investigate.",
+  tf_explain: "False — and the High Court made sure it stays that way. The 2022 \"Ben-Gvir law\" let the minister set general policy for the police, including in the field of investigations. But in 2024 the High Court struck down the investigations clause and ruled: the minister sets general policy — he may not intervene in specific investigations and operations.",
+  bill_title: "Amendment to the Police Ordinance (the \"Ben-Gvir law\")",
+  bill_date: "28 December 2022",
+  bill_summary: "The police are subordinate to the government, and the national security minister sets its policy — work plans, priorities, and even investigation policy. It was legislated at high speed before the government was sworn in, as Ben-Gvir's condition for joining the coalition. Passed 61 to 55.",
+  source_name: "Maariv",
+  notes: {
+    ben_gvir: "\"A historic bill\" — the law he demanded as his condition for joining the government",
+    netanyahu: "The coalition then taking shape passed the law before the government was sworn in",
+    deri: "Voted with the coalition",
+    lapid: "The opposition: the politicisation of the police",
+    gantz: "The opposition objected",
+    michaeli: "The opposition objected"
+  }
+},
+
+s2: {
+  title: "Sanctions on supporters of terror",
+  tf: "The Palestinian Authority pays allowances to the families of attackers.",
+  tf_explain: "True — the Palestinian Authority's policy of payments to prisoners and to the families of attackers is well documented and is known as \"pay for slay\". Israel deducts the sums from the tax revenues it transfers to the Authority. It was against this background that the following bill was born.",
+  bill_title: "Sanctions on organisations that support terror",
+  bill_date: "4 December 2024",
+  bill_summary: "The state would be able to impose sanctions on organisations that transfer money to attackers or their families: a ban on entering the country, freezing of assets, a ban on transactions. Passed a preliminary reading 55 to 10.",
+  source_name: "Haaretz",
+  notes: {
+    elkin: "The bill's sponsor (together with MK Zvi Sukkot): \"to increase the effectiveness of the war on terror\"",
+    ben_gvir: "The coalition backed it",
+    smotrich: "The coalition backed it",
+    netanyahu: "The coalition backed it",
+    odeh: "The ten opponents — mostly from the Arab parties (to be verified against the record)",
+    abbas: "Among the opponents (to be verified against the record)"
+  }
+},
+
+m1: {
+  title: "A Palestinian state: unilateral recognition",
+  tf: "The Knesset adopted a declaration opposing unilateral international recognition of a Palestinian state.",
+  tf_explain: "True. Several declarations on the subject came before the 25th Knesset. One central declaration against unilateral recognition of a Palestinian state won broad cross-bloc support — coalition and opposition together. Note: the precise details of each vote need verifying against the Knesset website.",
+  bill_title: "Declaration against unilateral recognition of a Palestinian state",
+  bill_date: "February 2024",
+  bill_summary: "The declaration: Israel rejects international dictates, and a political settlement will be reached only through direct negotiations. [Note: the exact details of this vote must be verified against the Knesset website before publication]",
+  source_name: "ynet",
+  notes: {
+    lapid: "The surprise: the leader of the opposition voted with Netanyahu — \"I and my party are against unilateral steps\"",
+    odeh: "\"The Palestinian people deserve the right to self-determination and to establish a state of their own\"",
+    netanyahu: "Initiated the declaration: \"An overwhelming and unprecedented majority of 99 members of Knesset\"",
+    gantz: "National Unity backed it",
+    liberman: "Yisrael Beiteinu backed it",
+    michaeli: "The Labor party was absent from the debate — neither for nor against",
+    abbas: "Ra'am among the 9 opponents"
+  }
+},
+
+m2: {
+  title: "A Palestinian state: opposition in principle",
+  tf: "The Knesset adopted a resolution opposing the establishment of a Palestinian state — not only unilateral recognition of one.",
+  tf_explain: "True. Five months after the February vote, in July 2024, the Knesset widened the line: a declaration against the very establishment of a Palestinian state west of the Jordan. This time the political picture was different — and Lapid was no longer in the chamber.",
+  bill_title: "Declaration against the establishment of a Palestinian state",
+  bill_date: "18 July 2024",
+  bill_summary: "\"The Knesset opposes the establishment of a Palestinian state west of the Jordan\" — a declaration initiated by the right-wing factions days before Netanyahu's trip to Washington. Passed 68 to 9. Counter-proposals by Ra'am and Hadash-Ta'al to recognise a Palestinian state were rejected 62 to 9.",
+  source_name: "Kan News",
+  notes: {
+    elkin: "The bill's sponsor: \"You can see a lot of empty seats here belonging to parties that would rather be absent\"",
+    gantz: "National Unity backed it: \"Recognising a Palestinian state after 7 October would be a prize for terror\"",
+    lapid: "The twist: this time the leader of the opposition was absent from the vote",
+    netanyahu: "The prime minister was absent too — days before his speech to Congress",
+    saar: "\"The establishment of a Palestinian state would endanger Israel's security and its future\"",
+    odeh: "Hadash-Ta'al among the 9 opponents; their counter-proposal to recognise a Palestinian state was rejected"
+  }
+}
+
+}};
+
+</script>
+<script>
+/* =======================================================================
+   flow-proto — round loop, low-fi. Greyscale, boxes, rules, labels.
+   Every content string comes from DATA. Chrome labels are Hebrew UI only.
+   ======================================================================= */
+
+const VOTE_LABEL_HE = { for: 'בעד', against: 'נגד', abstain: 'נמנע' };
+const VOTE_LABEL_EN = { for: 'For', against: 'Against', abstain: 'Abstain' };
+let VOTE_LABEL = VOTE_LABEL_HE;
+const VOTES = ['for', 'against', 'abstain'];
+const TOPIC = Object.fromEntries(DATA.topics.map(t => [t.id, t.label]));
+const GLOSS_TERMS = Object.keys(DATA.glossary).sort((a, b) => b.length - a.length);
+
+const app = document.getElementById('app');
+
+/* testing controls — persist across rounds */
+const cfg = {
+  lang: 'he',            // 'he' = the sourced Hebrew, 'en' = working translation
+  order: 'NEW',
+  tempoMode: 'note',      // 'note' = no-note cards advance themselves, 'verdict' = hold
+                          // before a key MK's verdict, 'off' = instant for everyone
+  noteDelay: 900,         // note-driven: how long a note-less card holds before advancing
+  vNormal: 0, vKey: 600,  // verdict delay (ms)
+  autoAdvance: false,     // old behaviour, kept behind a switch
+  dNormal: 125, dKey: 850,
+  crowd: false
+};
+
+let S = null;      // round state
+let token = 0;     // invalidates pending cascade timers when the round is left
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const HEB = /[֐-׿]/;
+
+/* --------------------------------------------------------------------- */
+/* language: 'he' is the sourced data, 'en' is a working translation      */
+/* --------------------------------------------------------------------- */
+const UI = {
+  he: {
+    listTitle: '16 סוגיות', thNoushe: 'נושא', thMks: 'ח״כים', thTerms: 'מונחים',
+    basisLine: (d, b, n) => '<b>' + d + '</b> הצבעות מתועדות (doc) · <b>' + b + '</b> עמדות סיעה (bloc) מתוך ' + n + ' כרטיסים.',
+    allBloc: ids => ids + ' — כל המפל שלהן bloc: אף הצבעה מתועדת של ח״כ בודד.',
+    covTally: (y, n, m) => '_tally קיים ב-' + y + ' מתוך ' + n + ' סוגיות. ב-' + m + ' הנותרות ביט 5 ידפיס "no tally in data" במקום ספירה.<br>',
+    covNoteAll: (n, d) => 'לכל ' + n + ' הכרטיסים יש note (סיפור). במצב "לפי הסיפור" אף כרטיס לא ימשיך מעצמו — הענף של ' + d + 'ms לא נדלק על הנתונים האלה, והמצב שקול להמתנה ללחיצה.<br>',
+    covNoteSome: n => n + ' כרטיסים בלי note (סיפור) יתקדמו לבד במצב "לפי הסיפור".<br>',
+    covGloss: (g, n, m, t) => 'מונח מהמילון מופיע ב-tf_explain / bill_title / bill_summary של ' + g + ' סוגיות (מתוך ' + n + '). ב-' + m + ' הנותרות אין מה ללחוץ בביט 5. המילון (' + t + ' מונחים) כמעט לא נוגע בטקסט הטענות עצמן — לכן הקישור יושב בביט 5 ולא בביט 1.',
+    ctlTitle: 'בקרות — לבדיקות בלבד', ctlLang: 'שפה:',
+    ctlReveal: 'מתי נחשפת התשובה:', ctlNew: 'NEW — התשובה רק בביט 5', ctlOld: 'OLD — ההסבר והסיכום כבר בביט 3',
+    ctlTempo: 'קצב המפל:', ctlNote: 'לפי הסיפור', ctlVerdict: 'השהיה לפני החיווי', ctlOff: 'בלי השהיה — מיידי לכולם',
+    ctlNoteDelay: 'כרטיס בלי סיפור ממשיך לבד אחרי ', ctlVerdictDelay: 'השהיה לפני החיווי (ms):',
+    ctlNormal: 'רגיל', ctlKey: 'מכריע', ctlAuto: 'התקדמות אוטומטית (הגרסה המהירה)', ctlCrowd: 'נתוני קהל (עדיין לא קיים)',
+    ctlGuess: '0/600 ו-125/850 הם ניחוש פתיחה, לא ממצא.',
+    tTrue: 'אמת', tFalse: 'שקר',
+    stripLbl: 'התשובה שלך בביט 1', stripNote: 'אין חיווי נכון/לא נכון עד ביט 5.',
+    you121: 'אתה הח״כ ה-121', voteNote: 'ההצבעה שלך לא נבדקת, לא נמדדת ולא מושווית לאף אחד.',
+    newHold: 'bill_summary ו-tf_explain מוסתרים כאן בכוונה (סדר NEW): הסיכום מסגיר את התוצאה.',
+    oldLbl: 'OLD ORDER — נחשף כאן',
+    spoiler: 'bill_summary מסתיים בתוצאת ההצבעה ברוב הסוגיות. בסדר OLD הוא נקרא לפני מפל הח״כים — ביט 4 מתנהל כשהתוצאה כבר ידועה.',
+    cont: 'המשך', next: 'הבא', nextLast: 'הבא — סוף המפל', backList: 'חזרה לרשימה',
+    guessedRight: 'ניחשת נכון', guessedWrong: 'ניחשת לא נכון',
+    youGuessed: 'ניחשת: ', actually: ' · הצביע בפועל: ',
+    basisDoc: 'הצבעה מתועדת', basisBloc: 'עמדת סיעה — לא הצבעה מתועדת של הח״כ הזה',
+    noNote: 'אין note לח״כ הזה בסוגיה הזו.',
+    autoIn: ms => 'ממשיך אוטומטית בעוד ' + ms + 'ms', noNoteTag: ' (אין note)', endTag: ' — סוף המפל',
+    holdCap: (v, ms) => 'ניחשת ' + v + ' · ' + ms + 'ms',
+    unansBeat1: 'tf_answer = "partial". שני הכפתורים למטה עובדים ושומרים תשובה, אבל אף אחת מהן לא נכונה ולא שגויה. ביט 5 יסמן את זה במקום לתת חיווי.',
+    unansBeat5: a => 'tf_answer = "partial". ענית ' + a + ' — אין כאן נכון או לא נכון. ממשק שני הכפתורים לא יכול לייצג את התשובה הזו.',
+    youAnswered: (a, c) => 'ענית ' + a + ' · הטענה: ' + c,
+    oldSeenText: '(סדר OLD: הטקסט הזה כבר הוצג בביט 3.)', oldSeenSummary: '(סדר OLD: הסיכום הזה כבר הוצג בביט 3.)',
+    tallyLbl: 'תוצאת ההצבעה',
+    noTally: id => 'ל-' + id + ' אין שדה _tally. אין ספירה לעלות אליה — המסך הזה נגמר בלי מספר.',
+    surpriseLbl: 'מה הפתיע אותך',
+    noSurprise: n => 'ניחשת נכון את כל ' + n + ' ההצבעות. שום דבר לא הפתיע אותך.',
+    surprised: (w, n) => 'הופתעת מ-' + w + ' מתוך ' + n + ':',
+    surpriseRow: (name, party, pred, act) => name + ' (' + party + ') — ניחשת ' + pred + ', הצביע ' + act,
+    blocTag: ' <span class="small">[עמדת סיעה]</span>',
+    billLbl: 'החוק', sourcesLbl: 'מקורות', knessetLbl: 'פרוטוקול ההצבעה בכנסת',
+    glossGap: t => 'אף אחד מ-' + t + ' מונחי המילון לא מופיע ב-tf_explain, ב-bill_title ולא ב-bill_summary של הסוגיה הזו — אין מה ללחוץ.',
+    crowdStub: 'stub — אין נתוני קהל בבילד הזה.',
+    total: 'סה״כ',
+    cascadeLine: (n, avg) => 'מפל: ' + n + ' כרטיסים, ' + avg + 's לכרטיס בממוצע (זמן עד ההצבעה, בלי זמן הקריאה של החיווי).<br>',
+    minuteLine: (t, over, d) => 'יעד דקה: ' + t + 's מול 60.0s — ' + (over ? 'מעל היעד ב-' : 'מתחת ליעד ב-') + d + 's.<br>',
+    setReveal: 'חשיפה: ', setTempo: ' · קצב: ', setAuto: ' · התקדמות אוטומטית: ', setCrowd: ' · נתוני קהל: ',
+    tempoNote: d => 'לפי הסיפור ' + d + 'ms (לכל הכרטיסים בנתונים יש סיפור)',
+    tempoVerdict: (a, b) => 'השהיה לפני החיווי ' + a + '/' + b + 'ms', tempoOff: 'בלי השהיה',
+    autoOn: (a, b) => 'פועלת ' + a + '/' + b + 'ms', autoOff: 'כבויה (בלחיצה)',
+    crowdOn: 'עדיין לא קיים', crowdOff: 'כבוי',
+    transNotice: ''
+  },
+  en: {
+    listTitle: '16 issues', thNoushe: 'Topic', thMks: 'MKs', thTerms: 'terms',
+    basisLine: (d, b, n) => '<b>' + d + '</b> recorded votes (doc) · <b>' + b + '</b> party positions (bloc) out of ' + n + ' cards.',
+    allBloc: ids => ids + ' — their whole cascade is bloc: not one recorded vote by an individual MK.',
+    covTally: (y, n, m) => '_tally exists for ' + y + ' of ' + n + ' issues. For the other ' + m + ', beat 5 prints "no tally in data" instead of a count.<br>',
+    covNoteAll: (n, d) => 'All ' + n + ' cards have a note. In "story-driven" mode no card advances by itself — the ' + d + 'ms branch never fires on this data, and the mode is equivalent to waiting for a tap.<br>',
+    covNoteSome: n => n + ' cards without a note will advance by themselves in "story-driven" mode.<br>',
+    covGloss: (g, n, m, t) => 'A glossary term appears in the tf_explain / bill_title / bill_summary of ' + g + ' issues (of ' + n + '). In the other ' + m + ' there is nothing to tap at beat 5. The glossary (' + t + ' terms) barely touches the claim text itself — which is why the linking sits at beat 5 and not at beat 1.',
+    ctlTitle: 'controls — testing only', ctlLang: 'language:',
+    ctlReveal: 'when the answer lands:', ctlNew: 'NEW — the answer only at beat 5', ctlOld: 'OLD — explanation and summary already at beat 3',
+    ctlTempo: 'cascade tempo:', ctlNote: 'story-driven', ctlVerdict: 'delay before the verdict', ctlOff: 'no delay — instant for everyone',
+    ctlNoteDelay: 'a card with no story advances by itself after ', ctlVerdictDelay: 'delay before the verdict (ms):',
+    ctlNormal: 'ordinary', ctlKey: 'pivotal', ctlAuto: 'auto-advance (the fast version)', ctlCrowd: 'crowd data (does not exist yet)',
+    ctlGuess: '0/600 and 125/850 are opening guesses, not findings.',
+    tTrue: 'True', tFalse: 'False',
+    stripLbl: 'your answer at beat 1', stripNote: 'No right/wrong feedback until beat 5.',
+    you121: 'You are the 121st MK', voteNote: 'Your vote is never checked, never scored and never compared to anyone.',
+    newHold: 'bill_summary and tf_explain are withheld here on purpose (NEW order): the summary gives away the result.',
+    oldLbl: 'OLD ORDER — revealed here',
+    spoiler: 'bill_summary ends with the vote result in most issues. In OLD order it is read before the MK cascade — so beat 4 runs with the outcome already known.',
+    cont: 'Continue', next: 'Next', nextLast: 'Next — end of cascade', backList: 'Back to the list',
+    guessedRight: 'You guessed right', guessedWrong: 'You guessed wrong',
+    youGuessed: 'You guessed: ', actually: ' · actually voted: ',
+    basisDoc: 'Recorded vote', basisBloc: 'Party position — not a recorded vote by this MK',
+    noNote: 'No note for this MK on this issue.',
+    autoIn: ms => 'advancing automatically in ' + ms + 'ms', noNoteTag: ' (no note)', endTag: ' — end of cascade',
+    holdCap: (v, ms) => 'you guessed ' + v + ' · ' + ms + 'ms',
+    unansBeat1: 'tf_answer = "partial". Both buttons below work and store an answer, but neither of them is right or wrong. Beat 5 marks this instead of giving a verdict.',
+    unansBeat5: a => 'tf_answer = "partial". You answered ' + a + ' — there is no right or wrong here. A two-button interface cannot represent this answer.',
+    youAnswered: (a, c) => 'You answered ' + a + ' · the claim: ' + c,
+    oldSeenText: '(OLD order: this text was already shown at beat 3.)', oldSeenSummary: '(OLD order: this summary was already shown at beat 3.)',
+    tallyLbl: 'The vote result',
+    noTally: id => id + ' has no _tally field. There is no count to climb to — this screen ends without a number.',
+    surpriseLbl: 'What surprised you',
+    noSurprise: n => 'You guessed all ' + n + ' votes correctly. Nothing surprised you.',
+    surprised: (w, n) => 'You were surprised by ' + w + ' of ' + n + ':',
+    surpriseRow: (name, party, pred, act) => name + ' (' + party + ') — you guessed ' + pred + ', voted ' + act,
+    blocTag: ' <span class="small">[party position]</span>',
+    billLbl: 'The bill', sourcesLbl: 'Sources', knessetLbl: 'Knesset vote record',
+    glossGap: t => 'None of the ' + t + ' glossary terms appears in the tf_explain, bill_title or bill_summary of this issue — there is nothing to tap.',
+    crowdStub: 'stub — no crowd data in this build.',
+    total: 'Total',
+    cascadeLine: (n, avg) => 'Cascade: ' + n + ' cards, ' + avg + 's per card on average (time to the guess, excluding time spent reading the verdict).<br>',
+    minuteLine: (t, over, d) => 'One-minute target: ' + t + 's against 60.0s — ' + (over ? 'over by ' : 'under by ') + d + 's.<br>',
+    setReveal: 'reveal: ', setTempo: ' · tempo: ', setAuto: ' · auto-advance: ', setCrowd: ' · crowd data: ',
+    tempoNote: d => 'story-driven ' + d + 'ms (every card in the data has a story)',
+    tempoVerdict: (a, b) => 'delay before the verdict ' + a + '/' + b + 'ms', tempoOff: 'no delay',
+    autoOn: (a, b) => 'on ' + a + '/' + b + 'ms', autoOff: 'off (tap)',
+    crowdOn: 'does not exist yet', crowdOff: 'off',
+    transNotice: 'English is a working translation made for testing — not sourced data. data.js holds the Hebrew original, quotes included.'
+  }
+};
+function T(k) { return UI[cfg.lang][k]; }
+function applyLang() {
+  VOTE_LABEL = isEN() ? VOTE_LABEL_EN : VOTE_LABEL_HE;
+  app.dir = isEN() ? 'ltr' : 'rtl';
+  app.lang = isEN() ? 'en' : 'he';
+}
+function setLang(l) {
+  if (cfg.lang === l) return;
+  cfg.lang = l;
+  applyLang();
+  if (S) { S.openTerm = null; render(); } else renderList();
+}
+function isEN() { return cfg.lang === 'en'; }
+
+/* content accessors — fall back to the Hebrew source if a translation is missing */
+function ISS(it, field) {
+  if (!isEN()) return field === 'source_name' ? it.source.name : it[field];
+  const e = (typeof DATA_EN !== 'undefined' && DATA_EN.issues[it.id]) || null;
+  if (field === 'source_name') return (e && e.source_name) || it.source.name;
+  return (e && e[field]) || it[field];
+}
+function POL(id) {
+  const he = DATA.politicians[id];
+  if (!isEN()) return he;
+  const e = (typeof DATA_EN !== 'undefined' && DATA_EN.politicians[id]) || null;
+  return e ? { name: e.name, party: e.party } : he;
+}
+function NOTE(it, p) {
+  if (!isEN()) return p.note;
+  const e = (typeof DATA_EN !== 'undefined' && DATA_EN.issues[it.id]) || null;
+  return (e && e.notes && e.notes[p.id]) || p.note;
+}
+function TOPIC_LABEL(id) {
+  if (!isEN()) return TOPIC[id] || id;
+  const e = (typeof DATA_EN !== 'undefined' && DATA_EN.topics[id]) || null;
+  return (e && e.label) || TOPIC[id] || id;
+}
+/* [{ key (always the Hebrew key), term (displayed + matched), def }] */
+function GLOSS_LIST() {
+  return Object.keys(DATA.glossary).map(k => {
+    const e = (typeof DATA_EN !== 'undefined' && DATA_EN.glossary[k]) || null;
+    return isEN() && e ? { key: k, term: e.term, def: e.def }
+                       : { key: k, term: k, def: DATA.glossary[k] };
+  });
+}
+
+/* --------------------------------------------------------------------- */
+/* glossary: mark terms that actually occur in a piece of text            */
+/* --------------------------------------------------------------------- */
+/* a term may carry one attached Hebrew prefix letter (ה/ו/ב/ל/מ/ש/כ):
+   "הקואליציה" still counts as the term "קואליציה". The prefix stays outside the mark. */
+function boundaryOK(text, at, end) {
+  if (isEN()) {                       // Latin: plain word boundaries
+    const b = text[at - 1], a = text[end];
+    return !(b && /[A-Za-z]/.test(b)) && !(a && /[A-Za-z]/.test(a));
+  }
+  const after = text[end];
+  if (after && HEB.test(after)) return false;
+  let i = at - 1;
+  if (i < 0 || !HEB.test(text[i])) return true;
+  // walk back over a short run of attached prefix letters (שהקואליציה = ש + ה + קואליציה)
+  let run = 0;
+  while (i >= 0 && HEB.test(text[i]) && 'הובלמשכ'.includes(text[i]) && run < 2) { i--; run++; }
+  return run > 0 && (i < 0 || !HEB.test(text[i]));
+}
+
+function linkifyTerms(text, field) {
+  const taken = new Array(text.length).fill(false);
+  const marks = [];
+  const entries = GLOSS_LIST().sort((a, b) => b.term.length - a.term.length);
+  for (const entry of entries) {
+    const term = entry.term;
+    let from = 0, at;
+    while ((at = text.indexOf(term, from)) !== -1) {
+      const end = at + term.length;
+      const boundaryOk = boundaryOK(text, at, end);
+      let free = true;
+      for (let i = at; i < end; i++) if (taken[i]) { free = false; break; }
+      if (free && boundaryOk) {
+        for (let i = at; i < end; i++) taken[i] = true;
+        marks.push({ at, end, term, key: entry.key });
+      }
+      from = end;
+    }
+  }
+  marks.sort((a, b) => a.at - b.at);
+  let out = '', cur = 0;
+  for (const m of marks) {
+    out += esc(text.slice(cur, m.at));
+    out += '<button class="term" data-term="' + esc(m.key) + '" data-field="' + esc(field || '') + '">' + esc(m.term) + '</button>';
+    cur = m.end;
+  }
+  out += esc(text.slice(cur));
+  return { html: out, count: marks.length };
+}
+
+/* the glossary lives on the explain side of the data, not in the claim */
+const GLOSS_FIELDS = ['tf_explain', 'bill_title', 'bill_summary'];
+function issueTermCount(it) {
+  return GLOSS_FIELDS.reduce((n, f) => n + linkifyTerms(ISS(it, f) || '', f).count, 0);
+}
+
+/* --------------------------------------------------------------------- */
+/* instrumentation                                                        */
+/* --------------------------------------------------------------------- */
+function mark(beat) {
+  const now = performance.now();
+  S.times[beat] = (S.times[beat] || 0) + (now - S.tMark);
+  S.tMark = now;
+}
+const secs = ms => (ms / 1000).toFixed(1);
+
+/* --------------------------------------------------------------------- */
+/* entry list                                                             */
+/* --------------------------------------------------------------------- */
+function renderList() {
+  token++;
+  S = null;
+  let rows = '';
+  DATA.issues.forEach((it, idx) => {
+    const g = issueTermCount(it);
+    const nDoc = it.politicians.filter(x => x.basis === 'doc').length;
+    const nBloc = it.politicians.filter(x => x.basis === 'bloc').length;
+    rows += '<tr class="pick" data-idx="' + idx + '">' +
+      '<td class="mono">' + esc(it.id) + '</td>' +
+      '<td>' + esc(TOPIC_LABEL(it.topic)) + '</td>' +
+      '<td class="mono">' + esc(it.tf_answer) + (it.tf_answer === 'partial' ? ' <span class="flag">!</span>' : '') + '</td>' +
+      '<td class="mono">' + it.politicians.length + '</td>' +
+      '<td class="mono">' + nDoc + '/' + (nBloc ? '<span class="flag">' + nBloc + '</span>' : '0') + '</td>' +
+      '<td class="mono">' + (it._tally ? 'yes' : '<span class="flag">no</span>') + '</td>' +
+      '<td class="mono">' + g + '</td>' +
+      '</tr>';
+  });
+
+  const allPols = DATA.issues.flatMap(i => i.politicians);
+  const totDoc = allPols.filter(p => p.basis === 'doc').length;
+  const totBloc = allPols.filter(p => p.basis === 'bloc').length;
+  const totNoNote = allPols.filter(p => !p.note).length;
+  const allBloc = DATA.issues.filter(i => i.politicians.every(p => p.basis === 'bloc')).map(i => i.id);
+  const nTally = DATA.issues.filter(i => i._tally).length;
+  const nGloss = DATA.issues.filter(i => issueTermCount(i) > 0).length;
+
+  app.innerHTML =
+    '<div class="lbl">flow-proto — round loop</div>' +
+    langBarHTML() +
+    '<h1>' + T('listTitle') + '</h1>' +
+    (isEN() ? '<div class="gap"><b>working translation</b>' + T('transNotice') + '</div>' : '') +
+    '<div class="box"><div class="lbl">basis</div>' +
+      T('basisLine')(totDoc, totBloc, allPols.length) +
+      (allBloc.length ? '<br><span class="small">' + T('allBloc')(allBloc.join(', ')) + '</span>' : '') +
+    '</div>' +
+    controlsHTML() +
+    '<table>' +
+      '<tr><th>id</th><th>' + T('thNoushe') + '</th><th>tf_answer</th><th>' + T('thMks') + '</th><th>doc/bloc</th><th>_tally</th><th>' + T('thTerms') + '</th></tr>' +
+      rows +
+    '</table>' +
+    '<div class="gap" style="margin-top:10px">' +
+      '<b>data coverage</b>' +
+      T('covTally')(nTally, DATA.issues.length, DATA.issues.length - nTally) +
+      (totNoNote === 0 ? T('covNoteAll')(allPols.length, cfg.noteDelay) : T('covNoteSome')(totNoNote)) +
+      T('covGloss')(nGloss, DATA.issues.length, DATA.issues.length - nGloss, GLOSS_TERMS.length) +
+    '</div>';
+
+  app.querySelectorAll('[data-lang]').forEach(b => {
+    b.onclick = () => setLang(b.dataset.lang);
+  });
+  app.querySelectorAll('tr.pick').forEach(tr => {
+    tr.onclick = () => startRound(DATA.issues[+tr.dataset.idx]);
+  });
+  wireControls();
+}
+
+function langBarHTML() {
+  return '<div id="langbar">' +
+    '<button data-lang="he" class="' + (cfg.lang === 'he' ? 'on' : '') + '">עברית</button>' +
+    '<button data-lang="en" class="' + (cfg.lang === 'en' ? 'on' : '') + '">English</button>' +
+  '</div>';
+}
+
+function controlsHTML() {
+  return '<div id="controls">' +
+    '<div class="lbl">' + T('ctlTitle') + '</div>' +
+    '<div class="ctlrow">' +
+      '<span class="small">' + T('ctlReveal') + '</span>' +
+      '<label class="small"><input type="radio" name="order" value="NEW"' + (cfg.order === 'NEW' ? ' checked' : '') + '> ' + T('ctlNew') + '</label>' +
+      '<label class="small"><input type="radio" name="order" value="OLD"' + (cfg.order === 'OLD' ? ' checked' : '') + '> ' + T('ctlOld') + '</label>' +
+    '</div>' +
+    '<div class="ctlrow">' +
+      '<span class="small">' + T('ctlTempo') + '</span>' +
+      '<label class="small"><input type="radio" name="tempo" value="note"' + (cfg.tempoMode === 'note' ? ' checked' : '') + '> ' + T('ctlNote') + '</label>' +
+      '<label class="small"><input type="radio" name="tempo" value="verdict"' + (cfg.tempoMode === 'verdict' ? ' checked' : '') + '> ' + T('ctlVerdict') + '</label>' +
+      '<label class="small"><input type="radio" name="tempo" value="off"' + (cfg.tempoMode === 'off' ? ' checked' : '') + '> ' + T('ctlOff') + '</label>' +
+    '</div>' +
+    '<div class="ctlrow">' +
+      '<label class="small">' + T('ctlNoteDelay') + '<input type="number" id="noteDelay" min="0" max="5000" step="50" value="' + cfg.noteDelay + '">ms</label>' +
+    '</div>' +
+    '<div class="ctlrow">' +
+      '<span class="small">' + T('ctlVerdictDelay') + '</span>' +
+      '<label class="small">' + T('ctlNormal') + ' <input type="number" id="vNormal" min="0" max="5000" step="25" value="' + cfg.vNormal + '"></label>' +
+      '<label class="small">' + T('ctlKey') + ' <input type="number" id="vKey" min="0" max="5000" step="25" value="' + cfg.vKey + '"></label>' +
+    '</div>' +
+    '<div class="ctlrow">' +
+      '<label class="small"><input type="checkbox" id="autoAdv"' + (cfg.autoAdvance ? ' checked' : '') + '> ' + T('ctlAuto') + '</label>' +
+      '<label class="small">' + T('ctlNormal') + ' <input type="number" id="dNormal" min="0" max="5000" step="25" value="' + cfg.dNormal + '"></label>' +
+      '<label class="small">' + T('ctlKey') + ' <input type="number" id="dKey" min="0" max="5000" step="25" value="' + cfg.dKey + '"></label>' +
+    '</div>' +
+    '<div class="ctlrow">' +
+      '<label class="small"><input type="checkbox" id="crowd"' + (cfg.crowd ? ' checked' : '') + '> ' + T('ctlCrowd') + '</label>' +
+    '</div>' +
+    '<div class="small mut">' + T('ctlGuess') + '</div>' +
+  '</div>';
+}
+
+function wireControls() {
+  app.querySelectorAll('input[name=order]').forEach(r => {
+    r.onchange = () => { cfg.order = r.value; };
+  });
+  app.querySelectorAll('input[name=tempo]').forEach(r => {
+    r.onchange = () => { cfg.tempoMode = r.value; };
+  });
+  const num = (id, key) => {
+    const el = app.querySelector('#' + id);
+    if (el) el.onchange = () => { cfg[key] = Math.max(0, +el.value || 0); };
+  };
+  num('noteDelay', 'noteDelay');
+  num('vNormal', 'vNormal'); num('vKey', 'vKey');
+  num('dNormal', 'dNormal'); num('dKey', 'dKey');
+  const aa = app.querySelector('#autoAdv'), cw = app.querySelector('#crowd');
+  if (aa) aa.onchange = () => { cfg.autoAdvance = aa.checked; };
+  if (cw) cw.onchange = () => { cfg.crowd = cw.checked; };
+}
+
+/* --------------------------------------------------------------------- */
+/* round                                                                  */
+/* --------------------------------------------------------------------- */
+function startRound(issue) {
+  token++;
+  const t = performance.now();
+  S = {
+    issue, beat: 1,
+    tf: null, vote: null,
+    ci: 0, phase: 'predict', preds: [], cardT: [], cardStart: 0,
+    r5: 0, tallyShown: false,
+    times: {}, t0: t, tMark: t,
+    openTerm: null
+  };
+  render();
+}
+
+function goBeat(n) {
+  mark('beat' + S.beat);
+  S.beat = n;
+  if (n === 5) S.r5 = 0;
+  render();
+}
+
+function render() {
+  const parts = [];
+  parts.push('<div class="lbl">' + esc(S.issue.id) + ' · ' + esc(TOPIC_LABEL(S.issue.topic)) + '</div>');
+  if (S.beat >= 2 && S.beat <= 4) parts.push(stripHTML());
+  parts.push('<div class="beatnum">BEAT ' + S.beat + ' / 5</div>');
+  parts.push(({ 1: beat1, 2: beat2, 3: beat3, 4: beat4, 5: beat5 })[S.beat]());
+  app.innerHTML = parts.join('');
+  wireBeat();
+}
+
+/* pinned chrome: the player's beat-1 answer, beats 2..5 */
+function stripHTML() {
+  const answered = S.tf === 'true' ? T('tTrue') : T('tFalse');
+  return '<div id="strip">' +
+    '<div class="lbl">' + T('stripLbl') + '</div>' +
+    '<div><b>' + answered + '</b> · ' + esc(ISS(S.issue, 'title')) + '</div>' +
+    '<div class="small mut">' + T('stripNote') + '</div>' +
+  '</div>';
+}
+
+/* ---- BEAT 1 — CLAIM ---- */
+function beat1() {
+  let h = '<div class="lbl">CLAIM</div>' +
+    '<div class="claimcard">' +
+      '<div class="cardbody">' +
+        '<h2>' + esc(ISS(S.issue, 'title')) + '</h2>' +
+        '<div class="claim">' + esc(ISS(S.issue, 'tf')) + '</div>';
+
+  if (S.issue.tf_answer === 'partial') {
+    h += '<div class="gap" style="margin-top:8px"><b>unanswerable</b>' + T('unansBeat1') + '</div>';
+  }
+  h += '</div>' +
+    '<div class="cardactions"><div class="row">' +
+      '<button data-tf="true">' + T('tTrue') + '</button><button data-tf="false">' + T('tFalse') + '</button>' +
+    '</div></div></div>';
+  return h;
+}
+
+/* ---- BEAT 2 — YOUR VOTE ---- */
+function beat2() {
+  /* the player's own card in the cascade — same shape as an MK card */
+  let h = '<div class="lbl">YOUR VOTE</div>' +
+    '<div class="card">' +
+      '<div class="cardbody">' +
+        '<div class="who">' +
+          '<h2>' + T('you121') + '</h2>' +
+          '<div class="small mut">' + T('voteNote') + '</div>' +
+        '</div>' +
+        '<p>' + esc(ISS(S.issue, 'bill_title')) + '</p>' +
+      '</div>' +
+      '<div class="cardactions"><div class="row">' +
+        VOTES.map(v => '<button data-vote="' + v + '">' + VOTE_LABEL[v] + '</button>').join('') +
+      '</div></div>' +
+    '</div>';
+  return h;
+}
+
+/* ---- BEAT 3 — THE BILL ---- */
+function beat3() {
+  let h = '<div class="lbl">THE BILL</div>' +
+    '<div class="box">' +
+      '<h2>' + esc(ISS(S.issue, 'bill_title')) + '</h2>' +
+      '<div class="mut">' + esc(ISS(S.issue, 'bill_date')) + '</div>' +
+    '</div>';
+
+  if (cfg.order === 'OLD') {
+    h += '<div class="box grey"><div class="lbl">' + T('oldLbl') + '</div>' +
+      '<p>' + esc(ISS(S.issue, 'tf_explain')) + '</p><hr class="rule">' +
+      '<p>' + esc(ISS(S.issue, 'bill_summary')) + '</p></div>' +
+      '<div class="gap"><b>spoiler check</b>' + T('spoiler') + '</div>';
+  } else {
+    h += '<div class="small mut">' + T('newHold') + '</div>';
+  }
+  if (cfg.crowd) {
+    h += '<div class="gap"><b>crowd data</b>' + T('crowdStub') + '</div>';
+  }
+  h += '<div class="row" style="margin-top:8px"><button data-go="4">' + T('cont') + '</button></div>';
+  return h;
+}
+
+/* ---- BEAT 4 — MK CASCADE, one card at a time ----
+   phases: 'predict' -> 'hold' (key MKs only, card body blank) -> 'verdict'.
+   Nothing disappears on its own unless auto-advance is switched on. */
+function verdictDelay(p) {
+  if (cfg.tempoMode !== 'verdict') return 0;
+  return p.key === true ? cfg.vKey : cfg.vNormal;
+}
+
+/* does this card move on by itself once the verdict is stamped? */
+function selfAdvances(p) {
+  if (cfg.autoAdvance) return true;
+  return cfg.tempoMode === 'note' && !p.note;
+}
+function selfAdvanceDelay(p) {
+  if (cfg.autoAdvance) return p.key === true ? cfg.dKey : cfg.dNormal;
+  return cfg.noteDelay;
+}
+
+/* 5: the basis of a vote, in plain Hebrew */
+function basisHTML(p) {
+  return p.basis === 'bloc'
+    ? '<div class="basis bloc">' + T('basisBloc') + '</div>'
+    : '<div class="basis doc">' + T('basisDoc') + '</div>';
+}
+
+/* 8: the verdict as a stamp */
+function stampHTML(text, ok) {
+  return '<div class="stamp' + (ok ? '' : ' wrong') + '">' + esc(text) + '</div>';
+}
+
+function beat4() {
+  const list = S.issue.politicians;
+  const p = list[S.ci];
+  const mk = POL(p.id);
+  const last = S.ci + 1 >= list.length;
+
+  let h = '<div class="lbl">MK CASCADE</div>' +
+    '<div class="progress">' + (S.ci + 1) + ' / ' + list.length + '</div>' +
+    '<div class="card' + (p.key ? ' key' : '') + '">';
+
+  const who = '<div class="who">' +
+    '<h2>' + esc(mk.name) + '</h2>' +
+    '<div class="small mut">' + esc(mk.party) + (p.key ? ' · key' : '') + '</div>' +
+    '</div>';
+
+  if (S.phase === 'predict') {
+    h += '<div class="cardbody">' + who + '</div>' +
+      '<div class="cardactions"><div class="row">' +
+        VOTES.map(v => '<button data-pred="' + v + '">' + VOTE_LABEL[v] + '</button>').join('') +
+      '</div></div>';
+
+  } else if (S.phase === 'hold') {
+    /* key MK: the card holds blank under the name for the key delay, then the verdict lands */
+    h += '<div class="cardbody">' + who + '</div>' +
+      '<div class="cardactions"><div class="small mut">' +
+        T('holdCap')(VOTE_LABEL[S.preds[S.ci].pred], verdictDelay(p)) + '</div></div>';
+
+  } else {
+    const r = S.preds[S.ci];
+    h += '<div class="cardbody">' + who +
+      stampHTML(r.ok ? T('guessedRight') : T('guessedWrong'), r.ok) +
+      '<div class="verdict">' + T('youGuessed') + VOTE_LABEL[r.pred] +
+        T('actually') + VOTE_LABEL[r.actual] + '</div>' +
+      basisHTML(p);
+    h += p.note
+      ? '<div class="verdict">' + esc(NOTE(S.issue, p)) + '</div>'
+      : '<div class="gap"><b>no note in data</b>' + T('noNote') + '</div>';
+    h += '</div>';
+
+    h += '<div class="cardactions">';
+    if (selfAdvances(p)) {
+      h += '<div class="small mut">' + T('autoIn')(selfAdvanceDelay(p)) +
+        (cfg.autoAdvance ? '' : T('noNoteTag')) + (last ? T('endTag') : '') + '</div>';
+    } else {
+      h += '<div class="row"><button data-next="1">' + (last ? T('nextLast') : T('next')) + '</button></div>';
+    }
+    h += '</div>';
+  }
+
+  h += '</div>';
+  return h;
+}
+
+/* prediction -> verdict, after the verdict delay */
+function showVerdict() {
+  const p = S.issue.politicians[S.ci];
+  const d = verdictDelay(p);
+  if (d <= 0) {
+    S.phase = 'verdict';
+    render();
+    if (selfAdvances(p)) scheduleAdvance();
+    return;
+  }
+  S.phase = 'hold';
+  render();
+  const my = token;
+  setTimeout(() => {
+    if (my !== token || !S || S.beat !== 4 || S.phase !== 'hold') return;
+    S.phase = 'verdict';
+    render();
+    if (selfAdvances(p)) scheduleAdvance();
+  }, d);
+}
+
+function nextCard() {
+  const list = S.issue.politicians;
+  if (S.ci + 1 < list.length) {
+    S.ci++;
+    S.phase = 'predict';
+    S.cardStart = performance.now();
+    render();
+  } else {
+    goBeat(5);
+  }
+}
+
+/* auto-advance switch (old fast version) and the note-driven no-note path */
+function scheduleAdvance() {
+  const p = S.issue.politicians[S.ci];
+  const my = token;
+  setTimeout(() => {
+    if (my !== token || !S || S.beat !== 4) return;
+    nextCard();
+  }, selfAdvanceDelay(p));
+}
+
+/* the tapped term's definition, inline under the field it was tapped in */
+function glossBox(field) {
+  if (!S.openTerm || S.openTerm.field !== field) return '';
+  const e = GLOSS_LIST().find(x => x.key === S.openTerm.term);
+  if (!e) return '';
+  return '<div class="gloss"><b>' + esc(e.term) + '</b><br>' + esc(e.def) + '</div>';
+}
+
+/* ---- BEAT 5 — REVEAL, one screen at a time ----
+   verdict -> tally -> what surprised you -> the bill and sources.
+   bill_summary sits on the last screen: it ends with the tally in most issues,
+   so it must not arrive before the count-up. */
+const R5 = ['verdict', 'tally', 'surprise', 'bill'];
+
+function beat5() {
+  const it = S.issue;
+  const step = R5[S.r5] || 'verdict';
+  const last = S.r5 >= R5.length - 1;
+
+  let h = '<div class="lbl">REVEAL ' + (S.r5 + 1) + ' / ' + R5.length + '</div>' +
+    '<div class="card"><div class="cardbody">';
+
+  if (step === 'verdict') {
+    if (it.tf_answer === 'partial') {
+      h += '<div class="gap"><b>unanswerable</b>' +
+        T('unansBeat5')(S.tf === 'true' ? T('tTrue') : T('tFalse')) + '</div>';
+    } else {
+      const ok = S.tf === it.tf_answer;
+      h += stampHTML(ok ? T('guessedRight') : T('guessedWrong'), ok) +
+        '<div class="small mut">' + T('youAnswered')(
+          S.tf === 'true' ? T('tTrue') : T('tFalse'),
+          it.tf_answer === 'true' ? T('tTrue') : T('tFalse')) + '</div>';
+    }
+    h += '<div class="claim" style="margin-top:10px">' +
+      linkifyTerms(ISS(it, 'tf_explain'), 'tf_explain').html + '</div>' + glossBox('tf_explain');
+    if (cfg.order === 'OLD') {
+      h += '<div class="small mut">' + T('oldSeenText') + '</div>';
+    }
+
+  } else if (step === 'tally') {
+    h += '<div class="lbl">' + T('tallyLbl') + '</div>';
+    if (it._tally) {
+      h += '<div class="tallybar">' +
+        '<span>' + VOTE_LABEL.for + ' <b id="tfor">0</b></span>' +
+        '<span>' + VOTE_LABEL.against + ' <b id="tagainst">0</b></span>' +
+        '</div>';
+    } else {
+      h += '<div class="gap"><b>no tally in data</b>' + T('noTally')(esc(it.id)) + '</div>';
+    }
+
+  } else if (step === 'surprise') {
+    const wrong = S.preds.filter(r => !r.ok);
+    h += '<div class="lbl">' + T('surpriseLbl') + '</div>';
+    if (wrong.length === 0) {
+      h += '<p>' + T('noSurprise')(S.preds.length) + '</p>';
+    } else {
+      h += '<p>' + T('surprised')(wrong.length, S.preds.length) + '</p>' +
+        '<ul style="margin:6px 0 0;padding-inline-start:18px">' +
+        wrong.map(r => {
+          const mk = POL(r.id);
+          const p = S.issue.politicians.find(x => x.id === r.id) || {};
+          return '<li style="margin-bottom:6px">' +
+            T('surpriseRow')(esc(mk.name), esc(mk.party), VOTE_LABEL[r.pred], VOTE_LABEL[r.actual]) +
+            (p.basis === 'bloc' ? T('blocTag') : '') + '</li>';
+        }).join('') + '</ul>';
+    }
+
+  } else {
+    const lkTitle = linkifyTerms(ISS(it, 'bill_title'), 'bill_title');
+    const lkSummary = linkifyTerms(ISS(it, 'bill_summary'), 'bill_summary');
+    h += '<div class="lbl">' + T('billLbl') + '</div>' +
+      '<h2>' + lkTitle.html + '</h2>' +
+      '<div class="mut">' + esc(ISS(it, 'bill_date')) + '</div>' + glossBox('bill_title') +
+      '<p style="margin-top:8px">' + lkSummary.html + '</p>' + glossBox('bill_summary');
+    if (cfg.order === 'OLD') {
+      h += '<div class="small mut">' + T('oldSeenSummary') + '</div>';
+    }
+
+    h += '<hr class="rule"><div class="lbl">' + T('sourcesLbl') + '</div>' +
+      '<div class="small">' + esc(ISS(it, 'source_name')) + '<br>' +
+      '<a href="' + esc(it.source.url) + '" target="_blank" rel="noopener" class="mono">' +
+      esc(it.source.url) + '</a></div>';
+    if (it.knesset_url) {
+      h += '<div class="small" style="margin-top:6px">' + T('knessetLbl') + '<br>' +
+        '<a href="' + esc(it.knesset_url) + '" target="_blank" rel="noopener" class="mono">' +
+        esc(it.knesset_url) + '</a></div>';
+    }
+
+    const termTotal = linkifyTerms(ISS(it, 'tf_explain'), 'tf_explain').count + lkTitle.count + lkSummary.count;
+    if (termTotal === 0) {
+      h += '<div class="gap" style="margin-top:8px"><b>glossary</b>' + T('glossGap')(GLOSS_TERMS.length) + '</div>';
+    }
+  }
+
+  if (cfg.crowd) h += '<div class="gap"><b>crowd data</b>' + T('crowdStub') + '</div>';
+
+  h += '</div><div class="cardactions"><div class="row">' +
+    (last ? '<button data-back="1">' + T('backList') + '</button>'
+          : '<button data-r5="1">' + T('cont') + '</button>') +
+    '</div></div></div>';
+
+  if (last) h += timingHTML();
+  return h;
+}
+
+function countUp(el, target) {
+  const dur = 1200, t0 = performance.now(), my = token;
+  (function step(now) {
+    if (my !== token) return;
+    const k = Math.min(1, (now - t0) / dur);
+    el.textContent = Math.round(target * k);
+    if (k < 1) requestAnimationFrame(step);
+  })(t0);
+}
+
+/* ---- instrumentation printout ----
+   beat 5 is still running while this is on screen, so the block re-renders on a
+   tick: the reveal's own reading time counts toward the round like every other beat. */
+function timingHTML() {
+  return '<hr class="rule"><div class="lbl">instrumentation</div><div id="instr">' + timingInner() + '</div>';
+}
+
+function timingInner() {
+  const now = performance.now();
+  const t = Object.assign({}, S.times);
+  t['beat5'] = (t['beat5'] || 0) + (now - S.tMark);
+  const total = now - S.t0;
+  const names = { beat1: '1 CLAIM', beat2: '2 YOUR VOTE', beat3: '3 THE BILL', beat4: '4 MK CASCADE', beat5: '5 REVEAL' };
+  let rows = '';
+  ['beat1', 'beat2', 'beat3', 'beat4', 'beat5'].forEach(k => {
+    const ms = t[k] || 0;
+    rows += '<tr><td>' + names[k] + '</td><td class="mono">' + secs(ms) + 's</td>' +
+      '<td class="mono">' + Math.round(100 * ms / total) + '%</td></tr>';
+  });
+  const cards = S.cardT.length;
+  const avg = cards ? S.cardT.reduce((a, b) => a + b, 0) / cards : 0;
+
+  return '<table>' + rows +
+      '<tr><th>' + T('total') + '</th><th class="mono">' + secs(total) + 's</th><th class="mono">100%</th></tr>' +
+    '</table>' +
+    '<div class="small mut" style="margin-top:6px">' +
+      T('cascadeLine')(cards, secs(avg)) +
+      T('minuteLine')(secs(total), total > 60000, secs(Math.abs(total - 60000))) +
+      T('setReveal') + cfg.order +
+      T('setTempo') + (cfg.tempoMode === 'note' ? T('tempoNote')(cfg.noteDelay)
+                    : cfg.tempoMode === 'verdict' ? T('tempoVerdict')(cfg.vNormal, cfg.vKey)
+                    : T('tempoOff')) +
+      T('setAuto') + (cfg.autoAdvance ? T('autoOn')(cfg.dNormal, cfg.dKey) : T('autoOff')) +
+      T('setCrowd') + (cfg.crowd ? T('crowdOn') : T('crowdOff')) +
+    '</div>';
+}
+
+/* --------------------------------------------------------------------- */
+/* wiring                                                                 */
+/* --------------------------------------------------------------------- */
+function wireBeat() {
+  app.querySelectorAll('button.term').forEach(b => {
+    b.onclick = () => {
+      const t = b.dataset.term, f = b.dataset.field;
+      const open = S.openTerm && S.openTerm.term === t && S.openTerm.field === f;
+      S.openTerm = open ? null : { term: t, field: f };
+      render();
+    };
+  });
+  app.querySelectorAll('[data-tf]').forEach(b => {
+    b.onclick = () => { S.tf = b.dataset.tf; goBeat(2); };
+  });
+  app.querySelectorAll('[data-vote]').forEach(b => {
+    b.onclick = () => { S.vote = b.dataset.vote; goBeat(3); };
+  });
+  app.querySelectorAll('[data-go]').forEach(b => {
+    b.onclick = () => {
+      const n = +b.dataset.go;
+      if (n === 4) { S.cardStart = performance.now(); S.phase = 'predict'; }
+      goBeat(n);
+    };
+  });
+  app.querySelectorAll('[data-pred]').forEach(b => {
+    b.onclick = () => {
+      const p = S.issue.politicians[S.ci];
+      S.cardT.push(performance.now() - S.cardStart);
+      S.preds.push({
+        id: p.id, pred: b.dataset.pred, actual: p.vote,
+        ok: b.dataset.pred === p.vote, key: p.key === true
+      });
+      showVerdict();
+    };
+  });
+  app.querySelectorAll('[data-next]').forEach(b => { b.onclick = nextCard; });
+  app.querySelectorAll('[data-r5]').forEach(b => {
+    b.onclick = () => { S.r5 = Math.min(S.r5 + 1, R5.length - 1); render(); };
+  });
+  app.querySelectorAll('[data-back]').forEach(b => { b.onclick = renderList; });
+
+  if (S && S.beat === 5) {
+    const my = token;
+    const iv = setInterval(() => {
+      const el = document.getElementById('instr');
+      if (my !== token || !S || S.beat !== 5 || !el) { clearInterval(iv); return; }
+      el.innerHTML = timingInner();
+    }, 250);
+  }
+
+  /* the tally counts up once; tapping a glossary term re-renders beat 5 and must
+     not replay the animation from zero */
+  const tf = app.querySelector('#tfor');
+  if (tf) {
+    const ag = app.querySelector('#tagainst');
+    if (S.tallyShown) {
+      tf.textContent = S.issue._tally.for;
+      ag.textContent = S.issue._tally.against;
+    } else {
+      S.tallyShown = true;
+      countUp(tf, S.issue._tally.for);
+      countUp(ag, S.issue._tally.against);
+    }
+  }
+}
+
+applyLang();
+renderList();
+</script>
+</body>
+</html>

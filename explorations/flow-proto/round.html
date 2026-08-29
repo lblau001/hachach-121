@@ -1,0 +1,945 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>flow-proto / round loop</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: #e3e3e3; color: #111;
+    font-family: system-ui, sans-serif;
+    font-size: 14px; line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+  }
+  #app { max-width: 390px; margin: 0 auto; padding: 10px 10px 60px; }
+
+  h1, h2, h3 { font-size: 14px; font-weight: 700; margin: 0 0 6px; }
+  p { margin: 0 0 8px; }
+
+  .lbl {
+    font-size: 10px; letter-spacing: .06em; text-transform: uppercase;
+    color: #666; margin: 0 0 4px;
+  }
+  /* cards sit above the page: white on grey, with an edge */
+  .box { border: 1px solid #9a9a9a; padding: 8px; margin: 0 0 8px; background: #fff;
+         box-shadow: 0 1px 2px rgba(0,0,0,.22); }
+  .box.grey { background: #ededed; }
+  .rule { border: 0; border-top: 1px solid #ccc; margin: 10px 0; }
+  .mut { color: #666; }
+  .small { font-size: 11px; }
+  .mono { font-family: ui-monospace, Menlo, monospace; font-size: 11px; }
+
+  button {
+    font-family: inherit; font-size: 13px;
+    background: #fff; color: #111; border: 1px solid #666;
+    padding: 8px 10px; cursor: pointer; border-radius: 0;
+  }
+  button:hover { background: #eee; }
+  button:disabled { color: #999; border-color: #ccc; cursor: default; background: #fafafa; }
+  .row { display: flex; gap: 6px; }
+  .row > button { flex: 1; }
+
+  /* ---- entry list ---- */
+  table { border-collapse: collapse; width: 100%; font-size: 11px; }
+  table { background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.22); }
+  th, td { border: 1px solid #ccc; padding: 4px 5px; text-align: right; vertical-align: top; }
+  th { background: #ededed; font-weight: 700; }
+  tr.pick:hover td { background: #f3f3f3; cursor: pointer; }
+  .flag { border: 1px solid #666; padding: 0 3px; font-size: 10px; white-space: nowrap; }
+
+  #langbar { display: flex; gap: 0; margin: 0 0 10px; }
+  #langbar button {
+    flex: 1; border: 1px solid #9a9a9a; background: #d8d8d8; color: #444;
+    padding: 10px; font-size: 13px; box-shadow: 0 1px 2px rgba(0,0,0,.18);
+  }
+  #langbar button.on { background: #fff; color: #111; font-weight: 700; border-color: #333; }
+
+  /* ---- controls ---- */
+  #controls { border: 1px solid #9a9a9a; padding: 8px; margin: 0 0 10px; background: #fff;
+              box-shadow: 0 1px 2px rgba(0,0,0,.22); }
+  #controls label { display: block; margin: 0 0 4px; font-size: 11px; }
+  #controls input { accent-color: #555; }
+  input:focus-visible, button:focus-visible { outline: 2px solid #555; outline-offset: 1px; }
+  #controls input[type=number] { width: 60px; font-family: inherit; font-size: 12px; padding: 2px 4px; }
+  .ctlrow { display: flex; gap: 10px; align-items: center; margin: 0 0 6px; flex-wrap: wrap; }
+
+  /* ---- round ---- */
+  #strip { border: 1px solid #888; background: #cfcfcf; padding: 6px 8px; margin: 0 0 10px; }
+  .beatnum { font-size: 10px; color: #666; letter-spacing: .06em; margin: 0 0 6px; }
+  .claim { font-size: 16px; line-height: 1.4; margin: 0 0 8px; }
+  .term {
+    font: inherit; background: #e4e4e4; border: 0; border-bottom: 1px dashed #555;
+    padding: 0 2px; cursor: pointer; color: inherit;
+  }
+  .gloss { border: 1px solid #666; background: #ededed; padding: 6px 8px; margin: 0 0 8px; font-size: 12px; }
+  /* a card owns the screen: content centred, actions at thumb height */
+  .card, .claimcard {
+    border: 2px solid #333; padding: 10px; margin: 0 0 8px;
+    min-height: 60vh; display: flex; flex-direction: column;
+    background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,.28);
+  }
+  .claimcard { border-width: 1px; border-color: #9a9a9a; }
+  .card.key { border-style: double; border-width: 4px; }
+  .cardbody { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+  .cardactions { margin-top: auto; padding-top: 10px; }
+  .cardactions button { padding: 14px 10px; }
+  .who { margin: 0 0 10px; }
+  .who h2 { font-size: 28px; line-height: 1.15; margin: 0 0 4px; }
+
+  /* the verdict is a stamp, not a footnote */
+  .stamp {
+    font-size: 30px; font-weight: 700; text-align: center; letter-spacing: .02em;
+    border: 3px solid #111; padding: 14px 10px; margin: 0 0 10px; background: #fff;
+  }
+  .stamp.wrong { background: #1c1c1c; color: #fff; border-color: #1c1c1c; }
+
+  /* basis: a documented vote is quiet, a bloc inference is not */
+  .basis { margin: 0 0 8px; }
+  .basis.doc { font-size: 12px; color: #555; }
+  .basis.bloc {
+    border: 2px dashed #333; background: #ededed;
+    padding: 8px; font-size: 13px; font-weight: 700;
+  }
+  .verdict { border: 1px solid #333; padding: 8px; margin: 0 0 8px; background: #fff; font-size: 13px; }
+  .tallybar { display: flex; justify-content: space-between; font-size: 22px; font-variant-numeric: tabular-nums; }
+  .gap {
+    border: 2px dashed #333; background: #fff; padding: 8px;
+    margin: 0 0 8px; font-size: 12px;
+  }
+  .gap b { display: block; font-size: 10px; letter-spacing: .06em; color: #444; }
+  .progress { font-size: 11px; color: #666; margin: 0 0 6px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script src="../../data.js"></script>
+<script src="data.en.js"></script>
+<script>
+/* =======================================================================
+   flow-proto — round loop, low-fi. Greyscale, boxes, rules, labels.
+   Every content string comes from DATA. Chrome labels are Hebrew UI only.
+   ======================================================================= */
+
+const VOTE_LABEL_HE = { for: 'בעד', against: 'נגד', abstain: 'נמנע' };
+const VOTE_LABEL_EN = { for: 'For', against: 'Against', abstain: 'Abstain' };
+let VOTE_LABEL = VOTE_LABEL_HE;
+const VOTES = ['for', 'against', 'abstain'];
+const TOPIC = Object.fromEntries(DATA.topics.map(t => [t.id, t.label]));
+const GLOSS_TERMS = Object.keys(DATA.glossary).sort((a, b) => b.length - a.length);
+
+const app = document.getElementById('app');
+
+/* testing controls — persist across rounds */
+const cfg = {
+  lang: 'he',            // 'he' = the sourced Hebrew, 'en' = working translation
+  order: 'NEW',
+  tempoMode: 'note',      // 'note' = no-note cards advance themselves, 'verdict' = hold
+                          // before a key MK's verdict, 'off' = instant for everyone
+  noteDelay: 900,         // note-driven: how long a note-less card holds before advancing
+  vNormal: 0, vKey: 600,  // verdict delay (ms)
+  autoAdvance: false,     // old behaviour, kept behind a switch
+  dNormal: 125, dKey: 850,
+  crowd: false
+};
+
+let S = null;      // round state
+let token = 0;     // invalidates pending cascade timers when the round is left
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const HEB = /[֐-׿]/;
+
+/* --------------------------------------------------------------------- */
+/* language: 'he' is the sourced data, 'en' is a working translation      */
+/* --------------------------------------------------------------------- */
+const UI = {
+  he: {
+    listTitle: '16 סוגיות', thNoushe: 'נושא', thMks: 'ח״כים', thTerms: 'מונחים',
+    basisLine: (d, b, n) => '<b>' + d + '</b> הצבעות מתועדות (doc) · <b>' + b + '</b> עמדות סיעה (bloc) מתוך ' + n + ' כרטיסים.',
+    allBloc: ids => ids + ' — כל המפל שלהן bloc: אף הצבעה מתועדת של ח״כ בודד.',
+    covTally: (y, n, m) => '_tally קיים ב-' + y + ' מתוך ' + n + ' סוגיות. ב-' + m + ' הנותרות ביט 5 ידפיס "no tally in data" במקום ספירה.<br>',
+    covNoteAll: (n, d) => 'לכל ' + n + ' הכרטיסים יש note (סיפור). במצב "לפי הסיפור" אף כרטיס לא ימשיך מעצמו — הענף של ' + d + 'ms לא נדלק על הנתונים האלה, והמצב שקול להמתנה ללחיצה.<br>',
+    covNoteSome: n => n + ' כרטיסים בלי note (סיפור) יתקדמו לבד במצב "לפי הסיפור".<br>',
+    covGloss: (g, n, m, t) => 'מונח מהמילון מופיע ב-tf_explain / bill_title / bill_summary של ' + g + ' סוגיות (מתוך ' + n + '). ב-' + m + ' הנותרות אין מה ללחוץ בביט 5. המילון (' + t + ' מונחים) כמעט לא נוגע בטקסט הטענות עצמן — לכן הקישור יושב בביט 5 ולא בביט 1.',
+    ctlTitle: 'בקרות — לבדיקות בלבד', ctlLang: 'שפה:',
+    ctlReveal: 'מתי נחשפת התשובה:', ctlNew: 'NEW — התשובה רק בביט 5', ctlOld: 'OLD — ההסבר והסיכום כבר בביט 3',
+    ctlTempo: 'קצב המפל:', ctlNote: 'לפי הסיפור', ctlVerdict: 'השהיה לפני החיווי', ctlOff: 'בלי השהיה — מיידי לכולם',
+    ctlNoteDelay: 'כרטיס בלי סיפור ממשיך לבד אחרי ', ctlVerdictDelay: 'השהיה לפני החיווי (ms):',
+    ctlNormal: 'רגיל', ctlKey: 'מכריע', ctlAuto: 'התקדמות אוטומטית (הגרסה המהירה)', ctlCrowd: 'נתוני קהל (עדיין לא קיים)',
+    ctlGuess: '0/600 ו-125/850 הם ניחוש פתיחה, לא ממצא.',
+    tTrue: 'אמת', tFalse: 'שקר',
+    stripLbl: 'התשובה שלך בביט 1', stripNote: 'אין חיווי נכון/לא נכון עד ביט 5.',
+    you121: 'אתה הח״כ ה-121', voteNote: 'ההצבעה שלך לא נבדקת, לא נמדדת ולא מושווית לאף אחד.',
+    newHold: 'bill_summary ו-tf_explain מוסתרים כאן בכוונה (סדר NEW): הסיכום מסגיר את התוצאה.',
+    oldLbl: 'OLD ORDER — נחשף כאן',
+    spoiler: 'bill_summary מסתיים בתוצאת ההצבעה ברוב הסוגיות. בסדר OLD הוא נקרא לפני מפל הח״כים — ביט 4 מתנהל כשהתוצאה כבר ידועה.',
+    cont: 'המשך', next: 'הבא', nextLast: 'הבא — סוף המפל', backList: 'חזרה לרשימה',
+    guessedRight: 'ניחשת נכון', guessedWrong: 'ניחשת לא נכון',
+    youGuessed: 'ניחשת: ', actually: ' · הצביע בפועל: ',
+    basisDoc: 'הצבעה מתועדת', basisBloc: 'עמדת סיעה — לא הצבעה מתועדת של הח״כ הזה',
+    noNote: 'אין note לח״כ הזה בסוגיה הזו.',
+    autoIn: ms => 'ממשיך אוטומטית בעוד ' + ms + 'ms', noNoteTag: ' (אין note)', endTag: ' — סוף המפל',
+    holdCap: (v, ms) => 'ניחשת ' + v + ' · ' + ms + 'ms',
+    unansBeat1: 'tf_answer = "partial". שני הכפתורים למטה עובדים ושומרים תשובה, אבל אף אחת מהן לא נכונה ולא שגויה. ביט 5 יסמן את זה במקום לתת חיווי.',
+    unansBeat5: a => 'tf_answer = "partial". ענית ' + a + ' — אין כאן נכון או לא נכון. ממשק שני הכפתורים לא יכול לייצג את התשובה הזו.',
+    youAnswered: (a, c) => 'ענית ' + a + ' · הטענה: ' + c,
+    oldSeenText: '(סדר OLD: הטקסט הזה כבר הוצג בביט 3.)', oldSeenSummary: '(סדר OLD: הסיכום הזה כבר הוצג בביט 3.)',
+    tallyLbl: 'תוצאת ההצבעה',
+    noTally: id => 'ל-' + id + ' אין שדה _tally. אין ספירה לעלות אליה — המסך הזה נגמר בלי מספר.',
+    surpriseLbl: 'מה הפתיע אותך',
+    noSurprise: n => 'ניחשת נכון את כל ' + n + ' ההצבעות. שום דבר לא הפתיע אותך.',
+    surprised: (w, n) => 'הופתעת מ-' + w + ' מתוך ' + n + ':',
+    surpriseRow: (name, party, pred, act) => name + ' (' + party + ') — ניחשת ' + pred + ', הצביע ' + act,
+    blocTag: ' <span class="small">[עמדת סיעה]</span>',
+    billLbl: 'החוק', sourcesLbl: 'מקורות', knessetLbl: 'פרוטוקול ההצבעה בכנסת',
+    glossGap: t => 'אף אחד מ-' + t + ' מונחי המילון לא מופיע ב-tf_explain, ב-bill_title ולא ב-bill_summary של הסוגיה הזו — אין מה ללחוץ.',
+    crowdStub: 'stub — אין נתוני קהל בבילד הזה.',
+    total: 'סה״כ',
+    cascadeLine: (n, avg) => 'מפל: ' + n + ' כרטיסים, ' + avg + 's לכרטיס בממוצע (זמן עד ההצבעה, בלי זמן הקריאה של החיווי).<br>',
+    minuteLine: (t, over, d) => 'יעד דקה: ' + t + 's מול 60.0s — ' + (over ? 'מעל היעד ב-' : 'מתחת ליעד ב-') + d + 's.<br>',
+    setReveal: 'חשיפה: ', setTempo: ' · קצב: ', setAuto: ' · התקדמות אוטומטית: ', setCrowd: ' · נתוני קהל: ',
+    tempoNote: d => 'לפי הסיפור ' + d + 'ms (לכל הכרטיסים בנתונים יש סיפור)',
+    tempoVerdict: (a, b) => 'השהיה לפני החיווי ' + a + '/' + b + 'ms', tempoOff: 'בלי השהיה',
+    autoOn: (a, b) => 'פועלת ' + a + '/' + b + 'ms', autoOff: 'כבויה (בלחיצה)',
+    crowdOn: 'עדיין לא קיים', crowdOff: 'כבוי',
+    transNotice: ''
+  },
+  en: {
+    listTitle: '16 issues', thNoushe: 'Topic', thMks: 'MKs', thTerms: 'terms',
+    basisLine: (d, b, n) => '<b>' + d + '</b> recorded votes (doc) · <b>' + b + '</b> party positions (bloc) out of ' + n + ' cards.',
+    allBloc: ids => ids + ' — their whole cascade is bloc: not one recorded vote by an individual MK.',
+    covTally: (y, n, m) => '_tally exists for ' + y + ' of ' + n + ' issues. For the other ' + m + ', beat 5 prints "no tally in data" instead of a count.<br>',
+    covNoteAll: (n, d) => 'All ' + n + ' cards have a note. In "story-driven" mode no card advances by itself — the ' + d + 'ms branch never fires on this data, and the mode is equivalent to waiting for a tap.<br>',
+    covNoteSome: n => n + ' cards without a note will advance by themselves in "story-driven" mode.<br>',
+    covGloss: (g, n, m, t) => 'A glossary term appears in the tf_explain / bill_title / bill_summary of ' + g + ' issues (of ' + n + '). In the other ' + m + ' there is nothing to tap at beat 5. The glossary (' + t + ' terms) barely touches the claim text itself — which is why the linking sits at beat 5 and not at beat 1.',
+    ctlTitle: 'controls — testing only', ctlLang: 'language:',
+    ctlReveal: 'when the answer lands:', ctlNew: 'NEW — the answer only at beat 5', ctlOld: 'OLD — explanation and summary already at beat 3',
+    ctlTempo: 'cascade tempo:', ctlNote: 'story-driven', ctlVerdict: 'delay before the verdict', ctlOff: 'no delay — instant for everyone',
+    ctlNoteDelay: 'a card with no story advances by itself after ', ctlVerdictDelay: 'delay before the verdict (ms):',
+    ctlNormal: 'ordinary', ctlKey: 'pivotal', ctlAuto: 'auto-advance (the fast version)', ctlCrowd: 'crowd data (does not exist yet)',
+    ctlGuess: '0/600 and 125/850 are opening guesses, not findings.',
+    tTrue: 'True', tFalse: 'False',
+    stripLbl: 'your answer at beat 1', stripNote: 'No right/wrong feedback until beat 5.',
+    you121: 'You are the 121st MK', voteNote: 'Your vote is never checked, never scored and never compared to anyone.',
+    newHold: 'bill_summary and tf_explain are withheld here on purpose (NEW order): the summary gives away the result.',
+    oldLbl: 'OLD ORDER — revealed here',
+    spoiler: 'bill_summary ends with the vote result in most issues. In OLD order it is read before the MK cascade — so beat 4 runs with the outcome already known.',
+    cont: 'Continue', next: 'Next', nextLast: 'Next — end of cascade', backList: 'Back to the list',
+    guessedRight: 'You guessed right', guessedWrong: 'You guessed wrong',
+    youGuessed: 'You guessed: ', actually: ' · actually voted: ',
+    basisDoc: 'Recorded vote', basisBloc: 'Party position — not a recorded vote by this MK',
+    noNote: 'No note for this MK on this issue.',
+    autoIn: ms => 'advancing automatically in ' + ms + 'ms', noNoteTag: ' (no note)', endTag: ' — end of cascade',
+    holdCap: (v, ms) => 'you guessed ' + v + ' · ' + ms + 'ms',
+    unansBeat1: 'tf_answer = "partial". Both buttons below work and store an answer, but neither of them is right or wrong. Beat 5 marks this instead of giving a verdict.',
+    unansBeat5: a => 'tf_answer = "partial". You answered ' + a + ' — there is no right or wrong here. A two-button interface cannot represent this answer.',
+    youAnswered: (a, c) => 'You answered ' + a + ' · the claim: ' + c,
+    oldSeenText: '(OLD order: this text was already shown at beat 3.)', oldSeenSummary: '(OLD order: this summary was already shown at beat 3.)',
+    tallyLbl: 'The vote result',
+    noTally: id => id + ' has no _tally field. There is no count to climb to — this screen ends without a number.',
+    surpriseLbl: 'What surprised you',
+    noSurprise: n => 'You guessed all ' + n + ' votes correctly. Nothing surprised you.',
+    surprised: (w, n) => 'You were surprised by ' + w + ' of ' + n + ':',
+    surpriseRow: (name, party, pred, act) => name + ' (' + party + ') — you guessed ' + pred + ', voted ' + act,
+    blocTag: ' <span class="small">[party position]</span>',
+    billLbl: 'The bill', sourcesLbl: 'Sources', knessetLbl: 'Knesset vote record',
+    glossGap: t => 'None of the ' + t + ' glossary terms appears in the tf_explain, bill_title or bill_summary of this issue — there is nothing to tap.',
+    crowdStub: 'stub — no crowd data in this build.',
+    total: 'Total',
+    cascadeLine: (n, avg) => 'Cascade: ' + n + ' cards, ' + avg + 's per card on average (time to the guess, excluding time spent reading the verdict).<br>',
+    minuteLine: (t, over, d) => 'One-minute target: ' + t + 's against 60.0s — ' + (over ? 'over by ' : 'under by ') + d + 's.<br>',
+    setReveal: 'reveal: ', setTempo: ' · tempo: ', setAuto: ' · auto-advance: ', setCrowd: ' · crowd data: ',
+    tempoNote: d => 'story-driven ' + d + 'ms (every card in the data has a story)',
+    tempoVerdict: (a, b) => 'delay before the verdict ' + a + '/' + b + 'ms', tempoOff: 'no delay',
+    autoOn: (a, b) => 'on ' + a + '/' + b + 'ms', autoOff: 'off (tap)',
+    crowdOn: 'does not exist yet', crowdOff: 'off',
+    transNotice: 'English is a working translation made for testing — not sourced data. data.js holds the Hebrew original, quotes included.'
+  }
+};
+function T(k) { return UI[cfg.lang][k]; }
+function applyLang() {
+  VOTE_LABEL = isEN() ? VOTE_LABEL_EN : VOTE_LABEL_HE;
+  app.dir = isEN() ? 'ltr' : 'rtl';
+  app.lang = isEN() ? 'en' : 'he';
+}
+function setLang(l) {
+  if (cfg.lang === l) return;
+  cfg.lang = l;
+  applyLang();
+  if (S) { S.openTerm = null; render(); } else renderList();
+}
+function isEN() { return cfg.lang === 'en'; }
+
+/* content accessors — fall back to the Hebrew source if a translation is missing */
+function ISS(it, field) {
+  if (!isEN()) return field === 'source_name' ? it.source.name : it[field];
+  const e = (typeof DATA_EN !== 'undefined' && DATA_EN.issues[it.id]) || null;
+  if (field === 'source_name') return (e && e.source_name) || it.source.name;
+  return (e && e[field]) || it[field];
+}
+function POL(id) {
+  const he = DATA.politicians[id];
+  if (!isEN()) return he;
+  const e = (typeof DATA_EN !== 'undefined' && DATA_EN.politicians[id]) || null;
+  return e ? { name: e.name, party: e.party } : he;
+}
+function NOTE(it, p) {
+  if (!isEN()) return p.note;
+  const e = (typeof DATA_EN !== 'undefined' && DATA_EN.issues[it.id]) || null;
+  return (e && e.notes && e.notes[p.id]) || p.note;
+}
+function TOPIC_LABEL(id) {
+  if (!isEN()) return TOPIC[id] || id;
+  const e = (typeof DATA_EN !== 'undefined' && DATA_EN.topics[id]) || null;
+  return (e && e.label) || TOPIC[id] || id;
+}
+/* [{ key (always the Hebrew key), term (displayed + matched), def }] */
+function GLOSS_LIST() {
+  return Object.keys(DATA.glossary).map(k => {
+    const e = (typeof DATA_EN !== 'undefined' && DATA_EN.glossary[k]) || null;
+    return isEN() && e ? { key: k, term: e.term, def: e.def }
+                       : { key: k, term: k, def: DATA.glossary[k] };
+  });
+}
+
+/* --------------------------------------------------------------------- */
+/* glossary: mark terms that actually occur in a piece of text            */
+/* --------------------------------------------------------------------- */
+/* a term may carry one attached Hebrew prefix letter (ה/ו/ב/ל/מ/ש/כ):
+   "הקואליציה" still counts as the term "קואליציה". The prefix stays outside the mark. */
+function boundaryOK(text, at, end) {
+  if (isEN()) {                       // Latin: plain word boundaries
+    const b = text[at - 1], a = text[end];
+    return !(b && /[A-Za-z]/.test(b)) && !(a && /[A-Za-z]/.test(a));
+  }
+  const after = text[end];
+  if (after && HEB.test(after)) return false;
+  let i = at - 1;
+  if (i < 0 || !HEB.test(text[i])) return true;
+  // walk back over a short run of attached prefix letters (שהקואליציה = ש + ה + קואליציה)
+  let run = 0;
+  while (i >= 0 && HEB.test(text[i]) && 'הובלמשכ'.includes(text[i]) && run < 2) { i--; run++; }
+  return run > 0 && (i < 0 || !HEB.test(text[i]));
+}
+
+function linkifyTerms(text, field) {
+  const taken = new Array(text.length).fill(false);
+  const marks = [];
+  const entries = GLOSS_LIST().sort((a, b) => b.term.length - a.term.length);
+  for (const entry of entries) {
+    const term = entry.term;
+    let from = 0, at;
+    while ((at = text.indexOf(term, from)) !== -1) {
+      const end = at + term.length;
+      const boundaryOk = boundaryOK(text, at, end);
+      let free = true;
+      for (let i = at; i < end; i++) if (taken[i]) { free = false; break; }
+      if (free && boundaryOk) {
+        for (let i = at; i < end; i++) taken[i] = true;
+        marks.push({ at, end, term, key: entry.key });
+      }
+      from = end;
+    }
+  }
+  marks.sort((a, b) => a.at - b.at);
+  let out = '', cur = 0;
+  for (const m of marks) {
+    out += esc(text.slice(cur, m.at));
+    out += '<button class="term" data-term="' + esc(m.key) + '" data-field="' + esc(field || '') + '">' + esc(m.term) + '</button>';
+    cur = m.end;
+  }
+  out += esc(text.slice(cur));
+  return { html: out, count: marks.length };
+}
+
+/* the glossary lives on the explain side of the data, not in the claim */
+const GLOSS_FIELDS = ['tf_explain', 'bill_title', 'bill_summary'];
+function issueTermCount(it) {
+  return GLOSS_FIELDS.reduce((n, f) => n + linkifyTerms(ISS(it, f) || '', f).count, 0);
+}
+
+/* --------------------------------------------------------------------- */
+/* instrumentation                                                        */
+/* --------------------------------------------------------------------- */
+function mark(beat) {
+  const now = performance.now();
+  S.times[beat] = (S.times[beat] || 0) + (now - S.tMark);
+  S.tMark = now;
+}
+const secs = ms => (ms / 1000).toFixed(1);
+
+/* --------------------------------------------------------------------- */
+/* entry list                                                             */
+/* --------------------------------------------------------------------- */
+function renderList() {
+  token++;
+  S = null;
+  let rows = '';
+  DATA.issues.forEach((it, idx) => {
+    const g = issueTermCount(it);
+    const nDoc = it.politicians.filter(x => x.basis === 'doc').length;
+    const nBloc = it.politicians.filter(x => x.basis === 'bloc').length;
+    rows += '<tr class="pick" data-idx="' + idx + '">' +
+      '<td class="mono">' + esc(it.id) + '</td>' +
+      '<td>' + esc(TOPIC_LABEL(it.topic)) + '</td>' +
+      '<td class="mono">' + esc(it.tf_answer) + (it.tf_answer === 'partial' ? ' <span class="flag">!</span>' : '') + '</td>' +
+      '<td class="mono">' + it.politicians.length + '</td>' +
+      '<td class="mono">' + nDoc + '/' + (nBloc ? '<span class="flag">' + nBloc + '</span>' : '0') + '</td>' +
+      '<td class="mono">' + (it._tally ? 'yes' : '<span class="flag">no</span>') + '</td>' +
+      '<td class="mono">' + g + '</td>' +
+      '</tr>';
+  });
+
+  const allPols = DATA.issues.flatMap(i => i.politicians);
+  const totDoc = allPols.filter(p => p.basis === 'doc').length;
+  const totBloc = allPols.filter(p => p.basis === 'bloc').length;
+  const totNoNote = allPols.filter(p => !p.note).length;
+  const allBloc = DATA.issues.filter(i => i.politicians.every(p => p.basis === 'bloc')).map(i => i.id);
+  const nTally = DATA.issues.filter(i => i._tally).length;
+  const nGloss = DATA.issues.filter(i => issueTermCount(i) > 0).length;
+
+  app.innerHTML =
+    '<div class="lbl">flow-proto — round loop</div>' +
+    langBarHTML() +
+    '<h1>' + T('listTitle') + '</h1>' +
+    (isEN() ? '<div class="gap"><b>working translation</b>' + T('transNotice') + '</div>' : '') +
+    '<div class="box"><div class="lbl">basis</div>' +
+      T('basisLine')(totDoc, totBloc, allPols.length) +
+      (allBloc.length ? '<br><span class="small">' + T('allBloc')(allBloc.join(', ')) + '</span>' : '') +
+    '</div>' +
+    controlsHTML() +
+    '<table>' +
+      '<tr><th>id</th><th>' + T('thNoushe') + '</th><th>tf_answer</th><th>' + T('thMks') + '</th><th>doc/bloc</th><th>_tally</th><th>' + T('thTerms') + '</th></tr>' +
+      rows +
+    '</table>' +
+    '<div class="gap" style="margin-top:10px">' +
+      '<b>data coverage</b>' +
+      T('covTally')(nTally, DATA.issues.length, DATA.issues.length - nTally) +
+      (totNoNote === 0 ? T('covNoteAll')(allPols.length, cfg.noteDelay) : T('covNoteSome')(totNoNote)) +
+      T('covGloss')(nGloss, DATA.issues.length, DATA.issues.length - nGloss, GLOSS_TERMS.length) +
+    '</div>';
+
+  app.querySelectorAll('[data-lang]').forEach(b => {
+    b.onclick = () => setLang(b.dataset.lang);
+  });
+  app.querySelectorAll('tr.pick').forEach(tr => {
+    tr.onclick = () => startRound(DATA.issues[+tr.dataset.idx]);
+  });
+  wireControls();
+}
+
+function langBarHTML() {
+  return '<div id="langbar">' +
+    '<button data-lang="he" class="' + (cfg.lang === 'he' ? 'on' : '') + '">עברית</button>' +
+    '<button data-lang="en" class="' + (cfg.lang === 'en' ? 'on' : '') + '">English</button>' +
+  '</div>';
+}
+
+function controlsHTML() {
+  return '<div id="controls">' +
+    '<div class="lbl">' + T('ctlTitle') + '</div>' +
+    '<div class="ctlrow">' +
+      '<span class="small">' + T('ctlReveal') + '</span>' +
+      '<label class="small"><input type="radio" name="order" value="NEW"' + (cfg.order === 'NEW' ? ' checked' : '') + '> ' + T('ctlNew') + '</label>' +
+      '<label class="small"><input type="radio" name="order" value="OLD"' + (cfg.order === 'OLD' ? ' checked' : '') + '> ' + T('ctlOld') + '</label>' +
+    '</div>' +
+    '<div class="ctlrow">' +
+      '<span class="small">' + T('ctlTempo') + '</span>' +
+      '<label class="small"><input type="radio" name="tempo" value="note"' + (cfg.tempoMode === 'note' ? ' checked' : '') + '> ' + T('ctlNote') + '</label>' +
+      '<label class="small"><input type="radio" name="tempo" value="verdict"' + (cfg.tempoMode === 'verdict' ? ' checked' : '') + '> ' + T('ctlVerdict') + '</label>' +
+      '<label class="small"><input type="radio" name="tempo" value="off"' + (cfg.tempoMode === 'off' ? ' checked' : '') + '> ' + T('ctlOff') + '</label>' +
+    '</div>' +
+    '<div class="ctlrow">' +
+      '<label class="small">' + T('ctlNoteDelay') + '<input type="number" id="noteDelay" min="0" max="5000" step="50" value="' + cfg.noteDelay + '">ms</label>' +
+    '</div>' +
+    '<div class="ctlrow">' +
+      '<span class="small">' + T('ctlVerdictDelay') + '</span>' +
+      '<label class="small">' + T('ctlNormal') + ' <input type="number" id="vNormal" min="0" max="5000" step="25" value="' + cfg.vNormal + '"></label>' +
+      '<label class="small">' + T('ctlKey') + ' <input type="number" id="vKey" min="0" max="5000" step="25" value="' + cfg.vKey + '"></label>' +
+    '</div>' +
+    '<div class="ctlrow">' +
+      '<label class="small"><input type="checkbox" id="autoAdv"' + (cfg.autoAdvance ? ' checked' : '') + '> ' + T('ctlAuto') + '</label>' +
+      '<label class="small">' + T('ctlNormal') + ' <input type="number" id="dNormal" min="0" max="5000" step="25" value="' + cfg.dNormal + '"></label>' +
+      '<label class="small">' + T('ctlKey') + ' <input type="number" id="dKey" min="0" max="5000" step="25" value="' + cfg.dKey + '"></label>' +
+    '</div>' +
+    '<div class="ctlrow">' +
+      '<label class="small"><input type="checkbox" id="crowd"' + (cfg.crowd ? ' checked' : '') + '> ' + T('ctlCrowd') + '</label>' +
+    '</div>' +
+    '<div class="small mut">' + T('ctlGuess') + '</div>' +
+  '</div>';
+}
+
+function wireControls() {
+  app.querySelectorAll('input[name=order]').forEach(r => {
+    r.onchange = () => { cfg.order = r.value; };
+  });
+  app.querySelectorAll('input[name=tempo]').forEach(r => {
+    r.onchange = () => { cfg.tempoMode = r.value; };
+  });
+  const num = (id, key) => {
+    const el = app.querySelector('#' + id);
+    if (el) el.onchange = () => { cfg[key] = Math.max(0, +el.value || 0); };
+  };
+  num('noteDelay', 'noteDelay');
+  num('vNormal', 'vNormal'); num('vKey', 'vKey');
+  num('dNormal', 'dNormal'); num('dKey', 'dKey');
+  const aa = app.querySelector('#autoAdv'), cw = app.querySelector('#crowd');
+  if (aa) aa.onchange = () => { cfg.autoAdvance = aa.checked; };
+  if (cw) cw.onchange = () => { cfg.crowd = cw.checked; };
+}
+
+/* --------------------------------------------------------------------- */
+/* round                                                                  */
+/* --------------------------------------------------------------------- */
+function startRound(issue) {
+  token++;
+  const t = performance.now();
+  S = {
+    issue, beat: 1,
+    tf: null, vote: null,
+    ci: 0, phase: 'predict', preds: [], cardT: [], cardStart: 0,
+    r5: 0, tallyShown: false,
+    times: {}, t0: t, tMark: t,
+    openTerm: null
+  };
+  render();
+}
+
+function goBeat(n) {
+  mark('beat' + S.beat);
+  S.beat = n;
+  if (n === 5) S.r5 = 0;
+  render();
+}
+
+function render() {
+  const parts = [];
+  parts.push('<div class="lbl">' + esc(S.issue.id) + ' · ' + esc(TOPIC_LABEL(S.issue.topic)) + '</div>');
+  if (S.beat >= 2 && S.beat <= 4) parts.push(stripHTML());
+  parts.push('<div class="beatnum">BEAT ' + S.beat + ' / 5</div>');
+  parts.push(({ 1: beat1, 2: beat2, 3: beat3, 4: beat4, 5: beat5 })[S.beat]());
+  app.innerHTML = parts.join('');
+  wireBeat();
+}
+
+/* pinned chrome: the player's beat-1 answer, beats 2..5 */
+function stripHTML() {
+  const answered = S.tf === 'true' ? T('tTrue') : T('tFalse');
+  return '<div id="strip">' +
+    '<div class="lbl">' + T('stripLbl') + '</div>' +
+    '<div><b>' + answered + '</b> · ' + esc(ISS(S.issue, 'title')) + '</div>' +
+    '<div class="small mut">' + T('stripNote') + '</div>' +
+  '</div>';
+}
+
+/* ---- BEAT 1 — CLAIM ---- */
+function beat1() {
+  let h = '<div class="lbl">CLAIM</div>' +
+    '<div class="claimcard">' +
+      '<div class="cardbody">' +
+        '<h2>' + esc(ISS(S.issue, 'title')) + '</h2>' +
+        '<div class="claim">' + esc(ISS(S.issue, 'tf')) + '</div>';
+
+  if (S.issue.tf_answer === 'partial') {
+    h += '<div class="gap" style="margin-top:8px"><b>unanswerable</b>' + T('unansBeat1') + '</div>';
+  }
+  h += '</div>' +
+    '<div class="cardactions"><div class="row">' +
+      '<button data-tf="true">' + T('tTrue') + '</button><button data-tf="false">' + T('tFalse') + '</button>' +
+    '</div></div></div>';
+  return h;
+}
+
+/* ---- BEAT 2 — YOUR VOTE ---- */
+function beat2() {
+  /* the player's own card in the cascade — same shape as an MK card */
+  let h = '<div class="lbl">YOUR VOTE</div>' +
+    '<div class="card">' +
+      '<div class="cardbody">' +
+        '<div class="who">' +
+          '<h2>' + T('you121') + '</h2>' +
+          '<div class="small mut">' + T('voteNote') + '</div>' +
+        '</div>' +
+        '<p>' + esc(ISS(S.issue, 'bill_title')) + '</p>' +
+      '</div>' +
+      '<div class="cardactions"><div class="row">' +
+        VOTES.map(v => '<button data-vote="' + v + '">' + VOTE_LABEL[v] + '</button>').join('') +
+      '</div></div>' +
+    '</div>';
+  return h;
+}
+
+/* ---- BEAT 3 — THE BILL ---- */
+function beat3() {
+  let h = '<div class="lbl">THE BILL</div>' +
+    '<div class="box">' +
+      '<h2>' + esc(ISS(S.issue, 'bill_title')) + '</h2>' +
+      '<div class="mut">' + esc(ISS(S.issue, 'bill_date')) + '</div>' +
+    '</div>';
+
+  if (cfg.order === 'OLD') {
+    h += '<div class="box grey"><div class="lbl">' + T('oldLbl') + '</div>' +
+      '<p>' + esc(ISS(S.issue, 'tf_explain')) + '</p><hr class="rule">' +
+      '<p>' + esc(ISS(S.issue, 'bill_summary')) + '</p></div>' +
+      '<div class="gap"><b>spoiler check</b>' + T('spoiler') + '</div>';
+  } else {
+    h += '<div class="small mut">' + T('newHold') + '</div>';
+  }
+  if (cfg.crowd) {
+    h += '<div class="gap"><b>crowd data</b>' + T('crowdStub') + '</div>';
+  }
+  h += '<div class="row" style="margin-top:8px"><button data-go="4">' + T('cont') + '</button></div>';
+  return h;
+}
+
+/* ---- BEAT 4 — MK CASCADE, one card at a time ----
+   phases: 'predict' -> 'hold' (key MKs only, card body blank) -> 'verdict'.
+   Nothing disappears on its own unless auto-advance is switched on. */
+function verdictDelay(p) {
+  if (cfg.tempoMode !== 'verdict') return 0;
+  return p.key === true ? cfg.vKey : cfg.vNormal;
+}
+
+/* does this card move on by itself once the verdict is stamped? */
+function selfAdvances(p) {
+  if (cfg.autoAdvance) return true;
+  return cfg.tempoMode === 'note' && !p.note;
+}
+function selfAdvanceDelay(p) {
+  if (cfg.autoAdvance) return p.key === true ? cfg.dKey : cfg.dNormal;
+  return cfg.noteDelay;
+}
+
+/* 5: the basis of a vote, in plain Hebrew */
+function basisHTML(p) {
+  return p.basis === 'bloc'
+    ? '<div class="basis bloc">' + T('basisBloc') + '</div>'
+    : '<div class="basis doc">' + T('basisDoc') + '</div>';
+}
+
+/* 8: the verdict as a stamp */
+function stampHTML(text, ok) {
+  return '<div class="stamp' + (ok ? '' : ' wrong') + '">' + esc(text) + '</div>';
+}
+
+function beat4() {
+  const list = S.issue.politicians;
+  const p = list[S.ci];
+  const mk = POL(p.id);
+  const last = S.ci + 1 >= list.length;
+
+  let h = '<div class="lbl">MK CASCADE</div>' +
+    '<div class="progress">' + (S.ci + 1) + ' / ' + list.length + '</div>' +
+    '<div class="card' + (p.key ? ' key' : '') + '">';
+
+  const who = '<div class="who">' +
+    '<h2>' + esc(mk.name) + '</h2>' +
+    '<div class="small mut">' + esc(mk.party) + (p.key ? ' · key' : '') + '</div>' +
+    '</div>';
+
+  if (S.phase === 'predict') {
+    h += '<div class="cardbody">' + who + '</div>' +
+      '<div class="cardactions"><div class="row">' +
+        VOTES.map(v => '<button data-pred="' + v + '">' + VOTE_LABEL[v] + '</button>').join('') +
+      '</div></div>';
+
+  } else if (S.phase === 'hold') {
+    /* key MK: the card holds blank under the name for the key delay, then the verdict lands */
+    h += '<div class="cardbody">' + who + '</div>' +
+      '<div class="cardactions"><div class="small mut">' +
+        T('holdCap')(VOTE_LABEL[S.preds[S.ci].pred], verdictDelay(p)) + '</div></div>';
+
+  } else {
+    const r = S.preds[S.ci];
+    h += '<div class="cardbody">' + who +
+      stampHTML(r.ok ? T('guessedRight') : T('guessedWrong'), r.ok) +
+      '<div class="verdict">' + T('youGuessed') + VOTE_LABEL[r.pred] +
+        T('actually') + VOTE_LABEL[r.actual] + '</div>' +
+      basisHTML(p);
+    h += p.note
+      ? '<div class="verdict">' + esc(NOTE(S.issue, p)) + '</div>'
+      : '<div class="gap"><b>no note in data</b>' + T('noNote') + '</div>';
+    h += '</div>';
+
+    h += '<div class="cardactions">';
+    if (selfAdvances(p)) {
+      h += '<div class="small mut">' + T('autoIn')(selfAdvanceDelay(p)) +
+        (cfg.autoAdvance ? '' : T('noNoteTag')) + (last ? T('endTag') : '') + '</div>';
+    } else {
+      h += '<div class="row"><button data-next="1">' + (last ? T('nextLast') : T('next')) + '</button></div>';
+    }
+    h += '</div>';
+  }
+
+  h += '</div>';
+  return h;
+}
+
+/* prediction -> verdict, after the verdict delay */
+function showVerdict() {
+  const p = S.issue.politicians[S.ci];
+  const d = verdictDelay(p);
+  if (d <= 0) {
+    S.phase = 'verdict';
+    render();
+    if (selfAdvances(p)) scheduleAdvance();
+    return;
+  }
+  S.phase = 'hold';
+  render();
+  const my = token;
+  setTimeout(() => {
+    if (my !== token || !S || S.beat !== 4 || S.phase !== 'hold') return;
+    S.phase = 'verdict';
+    render();
+    if (selfAdvances(p)) scheduleAdvance();
+  }, d);
+}
+
+function nextCard() {
+  const list = S.issue.politicians;
+  if (S.ci + 1 < list.length) {
+    S.ci++;
+    S.phase = 'predict';
+    S.cardStart = performance.now();
+    render();
+  } else {
+    goBeat(5);
+  }
+}
+
+/* auto-advance switch (old fast version) and the note-driven no-note path */
+function scheduleAdvance() {
+  const p = S.issue.politicians[S.ci];
+  const my = token;
+  setTimeout(() => {
+    if (my !== token || !S || S.beat !== 4) return;
+    nextCard();
+  }, selfAdvanceDelay(p));
+}
+
+/* the tapped term's definition, inline under the field it was tapped in */
+function glossBox(field) {
+  if (!S.openTerm || S.openTerm.field !== field) return '';
+  const e = GLOSS_LIST().find(x => x.key === S.openTerm.term);
+  if (!e) return '';
+  return '<div class="gloss"><b>' + esc(e.term) + '</b><br>' + esc(e.def) + '</div>';
+}
+
+/* ---- BEAT 5 — REVEAL, one screen at a time ----
+   verdict -> tally -> what surprised you -> the bill and sources.
+   bill_summary sits on the last screen: it ends with the tally in most issues,
+   so it must not arrive before the count-up. */
+const R5 = ['verdict', 'tally', 'surprise', 'bill'];
+
+function beat5() {
+  const it = S.issue;
+  const step = R5[S.r5] || 'verdict';
+  const last = S.r5 >= R5.length - 1;
+
+  let h = '<div class="lbl">REVEAL ' + (S.r5 + 1) + ' / ' + R5.length + '</div>' +
+    '<div class="card"><div class="cardbody">';
+
+  if (step === 'verdict') {
+    if (it.tf_answer === 'partial') {
+      h += '<div class="gap"><b>unanswerable</b>' +
+        T('unansBeat5')(S.tf === 'true' ? T('tTrue') : T('tFalse')) + '</div>';
+    } else {
+      const ok = S.tf === it.tf_answer;
+      h += stampHTML(ok ? T('guessedRight') : T('guessedWrong'), ok) +
+        '<div class="small mut">' + T('youAnswered')(
+          S.tf === 'true' ? T('tTrue') : T('tFalse'),
+          it.tf_answer === 'true' ? T('tTrue') : T('tFalse')) + '</div>';
+    }
+    h += '<div class="claim" style="margin-top:10px">' +
+      linkifyTerms(ISS(it, 'tf_explain'), 'tf_explain').html + '</div>' + glossBox('tf_explain');
+    if (cfg.order === 'OLD') {
+      h += '<div class="small mut">' + T('oldSeenText') + '</div>';
+    }
+
+  } else if (step === 'tally') {
+    h += '<div class="lbl">' + T('tallyLbl') + '</div>';
+    if (it._tally) {
+      h += '<div class="tallybar">' +
+        '<span>' + VOTE_LABEL.for + ' <b id="tfor">0</b></span>' +
+        '<span>' + VOTE_LABEL.against + ' <b id="tagainst">0</b></span>' +
+        '</div>';
+    } else {
+      h += '<div class="gap"><b>no tally in data</b>' + T('noTally')(esc(it.id)) + '</div>';
+    }
+
+  } else if (step === 'surprise') {
+    const wrong = S.preds.filter(r => !r.ok);
+    h += '<div class="lbl">' + T('surpriseLbl') + '</div>';
+    if (wrong.length === 0) {
+      h += '<p>' + T('noSurprise')(S.preds.length) + '</p>';
+    } else {
+      h += '<p>' + T('surprised')(wrong.length, S.preds.length) + '</p>' +
+        '<ul style="margin:6px 0 0;padding-inline-start:18px">' +
+        wrong.map(r => {
+          const mk = POL(r.id);
+          const p = S.issue.politicians.find(x => x.id === r.id) || {};
+          return '<li style="margin-bottom:6px">' +
+            T('surpriseRow')(esc(mk.name), esc(mk.party), VOTE_LABEL[r.pred], VOTE_LABEL[r.actual]) +
+            (p.basis === 'bloc' ? T('blocTag') : '') + '</li>';
+        }).join('') + '</ul>';
+    }
+
+  } else {
+    const lkTitle = linkifyTerms(ISS(it, 'bill_title'), 'bill_title');
+    const lkSummary = linkifyTerms(ISS(it, 'bill_summary'), 'bill_summary');
+    h += '<div class="lbl">' + T('billLbl') + '</div>' +
+      '<h2>' + lkTitle.html + '</h2>' +
+      '<div class="mut">' + esc(ISS(it, 'bill_date')) + '</div>' + glossBox('bill_title') +
+      '<p style="margin-top:8px">' + lkSummary.html + '</p>' + glossBox('bill_summary');
+    if (cfg.order === 'OLD') {
+      h += '<div class="small mut">' + T('oldSeenSummary') + '</div>';
+    }
+
+    h += '<hr class="rule"><div class="lbl">' + T('sourcesLbl') + '</div>' +
+      '<div class="small">' + esc(ISS(it, 'source_name')) + '<br>' +
+      '<a href="' + esc(it.source.url) + '" target="_blank" rel="noopener" class="mono">' +
+      esc(it.source.url) + '</a></div>';
+    if (it.knesset_url) {
+      h += '<div class="small" style="margin-top:6px">' + T('knessetLbl') + '<br>' +
+        '<a href="' + esc(it.knesset_url) + '" target="_blank" rel="noopener" class="mono">' +
+        esc(it.knesset_url) + '</a></div>';
+    }
+
+    const termTotal = linkifyTerms(ISS(it, 'tf_explain'), 'tf_explain').count + lkTitle.count + lkSummary.count;
+    if (termTotal === 0) {
+      h += '<div class="gap" style="margin-top:8px"><b>glossary</b>' + T('glossGap')(GLOSS_TERMS.length) + '</div>';
+    }
+  }
+
+  if (cfg.crowd) h += '<div class="gap"><b>crowd data</b>' + T('crowdStub') + '</div>';
+
+  h += '</div><div class="cardactions"><div class="row">' +
+    (last ? '<button data-back="1">' + T('backList') + '</button>'
+          : '<button data-r5="1">' + T('cont') + '</button>') +
+    '</div></div></div>';
+
+  if (last) h += timingHTML();
+  return h;
+}
+
+function countUp(el, target) {
+  const dur = 1200, t0 = performance.now(), my = token;
+  (function step(now) {
+    if (my !== token) return;
+    const k = Math.min(1, (now - t0) / dur);
+    el.textContent = Math.round(target * k);
+    if (k < 1) requestAnimationFrame(step);
+  })(t0);
+}
+
+/* ---- instrumentation printout ----
+   beat 5 is still running while this is on screen, so the block re-renders on a
+   tick: the reveal's own reading time counts toward the round like every other beat. */
+function timingHTML() {
+  return '<hr class="rule"><div class="lbl">instrumentation</div><div id="instr">' + timingInner() + '</div>';
+}
+
+function timingInner() {
+  const now = performance.now();
+  const t = Object.assign({}, S.times);
+  t['beat5'] = (t['beat5'] || 0) + (now - S.tMark);
+  const total = now - S.t0;
+  const names = { beat1: '1 CLAIM', beat2: '2 YOUR VOTE', beat3: '3 THE BILL', beat4: '4 MK CASCADE', beat5: '5 REVEAL' };
+  let rows = '';
+  ['beat1', 'beat2', 'beat3', 'beat4', 'beat5'].forEach(k => {
+    const ms = t[k] || 0;
+    rows += '<tr><td>' + names[k] + '</td><td class="mono">' + secs(ms) + 's</td>' +
+      '<td class="mono">' + Math.round(100 * ms / total) + '%</td></tr>';
+  });
+  const cards = S.cardT.length;
+  const avg = cards ? S.cardT.reduce((a, b) => a + b, 0) / cards : 0;
+
+  return '<table>' + rows +
+      '<tr><th>' + T('total') + '</th><th class="mono">' + secs(total) + 's</th><th class="mono">100%</th></tr>' +
+    '</table>' +
+    '<div class="small mut" style="margin-top:6px">' +
+      T('cascadeLine')(cards, secs(avg)) +
+      T('minuteLine')(secs(total), total > 60000, secs(Math.abs(total - 60000))) +
+      T('setReveal') + cfg.order +
+      T('setTempo') + (cfg.tempoMode === 'note' ? T('tempoNote')(cfg.noteDelay)
+                    : cfg.tempoMode === 'verdict' ? T('tempoVerdict')(cfg.vNormal, cfg.vKey)
+                    : T('tempoOff')) +
+      T('setAuto') + (cfg.autoAdvance ? T('autoOn')(cfg.dNormal, cfg.dKey) : T('autoOff')) +
+      T('setCrowd') + (cfg.crowd ? T('crowdOn') : T('crowdOff')) +
+    '</div>';
+}
+
+/* --------------------------------------------------------------------- */
+/* wiring                                                                 */
+/* --------------------------------------------------------------------- */
+function wireBeat() {
+  app.querySelectorAll('button.term').forEach(b => {
+    b.onclick = () => {
+      const t = b.dataset.term, f = b.dataset.field;
+      const open = S.openTerm && S.openTerm.term === t && S.openTerm.field === f;
+      S.openTerm = open ? null : { term: t, field: f };
+      render();
+    };
+  });
+  app.querySelectorAll('[data-tf]').forEach(b => {
+    b.onclick = () => { S.tf = b.dataset.tf; goBeat(2); };
+  });
+  app.querySelectorAll('[data-vote]').forEach(b => {
+    b.onclick = () => { S.vote = b.dataset.vote; goBeat(3); };
+  });
+  app.querySelectorAll('[data-go]').forEach(b => {
+    b.onclick = () => {
+      const n = +b.dataset.go;
+      if (n === 4) { S.cardStart = performance.now(); S.phase = 'predict'; }
+      goBeat(n);
+    };
+  });
+  app.querySelectorAll('[data-pred]').forEach(b => {
+    b.onclick = () => {
+      const p = S.issue.politicians[S.ci];
+      S.cardT.push(performance.now() - S.cardStart);
+      S.preds.push({
+        id: p.id, pred: b.dataset.pred, actual: p.vote,
+        ok: b.dataset.pred === p.vote, key: p.key === true
+      });
+      showVerdict();
+    };
+  });
+  app.querySelectorAll('[data-next]').forEach(b => { b.onclick = nextCard; });
+  app.querySelectorAll('[data-r5]').forEach(b => {
+    b.onclick = () => { S.r5 = Math.min(S.r5 + 1, R5.length - 1); render(); };
+  });
+  app.querySelectorAll('[data-back]').forEach(b => { b.onclick = renderList; });
+
+  if (S && S.beat === 5) {
+    const my = token;
+    const iv = setInterval(() => {
+      const el = document.getElementById('instr');
+      if (my !== token || !S || S.beat !== 5 || !el) { clearInterval(iv); return; }
+      el.innerHTML = timingInner();
+    }, 250);
+  }
+
+  /* the tally counts up once; tapping a glossary term re-renders beat 5 and must
+     not replay the animation from zero */
+  const tf = app.querySelector('#tfor');
+  if (tf) {
+    const ag = app.querySelector('#tagainst');
+    if (S.tallyShown) {
+      tf.textContent = S.issue._tally.for;
+      ag.textContent = S.issue._tally.against;
+    } else {
+      S.tallyShown = true;
+      countUp(tf, S.issue._tally.for);
+      countUp(ag, S.issue._tally.against);
+    }
+  }
+}
+
+applyLang();
+renderList();
+</script>
+</body>
+</html>
