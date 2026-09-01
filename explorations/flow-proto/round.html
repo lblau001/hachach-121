@@ -63,6 +63,15 @@
   input:focus-visible, button:focus-visible { outline: 2px solid #555; outline-offset: 1px; }
   #controls input[type=number] { width: 60px; font-family: inherit; font-size: 12px; padding: 2px 4px; }
   .ctlrow { display: flex; gap: 10px; align-items: center; margin: 0 0 6px; flex-wrap: wrap; }
+  .ctlintro { font-size: 11px; color: #555; margin: 0 0 4px; }
+  .ctlgroup { border-top: 1px solid #ccc; margin: 8px 0 0; padding: 8px 0 2px; }
+  .ctlgroup h3 { font-size: 11px; letter-spacing: .04em; text-transform: uppercase; color: #333; margin: 0 0 6px; }
+  .ctlopt { margin: 0 0 8px; }
+  .ctlopt > label { display: block; font-size: 13px; margin: 0 0 2px; }
+  .ctlopt .why { font-size: 11px; color: #555; line-height: 1.5; padding-inline-start: 20px; }
+  .ctlopt .why input[type=number] { width: 58px; }
+  .ctldim { opacity: .4; }
+  .ctlwarn { border: 1px dashed #666; padding: 4px 6px; margin-top: 5px; color: #222; }
 
   /* ---- round ---- */
   #strip { border: 1px solid #888; background: #cfcfcf; padding: 6px 8px; margin: 0 0 10px; }
@@ -86,6 +95,31 @@
   .cardactions button { padding: 14px 10px; }
   .who { margin: 0 0 10px; }
   .who h2 { font-size: 28px; line-height: 1.15; margin: 0 0 4px; }
+
+  /* ---- MK illustration (spike) ------------------------------------------
+     ONE MK has artwork: ben_gvir. Everybody else falls through to the plain
+     name-and-party block exactly as before, so this changes one card and
+     nothing else.
+
+     This could not be done in CSS alone: the flow-proto cascade card has no
+     portrait element at all — beat4() renders a name and a party and stops —
+     so there is nothing for a CSS rule to select. The markup below is the
+     smallest addition that gives CSS something to hold. data.js is untouched;
+     the id -> file mapping lives here, in the prototype.
+
+     Size rule: 132px rendered, so it is served by the 128px file. Style A is
+     halftone and letting the browser resample the 400px file down to this
+     would alias the dot screen. */
+  .mkart {
+    width: 132px; height: 176px; display: block; flex: none;
+    image-rendering: auto;
+  }
+  .whoart { display: flex; align-items: flex-end; gap: 10px; }
+  .whoart .who { flex: 1; margin: 0; }
+  .artnote {
+    direction: ltr; font-size: 10px; letter-spacing: .04em; color: #666;
+    border: 1px dashed #999; padding: 1px 4px; display: inline-block; margin: 6px 0 0;
+  }
 
   /* the verdict is a stamp, not a footnote */
   .stamp {
@@ -168,6 +202,23 @@ const UI = {
     ctlNoteDelay: 'כרטיס בלי סיפור ממשיך לבד אחרי ', ctlVerdictDelay: 'השהיה לפני החיווי (ms):',
     ctlNormal: 'רגיל', ctlKey: 'מכריע', ctlAuto: 'התקדמות אוטומטית (הגרסה המהירה)', ctlCrowd: 'נתוני קהל (עדיין לא קיים)',
     ctlGuess: '0/600 ו-125/850 הם ניחוש פתיחה, לא ממצא.',
+    ctlIntro: 'הבקרות האלה משנות את הקצב של הסבב. הן לא חלק מהמשחק — הן כלי בדיקה.',
+    newWhy: 'המשחק מחזיק את התשובה עד הסוף. ביט 3 מראה רק את שם החוק והתאריך.',
+    oldWhy: 'ההסבר והסיכום מופיעים כבר בביט 3 — כך שמפל הח״כים מתנהל כשכבר ידוע איך ההצבעה נגמרה.',
+    g1Title: 'מתי נחשפת התשובה', g2Title: 'קצב מפל הח״כים', g3Title: 'התקדמות אוטומטית', g4Title: 'נתוני קהל',
+    msSuffix: ' מילישניות.',
+    noteSentA: 'כרטיס שיש לו סיפור מחכה שתלחץ. כרטיס בלי סיפור ממשיך לבד אחרי ',
+    inertWarn: 'שים לב: לכל 98 הכרטיסים בנתונים יש סיפור — ולכן בפועל אף כרטיס לא ממשיך לבד, ותמיד צריך ללחוץ.',
+    verdictSentA: 'ח״כ מכריע: הכרטיס נשאר ריק ',
+    verdictSentB: ' מילישניות לפני שהחיווי מופיע. ח״כ רגיל: ',
+    offSent: 'החיווי מופיע מיד אצל כולם. תמיד ממשיכים בלחיצה.',
+    autoSentA: 'כל כרטיס ממשיך לבד: ח״כ רגיל ',
+    autoSentB: ' מילישניות, ח״כ מכריע ',
+    autoOverride: 'כשזה דלוק, זה גובר על מה שבחרת ב״קצב מפל הח״כים״.',
+    crowdSent: 'עדיין לא נבנה. סימון רק מסמן איפה זה יופיע בהמשך.',
+    ctaVote: 'איך היית מצביע?',
+    you121Sub: 'אתה הח״כ ה-121. ההצבעה שלך לא נבדקת, לא נמדדת ולא מושווית לאף אחד.',
+    ctaPick: 'בחר אחת מהאפשרויות למטה.',
     tTrue: 'אמת', tFalse: 'שקר',
     stripLbl: 'התשובה שלך בביט 1', stripNote: 'אין חיווי נכון/לא נכון עד ביט 5.',
     you121: 'אתה הח״כ ה-121', voteNote: 'ההצבעה שלך לא נבדקת, לא נמדדת ולא מושווית לאף אחד.',
@@ -219,6 +270,23 @@ const UI = {
     ctlNoteDelay: 'a card with no story advances by itself after ', ctlVerdictDelay: 'delay before the verdict (ms):',
     ctlNormal: 'ordinary', ctlKey: 'pivotal', ctlAuto: 'auto-advance (the fast version)', ctlCrowd: 'crowd data (does not exist yet)',
     ctlGuess: '0/600 and 125/850 are opening guesses, not findings.',
+    ctlIntro: 'These change the pace of the round. They are not part of the game — they are a testing rig.',
+    newWhy: 'The game holds the answer back to the end. Beat 3 shows only the name of the bill and its date.',
+    oldWhy: 'The explanation and summary appear at beat 3 — so the MK cascade runs with the result already known.',
+    g1Title: 'When the answer lands', g2Title: 'Pace of the MK cascade', g3Title: 'Auto-advance', g4Title: 'Crowd data',
+    msSuffix: ' milliseconds.',
+    noteSentA: 'A card that has a story waits for you to tap. A card without one advances by itself after ',
+    inertWarn: 'Note: all 98 cards in this data have a story — so in practice no card advances by itself, and you always have to tap.',
+    verdictSentA: 'Pivotal MK: the card stays blank for ',
+    verdictSentB: ' milliseconds before the verdict appears. Ordinary MK: ',
+    offSent: 'The verdict appears instantly for everyone. You always tap to continue.',
+    autoSentA: 'Every card advances by itself: ordinary MK ',
+    autoSentB: ' milliseconds, pivotal MK ',
+    autoOverride: 'When this is on it overrides whatever you picked under "Pace of the MK cascade".',
+    crowdSent: 'Not built yet. Ticking it only marks where it would go.',
+    ctaVote: 'How would you vote?',
+    you121Sub: 'You are the 121st MK. Your vote is never checked, never scored and never compared to anyone.',
+    ctaPick: 'Pick one of the options below.',
     tTrue: 'True', tFalse: 'False',
     stripLbl: 'your answer at beat 1', stripNote: 'No right/wrong feedback until beat 5.',
     you121: 'You are the 121st MK', voteNote: 'Your vote is never checked, never scored and never compared to anyone.',
@@ -437,35 +505,52 @@ function langBarHTML() {
 }
 
 function controlsHTML() {
+  const numIn = (id, val, step) => '<input type="number" id="' + id + '" min="0" max="5000" step="' + step + '" value="' + val + '">';
+  const chk = on => on ? ' checked' : '';
+  /* dim whatever is not actually in force, so the panel shows what is doing nothing */
+  const dim = on => on ? '' : ' ctldim';
+  const auto = cfg.autoAdvance;
+  const opt = (name, val, cur, label, why, active) =>
+    '<div class="ctlopt"><label><input type="radio" name="' + name + '" value="' + val + '"' + chk(cur) + '> ' + label + '</label>' +
+    (why ? '<div class="why' + dim(active === undefined ? cur : active) + '">' + why + '</div>' : '') + '</div>';
+
   return '<div id="controls">' +
     '<div class="lbl">' + T('ctlTitle') + '</div>' +
-    '<div class="ctlrow">' +
-      '<span class="small">' + T('ctlReveal') + '</span>' +
-      '<label class="small"><input type="radio" name="order" value="NEW"' + (cfg.order === 'NEW' ? ' checked' : '') + '> ' + T('ctlNew') + '</label>' +
-      '<label class="small"><input type="radio" name="order" value="OLD"' + (cfg.order === 'OLD' ? ' checked' : '') + '> ' + T('ctlOld') + '</label>' +
+    '<div class="ctlintro">' + T('ctlIntro') + '</div>' +
+
+    '<div class="ctlgroup"><h3>' + T('g1Title') + '</h3>' +
+      opt('order', 'NEW', cfg.order === 'NEW', T('ctlNew'), T('newWhy')) +
+      opt('order', 'OLD', cfg.order === 'OLD', T('ctlOld'), T('oldWhy')) +
     '</div>' +
-    '<div class="ctlrow">' +
-      '<span class="small">' + T('ctlTempo') + '</span>' +
-      '<label class="small"><input type="radio" name="tempo" value="note"' + (cfg.tempoMode === 'note' ? ' checked' : '') + '> ' + T('ctlNote') + '</label>' +
-      '<label class="small"><input type="radio" name="tempo" value="verdict"' + (cfg.tempoMode === 'verdict' ? ' checked' : '') + '> ' + T('ctlVerdict') + '</label>' +
-      '<label class="small"><input type="radio" name="tempo" value="off"' + (cfg.tempoMode === 'off' ? ' checked' : '') + '> ' + T('ctlOff') + '</label>' +
+
+    '<div class="ctlgroup"><h3>' + T('g2Title') + '</h3>' +
+      opt('tempo', 'note', cfg.tempoMode === 'note', T('ctlNote'),
+          T('noteSentA') + numIn('noteDelay', cfg.noteDelay, 50) + T('msSuffix') +
+          '<div class="ctlwarn">' + T('inertWarn') + '</div>', cfg.tempoMode === 'note' && !auto) +
+      opt('tempo', 'verdict', cfg.tempoMode === 'verdict', T('ctlVerdict'),
+          T('verdictSentA') + numIn('vKey', cfg.vKey, 25) +
+          T('verdictSentB') + numIn('vNormal', cfg.vNormal, 25) + T('msSuffix'), cfg.tempoMode === 'verdict' && !auto) +
+      opt('tempo', 'off', cfg.tempoMode === 'off', T('ctlOff'), T('offSent'), cfg.tempoMode === 'off' && !auto) +
     '</div>' +
-    '<div class="ctlrow">' +
-      '<label class="small">' + T('ctlNoteDelay') + '<input type="number" id="noteDelay" min="0" max="5000" step="50" value="' + cfg.noteDelay + '">ms</label>' +
+
+    '<div class="ctlgroup"><h3>' + T('g3Title') + '</h3>' +
+      '<div class="ctlopt">' +
+        '<label><input type="checkbox" id="autoAdv"' + chk(auto) + '> ' + T('ctlAuto') + '</label>' +
+        '<div class="why' + dim(auto) + '">' +
+          T('autoSentA') + numIn('dNormal', cfg.dNormal, 25) +
+          T('autoSentB') + numIn('dKey', cfg.dKey, 25) + T('msSuffix') +
+          '<br>' + T('autoOverride') +
+        '</div>' +
+      '</div>' +
     '</div>' +
-    '<div class="ctlrow">' +
-      '<span class="small">' + T('ctlVerdictDelay') + '</span>' +
-      '<label class="small">' + T('ctlNormal') + ' <input type="number" id="vNormal" min="0" max="5000" step="25" value="' + cfg.vNormal + '"></label>' +
-      '<label class="small">' + T('ctlKey') + ' <input type="number" id="vKey" min="0" max="5000" step="25" value="' + cfg.vKey + '"></label>' +
+
+    '<div class="ctlgroup"><h3>' + T('g4Title') + '</h3>' +
+      '<div class="ctlopt">' +
+        '<label><input type="checkbox" id="crowd"' + chk(cfg.crowd) + '> ' + T('ctlCrowd') + '</label>' +
+        '<div class="why' + dim(cfg.crowd) + '">' + T('crowdSent') + '</div>' +
+      '</div>' +
     '</div>' +
-    '<div class="ctlrow">' +
-      '<label class="small"><input type="checkbox" id="autoAdv"' + (cfg.autoAdvance ? ' checked' : '') + '> ' + T('ctlAuto') + '</label>' +
-      '<label class="small">' + T('ctlNormal') + ' <input type="number" id="dNormal" min="0" max="5000" step="25" value="' + cfg.dNormal + '"></label>' +
-      '<label class="small">' + T('ctlKey') + ' <input type="number" id="dKey" min="0" max="5000" step="25" value="' + cfg.dKey + '"></label>' +
-    '</div>' +
-    '<div class="ctlrow">' +
-      '<label class="small"><input type="checkbox" id="crowd"' + (cfg.crowd ? ' checked' : '') + '> ' + T('ctlCrowd') + '</label>' +
-    '</div>' +
+
     '<div class="small mut">' + T('ctlGuess') + '</div>' +
   '</div>';
 }
@@ -558,10 +643,11 @@ function beat2() {
     '<div class="card">' +
       '<div class="cardbody">' +
         '<div class="who">' +
-          '<h2>' + T('you121') + '</h2>' +
-          '<div class="small mut">' + T('voteNote') + '</div>' +
+          '<h2>' + T('ctaVote') + '</h2>' +
+          '<div class="small mut">' + T('you121Sub') + '</div>' +
         '</div>' +
         '<p>' + esc(ISS(S.issue, 'bill_title')) + '</p>' +
+        '<div class="small mut" style="margin-top:8px">' + T('ctaPick') + '</div>' +
       '</div>' +
       '<div class="cardactions"><div class="row">' +
         VOTES.map(v => '<button data-vote="' + v + '">' + VOTE_LABEL[v] + '</button>').join('') +
@@ -618,6 +704,29 @@ function basisHTML(p) {
     : '<div class="basis doc">' + T('basisDoc') + '</div>';
 }
 
+/* ---- MK illustration, spike -----------------------------------------------
+   Registry, not data: data.js has no portrait field at all. Its politicians
+   carry name / party / avatar (an emoji) / mk_id, and app.js's mkAvatar()
+   builds a Knesset photo URL from mk_id when window.MK_PHOTO_BASE is set,
+   falling back to an initials badge. Neither path is wired up in flow-proto.
+
+   ?mkart=B switches style; A is the default only because something has to be,
+   not because it won anything. */
+const MK_ART = {
+  ben_gvir: {
+    A: '../../assets/mk-test/bengvir_styleA_128.webp',
+    B: '../../assets/mk-test/bengvir_styleB_128.webp'
+  }
+};
+const MK_ART_STYLE =
+  (new URLSearchParams(location.search).get('mkart') || 'A').toUpperCase() === 'B' ? 'B' : 'A';
+
+function mkArtHTML(id) {
+  const a = MK_ART[id];
+  if (!a) return '';
+  return '<img class="mkart" src="' + a[MK_ART_STYLE] + '" alt="">';
+}
+
 /* 8: the verdict as a stamp */
 function stampHTML(text, ok) {
   return '<div class="stamp' + (ok ? '' : ' wrong') + '">' + esc(text) + '</div>';
@@ -633,10 +742,17 @@ function beat4() {
     '<div class="progress">' + (S.ci + 1) + ' / ' + list.length + '</div>' +
     '<div class="card' + (p.key ? ' key' : '') + '">';
 
-  const who = '<div class="who">' +
+  const art = mkArtHTML(p.id);
+  const whoInner = '<div class="who">' +
     '<h2>' + esc(mk.name) + '</h2>' +
     '<div class="small mut">' + esc(mk.party) + (p.key ? ' · key' : '') + '</div>' +
+    (art ? '<div class="artnote">illustration spike · style ' + MK_ART_STYLE + '</div>' : '') +
     '</div>';
+  /* the artwork sits BESIDE the name, never instead of it: the face is the new
+     thing being tested and the name is what makes it checkable. */
+  const who = art
+    ? '<div class="whoart">' + art + whoInner + '</div>'
+    : whoInner;
 
   if (S.phase === 'predict') {
     h += '<div class="cardbody">' + who + '</div>' +
