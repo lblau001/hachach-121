@@ -1,0 +1,293 @@
+/* =====================================================================
+   הח״כ ה-121 — one stylesheet.
+   Everything the prototype needs to draw a screen in this design, and
+   nothing that is specific to one screen.
+
+   Two rules govern the whole file:
+
+   1  COLOUR CODES CORRECTNESS, NEVER VOTE DIRECTION. The VP-2 pair is
+      named --verdict-correct and --verdict-surprise. There is no token
+      for בעד, נגד or נמנע and there must never be one: the three vote
+      options are typographically identical by design, and giving one of
+      them a colour leaks the answer before the player has guessed.
+   2  MOTION TOKENS ARE NAMED FOR WHAT THEY TIME, not for how long they
+      take, so a duration can be retuned in one place without every
+      caller having to know what it was.
+   ===================================================================== */
+
+:root{
+  /* ---- ink and ground -------------------------------------------- */
+  --ink:            #131310;   /* all body and display type            */
+  --ink-soft:       #4A4436;   /* captions, meta, secondary            */
+  --ink-faint:      #BEB9AC;   /* hints on the dark ground             */
+  --ground:         #2B2926;   /* the screen behind everything         */
+  --paper:          #FBF7EE;   /* chips, sheets, the light control     */
+  --kraft:          #D8C9A8;   /* every CARD in the game               */
+  --kraft-deep:     #C0B190;   /* the halo behind a portrait           */
+  --edge:           #FFFFFF;   /* the die-cut edge, always white       */
+  --edge-warm:      #F2ECDD;   /* die-cut on a card back in the pile   */
+  --keyline:        rgba(0,0,0,.55);
+
+  /* ---- the card's own surface ------------------------------------- */
+  --grid-line:      rgba(34,31,23,.05);
+  --grid-pitch:     27px;
+  --card-surface:
+    repeating-linear-gradient(90deg,var(--grid-line) 0 1px,transparent 1px var(--grid-pitch)),
+    repeating-linear-gradient(var(--grid-line) 0 1px,transparent 1px var(--grid-pitch)),
+    var(--kraft);
+
+  /* ---- action ------------------------------------------------------ */
+  --primary:        #FFD60A;   /* P-C. The only yellow in the system.  */
+  --primary-base:   #C6A800;   /* its extrusion                        */
+
+  /* ---- verdict: CORRECTNESS ONLY (VP-2) --------------------------- */
+  --verdict-correct:      #B6E521;   /* lime, hue 74 — not a green     */
+  --verdict-correct-ink:  #22300A;
+  --verdict-surprise:     #FF3BC0;   /* magenta, hue 319               */
+  --verdict-surprise-ink: #33061F;
+  --verdict-wash:         .62;       /* the stamp's ink is translucent */
+
+  /* ---- radius: H-A, and there is only one ------------------------- */
+  --r-chip:         14px;
+  --r-pill:         20px;      /* the HUD pill and the swipe preview   */
+
+  /* ---- extrusion: how far a thing stands off the board ------------ */
+  --z-press:        4px;       /* a chip                               */
+  --z-card:         6px;       /* a card                               */
+  --z-hero:         9px;       /* the card being acted on              */
+  --shadow-press:   0 var(--z-press) 0 rgba(0,0,0,.45);
+  --shadow-card:    0 var(--z-card) 0 rgba(0,0,0,.42);
+  --shadow-hero:    0 var(--z-hero) 0 rgba(0,0,0,.42);
+
+  /* ---- type. --fs-* is a SIZE; --t-* is always a DURATION, never both --- */
+  --font-display:   'SimplerPro', system-ui, sans-serif;   /* weight 900 */
+  --font-ui:        system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+  --fs-hero:         38px;   /* the MK's name                            */
+  --fs-claim:        29px;   /* the beat-1 claim                         */
+  --fs-title:        26px;
+  --fs-action:       25px;   /* a vote chip, an answer button            */
+  --fs-body:         17px;
+  --fs-meta:         13px;
+  --fs-micro:        11px;
+
+  /* ---- spacing ----------------------------------------------------- */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 24px; --sp-6: 32px;
+  /* THE GAP IS DERIVED FROM WHAT THE EYE SEES, not typed in, because those
+     are not the same number. A chip paints its keyline OUTSIDE its own box, so
+     two neighbours spend 2 x --ring-chip of any gap on their own edges before
+     any daylight appears. Set --ring-chip:0 for a row of unringed buttons —
+     then the gap IS the visible gap, which is why beat 2 is right at 9px and
+     the MK card was touching at the same 9px. */
+  --gap-visible:    9px;    /* what actually shows between two chips        */
+  --ring-chip:      4.6px;  /* what a chip paints outside its own box       */
+  --gap-chip:       calc(var(--gap-visible) + 2 * var(--ring-chip));
+
+  /* ---- the card ---------------------------------------------------- */
+  --card-w:         340px;
+  --card-h:         620px;
+  --card-border:    5px;
+  --mk-port-top:    96px;   /* the crown line. See .mf-b.               */
+
+  /* ---- motion, named for what it times ----------------------------- */
+  --t-press:        80ms;    /* a control going down under a thumb      */
+  --t-stamp:        340ms;   /* the verdict landing, end to end         */
+  --t-stamp-drop:   190ms;   /*   ... of which this is the fall         */
+  --t-stamp-bleed:  60ms;    /*   ... and this is the ink rupturing     */
+  --t-flip:         260ms;   /* a card turning, a sheet arriving        */
+  --t-swipe:        220ms;   /* a claim card leaving toward an edge     */
+  --t-finale:       620ms;   /* the end-of-round tally counting up      */
+  --e-settle:       cubic-bezier(.22,.9,.3,1);    /* arrives and stops  */
+  --e-land:         cubic-bezier(.2,.9,.25,1);    /* arrives and hits   */
+}
+
+/* =====================================================================
+   COMPONENTS
+   Each one is a real class. The markup snippet for every one of them is
+   in README.md and on the v16 Handoff page of the board.
+   ===================================================================== */
+
+/* ---- P-C · the primary action --------------------------------------
+   <button class="p-c">בואו נשחק</button>                              */
+.p-c{
+  display:block; width:100%; min-height:56px; padding:14px var(--sp-4);
+  border:0; border-radius:var(--r-chip); cursor:pointer;
+  font-family:var(--font-display); font-weight:900; font-size:var(--fs-action);
+  color:var(--ink); background:var(--primary);
+  box-shadow:0 0 0 3px var(--edge), 0 0 0 4.6px var(--keyline),
+             0 var(--z-press) 0 var(--primary-base);
+  transition:transform var(--t-press) linear, box-shadow var(--t-press) linear;
+}
+.p-c:active{ transform:translateY(var(--z-press));
+  box-shadow:0 0 0 3px var(--edge), 0 0 0 4.6px var(--keyline), 0 0 0 var(--primary-base); }
+
+/* ---- R-B · the secondary, on the dark ground ------------------------
+   <button class="r-b">התאימו את הדמות</button>                        */
+.r-b{
+  display:block; width:100%; min-height:52px; padding:12px var(--sp-4);
+  border:0; border-radius:var(--r-chip); cursor:pointer;
+  font-family:var(--font-display); font-weight:900; font-size:var(--fs-body);
+  color:var(--paper); background:transparent;
+  box-shadow:inset 0 0 0 2.5px var(--paper);
+}
+
+/* ---- V-A · ONE vote chip. Three of them, always, always identical ---
+   <div class="v-a-row">
+     <button class="v-a">בעד</button>
+     <button class="v-a">נגד</button>
+     <button class="v-a">נמנע</button>
+   </div>
+   THE THREE ARE NEVER STYLED APART. Not by colour, not by size, not by
+   order, and none of them is ever hidden — dropping נמנע in a round
+   where nobody abstained tells the player the answer.                  */
+/* THE GAP GOES ON THE ELEMENT WHOSE CHILDREN ARE THE BUTTONS. If you wrap the
+   three in anything, move the gap to the wrapper — a gap on a one-child row
+   spaces nothing, silently, and looks like it worked. */
+.v-a-row{ display:flex; gap:var(--gap-chip); }
+.v-a{
+  flex:1; min-height:52px; min-width:44px; padding:0 var(--sp-2);
+  border:0; border-radius:var(--r-chip); cursor:pointer;
+  font-family:var(--font-display); font-weight:900; font-size:var(--fs-action);
+  color:var(--ink); background:var(--paper);
+  /* the ring reads --ring-chip, so the keyline and the gap that pays for it
+     cannot drift apart */
+  box-shadow:0 0 0 3px var(--edge), 0 0 0 var(--ring-chip) rgba(0,0,0,.62),
+             var(--shadow-press);
+  transition:transform var(--t-press) linear, box-shadow var(--t-press) linear;
+}
+.v-a:active{ transform:translateY(var(--z-press));
+  box-shadow:0 0 0 3px var(--edge), 0 0 0 var(--ring-chip) rgba(0,0,0,.62),
+             0 0 0 rgba(0,0,0,.45); }
+
+/* ---- H-A · the chip, and the system's only radius -------------------
+   <span class="h-a">240 <b>●</b></span>                               */
+.h-a{
+  display:inline-flex; align-items:center; gap:7px;
+  padding:5px 13px 6px; border-radius:var(--r-chip);
+  background:var(--paper); color:var(--ink);
+  font-family:var(--font-display); font-weight:900; font-size:var(--fs-body);
+  box-shadow:0 0 0 2px var(--keyline), 0 3px 0 rgba(0,0,0,.34);
+}
+
+/* ---- IB-B · the icon button ----------------------------------------
+   <button class="ib-b" aria-label="חזרה">…svg…</button>               */
+.ib-b{
+  width:40px; height:40px; display:grid; place-items:center; padding:0;
+  border:0; border-radius:var(--r-chip); cursor:pointer;
+  background:var(--paper); color:var(--ink);
+  box-shadow:0 0 0 2px var(--keyline), 0 3px 0 rgba(0,0,0,.34);
+}
+
+/* ---- AS-D · the avatar sticker, AV-3 -------------------------------
+   <span class="as-d"><svg viewBox="0 0 100 100">…</svg></span>
+   Round, faceless, no name plate. The three devices that keep the
+   player readable as NOT one of the 120. Never put this in an .mf-b.  */
+.as-d{ display:inline-block; line-height:0; width:40px; height:40px; }
+.as-d svg{ display:block; width:100%; height:100%; }
+
+/* ---- MF-B · the card. Beat 1 and beat 4 are the same object --------
+   <article class="mf-b">
+     <div class="mf-b__id"><h2>…</h2><p>…</p></div>
+     <img class="mf-b__port" src="…">
+     <div class="v-a-row mf-b__foot">…</div>
+   </article>
+   THE PORTRAIT IS TOP-ANCHORED. Every export puts the crown 2.4% into
+   the file, so anchoring the top puts every crown on the same line.
+   A figure that runs long clips at the BOTTOM, never at the top.      */
+.mf-b{
+  position:relative; width:var(--card-w); min-height:var(--card-h);
+  flex:none; overflow:hidden;
+  background:var(--card-surface);
+  border:var(--card-border) solid var(--edge);
+  box-shadow:0 0 0 2px var(--keyline), var(--shadow-card);
+}
+.mf-b__id{ position:absolute; z-index:6; top:18px; inset-inline:14px; text-align:right; }
+.mf-b__id h2{ margin:0; font-family:var(--font-display); font-weight:900;
+  font-size:var(--fs-hero); line-height:1; color:var(--ink);
+  background:rgba(216,201,168,.86); display:inline-block; padding:2px 10px 4px; }
+.mf-b__id p{ margin:3px 0 0; font-size:15px; font-weight:700; color:#3E3627;
+  display:inline-block; background:rgba(216,201,168,.86); padding:1px 8px 2px; }
+.mf-b__halo{ position:absolute; bottom:-40px; left:50%; translate:-50% 0;
+  width:330px; height:330px; border-radius:50%; background:var(--kraft-deep); }
+.mf-b__port{ position:absolute; left:50%; translate:-50% 0;
+  top:var(--mk-port-top); width:118%; display:block; }
+.mf-b__foot{ position:absolute; z-index:7; bottom:var(--sp-3); inset-inline:var(--sp-3); }
+
+/* ---- the pile · the rest of the round, under the front card --------
+   <span class="pile"><i></i><i></i><i></i><i></i></span>
+   Backs only: no portrait, no name, nothing readable. Count them from
+   the RENDERED sample (app.js deals min(5, politicians.length)), never
+   from the data array — a fifth back promises a card that never comes.
+   Every back leans the SAME way, which pins the bottom-left corner and
+   keeps the stamp's landing corner clear by construction.             */
+.pile{ position:absolute; z-index:0; inset:0; pointer-events:none; }
+.pile i{ position:absolute; inset:0; display:block; transform-origin:50% 100%;
+  background:
+    repeating-linear-gradient(90deg,rgba(34,31,23,.06) 0 1px,transparent 1px var(--grid-pitch)),
+    repeating-linear-gradient(rgba(34,31,23,.06) 0 1px,transparent 1px var(--grid-pitch)),
+    #C4B48F;
+  border:var(--card-border) solid var(--edge-warm);
+  box-shadow:0 0 0 2px var(--keyline), 0 5px 0 rgba(0,0,0,.30); }
+.pile i:nth-last-child(1){ transform:translate(2px,-7px)  rotate(.9deg);  filter:brightness(.99) }
+.pile i:nth-last-child(2){ transform:translate(3px,-17px) rotate(1.7deg); filter:brightness(.95) }
+.pile i:nth-last-child(3){ transform:translate(2px,-22px) rotate(1.4deg); filter:brightness(.90) }
+.pile i:nth-last-child(4){ transform:translate(2px,-32px) rotate(1.85deg);filter:brightness(.85) }
+
+/* ---- D2 · the verdict stamp, and its landing -----------------------
+   WHAT THIS CLASS DOES AND DOES NOT GIVE YOU: the size, the ink, the
+   placement and the whole landing animation are here. The stamp's
+   DISTRESSED EDGE is an SVG filter (feTurbulence + feDisplacementMap)
+   and cannot live in a stylesheet — copy it from the artboard's <defs>
+   and hang it on the element with filter:url(#…). Without it the stamp
+   is a clean disc, which is what this class renders on its own.
+   <span class="d2 d2--correct"><span class="d2__lab">…</span></span>
+   COLOUR IS CORRECTNESS. .d2--correct and .d2--surprise are the only
+   two states; there is no third and no vote-direction variant.        */
+.d2{
+  position:absolute; z-index:12; display:grid; place-items:center;
+  width:190px; height:190px; border-radius:50%;
+  background:color-mix(in srgb, var(--d2-ink) calc(var(--verdict-wash) * 100%), transparent);
+  color:var(--d2-on); box-shadow:0 0 0 1px rgba(0,0,0,.45);
+  animation:d2-land var(--t-stamp) var(--e-land) both;
+}
+.d2--correct { --d2-ink:var(--verdict-correct);  --d2-on:var(--verdict-correct-ink); }
+.d2--surprise{ --d2-ink:var(--verdict-surprise); --d2-on:var(--verdict-surprise-ink); }
+.d2__lab{ font-family:var(--font-display); font-weight:900; font-size:25px;
+  line-height:1.02; text-align:center; width:112px; }
+@keyframes d2-land{
+  0%   { transform:scale(1.8); opacity:0 }
+  8%   { opacity:1 }
+  56%  { transform:scale(1) }                    /* --t-stamp-drop */
+  74%  { transform:scale(1.06) }
+  100% { transform:scale(1) }
+}
+/* the card takes the hit at contact */
+@keyframes d2-jolt{ 0%,100%{transform:translateY(0)} 40%{transform:translateY(3px)} }
+.mf-b.is-stamped{ animation:d2-jolt 120ms var(--e-land) var(--t-stamp-drop) both; }
+
+/* ---- the pinned claim · the beat-1 answer, carried to beats 2–5 ----
+   <span class="pinned">אמת</span>
+   An identity artifact, not a progress pip: it is what the player SAID,
+   stuck over the frame's edge, and it stays there for the whole round. */
+.pinned{
+  /* width:fit-content is load-bearing. An absolutely positioned element that is
+     also a flex child still takes align-self:stretch, and without this the chip
+     spans the whole frame. It cost a round to find the first time. */
+  position:absolute; z-index:8; top:-14px; inset-inline-end:26px; width:fit-content;
+  padding:10px 20px 12px; border-radius:var(--r-chip);
+  font-family:var(--font-display); font-weight:900; font-size:22px;
+  color:var(--ink); background:var(--paper);
+  box-shadow:0 0 0 3px var(--edge), 0 0 0 4.6px var(--keyline), var(--shadow-press);
+}
+
+/* ---- the beat-2 and beat-3 overlays --------------------------------
+   <div class="ov ov--full">…</div>   beat 2, the whole round blurred
+   <div class="ov ov--card">…</div>   beat 3, over the MK card only
+   What shows THROUGH a beat-3 overlay is the MK card and nothing else:
+   no bill summary, no tally, no source. The bill gets its own moment.  */
+.ov{ position:absolute; z-index:9; inset:0; display:grid; place-items:center;
+  -webkit-backdrop-filter:blur(16px) saturate(.9);
+  backdrop-filter:blur(16px) saturate(.9);
+  background:rgba(28,26,23,.52);
+  animation:ov-in var(--t-flip) var(--e-settle) both; }
+@keyframes ov-in{ from{opacity:0} to{opacity:1} }

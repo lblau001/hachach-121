@@ -1,0 +1,91 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=390, initial-scale=1">
+<title>הח״כ ה-121 — components</title>
+<link rel="stylesheet" href="hachach.css">
+<style>
+  body{margin:0;background:var(--ground);color:var(--paper);font-family:var(--font-ui);
+       padding:20px 16px 60px}
+  h1{font-family:var(--font-display);font-size:20px;margin:0 0 4px}
+  h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);
+     margin:26px 0 10px;font-weight:700}
+  .demo{position:relative}
+  .swatch{display:flex;flex-wrap:wrap;gap:8px}
+  .swatch b{display:block;width:64px;height:44px;border-radius:8px;
+     box-shadow:inset 0 0 0 1px rgba(255,255,255,.25);font-size:9px;color:#fff;
+     display:grid;place-items:end center;padding-bottom:2px}
+  .onkraft{background:var(--card-surface);padding:16px;border:5px solid var(--edge)}
+</style>
+
+<h1>components</h1>
+<p style="font-size:12px;color:var(--ink-faint);margin:0">
+  Every element below is drawn only by <code>hachach.css</code>. Nothing on this
+  page carries a style of its own.</p>
+
+<h2>tokens</h2>
+<div class="swatch">
+  <b style="background:var(--kraft);color:#131310">kraft</b>
+  <b style="background:var(--paper);color:#131310">paper</b>
+  <b style="background:var(--ground)">ground</b>
+  <b style="background:var(--primary);color:#131310">primary</b>
+  <b style="background:var(--verdict-correct);color:#22300A">correct</b>
+  <b style="background:var(--verdict-surprise)">surprise</b>
+</div>
+
+<h2>P-C · primary</h2>
+<button class="p-c">בואו נשחק</button>
+
+<h2>R-B · secondary</h2>
+<button class="r-b">התאימו את הדמות</button>
+
+<h2>V-A · three vote chips</h2>
+<div class="v-a-row">
+  <button class="v-a">בעד</button>
+  <button class="v-a">נגד</button>
+  <button class="v-a">נמנע</button>
+</div>
+
+<h2>H-A chip · IB-B icon button</h2>
+<div style="display:flex;gap:10px;align-items:center">
+  <span class="h-a">240 ●</span>
+  <button class="ib-b" aria-label="back">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2.4" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg>
+  </button>
+</div>
+
+<h2>AS-D · the avatar, AV-3</h2>
+<span class="as-d">
+  <svg viewBox="0 0 100 100" aria-hidden="true">
+    <defs><clipPath id="c"><circle cx="50" cy="50" r="48"/></clipPath></defs>
+    <circle cx="50" cy="50" r="48" fill="#C9BFA6"/>
+    <g clip-path="url(#c)">
+      <path d="M22 100 v-9 a28 28 0 0 1 56 0 v9 z" fill="#6E7F5C" stroke="#131310" stroke-width="3.4"/>
+      <rect x="44" y="55" width="12" height="10" fill="#E2C6A8" stroke="#131310" stroke-width="3.4"/>
+      <circle cx="50" cy="40" r="21" fill="#E2C6A8" stroke="#131310" stroke-width="3.4"/>
+      <path d="M29 36 a21 21 0 0 1 42 0 q-10 -7 -21 -7 t-21 7 z" fill="#4A3B2C" stroke="#131310" stroke-width="3.4"/>
+      <path d="M29 36 a21 21 0 0 1 42 0 q-10 -7 -21 -7 t-21 7 z" fill="none" stroke="#FBF7EE" stroke-width="2.2" opacity=".9"/>
+    </g>
+    <circle cx="50" cy="50" r="48" fill="none" stroke="rgba(0,0,0,.55)" stroke-width="1.6"/>
+  </svg>
+</span>
+
+<h2>MF-B card · pile · D2 stamp · pinned claim</h2>
+<div class="demo" style="width:340px">
+  <span class="pile"><i></i><i></i><i></i><i></i></span>
+  <article class="mf-b is-stamped">
+    <div class="mf-b__id"><h2>איתמר בן-גביר</h2><p>עוצמה יהודית</p></div>
+    <span class="mf-b__halo"></span>
+    <img class="mf-b__port" src="../../../assets/mk/mk_ben_gvir_400.webp" alt="">
+    <div class="v-a-row mf-b__foot">
+      <button class="v-a">בעד</button><button class="v-a">נגד</button><button class="v-a">נמנע</button>
+    </div>
+  </article>
+  <span class="pinned">אמת</span>
+  <span class="d2 d2--correct" style="left:-30px;bottom:112px"><span class="d2__lab">[RIGHT]</span></span>
+</div>
+
+<h2>overlay</h2>
+<div class="demo onkraft" style="height:120px">
+  <div class="ov ov--card"><span style="font-family:var(--font-display);font-size:22px">…</span></div>
+</div>

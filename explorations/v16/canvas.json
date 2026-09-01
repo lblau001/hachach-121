@@ -1,0 +1,3161 @@
+{
+  "artboards": [
+    {
+      "file": "OptionSheet.dc.html",
+      "x": 1412,
+      "y": 307,
+      "w": 390,
+      "h": 976,
+      "title": "C3 · Every category, every option",
+      "page": "character"
+    },
+    {
+      "file": "V15AV1.dc.html",
+      "x": 942,
+      "y": 307,
+      "w": 390,
+      "h": 436,
+      "title": "AV-1 · Avatar direction · AV-1",
+      "page": "character"
+    },
+    {
+      "file": "V15AV2.dc.html",
+      "x": 472,
+      "y": 307,
+      "w": 390,
+      "h": 436,
+      "title": "AV-2 · Avatar direction · AV-2",
+      "page": "character"
+    },
+    {
+      "file": "V15AV3.dc.html",
+      "x": 2,
+      "y": 307,
+      "w": 390,
+      "h": 436,
+      "title": "AV-3 · Avatar direction · AV-3",
+      "page": "character"
+    },
+    {
+      "file": "AvatarShapes.dc.html",
+      "x": 2,
+      "y": 3822,
+      "w": 390,
+      "h": 1196,
+      "title": "C1 · Avatar container · 4 shapes x 3 sizes",
+      "page": "character"
+    },
+    {
+      "file": "CreateA.dc.html",
+      "x": 942,
+      "y": 6002,
+      "w": 390,
+      "h": 966,
+      "title": "CR-A · CR-A · single scrolling list",
+      "page": "character"
+    },
+    {
+      "file": "CreateB.dc.html",
+      "x": 472,
+      "y": 6002,
+      "w": 390,
+      "h": 896,
+      "title": "CR-B · CR-B · tabs + swipeable strip",
+      "page": "character"
+    },
+    {
+      "file": "CreateC.dc.html",
+      "x": 2,
+      "y": 6002,
+      "w": 390,
+      "h": 896,
+      "title": "CR-C · CR-C · hero preview + bottom tray",
+      "page": "character"
+    },
+    {
+      "file": "Pickers.dc.html",
+      "x": 2,
+      "y": 8159,
+      "w": 390,
+      "h": 756,
+      "title": "C2 · Option picker · 3 options",
+      "page": "character"
+    },
+    {
+      "file": "BgvCardA.dc.html",
+      "x": 472,
+      "y": 376,
+      "w": 390,
+      "h": 896,
+      "title": "IA · Ben Gvir · style A · cascade card",
+      "page": "bengvir"
+    },
+    {
+      "file": "BgvCardB.dc.html",
+      "x": 2,
+      "y": 376,
+      "w": 390,
+      "h": 896,
+      "title": "IB · Ben Gvir · style B · cascade card",
+      "page": "bengvir"
+    },
+    {
+      "file": "BgvVerdictA.dc.html",
+      "x": 472,
+      "y": 3105,
+      "w": 390,
+      "h": 2036,
+      "title": "IAv · Ben Gvir · style A · three verdict states",
+      "page": "bengvir"
+    },
+    {
+      "file": "BgvVerdictB.dc.html",
+      "x": 2,
+      "y": 3105,
+      "w": 390,
+      "h": 2036,
+      "title": "IBv · Ben Gvir · style B · three verdict states",
+      "page": "bengvir"
+    },
+    {
+      "file": "BgvSizes.dc.html",
+      "x": 2,
+      "y": 6332,
+      "w": 390,
+      "h": 836,
+      "title": "Is · Ben Gvir · small appearances + 48px",
+      "page": "bengvir"
+    },
+    {
+      "file": "VdStampD1.dc.html",
+      "x": 942,
+      "y": 376,
+      "w": 390,
+      "h": 2236,
+      "title": "S1 · VD-D1 · stamp treatment",
+      "page": "vdstamp"
+    },
+    {
+      "file": "VdStampD2.dc.html",
+      "x": 472,
+      "y": 376,
+      "w": 390,
+      "h": 2236,
+      "title": "S2 · VD-D2 · stamp treatment",
+      "page": "vdstamp"
+    },
+    {
+      "file": "VdStampD3.dc.html",
+      "x": 2,
+      "y": 376,
+      "w": 390,
+      "h": 2236,
+      "title": "S3 · VD-D3 · stamp treatment",
+      "page": "vdstamp"
+    },
+    {
+      "file": "VdPalettes.dc.html",
+      "x": 2,
+      "y": 5316,
+      "w": 390,
+      "h": 1036,
+      "title": "Sp · Verdict palettes · clearance from style B",
+      "page": "vdstamp"
+    },
+    {
+      "file": "CrMotion.dc.html",
+      "x": 2,
+      "y": 514,
+      "w": 390,
+      "h": 1346,
+      "title": "Hm · Sheet · enter, settled, exit",
+      "page": "charsheet"
+    },
+    {
+      "file": "CrProgress.dc.html",
+      "x": 2,
+      "y": 3032,
+      "w": 390,
+      "h": 576,
+      "title": "Hp · Step progress · 3 options",
+      "page": "charsheet"
+    },
+    {
+      "file": "Components.dc.html",
+      "x": 2,
+      "y": 445,
+      "w": 390,
+      "h": 1816,
+      "title": "C · Components · option sheet",
+      "page": "components"
+    },
+    {
+      "file": "ShareA.dc.html",
+      "x": 472,
+      "y": 722,
+      "w": 390,
+      "h": 696,
+      "title": "6a · Share A · Surprise-led",
+      "page": "sharecards"
+    },
+    {
+      "file": "ShareB.dc.html",
+      "x": 2,
+      "y": 722,
+      "w": 390,
+      "h": 696,
+      "title": "6b · Share B · Trail card",
+      "page": "sharecards"
+    },
+    {
+      "file": "MkTreatment.dc.html",
+      "x": 2,
+      "y": 307,
+      "w": 390,
+      "h": 716,
+      "title": "M · MK sticker treatment · 4 filters",
+      "page": "mk"
+    },
+    {
+      "file": "MechA.dc.html",
+      "x": 1882,
+      "y": 376,
+      "w": 390,
+      "h": 446,
+      "title": "MECH-A · MECH-A · Drag to pots",
+      "page": "mechanics"
+    },
+    {
+      "file": "MechB.dc.html",
+      "x": 1412,
+      "y": 376,
+      "w": 390,
+      "h": 446,
+      "title": "MECH-B · MECH-B · Tap to assign",
+      "page": "mechanics"
+    },
+    {
+      "file": "MechC.dc.html",
+      "x": 942,
+      "y": 376,
+      "w": 390,
+      "h": 516,
+      "title": "MECH-C · MECH-C · Connect with lines",
+      "page": "mechanics"
+    },
+    {
+      "file": "MechD.dc.html",
+      "x": 472,
+      "y": 376,
+      "w": 390,
+      "h": 516,
+      "title": "MECH-D · MECH-D · Swipe deck",
+      "page": "mechanics"
+    },
+    {
+      "file": "MechE.dc.html",
+      "x": 2,
+      "y": 376,
+      "w": 390,
+      "h": 446,
+      "title": "MECH-E · MECH-E · Spectrum",
+      "page": "mechanics"
+    },
+    {
+      "file": "SortA.dc.html",
+      "x": 942,
+      "y": 238,
+      "w": 390,
+      "h": 1156,
+      "title": "8a · Sort to Commit · mid-sort",
+      "page": "v7"
+    },
+    {
+      "file": "SortB.dc.html",
+      "x": 472,
+      "y": 238,
+      "w": 390,
+      "h": 1156,
+      "title": "8b · Sort to Commit · locked",
+      "page": "v7"
+    },
+    {
+      "file": "SortC.dc.html",
+      "x": 2,
+      "y": 238,
+      "w": 390,
+      "h": 1156,
+      "title": "8c · Sort to Commit · cascade",
+      "page": "v7"
+    },
+    {
+      "file": "PathDots.dc.html",
+      "x": 1412,
+      "y": 2259,
+      "w": 390,
+      "h": 821,
+      "title": "3a · Path · Dotted trail",
+      "page": "v7"
+    },
+    {
+      "file": "PathRoad.dc.html",
+      "x": 942,
+      "y": 2259,
+      "w": 390,
+      "h": 821,
+      "title": "3b · Path · Raised road",
+      "page": "v7"
+    },
+    {
+      "file": "PathStones.dc.html",
+      "x": 472,
+      "y": 2259,
+      "w": 390,
+      "h": 821,
+      "title": "3c · Path · Stepping stones",
+      "page": "v7"
+    },
+    {
+      "file": "PathGlow.dc.html",
+      "x": 2,
+      "y": 2259,
+      "w": 390,
+      "h": 821,
+      "title": "3d · Path · Light trail",
+      "page": "v7"
+    },
+    {
+      "file": "NodeA.dc.html",
+      "x": 1412,
+      "y": 3895,
+      "w": 390,
+      "h": 576,
+      "title": "3e · Node · Faithful",
+      "page": "v7"
+    },
+    {
+      "file": "NodeB.dc.html",
+      "x": 942,
+      "y": 3895,
+      "w": 390,
+      "h": 576,
+      "title": "3f · Node · Deep plinth",
+      "page": "v7"
+    },
+    {
+      "file": "NodeC.dc.html",
+      "x": 472,
+      "y": 3895,
+      "w": 390,
+      "h": 576,
+      "title": "3g · Node · Thin track",
+      "page": "v7"
+    },
+    {
+      "file": "NodeD.dc.html",
+      "x": 2,
+      "y": 3895,
+      "w": 390,
+      "h": 576,
+      "title": "3h · Node · Ringless",
+      "page": "v7"
+    },
+    {
+      "file": "Numerals.dc.html",
+      "x": 2,
+      "y": 5735,
+      "w": 390,
+      "h": 946,
+      "title": "9 · Numerals · Bibush vs SimplerPro",
+      "page": "v7"
+    },
+    {
+      "file": "BgA.dc.html",
+      "x": 2352,
+      "y": 7546,
+      "w": 390,
+      "h": 896,
+      "title": "7a · Background a",
+      "page": "v7"
+    },
+    {
+      "file": "BgB.dc.html",
+      "x": 1882,
+      "y": 7546,
+      "w": 390,
+      "h": 896,
+      "title": "7b · Background b",
+      "page": "v7"
+    },
+    {
+      "file": "BgC.dc.html",
+      "x": 1412,
+      "y": 7546,
+      "w": 390,
+      "h": 896,
+      "title": "7c · Background c",
+      "page": "v7"
+    },
+    {
+      "file": "BgD.dc.html",
+      "x": 942,
+      "y": 7546,
+      "w": 390,
+      "h": 896,
+      "title": "7d · Background d",
+      "page": "v7"
+    },
+    {
+      "file": "BgE.dc.html",
+      "x": 472,
+      "y": 7546,
+      "w": 390,
+      "h": 896,
+      "title": "7e · Background e",
+      "page": "v7"
+    },
+    {
+      "file": "BgF.dc.html",
+      "x": 2,
+      "y": 7546,
+      "w": 390,
+      "h": 896,
+      "title": "7f · Background f",
+      "page": "v7"
+    },
+    {
+      "file": "VerdictA.dc.html",
+      "x": 1412,
+      "y": 9076,
+      "w": 390,
+      "h": 1056,
+      "title": "VA · Verdict A",
+      "page": "v7"
+    },
+    {
+      "file": "VerdictB.dc.html",
+      "x": 942,
+      "y": 9076,
+      "w": 390,
+      "h": 1056,
+      "title": "VB · Verdict B",
+      "page": "v7"
+    },
+    {
+      "file": "VerdictC.dc.html",
+      "x": 472,
+      "y": 9076,
+      "w": 390,
+      "h": 1056,
+      "title": "VC · Verdict C",
+      "page": "v7"
+    },
+    {
+      "file": "VerdictD.dc.html",
+      "x": 2,
+      "y": 9076,
+      "w": 390,
+      "h": 1056,
+      "title": "VD · Verdict D",
+      "page": "v7"
+    },
+    {
+      "file": "BG1.dc.html",
+      "x": 1882,
+      "y": 11596,
+      "w": 390,
+      "h": 956,
+      "title": "BG-1 · BG-1 · charcoal + dot grid — the control, unchanged from v8",
+      "page": "v7"
+    },
+    {
+      "file": "BG2.dc.html",
+      "x": 1412,
+      "y": 11596,
+      "w": 390,
+      "h": 956,
+      "title": "BG-2 · BG-2 · deep navy, two-colour discipline",
+      "page": "v7"
+    },
+    {
+      "file": "BG3.dc.html",
+      "x": 942,
+      "y": 11596,
+      "w": 390,
+      "h": 956,
+      "title": "BG-3 · BG-3 · cream / warm paper, light ground",
+      "page": "v7"
+    },
+    {
+      "file": "BG4.dc.html",
+      "x": 472,
+      "y": 11596,
+      "w": 390,
+      "h": 956,
+      "title": "BG-4 · BG-4 · deep green, one warm accent",
+      "page": "v7"
+    },
+    {
+      "file": "BG5.dc.html",
+      "x": 2,
+      "y": 11596,
+      "w": 390,
+      "h": 956,
+      "title": "BG-5 · BG-5 · the topic's own hue as the full-screen ground (topic id \"religion\" = #ffd23f, from data.js)",
+      "page": "v7"
+    },
+    {
+      "file": "INTA.dc.html",
+      "x": 1882,
+      "y": 14915,
+      "w": 390,
+      "h": 896,
+      "title": "INT-A · INT-A",
+      "page": "v7"
+    },
+    {
+      "file": "INTB.dc.html",
+      "x": 1412,
+      "y": 14915,
+      "w": 390,
+      "h": 896,
+      "title": "INT-B · INT-B",
+      "page": "v7"
+    },
+    {
+      "file": "INTC.dc.html",
+      "x": 942,
+      "y": 14915,
+      "w": 390,
+      "h": 896,
+      "title": "INT-C · INT-C",
+      "page": "v7"
+    },
+    {
+      "file": "INTE.dc.html",
+      "x": 472,
+      "y": 14915,
+      "w": 390,
+      "h": 896,
+      "title": "INT-E · INT-E",
+      "page": "v7"
+    },
+    {
+      "file": "Main.dc.html",
+      "x": 2,
+      "y": 14915,
+      "w": 390,
+      "h": 896,
+      "title": "1 · Intro",
+      "page": "v7"
+    },
+    {
+      "file": "Round.dc.html",
+      "x": 2352,
+      "y": 17325,
+      "w": 390,
+      "h": 896,
+      "title": "4 · The Round · Beat 1",
+      "page": "v7"
+    },
+    {
+      "file": "Beat2OwnVote.dc.html",
+      "x": 1882,
+      "y": 17325,
+      "w": 390,
+      "h": 716,
+      "title": "4·2 · Beat 2 · Your Vote",
+      "page": "v7"
+    },
+    {
+      "file": "Beat3Bill.dc.html",
+      "x": 1412,
+      "y": 17325,
+      "w": 390,
+      "h": 576,
+      "title": "4·3 · Beat 3 · The Bill",
+      "page": "v7"
+    },
+    {
+      "file": "Beat4MkCard.dc.html",
+      "x": 942,
+      "y": 17325,
+      "w": 390,
+      "h": 896,
+      "title": "4·4 · Beat 4 · MK Card",
+      "page": "v7"
+    },
+    {
+      "file": "Beat5Tally.dc.html",
+      "x": 472,
+      "y": 17325,
+      "w": 390,
+      "h": 796,
+      "title": "4·5a · Beat 5 · With Tally",
+      "page": "v7"
+    },
+    {
+      "file": "Beat5NoTally.dc.html",
+      "x": 2,
+      "y": 17325,
+      "w": 390,
+      "h": 716,
+      "title": "4·5b · Beat 5 · No Tally",
+      "page": "v7"
+    },
+    {
+      "file": "Builder1.dc.html",
+      "x": 2822,
+      "y": 19435,
+      "w": 390,
+      "h": 516,
+      "title": "2b · Builder · 1 · Skin",
+      "page": "v7"
+    },
+    {
+      "file": "Builder2.dc.html",
+      "x": 2352,
+      "y": 19435,
+      "w": 390,
+      "h": 516,
+      "title": "2c · Builder · 2 · Hair",
+      "page": "v7"
+    },
+    {
+      "file": "Builder3.dc.html",
+      "x": 1882,
+      "y": 19435,
+      "w": 390,
+      "h": 516,
+      "title": "2d · Builder · 3 · Hair colour",
+      "page": "v7"
+    },
+    {
+      "file": "Builder4.dc.html",
+      "x": 1412,
+      "y": 19435,
+      "w": 390,
+      "h": 516,
+      "title": "2e · Builder · 4 · Eyes",
+      "page": "v7"
+    },
+    {
+      "file": "Builder5.dc.html",
+      "x": 942,
+      "y": 19435,
+      "w": 390,
+      "h": 516,
+      "title": "2f · Builder · 5 · Outfit",
+      "page": "v7"
+    },
+    {
+      "file": "BuilderMotion.dc.html",
+      "x": 472,
+      "y": 19435,
+      "w": 390,
+      "h": 576,
+      "title": "2g · Builder · transition",
+      "page": "v7"
+    },
+    {
+      "file": "Builder6.dc.html",
+      "x": 2,
+      "y": 19435,
+      "w": 390,
+      "h": 696,
+      "title": "2h · Builder · 6 · Result",
+      "page": "v7"
+    },
+    {
+      "file": "RBB1A.dc.html",
+      "x": 8932,
+      "y": 20916,
+      "w": 390,
+      "h": 876,
+      "title": "B1-A · B1-A · type-led, full bleed",
+      "page": "v7"
+    },
+    {
+      "file": "RBB1B.dc.html",
+      "x": 8462,
+      "y": 20916,
+      "w": 390,
+      "h": 876,
+      "title": "B1-B · B1-B · sticker poster",
+      "page": "v7"
+    },
+    {
+      "file": "RBB1C.dc.html",
+      "x": 7992,
+      "y": 20916,
+      "w": 390,
+      "h": 876,
+      "title": "B1-C · B1-C · chyron / lower third",
+      "page": "v7"
+    },
+    {
+      "file": "RBB1D.dc.html",
+      "x": 7522,
+      "y": 20916,
+      "w": 390,
+      "h": 876,
+      "title": "B1-D · B1-D · card in hand",
+      "page": "v7"
+    },
+    {
+      "file": "RBB1E.dc.html",
+      "x": 7052,
+      "y": 20916,
+      "w": 390,
+      "h": 876,
+      "title": "B1-E · B1-E · split decision",
+      "page": "v7"
+    },
+    {
+      "file": "RBB2A.dc.html",
+      "x": 6582,
+      "y": 20916,
+      "w": 390,
+      "h": 876,
+      "title": "B2-A · B2-A · the ballot: three stacked bars",
+      "page": "v7"
+    },
+    {
+      "file": "RBB2B.dc.html",
+      "x": 6112,
+      "y": 20916,
+      "w": 390,
+      "h": 876,
+      "title": "B2-B · B2-B · voting slip: three columns",
+      "page": "v7"
+    },
+    {
+      "file": "RBB2C.dc.html",
+      "x": 5642,
+      "y": 20916,
+      "w": 390,
+      "h": 876,
+      "title": "B2-C · B2-C · your sticker, three slots",
+      "page": "v7"
+    },
+    {
+      "file": "RBB2D.dc.html",
+      "x": 5172,
+      "y": 20916,
+      "w": 390,
+      "h": 876,
+      "title": "B2-D · B2-D · question first, bill as a footnote",
+      "page": "v7"
+    },
+    {
+      "file": "RBB2E.dc.html",
+      "x": 4702,
+      "y": 20916,
+      "w": 390,
+      "h": 876,
+      "title": "B2-E · B2-E · the slip you fill in",
+      "page": "v7"
+    },
+    {
+      "file": "RBB3A.dc.html",
+      "x": 4232,
+      "y": 20916,
+      "w": 390,
+      "h": 876,
+      "title": "B3-A · B3-A · centred, title and date, nothing else",
+      "page": "v7"
+    },
+    {
+      "file": "RBB3B.dc.html",
+      "x": 3762,
+      "y": 20916,
+      "w": 390,
+      "h": 876,
+      "title": "B3-B · B3-B · title as die-cut stickers",
+      "page": "v7"
+    },
+    {
+      "file": "RBB3C.dc.html",
+      "x": 3292,
+      "y": 20916,
+      "w": 390,
+      "h": 876,
+      "title": "B3-C · B3-C · the record card",
+      "page": "v7"
+    },
+    {
+      "file": "RBB3D.dc.html",
+      "x": 2822,
+      "y": 20916,
+      "w": 390,
+      "h": 876,
+      "title": "B3-D · B3-D · editorial, left-aligned, big",
+      "page": "v7"
+    },
+    {
+      "file": "RBB3E.dc.html",
+      "x": 2352,
+      "y": 20916,
+      "w": 390,
+      "h": 876,
+      "title": "B3-E · B3-E · the most austere it can get",
+      "page": "v7"
+    },
+    {
+      "file": "RBB4A.dc.html",
+      "x": 1882,
+      "y": 20916,
+      "w": 390,
+      "h": 1416,
+      "title": "B4-A · B4-A · options above the portrait, stamp off the top corner",
+      "page": "v7"
+    },
+    {
+      "file": "RBB4B.dc.html",
+      "x": 1412,
+      "y": 20916,
+      "w": 390,
+      "h": 1416,
+      "title": "B4-B · B4-B · options as a tray across the chest",
+      "page": "v7"
+    },
+    {
+      "file": "RBB4C.dc.html",
+      "x": 942,
+      "y": 20916,
+      "w": 390,
+      "h": 1416,
+      "title": "B4-C · B4-C · portrait offset, options in a column beside it",
+      "page": "v7"
+    },
+    {
+      "file": "RBB4D.dc.html",
+      "x": 472,
+      "y": 20916,
+      "w": 390,
+      "h": 1416,
+      "title": "B4-D · B4-D · stamp refuses the card entirely",
+      "page": "v7"
+    },
+    {
+      "file": "RBB4E.dc.html",
+      "x": 2,
+      "y": 20916,
+      "w": 390,
+      "h": 1416,
+      "title": "B4-E · B4-E · two-stage: the options become the axis",
+      "page": "v7"
+    },
+    {
+      "file": "CrSplitB.dc.html",
+      "x": 7052,
+      "y": 24046,
+      "w": 390,
+      "h": 896,
+      "title": "HB · SP-B · named options, preview as large as 390 allows",
+      "page": "v7"
+    },
+    {
+      "file": "V12B1SWIPER.dc.html",
+      "x": 6582,
+      "y": 24046,
+      "w": 390,
+      "h": 996,
+      "title": "B1-SWIPE-R · Beat 1 · B1-SWIPE-R",
+      "page": "v7"
+    },
+    {
+      "file": "V12B1SWIPEL.dc.html",
+      "x": 6112,
+      "y": 24046,
+      "w": 390,
+      "h": 996,
+      "title": "B1-SWIPE-L · Beat 1 · B1-SWIPE-L",
+      "page": "v7"
+    },
+    {
+      "file": "V12B2CHAIRSHEET.dc.html",
+      "x": 5642,
+      "y": 24046,
+      "w": 390,
+      "h": 896,
+      "title": "B2-CHAIR-SHEET · Beat 2 · B2-CHAIR-SHEET",
+      "page": "v7"
+    },
+    {
+      "file": "V12B2AVATARFULL.dc.html",
+      "x": 5172,
+      "y": 24046,
+      "w": 390,
+      "h": 896,
+      "title": "B2-AVATAR-FULL · Beat 2 · B2-AVATAR-FULL",
+      "page": "v7"
+    },
+    {
+      "file": "V12B3A.dc.html",
+      "x": 4702,
+      "y": 24046,
+      "w": 390,
+      "h": 896,
+      "title": "B3-A · Beat 3 · B3-A, its own screen",
+      "page": "v7"
+    },
+    {
+      "file": "V12B3M.dc.html",
+      "x": 4232,
+      "y": 24046,
+      "w": 390,
+      "h": 896,
+      "title": "B3-MERGED · Beat 3 · dissolved into beat 4's header",
+      "page": "v7"
+    },
+    {
+      "file": "V14TOPB.dc.html",
+      "x": 3762,
+      "y": 24046,
+      "w": 390,
+      "h": 916,
+      "title": "TOP-B · Beat 4 · top band · TOP-B",
+      "page": "v7"
+    },
+    {
+      "file": "RBB5A.dc.html",
+      "x": 3292,
+      "y": 24046,
+      "w": 390,
+      "h": 1026,
+      "title": "B5-A · B5-A · resolution, count-up, explanation, sources",
+      "page": "v7"
+    },
+    {
+      "file": "RBB5B.dc.html",
+      "x": 2822,
+      "y": 24046,
+      "w": 390,
+      "h": 1026,
+      "title": "B5-B · B5-B · the tally as a proportion bar",
+      "page": "v7"
+    },
+    {
+      "file": "RBB5C.dc.html",
+      "x": 2352,
+      "y": 24046,
+      "w": 390,
+      "h": 1026,
+      "title": "B5-C · B5-C · explanation-led, tally as a chip",
+      "page": "v7"
+    },
+    {
+      "file": "RBB5D.dc.html",
+      "x": 1882,
+      "y": 24046,
+      "w": 390,
+      "h": 1026,
+      "title": "B5-D · B5-D · the number is the screen",
+      "page": "v7"
+    },
+    {
+      "file": "RBB5E.dc.html",
+      "x": 1412,
+      "y": 24046,
+      "w": 390,
+      "h": 1026,
+      "title": "B5-E · B5-E · glossary-led: the term opens after the guess",
+      "page": "v7"
+    },
+    {
+      "file": "CrSplitA.dc.html",
+      "x": 942,
+      "y": 24046,
+      "w": 390,
+      "h": 896,
+      "title": "HA · SP-A · ARCHIVED",
+      "page": "v7"
+    },
+    {
+      "file": "ShareC.dc.html",
+      "x": 472,
+      "y": 24046,
+      "w": 390,
+      "h": 696,
+      "title": "6c · Share C · Fact-forward",
+      "page": "v7"
+    },
+    {
+      "file": "ShareD.dc.html",
+      "x": 2,
+      "y": 24046,
+      "w": 390,
+      "h": 696,
+      "title": "6d · Share D · Values card",
+      "page": "v7"
+    },
+    {
+      "file": "INTD.dc.html",
+      "x": 2,
+      "y": 437,
+      "w": 390,
+      "h": 896,
+      "title": "INT-D · INT-D",
+      "page": "screens"
+    },
+    {
+      "file": "PeelSheet.dc.html",
+      "x": 942,
+      "y": 2612,
+      "w": 390,
+      "h": 796,
+      "title": "2a · Peel Your Sticker",
+      "page": "screens"
+    },
+    {
+      "file": "Profile.dc.html",
+      "x": 472,
+      "y": 2612,
+      "w": 390,
+      "h": 636,
+      "title": "2b · Character · detail",
+      "page": "screens"
+    },
+    {
+      "file": "V15CHAR.dc.html",
+      "x": 2,
+      "y": 2612,
+      "w": 390,
+      "h": 896,
+      "title": "CHAR · Character creation, reconnected",
+      "page": "screens"
+    },
+    {
+      "file": "PathMap.dc.html",
+      "x": 472,
+      "y": 5421,
+      "w": 390,
+      "h": 776,
+      "title": "3 · Path Map",
+      "page": "screens"
+    },
+    {
+      "file": "V16NODE.dc.html",
+      "x": 2,
+      "y": 5421,
+      "w": 390,
+      "h": 636,
+      "title": "NODE · Map node · internal_sec · three states",
+      "page": "screens"
+    },
+    {
+      "file": "V15B1CARDR.dc.html",
+      "x": 942,
+      "y": 8604,
+      "w": 390,
+      "h": 916,
+      "title": "B1-CARD-R · Beat 1 · B1-CARD-R",
+      "page": "screens"
+    },
+    {
+      "file": "V15B1CARDL.dc.html",
+      "x": 472,
+      "y": 8604,
+      "w": 390,
+      "h": 916,
+      "title": "B1-CARD-L · Beat 1 · B1-CARD-L",
+      "page": "screens"
+    },
+    {
+      "file": "V16B1S2.dc.html",
+      "x": 2,
+      "y": 8604,
+      "w": 390,
+      "h": 916,
+      "title": "B1-S2 · Beat 1 · s2 · its own graphic",
+      "page": "screens"
+    },
+    {
+      "file": "V12B2CHAIRFULL.dc.html",
+      "x": 2,
+      "y": 13119,
+      "w": 390,
+      "h": 896,
+      "title": "B2-CHAIR-FULL · Beat 2 · B2-CHAIR-FULL",
+      "page": "screens"
+    },
+    {
+      "file": "V13B3OV.dc.html",
+      "x": 2,
+      "y": 16473,
+      "w": 390,
+      "h": 916,
+      "title": "B3-OVERLAY · Beat 3 · overlay over the MK card",
+      "page": "screens"
+    },
+    {
+      "file": "V12B4PREDICT.dc.html",
+      "x": 1882,
+      "y": 18887,
+      "w": 390,
+      "h": 916,
+      "title": "B4-PREDICT · Beat 4 · B4-PREDICT",
+      "page": "screens"
+    },
+    {
+      "file": "V12B4AXIS.dc.html",
+      "x": 1412,
+      "y": 18887,
+      "w": 390,
+      "h": 916,
+      "title": "B4-AXIS · Beat 4 · B4-AXIS",
+      "page": "screens"
+    },
+    {
+      "file": "V15B4RIGHTAXIS.dc.html",
+      "x": 942,
+      "y": 18887,
+      "w": 390,
+      "h": 916,
+      "title": "B4-RIGHT-AXIS · Beat 4 · correct verdict · B4-RIGHT-AXIS",
+      "page": "screens"
+    },
+    {
+      "file": "V12B4LANDED.dc.html",
+      "x": 472,
+      "y": 18887,
+      "w": 390,
+      "h": 916,
+      "title": "B4-LANDED · Beat 4 · B4-LANDED",
+      "page": "screens"
+    },
+    {
+      "file": "V15B4RIGHT.dc.html",
+      "x": 2,
+      "y": 18887,
+      "w": 390,
+      "h": 916,
+      "title": "B4-RIGHT · Beat 4 · correct verdict · B4-RIGHT",
+      "page": "screens"
+    },
+    {
+      "file": "V14PILE5.dc.html",
+      "x": 4702,
+      "y": 22522,
+      "w": 390,
+      "h": 916,
+      "title": "PILE-5 · Beat 4 · the pile · PILE-5",
+      "page": "screens"
+    },
+    {
+      "file": "V14PILE2.dc.html",
+      "x": 4232,
+      "y": 22522,
+      "w": 390,
+      "h": 916,
+      "title": "PILE-2 · Beat 4 · the pile · PILE-2",
+      "page": "screens"
+    },
+    {
+      "file": "V14PILE1.dc.html",
+      "x": 3762,
+      "y": 22522,
+      "w": 390,
+      "h": 916,
+      "title": "PILE-1 · Beat 4 · the pile · PILE-1",
+      "page": "screens"
+    },
+    {
+      "file": "V15CASC1.dc.html",
+      "x": 3292,
+      "y": 22522,
+      "w": 390,
+      "h": 916,
+      "title": "CASC-1 · Beat 4 · s1 cascade · איתמר בן-גביר",
+      "page": "screens"
+    },
+    {
+      "file": "V15CASC2.dc.html",
+      "x": 2822,
+      "y": 22522,
+      "w": 390,
+      "h": 916,
+      "title": "CASC-2 · Beat 4 · s1 cascade · בנימין נתניהו",
+      "page": "screens"
+    },
+    {
+      "file": "V15CASC3.dc.html",
+      "x": 2352,
+      "y": 22522,
+      "w": 390,
+      "h": 916,
+      "title": "CASC-3 · Beat 4 · s1 cascade · אריה דרעי",
+      "page": "screens"
+    },
+    {
+      "file": "V15CASC4.dc.html",
+      "x": 1882,
+      "y": 22522,
+      "w": 390,
+      "h": 916,
+      "title": "CASC-4 · Beat 4 · s1 cascade · יאיר לפיד",
+      "page": "screens"
+    },
+    {
+      "file": "V15CASC5.dc.html",
+      "x": 1412,
+      "y": 22522,
+      "w": 390,
+      "h": 916,
+      "title": "CASC-5 · Beat 4 · s1 cascade · בני גנץ",
+      "page": "screens"
+    },
+    {
+      "file": "V15CASC6.dc.html",
+      "x": 942,
+      "y": 22522,
+      "w": 390,
+      "h": 916,
+      "title": "CASC-6 · Beat 4 · s1 cascade · מרב מיכאלי",
+      "page": "screens"
+    },
+    {
+      "file": "V15CASCNOART.dc.html",
+      "x": 472,
+      "y": 22522,
+      "w": 390,
+      "h": 916,
+      "title": "CASC-NOART · Beat 4 · s1 cascade · אביגדור ליברמן",
+      "page": "screens"
+    },
+    {
+      "file": "V15SET48.dc.html",
+      "x": 2,
+      "y": 22522,
+      "w": 390,
+      "h": 436,
+      "title": "SET-48 · The set at 48px",
+      "page": "screens"
+    },
+    {
+      "file": "V13B5A1.dc.html",
+      "x": 472,
+      "y": 25608,
+      "w": 390,
+      "h": 1076,
+      "title": "B5-A1 · Beat 5 · B5-A1 · the count as a large numeral",
+      "page": "screens"
+    },
+    {
+      "file": "V13B5A2.dc.html",
+      "x": 2,
+      "y": 25608,
+      "w": 390,
+      "h": 1076,
+      "title": "B5-A2 · Beat 5 · B5-A2 · the count as a quiet figure beside the resolution",
+      "page": "screens"
+    },
+    {
+      "file": "EndGame.dc.html",
+      "x": 472,
+      "y": 28577,
+      "w": 390,
+      "h": 776,
+      "title": "5 · End-Game · 8/8",
+      "page": "screens"
+    },
+    {
+      "file": "Share.dc.html",
+      "x": 2,
+      "y": 28577,
+      "w": 390,
+      "h": 716,
+      "title": "6 · Share Card",
+      "page": "screens"
+    },
+    {
+      "file": "OpenItems.dc.html",
+      "x": 472,
+      "y": 30423,
+      "w": 390,
+      "h": 1776,
+      "title": "OPEN · OPEN — everything still undecided",
+      "page": "screens"
+    },
+    {
+      "file": "PressState.dc.html",
+      "x": 2,
+      "y": 30423,
+      "w": 390,
+      "h": 576,
+      "title": "P-C · P-C · rest and pressed",
+      "page": "screens"
+    },
+    {
+      "file": "V16KIT.dc.html",
+      "x": 2,
+      "y": 1205,
+      "w": 390,
+      "h": 1266,
+      "title": "KIT · Handoff · the components, from hachach.css",
+      "page": "handoff"
+    },
+    {
+      "file": "V16CHIPSRING.dc.html",
+      "x": 2822,
+      "y": 18887,
+      "w": 390,
+      "h": 916,
+      "page": "screens",
+      "title": "CHIPS-RING · Beat 4 · chip gap · CHIPS-RING"
+    },
+    {
+      "file": "V16CHIPSFLAT.dc.html",
+      "x": 2352,
+      "y": 18887,
+      "w": 390,
+      "h": 916,
+      "page": "screens",
+      "title": "CHIPS-FLAT · Beat 4 · chip gap · CHIPS-FLAT"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "t-character",
+      "x": 2,
+      "y": -1756,
+      "w": 1120,
+      "text": "v12 Character\nThe character set, read out of the running prototype: app.js's own five arrays for the counts, and app.js's own buildAvatarSvg() — lifted out and run — for every face on this board.\nWHAT THE READ TURNED UP: (1) data.js has 8 finished preset avatars with names; app.js assigns AVATARS[0].id to player.avatarId at startup and never reads it again, so nothing renders them — dead code. (2) hair colour is conditional: the whole category is hidden when hair is the shaved or the headscarf option. (3) the grammar chips are labelled as a language setting but also pick the avatar's clothing.\nPick: a container shape (AS-A…AS-D), a layout (CR-A…CR-C), a picker (PK-A…PK-C).",
+      "size": 120,
+      "bold": true,
+      "page": "character"
+    },
+    {
+      "id": "h-character0",
+      "x": 2,
+      "y": 0,
+      "w": 1240,
+      "text": "1 — The set as it ships\nEvery category and every option in the running prototype, drawn by the prototype's own buildAvatarSvg(). Nothing here is invented and nothing is redrawn.",
+      "size": 40,
+      "bold": true,
+      "color": "purple",
+      "page": "character"
+    },
+    {
+      "id": "n-optionsheet",
+      "x": 1412,
+      "y": 1327,
+      "w": 390,
+      "text": "Every category and every option in the running prototype, drawn by the prototype's own buildAvatarSvg() — lifted out of app.js and run, not redrawn.\nREAL COUNTS, from the arrays: skin tone 5 (SKINS), hair 6 (HAIRS), hair colour 5 (HAIR_COLORS), eyes 3 (EYES_OPTS), clothing 5 (CLOTHES). 5x6x5x3x5 = 2,250 combinations on paper; 1,650 once the hair-colour category is counted properly, since it is dropped entirely for the shaved and the headscarf options — 22 real hair/hair-colour pairs rather than 30.\nNOT DATA: every one of those options is a hardcoded SVG branch inside buildAvatarSvg(), so adding a fourth eye style is code, not a row.\nDEAD CODE: data.js also carries 8 finished preset avatars with names. app.js sets player.avatarId to the first of them at startup and never reads it again — nothing renders a preset — and the self-test still asserts there are 8.\nThe skin row's own labels are bare Unicode skin-tone modifiers, which is why the line under those five swatches looks like five more swatches: there is no word for any of them.\nThe last row is the one the screen does not present as an appearance control — see the flag.\n\nTHE GRAMMAR TOGGLE IS AN APPEARANCE CONTROL TOO, and it does not say so. The two chips are labelled as feminine/masculine GRAMMAR and the whole app's copy switches on them through g(). The same flag also picks the avatar's clothing inside buildAvatarSvg — a tie, or a collar. One control, two jobs, one label. It sits among the appearance sections on the character screen today.",
+      "color": "orange",
+      "page": "character"
+    },
+    {
+      "id": "n-v15av1",
+      "x": 942,
+      "y": 787,
+      "w": 390,
+      "text": "AV-1 — THE MK TREATMENT, APPLIED TO A FIGURE THAT IS NOT A PORTRAIT.\nSame 3.4px black keyline, same flat unmodelled fills, same construction as the illustrations: heavy outline, one colour per plane, no gradient anywhere. Beside an MK card it reads as the same HAND.\nHOW IT STAYS NOT-MK: round, never the 3:4 box every politician on this board lives in; built from primitives rather than drawn from a face, so there is no likeness to mistake; and no name plate under it. Its own fourth device is the FACE — two dots and a stroke against the MKs' modelled features. A schematic face next to a drawn one is not a lesser portrait, it is a different kind of object.\nThe risk is that it is the closest of the three to the politicians, which is also why it sits best beside them.",
+      "page": "character"
+    },
+    {
+      "id": "n-v15av2",
+      "x": 472,
+      "y": 787,
+      "w": 390,
+      "text": "AV-2 — THE CHAIR'S SURFACE. Hatched fill at 38 degrees, the chair's own tan and umber, and an edge roughened by a turbulence displacement so the outline wobbles the way a drawn line does. Old-cartoon, printed rather than vector.\nHOW IT STAYS NOT-MK: the same three devices, plus its own fourth and it is the strongest of the three — it reads as an OBJECT in the same family as the chair and the police cap, not as a person. The MK portraits carry no hatching at all.\nWHAT IT COSTS, and this is visible in the strip rather than argued: the hatch is a 6px pattern. At 200px it is the whole character of the thing. At 64px it is a texture. At 40px it is grey. If the avatar has to work at 40px — and it does, that is the axis marker — this treatment is carrying its idea only at the top two sizes.",
+      "page": "character"
+    },
+    {
+      "id": "n-v15av3",
+      "x": 2,
+      "y": 787,
+      "w": 390,
+      "text": "AV-3 — MY OWN, AND THE ONE I WOULD PICK. The figure as layered paper: flat cut shapes, a white die-cut edge on the hair the way every sticker on this board has one, and NO FACIAL FEATURES AT ALL.\nHOW IT STAYS NOT-MK, and it is not subtle: the 120 have faces and the 121st does not. That is the premise stated in the artwork rather than argued in a caption — you are the seat, not the person in it. It cannot be mistaken for a politician portrait at any size, which is more than the other two can claim.\nIt is also the only one that survives 40px intact, because a silhouette and two flat shapes are all it ever was. And it sits in the house language already: it is the same construction as the die-cut stickers the board uses everywhere else.\nWHAT IT COSTS: expression. A faceless avatar cannot smile when you get one right, and the character screen has less to sell.",
+      "page": "character"
+    },
+    {
+      "id": "h-character1",
+      "x": 2,
+      "y": 3308,
+      "w": 392,
+      "text": "2 — Avatar container — four shapes\nOne face, four containers, each at the three sizes the app actually uses: 40px in the HUD, 64px as a map marker, 200px on the creation screen.",
+      "size": 40,
+      "bold": true,
+      "color": "purple",
+      "page": "character"
+    },
+    {
+      "id": "n-avatarshapes",
+      "x": 2,
+      "y": 5062,
+      "w": 390,
+      "text": "One face, four containers, at the three sizes the app uses: 40px HUD, 64px map marker, 200px creation screen. Same drawing in every cell.\nAS-B is what ships today.\nAS-D is the only one whose edge follows the figure rather than a box: the background plate is stripped and the alpha-dilate filter the sticker frames already use rides on the silhouette.",
+      "page": "character"
+    },
+    {
+      "id": "h-character2",
+      "x": 2,
+      "y": 5695,
+      "w": 1240,
+      "text": "3 — Creation screen — three layouts, CR-C chosen\nSettled. CR-C is the base and is rebuilt on the v10 Character Sheets board, where the tray becomes one sheet per step. CR-A and CR-B are kept for the record.",
+      "size": 40,
+      "bold": true,
+      "color": "gray",
+      "page": "character"
+    },
+    {
+      "id": "n-createa",
+      "x": 942,
+      "y": 7012,
+      "w": 390,
+      "text": "CR-A — one scrolling list. What ships today, restyled.\nWhole set visible; nothing to learn. The preview scrolls away as soon as the player reaches the third category, so they stop seeing what they are changing.\nFive categories at this size do not fit above the thumb arc.",
+      "page": "character"
+    },
+    {
+      "id": "n-createb",
+      "x": 472,
+      "y": 6942,
+      "w": 390,
+      "text": "CR-B — category tabs, one swipeable strip.\nThe preview never leaves the screen and every category is the same height whatever its option count. Costs a horizontal swipe that runs the same axis as the RTL page, and options past the fold are discoverable only by trying.",
+      "page": "character"
+    },
+    {
+      "id": "n-createc",
+      "x": 2,
+      "y": 6942,
+      "w": 390,
+      "text": "CR-C — hero preview, options in a bottom tray.\nThe avatar is the biggest thing on the screen, which is right for a screen whose whole job is «this is you». Every control sits inside the thumb arc.\nThe tray is the most work to build: it is a sheet with its own scroll.",
+      "page": "character"
+    },
+    {
+      "id": "h-character3",
+      "x": 2,
+      "y": 7645,
+      "w": 392,
+      "text": "4 — Option picker — three ways to present one choice\nShown on the hair category, the largest at 6 options, because that is where the difference between the three actually bites.",
+      "size": 40,
+      "bold": true,
+      "color": "purple",
+      "page": "character"
+    },
+    {
+      "id": "n-pickers",
+      "x": 2,
+      "y": 8959,
+      "w": 390,
+      "text": "How ONE choice is presented, shown on the hair category — 6 options, the largest one, which is where the three actually differ.\nPK-A shows the set as a set. PK-B is the only one that is a fixed height whatever the count. PK-C names the option in words and is the only one that does.",
+      "page": "character"
+    },
+    {
+      "id": "t-bengvir",
+      "x": 2,
+      "y": -1065,
+      "w": 1120,
+      "text": "v12 MK Illustration\nEvery screen of the revised flow in one style. Hebrew appears only inside the screens; every annotation on this canvas is English.\nCopy comes from data.js, app.js and index.html, read and asserted at build time. Striped yellow slots are the only unwritten copy.\nIcons are placeholders — the pack's license is not verified.",
+      "size": 120,
+      "bold": true,
+      "page": "bengvir"
+    },
+    {
+      "id": "h-bengvir0",
+      "x": 2,
+      "y": 0,
+      "w": 862,
+      "text": "1 — Ben Gvir — the cascade card, style B chosen\nIssue s1, his own police law: the one issue of his six where he is flagged key and the vote is documented rather than inferred from his bloc. Name, party, both votes and the note are data.js verbatim.",
+      "size": 40,
+      "bold": true,
+      "color": "purple",
+      "page": "bengvir"
+    },
+    {
+      "id": "n-bgvcarda",
+      "x": 472,
+      "y": 1316,
+      "w": 390,
+      "text": "STYLE A — halftone / riso — yellow, coral, teal.\nBeat 4, issue s1 (his own police law). He is in data.js in six issues and votes «for» in all six; s1 is the only one where he is key:true AND the vote is basis «doc».\nMF-B, unchanged. The artwork is a cut-out with its own alpha, so it takes the plain white die-cut rather than the multicolour filter the photograph uses — that filter's blue offset was drawn for a rectangular crop.\n176px, served by the 400px export.\nARCHIVED — style B is the direction. Style A is kept, not deleted. Two measured reasons: its crossover is about 64px, below which the riso separation stops modelling the face and flattens into hue blocks; and its dominant hue bands (190 teal, 50 and 40 yellow) share a band with the surprise verdict. That second one is CONTINGENT on the verdict palette — move the verdict off yellow and teal, as VP-1 and VP-2 do, and the collision disappears. The size finding does not go away.\n\nSupplied illustration. Provenance and licence NOT verified — no source, author or terms came with the files.",
+      "color": "orange",
+      "page": "bengvir"
+    },
+    {
+      "id": "n-bgvcardb",
+      "x": 2,
+      "y": 1316,
+      "w": 390,
+      "text": "STYLE B — line + flat fill — navy suit, neutral flesh.\nBeat 4, issue s1 (his own police law). He is in data.js in six issues and votes «for» in all six; s1 is the only one where he is key:true AND the vote is basis «doc».\nMF-B, unchanged. The artwork is a cut-out with its own alpha, so it takes the plain white die-cut rather than the multicolour filter the photograph uses — that filter's blue offset was drawn for a rectangular crop.\n176px, served by the 400px export.\nCHOSEN — this is the MK illustration direction.\n\nSupplied illustration. Provenance and licence NOT verified — no source, author or terms came with the files.",
+      "color": "orange",
+      "page": "bengvir"
+    },
+    {
+      "id": "h-bengvir1",
+      "x": 2,
+      "y": 2798,
+      "w": 862,
+      "text": "2 — The three verdict states, over each style\nSame card, same pill, same two inks. The question is whether the artwork competes with the only colour on this screen that carries meaning.",
+      "size": 40,
+      "bold": true,
+      "color": "purple",
+      "page": "bengvir"
+    },
+    {
+      "id": "n-bgvverdicta",
+      "x": 472,
+      "y": 5185,
+      "w": 390,
+      "text": "STYLE A in all three verdict states, top to bottom: correct, surprise 1, surprise 2.\nThe pill is identical in both styles — same two inks, same placement, same size. Only the artwork under it changes.\n\nSupplied illustration. Provenance and licence NOT verified.",
+      "color": "orange",
+      "page": "bengvir"
+    },
+    {
+      "id": "n-bgvverdictb",
+      "x": 2,
+      "y": 5185,
+      "w": 390,
+      "text": "STYLE B in all three verdict states, top to bottom: correct, surprise 1, surprise 2.\nThe pill is identical in both styles — same two inks, same placement, same size. Only the artwork under it changes.\n\nSupplied illustration. Provenance and licence NOT verified.",
+      "color": "orange",
+      "page": "bengvir"
+    },
+    {
+      "id": "h-bengvir2",
+      "x": 2,
+      "y": 5818,
+      "w": 392,
+      "text": "3 — Small appearances, and 48px on both grounds\nEvery size the system uses, served by the 128px export. Two readings of a small portrait: the die-cut silhouette and the square avatar slot.",
+      "size": 40,
+      "bold": true,
+      "color": "purple",
+      "page": "bengvir"
+    },
+    {
+      "id": "n-bgvsizes",
+      "x": 2,
+      "y": 7212,
+      "w": 390,
+      "text": "Every size the system renders an MK at, from the 128px export: 18px sort-pot chip, 40px HUD, 48px, 64px map marker, 128px list row.\nTwo readings of a small portrait, both shown: the die-cut silhouette (sticker) and the square avatar slot (crop in a box).\nThe bottom block is the same 48px pair on the cream ground, where the white die-cut edge has almost no contrast left.\n\nSupplied illustration. Provenance and licence NOT verified.",
+      "color": "orange",
+      "page": "bengvir"
+    },
+    {
+      "id": "t-vdstamp",
+      "x": 2,
+      "y": -1180,
+      "w": 1120,
+      "text": "v12 Verdict Stamp\nVD-D, the pick, rebuilt as a pressed stamp — and the placement bug fixed.\nIn v9 the stamp landed on the MK's face. It is now anchored to the card's bottom-left corner, straddling the card edge and the ground, with the portrait clear. Every frame shows it with a portrait present.\nVERDICT COPY PENDING TAMAR. Pick a treatment: VD-D1, VD-D2, VD-D3 — and a palette: control, VP-1 or VP-2.",
+      "size": 120,
+      "bold": true,
+      "page": "vdstamp"
+    },
+    {
+      "id": "h-vdstamp0",
+      "x": 2,
+      "y": 0,
+      "w": 1240,
+      "text": "1 — VD-D as a pressed stamp — three treatments\nTwo rings with a gap, text running round inside the inner one, the verdict centred, and an ink-bleed edge so it reads as pressed rather than placed. Semi-transparent with a backdrop blur throughout. All three states on every treatment, on the real MK card, at true rendered size. Pick one: VD-D1, VD-D2, VD-D3.",
+      "size": 40,
+      "bold": true,
+      "color": "purple",
+      "page": "vdstamp"
+    },
+    {
+      "id": "n-vdstampd1",
+      "x": 942,
+      "y": 2656,
+      "w": 390,
+      "text": "VD-D1 — outer stroke 4.0, inner 1.6, ring text 8.0, displacement 1.1.\nStamp construction: two rings with a gap, the ring text running round INSIDE the inner one over the top arc, the verdict centred, and an ink-bleed edge — the strokes are pushed off true by a turbulence displacement and then punched through with a second, much finer noise, which is the ink not taking.\nPLACEMENT FIXED. v9 anchored this at top:26%/right:-36px and it landed on the MK's face. It is now anchored to the card's BOTTOM-LEFT CORNER: 22px hangs off the side, 46px below the bottom, and the portrait — the top ~240px of a 560px card — is nowhere near it. Every state below is shown WITH the portrait, which is the only way that can be checked.\nThe strip at the foot is the same stamp at 120 / 84 / 56 / 40px. Everything in it is SVG user units, so rings, ring text and distress scale together.\nSemi-transparent at .46 with a 7px backdrop blur throughout: the card edge and the ground both read through it.\nVERDICT COPY PENDING TAMAR — [RIGHT] / [SURPRISE-1] / [SURPRISE-2] plus [RING-TEXT] for the ring. Nothing here guesses at the Hebrew.\n\nSupplied illustration. Provenance and licence NOT verified.",
+      "color": "orange",
+      "page": "vdstamp"
+    },
+    {
+      "id": "n-vdstampd2",
+      "x": 472,
+      "y": 2656,
+      "w": 390,
+      "text": "VD-D2 — outer stroke 6.0, inner 2.2, ring text 9.5, displacement 2.2.\nStamp construction: two rings with a gap, the ring text running round INSIDE the inner one over the top arc, the verdict centred, and an ink-bleed edge — the strokes are pushed off true by a turbulence displacement and then punched through with a second, much finer noise, which is the ink not taking.\nPLACEMENT FIXED. v9 anchored this at top:26%/right:-36px and it landed on the MK's face. It is now anchored to the card's BOTTOM-LEFT CORNER: 22px hangs off the side, 46px below the bottom, and the portrait — the top ~240px of a 560px card — is nowhere near it. Every state below is shown WITH the portrait, which is the only way that can be checked.\nThe strip at the foot is the same stamp at 120 / 84 / 56 / 40px. Everything in it is SVG user units, so rings, ring text and distress scale together.\nSemi-transparent at .46 with a 7px backdrop blur throughout: the card edge and the ground both read through it.\nVERDICT COPY PENDING TAMAR — [RIGHT] / [SURPRISE-1] / [SURPRISE-2] plus [RING-TEXT] for the ring. Nothing here guesses at the Hebrew.\n\nSupplied illustration. Provenance and licence NOT verified.",
+      "color": "orange",
+      "page": "vdstamp"
+    },
+    {
+      "id": "n-vdstampd3",
+      "x": 2,
+      "y": 2656,
+      "w": 390,
+      "text": "VD-D3 — outer stroke 3.0, inner 1.2, ring text 6.5, displacement 0.6.\nStamp construction: two rings with a gap, the ring text running round INSIDE the inner one over the top arc, the verdict centred, and an ink-bleed edge — the strokes are pushed off true by a turbulence displacement and then punched through with a second, much finer noise, which is the ink not taking.\nPLACEMENT FIXED. v9 anchored this at top:26%/right:-36px and it landed on the MK's face. It is now anchored to the card's BOTTOM-LEFT CORNER: 22px hangs off the side, 46px below the bottom, and the portrait — the top ~240px of a 560px card — is nowhere near it. Every state below is shown WITH the portrait, which is the only way that can be checked.\nThe strip at the foot is the same stamp at 120 / 84 / 56 / 40px. Everything in it is SVG user units, so rings, ring text and distress scale together.\nSemi-transparent at .46 with a 7px backdrop blur throughout: the card edge and the ground both read through it.\nVERDICT COPY PENDING TAMAR — [RIGHT] / [SURPRISE-1] / [SURPRISE-2] plus [RING-TEXT] for the ring. Nothing here guesses at the Hebrew.\n\nSupplied illustration. Provenance and licence NOT verified.",
+      "color": "orange",
+      "page": "vdstamp"
+    },
+    {
+      "id": "h-vdstamp1",
+      "x": 2,
+      "y": 4387,
+      "w": 392,
+      "text": "2 — Verdict palettes — clearance from the illustration\nColour codes CORRECTNESS ONLY here, never a vote direction, and the two inks are the same two on every option. The number beside each is the smallest hue distance from style B's own bands (flesh 10-20, navy 200) — the current pair measures 20 degrees on the composited render, and both alternatives clear it by a wide margin.",
+      "size": 40,
+      "bold": true,
+      "color": "purple",
+      "page": "vdstamp"
+    },
+    {
+      "id": "n-vdpalettes",
+      "x": 2,
+      "y": 6396,
+      "w": 390,
+      "text": "Three palettes against the style B portrait they have to live with. Every one codes CORRECTNESS ONLY — one ink for «you called it», one for «the Knesset surprised you» — and never a vote direction.\nThe degree figure beside each pair is the smallest hue distance from style B's own dominant bands, measured off the rendered frames: flesh at 10-20 and navy at 200. The current teal+yellow measures 20 degrees on the composited render, which is the collision this is trying to clear.\nVP-1 and VP-2 both put one ink in the 60-160 window and one in 240-330, the two arcs style B does not occupy.\n\nSupplied illustration. Provenance and licence NOT verified.",
+      "color": "orange",
+      "page": "vdstamp"
+    },
+    {
+      "id": "t-charsheet",
+      "x": 2,
+      "y": -1411,
+      "w": 1120,
+      "text": "v12 Character Sheets\nCR-C rebuilt as one bottom sheet per step. The preview above the sheet never leaves — that is the point of the pattern — and the save/done is on every step, so no step is mandatory.\nRTL at 390px; the dashed arc is a one-handed right thumb on 390x844.\nBOTH PICKS ARE SETTLED. The split is SP-B, which now lives on Screens with SP-A in Archive; the progress indicator is the pile. What is left on this page is the motion and the indicator study behind those two decisions.",
+      "size": 120,
+      "bold": true,
+      "page": "charsheet"
+    },
+    {
+      "id": "h-charsheet1",
+      "x": 2,
+      "y": 0,
+      "w": 392,
+      "text": "2 — The sheet arriving and leaving\nThe same screen at three points in the transition. What matters is the band above the sheet: the preview is outside the sheet, so it is still there in all three.",
+      "size": 40,
+      "bold": true,
+      "color": "purple",
+      "page": "charsheet"
+    },
+    {
+      "id": "n-crmotion",
+      "x": 2,
+      "y": 1904,
+      "w": 390,
+      "text": "The sheet arriving and leaving, on the shortest category so the whole thing fits the window.\nWhat to look at is the band ABOVE the sheet: the preview is outside the sheet, so it is present in all three states, including while the sheet is moving. That is the whole reason for the pattern.\n260ms on a cubic-bezier(.22,.9,.3,1) — quick in, settles rather than bounces.",
+      "page": "charsheet"
+    },
+    {
+      "id": "h-charsheet2",
+      "x": 2,
+      "y": 2587,
+      "w": 392,
+      "text": "3 — Step progress — three options\nAll three at true rendered size, all three in the sticker construction — white die-cut edge, hard keyline. Pick one: PI-A, PI-B, PI-C.",
+      "size": 40,
+      "bold": true,
+      "color": "purple",
+      "page": "charsheet"
+    },
+    {
+      "id": "n-crprogress",
+      "x": 2,
+      "y": 3652,
+      "w": 390,
+      "text": "Three step indicators at true rendered size, all three in the sticker construction: white die-cut edge, hard keyline, flat fill.\nAll are shown at step 3 of 5 and all read at 390px. PI-B is the only one that could carry a tap target; PI-C is the only one that uses a shipped string.",
+      "page": "charsheet"
+    },
+    {
+      "id": "t-components",
+      "x": 2,
+      "y": -1065,
+      "w": 1120,
+      "text": "v12 Components\nEvery screen of the revised flow in one style. Hebrew appears only inside the screens; every annotation on this canvas is English.\nCopy comes from data.js, app.js and index.html, read and asserted at build time. Striped yellow slots are the only unwritten copy.\nIcons are placeholders — the pack's license is not verified.",
+      "size": 120,
+      "bold": true,
+      "page": "components"
+    },
+    {
+      "id": "h-components0",
+      "x": 2,
+      "y": 0,
+      "w": 392,
+      "text": "1 — Component options\nOne frame, seven components, options side by side. Every option is real markup, not a picture of a control.",
+      "size": 40,
+      "bold": true,
+      "color": "purple",
+      "page": "components"
+    },
+    {
+      "id": "n-components",
+      "x": 2,
+      "y": 2305,
+      "w": 390,
+      "text": "Seven components, options side by side. Every option is real markup on the board's own ground — a press state that is specified is a press state you can try.\nThe vote set is the constraint made visible: within each option the three surfaces are one construction, so no option can smuggle in a colour or a size difference.",
+      "page": "components"
+    },
+    {
+      "id": "t-sharecards",
+      "x": 2,
+      "y": -1065,
+      "w": 1120,
+      "text": "v12 Share Cards\nEvery screen of the revised flow in one style. Hebrew appears only inside the screens; every annotation on this canvas is English.\nCopy comes from data.js, app.js and index.html, read and asserted at build time. Striped yellow slots are the only unwritten copy.\nIcons are placeholders — the pack's license is not verified.",
+      "size": 120,
+      "bold": true,
+      "page": "sharecards"
+    },
+    {
+      "id": "h-sharecards0",
+      "x": 2,
+      "y": 0,
+      "w": 862,
+      "text": "1 — Share cards — TWO PICKED, the end-game offers both\nSH-1 leads with the surprise count — the metric that is HIGH when the player did badly, which is what makes it sendable rather than a boast — and SH-2 is the trail, the variant that names no topics. The player picks at the end of the run; the choice is the feature.\nSH-3 and SH-4 are archived, each blocked on somebody else's decision rather than on a design one: SH-3 puts a real bill on a card that leaves the app (Tamar), SH-4 discloses the player's own topic choices and there is no agreed opt-in for it.",
+      "size": 40,
+      "bold": true,
+      "color": "purple",
+      "page": "sharecards"
+    },
+    {
+      "id": "n-sharea",
+      "x": 472,
+      "y": 1462,
+      "w": 390,
+      "text": "SH-1 — PRIMARY. OPTIMISES FOR INTRIGUE. The numeral is the hook — how many times the Knesset did something the player did not expect — and it means nothing to a reader until they play. The topics around it are the data.js icon and label only, never free text, so the card cannot editorialise.\nTHE METRIC LEADS AND IT IS HIGH WHEN THE PLAYER DID BADLY — the count of times the Knesset did something they did not expect. That is the sheet's rule (5.3) and it is the whole reason this card is the primary: a score that goes UP when you were wrong is shareable without being a boast, and it is an invitation rather than a result.\nHeadline copy is unwritten.",
+      "page": "sharecards"
+    },
+    {
+      "id": "n-shareb",
+      "x": 2,
+      "y": 1462,
+      "w": 390,
+      "text": "SH-2 — THE SECOND VARIANT, AND THE ONE THAT OMITS TOPICS. OPTIMISES FOR PROGRESSION. The player's own trail: completed nodes, the avatar where they stopped, coins and X/8. Reads as a scoreboard a friend can place themselves against.\nIt names NO TOPICS, which is why it is the second card rather than a third version of the first (5.4): a player who does not want their reading list on somebody's timeline still has something to send. The end-game offers both and the player picks — the choice is the feature, not a fallback.\nEvery string is shipped; nothing here needs writing.",
+      "page": "sharecards"
+    },
+    {
+      "id": "t-mk",
+      "x": 2,
+      "y": -1065,
+      "w": 1120,
+      "text": "v12 MK Treatment\nEvery screen of the revised flow in one style. Hebrew appears only inside the screens; every annotation on this canvas is English.\nCopy comes from data.js, app.js and index.html, read and asserted at build time. Striped yellow slots are the only unwritten copy.\nIcons are placeholders — the pack's license is not verified.",
+      "size": 120,
+      "bold": true,
+      "page": "mk"
+    },
+    {
+      "id": "h-mk0",
+      "x": 2,
+      "y": 0,
+      "w": 392,
+      "text": "1 — MK sticker treatment\nOne MK, one frame, three uniform filters. Frame and filter only.",
+      "size": 40,
+      "bold": true,
+      "color": "purple",
+      "page": "mk"
+    },
+    {
+      "id": "n-mktreatment",
+      "x": 2,
+      "y": 1067,
+      "w": 390,
+      "text": "One MK, one die-cut frame, three uniform filters: untouched, duotone, slight posterize. Frame and outline are identical across all three — this tests the filter only.\nEach filter is a CSS chain with no per-photo parameters, so it applies mechanically to all 21 MKs. No illustration, no caricature.\n\nPhoto: Reda Raouchaia · Wikimedia Commons · CC BY-SA 4.0",
+      "color": "teal",
+      "page": "mk"
+    },
+    {
+      "id": "t-mechanics",
+      "x": 2,
+      "y": -1065,
+      "w": 1120,
+      "text": "v12 MK-Choice Mechanics\nEvery screen of the revised flow in one style. Hebrew appears only inside the screens; every annotation on this canvas is English.\nCopy comes from data.js, app.js and index.html, read and asserted at build time. Striped yellow slots are the only unwritten copy.\nIcons are placeholders — the pack's license is not verified.",
+      "size": 120,
+      "bold": true,
+      "page": "mechanics"
+    },
+    {
+      "id": "h-mechanics0",
+      "x": 2,
+      "y": 0,
+      "w": 1240,
+      "text": "1 — How the MK choice is made — five mechanics\nBeat 4 asks the player to predict how 3–9 named MKs voted; this board is about what the asking should feel like. Every option is measured against the same constraints: 9 MKs at 390px, abstain empty in 12 of 16 rounds, RTL and thumb reach, and a reveal cascade that does not change whatever the input is.",
+      "size": 40,
+      "bold": true,
+      "color": "purple",
+      "page": "mechanics"
+    },
+    {
+      "id": "n-mecha",
+      "x": 1882,
+      "y": 866,
+      "w": 390,
+      "text": "Drag a chip into a pot. Most physical, and the one everyone pictures.\nCOST: mobile drag with RTL, plus an accessible fallback that ends up being MECH-B anyway — so it is B plus a drag layer, not instead of it.\nAT 9 MKs: the list scrolls under the pots; drag-to-scroll and drag-to-sort fight.",
+      "page": "mechanics"
+    },
+    {
+      "id": "n-mechb",
+      "x": 1412,
+      "y": 866,
+      "w": 390,
+      "text": "Tap a segment. Cheapest to build and the only one that is accessible by default.\nThe three surfaces are one construction — no colour, no size difference.\nAT 9 MKs: nine rows, scrolls fine. RECOMMENDED unless the drag is worth the cost.",
+      "page": "mechanics"
+    },
+    {
+      "id": "n-mechc",
+      "x": 942,
+      "y": 936,
+      "w": 390,
+      "text": "Draw a line from each MK to a pot. Reads as wiring up a parliament and makes the whole set visible at once.\nCOST: highest. Hit-testing a drawn path on a phone is fiddly and the accessible fallback is again MECH-B.\nAT 9 MKs: nine lines across 390px cross each other; this is the option most likely to break at the top of the range.",
+      "page": "mechanics"
+    },
+    {
+      "id": "n-mechd",
+      "x": 472,
+      "y": 936,
+      "w": 390,
+      "text": "One MK at a time; swipe for or against, flick up to abstain.\nFastest at 9 and the most game-like. But it shows one MK at a time, which removes the comparative reasoning that sorting the whole set gives you.\nABSTAIN: a third gesture nobody discovers — the weakest fit for the 4-of-16 finding.",
+      "page": "mechanics"
+    },
+    {
+      "id": "n-meche",
+      "x": 2,
+      "y": 866,
+      "w": 390,
+      "text": "Place every MK on one axis, abstain in the middle. The whole round is one screen and the shape of the answer is the answer.\nRISK: an axis implies a spectrum between the two vote directions, and the game's whole position is that these are two choices, not two ends. This is the option most likely to editorialise by construction — a tone call, not a build call.",
+      "page": "mechanics"
+    },
+    {
+      "id": "t-v7",
+      "x": 2,
+      "y": -720,
+      "w": 1120,
+      "text": "Archive\nArchived from v7. Kept for the record — the decisions these frames settled (ribbon path, node style A, background b) are already applied on the v8 Screens board.\nIcons are placeholders — the pack's license is not verified.",
+      "size": 120,
+      "bold": true,
+      "page": "v7"
+    },
+    {
+      "id": "h-v71",
+      "x": 2,
+      "y": 0,
+      "w": 1240,
+      "text": "2 — v7 · sort to commit\nArchived.",
+      "size": 40,
+      "bold": true,
+      "color": "gray",
+      "page": "v7"
+    },
+    {
+      "id": "n-sorta",
+      "x": 942,
+      "y": 1438,
+      "w": 390,
+      "text": "Six of nine assigned, three waiting, abstain pot empty — the common case.\nTap a segment to assign. The three pots are one element used three times.",
+      "page": "v7"
+    },
+    {
+      "id": "n-sortb",
+      "x": 472,
+      "y": 1438,
+      "w": 390,
+      "text": "All nine committed, nothing revealed. No verdicts, no colour, no score.\nCommit uses the string the prototype already has for this action.",
+      "page": "v7"
+    },
+    {
+      "id": "n-sortc",
+      "x": 2,
+      "y": 1438,
+      "w": 390,
+      "text": "Card 1 of 9 at full size — beat 4's card sharing its stylesheet, not a copy.\nThe pots stay behind it, so the player watches their own commitment being tested.\n\nPhoto: Reda Raouchaia · Wikimedia Commons · CC BY-SA 4.0",
+      "color": "teal",
+      "page": "v7"
+    },
+    {
+      "id": "h-v72",
+      "x": 2,
+      "y": 2021,
+      "w": 1240,
+      "text": "3 — v7 · path styles — ribbon chosen\nArchived.",
+      "size": 40,
+      "bold": true,
+      "color": "gray",
+      "page": "v7"
+    },
+    {
+      "id": "n-pathdots",
+      "x": 1412,
+      "y": 3124,
+      "w": 390,
+      "text": "The current treatment: a dotted line, dark under-dot beneath a light one so the trail has its own thickness. Quietest of the four; reads as a route without competing with the nodes.",
+      "page": "v7"
+    },
+    {
+      "id": "n-pathroad",
+      "x": 942,
+      "y": 3124,
+      "w": 390,
+      "text": "A ribbon with a lit top and a shadowed under-edge, so the path carries the same thickness the nodes do. Strongest sense of a physical board game.\n\nCHOSEN — this is the path on the map in row 1.",
+      "color": "orange",
+      "page": "v7"
+    },
+    {
+      "id": "n-pathstones",
+      "x": 472,
+      "y": 3124,
+      "w": 390,
+      "text": "Discs ON the path rather than a stroke along it, each extruded like the nodes so the whole map shares one light source. Playful; more objects to render.",
+      "page": "v7"
+    },
+    {
+      "id": "n-pathglow",
+      "x": 2,
+      "y": 3124,
+      "w": 390,
+      "text": "No hard edge at all — the route is a glow the nodes sit in. Keeps the eye on the nodes and lets the background gradient do the wayfinding. Softest, and the least literal.",
+      "page": "v7"
+    },
+    {
+      "id": "h-v73",
+      "x": 2,
+      "y": 3657,
+      "w": 1240,
+      "text": "4 — v7 · node styles — A chosen\nArchived.",
+      "size": 40,
+      "bold": true,
+      "color": "gray",
+      "page": "v7"
+    },
+    {
+      "id": "n-nodea",
+      "x": 1412,
+      "y": 4515,
+      "w": 390,
+      "text": "v7.9: the node is a solid token — a flat face on a base that is the same circle offset straight down by 7px, zero blur, in a darker shade of the face's own colour. No gradients, no highlights, nothing floats.\nThe ring wraps the token's whole volume (face plus depth), 6px clear above the face and below the base, stroke thinner than the depth so it reads as track.\nThe fifth cell shows the press: the face drops by the full depth and the base collapses — that is what sells the thickness. Live, it runs 80ms linear on :active.\n\nCHOSEN — this is the node on the map in row 1.",
+      "color": "orange",
+      "page": "v7"
+    },
+    {
+      "id": "n-nodeb",
+      "x": 942,
+      "y": 4515,
+      "w": 390,
+      "text": "Same ring, much deeper wall (24px). Chunkier and more toy-like; the node reads as a physical button you could press. Costs vertical space on a long map.",
+      "page": "v7"
+    },
+    {
+      "id": "n-nodec",
+      "x": 472,
+      "y": 4515,
+      "w": 390,
+      "text": "The ring becomes a continuous hairline track with the progress arcs sitting on it, so an empty ring still reads as a dial rather than as something missing.",
+      "page": "v7"
+    },
+    {
+      "id": "n-noded",
+      "x": 2,
+      "y": 4515,
+      "w": 390,
+      "text": "No ring at all. Progress moves to pips under the node, which is the most legible option at 390px and the cheapest to animate — but it loses the Duolingo silhouette.",
+      "page": "v7"
+    },
+    {
+      "id": "h-v74",
+      "x": 2,
+      "y": 5497,
+      "w": 392,
+      "text": "5 — v7 · numerals\nArchived.",
+      "size": 40,
+      "bold": true,
+      "color": "gray",
+      "page": "v7"
+    },
+    {
+      "id": "n-numerals",
+      "x": 2,
+      "y": 6725,
+      "w": 390,
+      "text": "Bibush against SimplerPro at the sizes the board actually uses, so the call is yours.\nBibush is currently OFF everywhere; this frame is the only place it appears.\n\nBibush cannot set either title: no hyphen and no gershayim in its cmap.",
+      "color": "orange",
+      "page": "v7"
+    },
+    {
+      "id": "h-v75",
+      "x": 2,
+      "y": 7308,
+      "w": 1240,
+      "text": "6 — v7 · background options — b chosen\nArchived.",
+      "size": 40,
+      "bold": true,
+      "color": "gray",
+      "page": "v7"
+    },
+    {
+      "id": "n-bga",
+      "x": 2352,
+      "y": 8486,
+      "w": 390,
+      "text": "Option a — near-black, no texture.",
+      "page": "v7"
+    },
+    {
+      "id": "n-bgb",
+      "x": 1882,
+      "y": 8486,
+      "w": 390,
+      "text": "Option b — dark charcoal, faint grain.",
+      "page": "v7"
+    },
+    {
+      "id": "n-bgc",
+      "x": 1412,
+      "y": 8486,
+      "w": 390,
+      "text": "Option c — mid grey, flat.",
+      "page": "v7"
+    },
+    {
+      "id": "n-bgd",
+      "x": 942,
+      "y": 8486,
+      "w": 390,
+      "text": "Option d — light grey, flat.",
+      "page": "v7"
+    },
+    {
+      "id": "n-bge",
+      "x": 472,
+      "y": 8486,
+      "w": 390,
+      "text": "Option e — warm paper, flat.",
+      "page": "v7"
+    },
+    {
+      "id": "n-bgf",
+      "x": 2,
+      "y": 8486,
+      "w": 390,
+      "text": "Option f — pole grey, dots removed.",
+      "page": "v7"
+    },
+    {
+      "id": "h-v76",
+      "x": 2,
+      "y": 8769,
+      "w": 1240,
+      "text": "7 — v9 · verdict shapes — VD-D chosen\nArchived. VD-D won and is rebuilt as a pressed stamp on the v10 Verdict Stamp board; its placement here, over the portrait, is the bug that pass fixed.",
+      "size": 40,
+      "bold": true,
+      "color": "gray",
+      "page": "v7"
+    },
+    {
+      "id": "n-verdicta",
+      "x": 1412,
+      "y": 10176,
+      "w": 390,
+      "text": "VD-A — pill on the bottom edge.\nThree states, one under the other, so the shape can be judged in all three at once. Same card, same portrait, same crop in every option.\nShared and fixed across all four: copy at 26px (v8 was 18px), a semi-transparent interior with a 7px backdrop blur, and a position that hangs past the card's edge on purpose.\nCOLOUR CODES CORRECTNESS ONLY. Two inks, not three: one for «you called it», one for «the Knesset surprised you». SURPRISE-1 and SURPRISE-2 are two different sentences for the same state, so they share an ink — what separates them is copy.\nVERDICT COPY PENDING TAMAR — the three labels render as [RIGHT] / [SURPRISE-1] / [SURPRISE-2] and nothing on this board guesses at the Hebrew.\n\nPhoto: Reda Raouchaia · Wikimedia Commons · CC BY-SA 4.0",
+      "color": "teal",
+      "page": "v7"
+    },
+    {
+      "id": "n-verdictb",
+      "x": 942,
+      "y": 10176,
+      "w": 390,
+      "text": "VD-B — corner badge, top corner.\nThree states, one under the other, so the shape can be judged in all three at once. Same card, same portrait, same crop in every option.\nShared and fixed across all four: copy at 26px (v8 was 18px), a semi-transparent interior with a 7px backdrop blur, and a position that hangs past the card's edge on purpose.\nCOLOUR CODES CORRECTNESS ONLY. Two inks, not three: one for «you called it», one for «the Knesset surprised you». SURPRISE-1 and SURPRISE-2 are two different sentences for the same state, so they share an ink — what separates them is copy.\nVERDICT COPY PENDING TAMAR — the three labels render as [RIGHT] / [SURPRISE-1] / [SURPRISE-2] and nothing on this board guesses at the Hebrew.\n\nPhoto: Reda Raouchaia · Wikimedia Commons · CC BY-SA 4.0",
+      "color": "teal",
+      "page": "v7"
+    },
+    {
+      "id": "n-verdictc",
+      "x": 472,
+      "y": 10176,
+      "w": 390,
+      "text": "VD-C — banner across the lower third.\nThree states, one under the other, so the shape can be judged in all three at once. Same card, same portrait, same crop in every option.\nShared and fixed across all four: copy at 26px (v8 was 18px), a semi-transparent interior with a 7px backdrop blur, and a position that hangs past the card's edge on purpose.\nCOLOUR CODES CORRECTNESS ONLY. Two inks, not three: one for «you called it», one for «the Knesset surprised you». SURPRISE-1 and SURPRISE-2 are two different sentences for the same state, so they share an ink — what separates them is copy.\nVERDICT COPY PENDING TAMAR — the three labels render as [RIGHT] / [SURPRISE-1] / [SURPRISE-2] and nothing on this board guesses at the Hebrew.\n\nPhoto: Reda Raouchaia · Wikimedia Commons · CC BY-SA 4.0",
+      "color": "teal",
+      "page": "v7"
+    },
+    {
+      "id": "n-verdictd",
+      "x": 2,
+      "y": 10176,
+      "w": 390,
+      "text": "VD-D — stamp over the portrait corner.\nThree states, one under the other, so the shape can be judged in all three at once. Same card, same portrait, same crop in every option.\nShared and fixed across all four: copy at 26px (v8 was 18px), a semi-transparent interior with a 7px backdrop blur, and a position that hangs past the card's edge on purpose.\nCOLOUR CODES CORRECTNESS ONLY. Two inks, not three: one for «you called it», one for «the Knesset surprised you». SURPRISE-1 and SURPRISE-2 are two different sentences for the same state, so they share an ink — what separates them is copy.\nVERDICT COPY PENDING TAMAR — the three labels render as [RIGHT] / [SURPRISE-1] / [SURPRISE-2] and nothing on this board guesses at the Hebrew.\n\nPhoto: Reda Raouchaia · Wikimedia Commons · CC BY-SA 4.0",
+      "color": "teal",
+      "page": "v7"
+    },
+    {
+      "id": "h-v77",
+      "x": 2,
+      "y": 11358,
+      "w": 1240,
+      "text": "8 — v9 · background directions — BG-1 chosen\nArchived. BG-1, charcoal plus the dot grid, is the ground on every frame.",
+      "size": 40,
+      "bold": true,
+      "color": "gray",
+      "page": "v7"
+    },
+    {
+      "id": "n-bg1",
+      "x": 1882,
+      "y": 12596,
+      "w": 390,
+      "text": "BG-1 — charcoal + dot grid — the control, unchanged from v8.\nWHITE DIE-CUT EDGE vs this ground: contrast ratio 10.7:1. The edge is doing real work — it separates card from ground on its own.\nHUD CHIPS over the busiest area (the pile and the card's top edge): pale chip on a dark ground, so the chip reads as an object and its dark numerals read on the chip.\nVERDICT: both inks sit on a dark ground and keep their separation.\nAccent this direction proposes: none: the ground is neutral and every accent on the screen is a component's own.\nIdentical to the other four in every respect but the ground and, on the light grounds, the ink of text sitting directly ON the ground. No component is tuned.\n\nPhoto: Reda Raouchaia · Wikimedia Commons · CC BY-SA 4.0",
+      "color": "teal",
+      "page": "v7"
+    },
+    {
+      "id": "n-bg2",
+      "x": 1412,
+      "y": 12596,
+      "w": 390,
+      "text": "BG-2 — deep navy, two-colour discipline.\nWHITE DIE-CUT EDGE vs this ground: contrast ratio 16.9:1. The edge is doing real work — it separates card from ground on its own.\nHUD CHIPS over the busiest area (the pile and the card's top edge): pale chip on a dark ground, so the chip reads as an object and its dark numerals read on the chip.\nVERDICT: both inks sit on a dark ground and keep their separation.\nAccent this direction proposes: #55AFFF, and it is the ONLY hue the ground introduces — the dot grid is that accent.\nIdentical to the other four in every respect but the ground and, on the light grounds, the ink of text sitting directly ON the ground. No component is tuned.\n\nPhoto: Reda Raouchaia · Wikimedia Commons · CC BY-SA 4.0",
+      "color": "teal",
+      "page": "v7"
+    },
+    {
+      "id": "n-bg3",
+      "x": 942,
+      "y": 12596,
+      "w": 390,
+      "text": "BG-3 — cream / warm paper, light ground.\nWHITE DIE-CUT EDGE vs this ground: contrast ratio 1.2:1. The white edge is effectively GONE. What holds the card's shape here is the hard dark outline underneath it (MF-B), which is exactly why MF-B and not MF-A is the frame that survives a light ground.\nHUD CHIPS over the busiest area (the pile and the card's top edge): the chip fill and the ground are now the same value range, so the chip stops reading as an object; only its keyline separates them.\nVERDICT: the yellow surprise ink is close to this ground and loses its edge; the teal still reads. On a light ground the verdict needs a darker fill or a heavier keyline — which would be a change to the component, so it is not made here.\nAccent this direction proposes: none: the paper is the accent, which is exactly why the white die-cut edge has nothing left to sit on.\nIdentical to the other four in every respect but the ground and, on the light grounds, the ink of text sitting directly ON the ground. No component is tuned.\n\nPhoto: Reda Raouchaia · Wikimedia Commons · CC BY-SA 4.0",
+      "color": "teal",
+      "page": "v7"
+    },
+    {
+      "id": "n-bg4",
+      "x": 472,
+      "y": 12596,
+      "w": 390,
+      "text": "BG-4 — deep green, one warm accent.\nWHITE DIE-CUT EDGE vs this ground: contrast ratio 14.3:1. The edge is doing real work — it separates card from ground on its own.\nHUD CHIPS over the busiest area (the pile and the card's top edge): pale chip on a dark ground, so the chip reads as an object and its dark numerals read on the chip.\nVERDICT: both inks sit on a dark ground and keep their separation.\nAccent this direction proposes: #FFA03C, carried only by the dot grid.\nIdentical to the other four in every respect but the ground and, on the light grounds, the ink of text sitting directly ON the ground. No component is tuned.\n\nPhoto: Reda Raouchaia · Wikimedia Commons · CC BY-SA 4.0",
+      "color": "teal",
+      "page": "v7"
+    },
+    {
+      "id": "n-bg5",
+      "x": 2,
+      "y": 12596,
+      "w": 390,
+      "text": "BG-5 — the topic's own hue as the full-screen ground (topic id \"religion\" = #ffd23f, from data.js).\nWHITE DIE-CUT EDGE vs this ground: contrast ratio 1.4:1. The white edge is effectively GONE. What holds the card's shape here is the hard dark outline underneath it (MF-B), which is exactly why MF-B and not MF-A is the frame that survives a light ground.\nHUD CHIPS over the busiest area (the pile and the card's top edge): the chip fill and the ground are now the same value range, so the chip stops reading as an object; only its keyline separates them.\nVERDICT: the yellow surprise ink is close to this ground and loses its edge; the teal still reads. On a light ground the verdict needs a darker fill or a heavier keyline — which would be a change to the component, so it is not made here.\nAccent this direction proposes: the topic hue IS the ground, so the screen re-colours every round.\nIdentical to the other four in every respect but the ground and, on the light grounds, the ink of text sitting directly ON the ground. No component is tuned.\nPhoto: Reda Raouchaia · Wikimedia Commons · CC BY-SA 4.0\n\nPARTY PALETTES: with a per-topic ground the hue is on screen for a whole round, so it has to be checked against party colours, not just against the components. Two of the eight topic hues in data.js are already close: topic \"branches\" is #2b4cff, a saturated blue, and topic \"economy\" is #ff5240, a saturated red. Those two need moving before this direction can ship.",
+      "color": "orange",
+      "page": "v7"
+    },
+    {
+      "id": "h-v78",
+      "x": 2,
+      "y": 14677,
+      "w": 1240,
+      "text": "9 — v11 · intro compositions — INT-D chosen\nArchived, not deleted. INT-D won; the other four and the v10 intro they replaced are kept here for the record.",
+      "size": 40,
+      "bold": true,
+      "color": "gray",
+      "page": "v7"
+    },
+    {
+      "id": "n-inta",
+      "x": 1882,
+      "y": 15855,
+      "w": 390,
+      "text": "Chair small, building dominant — the chair is a detail IN the scene rather than the subject. The building reads as a place.\nGROUND: plaza continuation. A stone-toned gradient rising out of the building's own paving so the foreground does not stop dead at the cutout edge. This is the alternative to the dot grid that costs nothing.\nThe chair is 96px and is served by the 128px export.\n\nSupplied illustrations. Provenance and licence NOT verified — nothing came with either file. Same flag as the MK illustrations.",
+      "color": "orange",
+      "page": "v7"
+    },
+    {
+      "id": "n-intb",
+      "x": 1412,
+      "y": 15855,
+      "w": 390,
+      "text": "Chair large and central, building cropped to a 104px strip along the bottom — the chair becomes the game's emblem and the building is only there to place it.\nThe strip is the SAME asset, scaled up 132% and anchored to its bottom, so the plaza fills the band and the roofline is out of frame. Nothing is cropped away from the artwork itself.\nGROUND: flat field, one tone, no texture — with a large object in the middle the dot grid was competing with it.\n\nSupplied illustrations. Provenance and licence NOT verified — nothing came with either file. Same flag as the MK illustrations.",
+      "color": "orange",
+      "page": "v7"
+    },
+    {
+      "id": "n-intc",
+      "x": 942,
+      "y": 15855,
+      "w": 390,
+      "text": "Chair only, no building — the emptiest option, and the only one where the intro makes no claim about a place at all.\nGROUND: the board's own dot grid, unchanged. With one object and nothing behind it, the grid is what stops the screen reading as a blank.\nAlso the cheapest: one asset, no cutout, no provenance question about the building.\n\nSupplied illustrations. Provenance and licence NOT verified — nothing came with either file. Same flag as the MK illustrations.",
+      "color": "orange",
+      "page": "v7"
+    },
+    {
+      "id": "n-inte",
+      "x": 472,
+      "y": 15855,
+      "w": 390,
+      "text": "MY OWN. The building is pushed in close and off-centre so the colonnade runs out of frame on both sides, and the chair stands ON the plaza rather than floating over it — one object standing in a place, at the scale a person would be.\nIt is also the option that most clearly cannot be mistaken for an emblem: the frame cuts the building, so there is no symmetrical silhouette to read as a mark.\nGROUND: plaza continuation.\n\nSupplied illustrations. Provenance and licence NOT verified — nothing came with either file. Same flag as the MK illustrations.",
+      "color": "orange",
+      "page": "v7"
+    },
+    {
+      "id": "n-main",
+      "x": 2,
+      "y": 15855,
+      "w": 390,
+      "text": "Title set as die-cut letter stickers, oversized and overlapping. v10: the per-letter jitter is GONE — every letter sits straight on one baseline. What survives of «stuck by hand» is the horizontal overlap, which is what makes the die-cut stroke do real work.\nThe framed collage is gone: the MK photograph and both player-character stickers with it. A drawing of the Knesset takes the space.\nCHECKED — this is the BUILDING, not the institutional mark: three-quarter view with a receding side rather than a straight-on symmetrical silhouette, asymmetric composition, and the construction a mark would drop (podium, recessed wall behind the colonnade, the thickness of the slab). Recognisably the Knesset and not a generic parliament: flat cantilevered roof, no dome, no pediment, slender full-height rectangular columns, broad low podium, cypresses.\nAll other intro elements are unchanged.",
+      "page": "v7"
+    },
+    {
+      "id": "h-v79",
+      "x": 2,
+      "y": 17087,
+      "w": 1240,
+      "text": "10 — v9-v10 · the old round\nArchived. Superseded by the chosen beats on the Screens page.",
+      "size": 40,
+      "bold": true,
+      "color": "gray",
+      "page": "v7"
+    },
+    {
+      "id": "n-round",
+      "x": 2352,
+      "y": 18265,
+      "w": 390,
+      "text": "Beat 1, the settled claim card. Claim is data.js r1.tf in full, asserted to reassemble byte for byte.\nThe blue tag shows the tappable-glossary treatment.\n\nNo glossary term occurs in the r1 claim string, so the treatment is shown on the highlighted phrase.",
+      "color": "orange",
+      "page": "v7"
+    },
+    {
+      "id": "n-beat2ownvote",
+      "x": 1882,
+      "y": 18085,
+      "w": 390,
+      "text": "The 121st MK: the player's sticker sits on the ballot card.\nThree buttons, one construction used three times. Direction is never colour-coded.\n\nGuardrail, verbatim: never scored, never rewarded, never compared to a correct answer.",
+      "color": "orange",
+      "page": "v7"
+    },
+    {
+      "id": "n-beat3bill",
+      "x": 1412,
+      "y": 17945,
+      "w": 390,
+      "text": "bill_title and bill_date only. No outcome, no tally, no MK named.\nThe quietest frame on the board on purpose — tilting a bill title starts to editorialise it.\n\nbill_summary is held back: it mixes context and outcome, and the outcome belongs at beat 5.",
+      "color": "orange",
+      "page": "v7"
+    },
+    {
+      "id": "n-beat4mkcard",
+      "x": 942,
+      "y": 18265,
+      "w": 390,
+      "text": "The v6 album-page card in the original world: shared ground and pile, kraft card.\nPortrait cut out and cropped by rule — the same crop, filter and scale all 98 MKs get.\nMK FRAME = MF-B, your pick: 5px white die-cut edge plus a hard dark outline.\nThe verdict is VD-A shown provisionally, in a surprise state, until the verdict pick comes back. The court stamp used to carry this and no longer does — it was the v8 verdict treatment and the four VD options replace it.\n\nPhoto: Reda Raouchaia · Wikimedia Commons · CC BY-SA 4.0",
+      "color": "teal",
+      "page": "v7"
+    },
+    {
+      "id": "n-beat5tally",
+      "x": 472,
+      "y": 18165,
+      "w": 390,
+      "text": "The claim resolves. Count-up caught mid-count at 41–36 on its way to 63–57.\ntf_explain in full. Sources live here and only here.",
+      "page": "v7"
+    },
+    {
+      "id": "n-beat5notally",
+      "x": 2,
+      "y": 18085,
+      "w": 390,
+      "text": "The same reveal for an issue with no vote count — 8 of 16 issues have none, so this state is half the game.\nNo tally block; a quiet outline holds the unwritten line.",
+      "page": "v7"
+    },
+    {
+      "id": "h-v710",
+      "x": 2,
+      "y": 19197,
+      "w": 1240,
+      "text": "11 — v8 · character builder concept\nArchived. Superseded by SP-B on the Screens page.",
+      "size": 40,
+      "bold": true,
+      "color": "gray",
+      "page": "v7"
+    },
+    {
+      "id": "n-builder1",
+      "x": 2822,
+      "y": 19995,
+      "w": 390,
+      "text": "Step 1 of 6. Preview is the hero, one category per step, tap only.\nEvery category and label is shipped copy from app.js — including the head-covering and eyewear options.\nSelected state: fill, lift and ring. Never size.\n\nEntry point is the map-corner avatar, so nobody is blocked by it.",
+      "color": "orange",
+      "page": "v7"
+    },
+    {
+      "id": "n-builder2",
+      "x": 2352,
+      "y": 19995,
+      "w": 390,
+      "text": "Step 2 of 6. Preview is the hero, one category per step, tap only.\nEvery category and label is shipped copy from app.js — including the head-covering and eyewear options.\nSelected state: fill, lift and ring. Never size.",
+      "page": "v7"
+    },
+    {
+      "id": "n-builder3",
+      "x": 1882,
+      "y": 19995,
+      "w": 390,
+      "text": "Step 3 of 6. Preview is the hero, one category per step, tap only.\nEvery category and label is shipped copy from app.js — including the head-covering and eyewear options.\nSelected state: fill, lift and ring. Never size.",
+      "page": "v7"
+    },
+    {
+      "id": "n-builder4",
+      "x": 1412,
+      "y": 19995,
+      "w": 390,
+      "text": "Step 4 of 6. Preview is the hero, one category per step, tap only.\nEvery category and label is shipped copy from app.js — including the head-covering and eyewear options.\nSelected state: fill, lift and ring. Never size.",
+      "page": "v7"
+    },
+    {
+      "id": "n-builder5",
+      "x": 942,
+      "y": 19995,
+      "w": 390,
+      "text": "Step 5 of 6. Preview is the hero, one category per step, tap only.\nEvery category and label is shipped copy from app.js — including the head-covering and eyewear options.\nSelected state: fill, lift and ring. Never size.",
+      "page": "v7"
+    },
+    {
+      "id": "n-buildermotion",
+      "x": 472,
+      "y": 20055,
+      "w": 390,
+      "text": "The step change, frozen. The preview holds still; only the category travels — the answered one leaves by the trailing edge, the next enters from the leading one.\nThe step frames animate this for real when the canvas opens.",
+      "page": "v7"
+    },
+    {
+      "id": "n-builder6",
+      "x": 2,
+      "y": 20175,
+      "w": 390,
+      "text": "The finished sticker peels off its backing and drops into the HUD slot, where it lives for the rest of the game.",
+      "page": "v7"
+    },
+    {
+      "id": "h-v711",
+      "x": 2,
+      "y": 20678,
+      "w": 1240,
+      "text": "12 — v11 · beat options 1-4\nArchived. Beat 1 and beat 4 are settled; beats 2 and 3 moved forward as v12 options.",
+      "size": 40,
+      "bold": true,
+      "color": "gray",
+      "page": "v7"
+    },
+    {
+      "id": "n-rbb1a",
+      "x": 8932,
+      "y": 21836,
+      "w": 390,
+      "text": "The claim IS the screen. No card, no frame, no chrome — type at 38px filling the bleed, the two answers at the foot.\nStages the claim as a STATEMENT with no speaker: nothing on screen says who said it, which is the most neutral of the five and also the least memorable.",
+      "page": "v7"
+    },
+    {
+      "id": "n-rbb1b",
+      "x": 8462,
+      "y": 21836,
+      "w": 390,
+      "text": "The claim as a stuck-up poster: the pile behind it, the topic emoji die-cut over the top edge.\nStages the claim as a DECLARATION — a poster is somebody's assertion, put up on purpose. That is a reading of the material, not a neutral container.",
+      "page": "v7"
+    },
+    {
+      "id": "n-rbb1c",
+      "x": 7992,
+      "y": 21836,
+      "w": 390,
+      "text": "A broadcast lower-third: the claim in a full-bleed bar with a kicker above it.\nStages the claim as a REPORT — a chyron carries the authority of a newsroom, and that is exactly the cue the beat is supposed to withhold. The kicker line has no shipped string.\n\nTHE STAGING IS A POLITICAL CHOICE, NOT A STYLE ONE. A chyron reports, a poster declares, bare type states. Each frames who is speaking before the player answers. Tamar's call, not a design one.",
+      "color": "orange",
+      "page": "v7"
+    },
+    {
+      "id": "n-rbb1d",
+      "x": 7522,
+      "y": 21836,
+      "w": 390,
+      "text": "A single card held at thumb height: narrower than the frame, with a deep drop so it reads as lifted off the ground rather than printed on it.\nThe held-card idea usually comes with a tilt. Rotation is out board-wide, so the holding is carried by the shadow depth alone — which is weaker, and worth knowing before picking it.",
+      "page": "v7"
+    },
+    {
+      "id": "n-rbb1e",
+      "x": 7052,
+      "y": 21836,
+      "w": 390,
+      "text": "The screen IS the decision: the claim owns the top on the topic's own hue, the two answers own the bottom as equal halves.\nMy own. It is the only one of the five with no container at all — nothing is staging the claim, so nothing is editorialising it. Costs the whole screen, so it cannot carry chrome later.",
+      "page": "v7"
+    },
+    {
+      "id": "n-rbb2a",
+      "x": 6582,
+      "y": 21836,
+      "w": 390,
+      "text": "The plainest reading: the bill named, the question, three equal bars.\nNo bill_summary — see the row note.",
+      "page": "v7"
+    },
+    {
+      "id": "n-rbb2b",
+      "x": 6112,
+      "y": 21836,
+      "w": 390,
+      "text": "Three columns rather than three rows — a paper slip, all three in one glance.\nAt 390px each column is 111px, which נמנע fits and a longer word would not.",
+      "page": "v7"
+    },
+    {
+      "id": "n-rbb2c",
+      "x": 5642,
+      "y": 21836,
+      "w": 390,
+      "text": "The player's own sticker on the screen, above the question — this is the beat where the answer is THEIRS, and putting their face on it is what makes beat 2 unlike beat 4, where the face belongs to somebody else.",
+      "page": "v7"
+    },
+    {
+      "id": "n-rbb2d",
+      "x": 5172,
+      "y": 21836,
+      "w": 390,
+      "text": "The question dominates and the bill drops to a footnote.\nHonest cost: the player votes on a title they have barely read. Whether that is a bug or the point is a content call.",
+      "page": "v7"
+    },
+    {
+      "id": "n-rbb2e",
+      "x": 4702,
+      "y": 21836,
+      "w": 390,
+      "text": "Everything on one card, like a form to complete. The most contained of the five and the easiest to carry the pinned answer alongside.",
+      "page": "v7"
+    },
+    {
+      "id": "n-rbb3a",
+      "x": 4232,
+      "y": 21836,
+      "w": 390,
+      "text": "Title and date, centred, and nothing else. The baseline the other four are measured against.",
+      "page": "v7"
+    },
+    {
+      "id": "n-rbb3b",
+      "x": 3762,
+      "y": 21836,
+      "w": 390,
+      "text": "The title set as die-cut letter stickers. Only the first words fit at a size where the stroke does its work — a 9-character slice is shown, and bill_title runs far longer than that on most issues, so this option needs a short-title field that does not exist.",
+      "page": "v7"
+    },
+    {
+      "id": "n-rbb3c",
+      "x": 3292,
+      "y": 21836,
+      "w": 390,
+      "text": "A filing card with a printed header strip. The only one of the five that looks like a record rather than a slide, which is what this beat actually is.",
+      "page": "v7"
+    },
+    {
+      "id": "n-rbb3d",
+      "x": 2822,
+      "y": 21836,
+      "w": 390,
+      "text": "Title set large and ranged to the reading edge with the date under a rule. Carries a long bill_title better than any of the others.",
+      "page": "v7"
+    },
+    {
+      "id": "n-rbb3e",
+      "x": 2352,
+      "y": 21836,
+      "w": 390,
+      "text": "The honest floor: one line of type and a superscript date on an otherwise empty screen.\nTHIS IS TOO LITTLE TO JUSTIFY A SCREEN. It is shown so the boundary is visible — at this weight the beat reads as a loading state, and the flow would be better served by folding the title into beat 2 or beat 4 than by spending a tap on it.",
+      "page": "v7"
+    },
+    {
+      "id": "n-rbb4a",
+      "x": 1882,
+      "y": 22376,
+      "w": 390,
+      "text": "Options in the upper area, portrait bottom, stamp hanging off the TOP-LEFT corner.\nSTAMP CONFLICT, resolved by inset: the top corners are the only free ones on a portrait-dominant card, and the options want the same band — so the whole top block is inset 64px from the leading edge and the stamp owns the corner it leaves.\nNote moved to beat 5; party stays, because a name without a party is not an identification.\n\nbasis — OPEN QUESTION FOR ROMAN AND TAMAR. «doc» is 61 of the 98 MK cards and surfaces as the מתועד chip. «bloc» is the other 37 — 38% of every card in the game — and has no label anywhere in data.js and no agreed UI. Two whole issues (b2, m1) are bloc on every card. A chip that only ever appears in one state tells the player nothing and quietly marks the other 37 as ordinary. Both states are drawn here; the bloc label is an unwritten slot.",
+      "color": "orange",
+      "page": "v7"
+    },
+    {
+      "id": "n-rbb4b",
+      "x": 1412,
+      "y": 22376,
+      "w": 390,
+      "text": "Options ON the portrait, but only across the chest — the tray is pinned to the card's bottom and the portrait is raised 118px so nothing ever crosses the chin line.\nSTAMP CONFLICT: the top band carries only the name, so the top-left corner is free and the stamp takes it outright. Nothing is inset.\nNote to beat 5; party stays.\n\nbasis — OPEN QUESTION FOR ROMAN AND TAMAR. «doc» is 61 of the 98 MK cards and surfaces as the מתועד chip. «bloc» is the other 37 — 38% of every card in the game — and has no label anywhere in data.js and no agreed UI. Two whole issues (b2, m1) are bloc on every card. A chip that only ever appears in one state tells the player nothing and quietly marks the other 37 as ordinary. Both states are drawn here; the bloc label is an unwritten slot.",
+      "color": "orange",
+      "page": "v7"
+    },
+    {
+      "id": "n-rbb4c",
+      "x": 942,
+      "y": 22376,
+      "w": 390,
+      "text": "The portrait moves off centre and the options take the column it vacates. Nothing overlaps anything.\nSTAMP CONFLICT: with both top corners free the stamp could go there, but it sits BOTTOM-LEFT under the options instead — the reveal reads better arriving from the same side the player was just looking at.\nNote to beat 5; party stays.\nCost: the portrait is the smallest of the five at 176px.\n\nbasis — OPEN QUESTION FOR ROMAN AND TAMAR. «doc» is 61 of the 98 MK cards and surfaces as the מתועד chip. «bloc» is the other 37 — 38% of every card in the game — and has no label anywhere in data.js and no agreed UI. Two whole issues (b2, m1) are bloc on every card. A chip that only ever appears in one state tells the player nothing and quietly marks the other 37 as ordinary. Both states are drawn here; the bloc label is an unwritten slot.",
+      "color": "orange",
+      "page": "v7"
+    },
+    {
+      "id": "n-rbb4d",
+      "x": 472,
+      "y": 22376,
+      "w": 390,
+      "text": "STAMP CONFLICT, resolved by refusing the premise: the stamp does not take a corner at all. It hangs off the card's outer edge onto the ground, level with the shoulder, so it competes with neither the options above nor the face below.\nThe largest portrait of the five, and the only one where the options keep the full width.\nNote to beat 5; party stays.\n\nbasis — OPEN QUESTION FOR ROMAN AND TAMAR. «doc» is 61 of the 98 MK cards and surfaces as the מתועד chip. «bloc» is the other 37 — 38% of every card in the game — and has no label anywhere in data.js and no agreed UI. Two whole issues (b2, m1) are bloc on every card. A chip that only ever appears in one state tells the player nothing and quietly marks the other 37 as ordinary. Both states are drawn here; the bloc label is an unwritten slot.",
+      "color": "orange",
+      "page": "v7"
+    },
+    {
+      "id": "n-rbb4e",
+      "x": 2,
+      "y": 22376,
+      "w": 390,
+      "text": "No corner is RESERVED while predicting. The other four inset their top block, raise the portrait or move the stamp off the card so its corner is kept clear even when it is empty; this one lets the options take the whole band and only makes room when the reveal lands and they collapse into the axis.\nSTAMP CONFLICT: solved in time rather than in space, which is the only solution here that costs no layout.\nThis is the one option that KEEPS the note at beat 4 — it arrives with the stamp, after the guess, which is where an explanation belongs.\n\nbasis — OPEN QUESTION FOR ROMAN AND TAMAR. «doc» is 61 of the 98 MK cards and surfaces as the מתועד chip. «bloc» is the other 37 — 38% of every card in the game — and has no label anywhere in data.js and no agreed UI. Two whole issues (b2, m1) are bloc on every card. A chip that only ever appears in one state tells the player nothing and quietly marks the other 37 as ordinary. Both states are drawn here; the bloc label is an unwritten slot.",
+      "color": "orange",
+      "page": "v7"
+    },
+    {
+      "id": "h-v712",
+      "x": 2,
+      "y": 23808,
+      "w": 1240,
+      "text": "13 — v12-v13 · the options that lost\nArchived. The two unchosen beat-2 overlays, both beat-3 alternatives, and the five v11 beat-5 options.",
+      "size": 40,
+      "bold": true,
+      "color": "gray",
+      "page": "v7"
+    },
+    {
+      "id": "n-crsplitb",
+      "x": 7052,
+      "y": 24986,
+      "w": 390,
+      "text": "SP-B — the sheet takes about 58% and spends it on the option NAMES.\nThe preview drops to 132px but is still there, which is the constraint. The names are shipped strings and they matter: the kippah and the headscarf options are the two a 74px thumbnail does not explain on its own.\nSame action row, same persistent save, same thumb arc.\nTHE PREVIEW IS NOT 3x. SP-B's preview was 132px; three times that is 396px, wider than the 390px frame and 38px wider than the 358px of usable width inside its padding. It cannot be done without cropping the figure or bleeding off both sides. What is here is 340px — 2.6x — the largest square that fits the width with the sheet still at a usable height. Shown rather than silently shrunk.",
+      "page": "v7"
+    },
+    {
+      "id": "n-v12b1swiper",
+      "x": 6582,
+      "y": 25086,
+      "w": 390,
+      "text": "B1-B developed: the card is much larger, the topic graphic is a band inside the card rather than a sticker over its edge, and a loose stack of further cards sits behind it.\\nMAPPING A: dragging toward the RIGHT edge is heading to אמת.\\nThis is the mapping most swipe games ship, and it is exactly what an RTL playtest has to confirm or invert — in a right-to-left reading order the «forward» edge is the left one, so the habit may not transfer.\\nTHE PREVIEW DOES NOT COLOUR-CODE. Both answers get the same plate, the same ink and the same size — it names the word the drag is heading to, never which one is the good one.\\nThe two buttons stay below and stay visually identical: white face, black ink, same box. Swipe is additive; tapping is never removed.\\nThe topic graphic is a labelled slot — the conscription-law illustration is being produced separately.",
+      "page": "v7"
+    },
+    {
+      "id": "n-v12b1swipel",
+      "x": 6112,
+      "y": 25086,
+      "w": 390,
+      "text": "B1-B developed: the card is much larger, the topic graphic is a band inside the card rather than a sticker over its edge, and a loose stack of further cards sits behind it.\\nMAPPING B: dragging toward the LEFT edge is heading to אמת — the same card, the same preview, the inverse mapping.\\nRendered so the pair can go into the test together. In the build this is ONE variable, not two layouts.\\nTHE PREVIEW DOES NOT COLOUR-CODE. Both answers get the same plate, the same ink and the same size — it names the word the drag is heading to, never which one is the good one.\\nThe two buttons stay below and stay visually identical: white face, black ink, same box. Swipe is additive; tapping is never removed.\\nThe topic graphic is a labelled slot — the conscription-law illustration is being produced separately.",
+      "page": "v7"
+    },
+    {
+      "id": "n-v12b2chairsheet",
+      "x": 5642,
+      "y": 24986,
+      "w": 390,
+      "text": "Beat 2 as a translucent, backdrop-blurred overlay rather than a card — this is a meta question, an interruption, not a step in the same plane.\\nThe chair, and a bottom-anchored sheet: about half the round stays visible above it, so the interruption reads as something laid over the game rather than a new screen.\\nThe chair rather than the avatar makes the question institutional — you are being asked as the 121st seat, not as yourself.\\nWHAT IS ACTUALLY BEHIND THE BLUR, checked on the frame: the player's pinned beat-1 answer, and the MK cards they are about to meet. NOTHING ELSE. No bill_summary and no tally — 10 of 16 bill_summary strings end in the Knesset's own vote count, and putting that behind this screen would be the same guardrail violation removed from beat 2 in v11, just blurred.\\nThree vote options, one construction, never colour- or size-coded, never hidden.",
+      "page": "v7"
+    },
+    {
+      "id": "n-v12b2avatarfull",
+      "x": 5172,
+      "y": 24986,
+      "w": 390,
+      "text": "Beat 2 as a translucent, backdrop-blurred overlay rather than a card — this is a meta question, an interruption, not a step in the same plane.\\nThe player's own sticker, and a full-height overlay: the round is still legible through the blur but nothing of it is usable.\\nThe avatar makes the question personal — it is YOUR opinion being asked for, which is the one thing that separates this beat from beat 4.\\nWHAT IS ACTUALLY BEHIND THE BLUR, checked on the frame: the player's pinned beat-1 answer, and the MK cards they are about to meet. NOTHING ELSE. No bill_summary and no tally — 10 of 16 bill_summary strings end in the Knesset's own vote count, and putting that behind this screen would be the same guardrail violation removed from beat 2 in v11, just blurred.\\nThree vote options, one construction, never colour- or size-coded, never hidden.",
+      "page": "v7"
+    },
+    {
+      "id": "n-v12b3a",
+      "x": 4702,
+      "y": 24986,
+      "w": 390,
+      "text": "B3-A as picked: bill_title and bill_date, centred, nothing else.\\nTHE TRADE, stated plainly: a beat of its own gives the bill a moment. The player reads what they are about to be asked about, with nothing competing for attention, and the round has a beat of quiet in it.\\nCosts one tap and one screen in a 60-second round.",
+      "page": "v7"
+    },
+    {
+      "id": "n-v12b3m",
+      "x": 4232,
+      "y": 24986,
+      "w": 390,
+      "text": "The same two strings, dissolved into beat 4's card header. No third screen.\\nTHE TRADE, the other way: saves a tap and a screen, and the bill stays on screen while the player predicts, which the separate beat cannot do.\\nCosts the bill its moment — it arrives as a caption above a face, and the face is what the eye goes to. In a round where the MK card is the payload, a header is a place things go to be skipped.\\nLion's call. Both are drawn at the same size so they can be read side by side.",
+      "page": "v7"
+    },
+    {
+      "id": "n-v14topb",
+      "x": 3762,
+      "y": 25006,
+      "w": 390,
+      "text": "REJECTED, kept as the record of why. (b) cut the card shorter. The same 58px is removed from the card itself: 620px becomes 562px and the name sits 18px from the new top edge.\nWHAT IT DOES TO EVERYTHING BELOW — measured, not assumed. The answer is that the card's own furniture does not move at all, because every piece of it is bottom-anchored: the chips stay at bottom:12, the axis at bottom:10, the 250px stamp at bottom:-58 and the 190px stamp at bottom:112. Their distance from the card's bottom edge is identical in both treatments.\nWhat DOES change is their distance from the top: the 190px stamp's top edge sits 318px below the card top in (a) and 260px below it in (b), so the gap between the name plate and the stamp's landing zone closes by 58px. It still clears — the plate ends around 64px — but (b) is the treatment with less air in it.\nThe pile is unchanged: it is sized from the card, so the backs shorten with it and stay bottom-pivoted.\nTHE ONE REAL COST, and it is not in the furniture — it is the PORTRAIT. The figure is anchored to the card's bottom and the card clips, so cutting 58px off the top cuts 58px off the top of the head: the kippah is truncated by the card edge in (b) and clear of it in (a). Visible in the two renders side by side. If (b) is the pick, the portrait wants scaling down about 9% to bring the head back inside — a one-line change, but a change, and it makes the figure smaller in the card.\n\nSupplied illustration. Provenance and licence NOT verified.",
+      "color": "orange",
+      "page": "v7"
+    },
+    {
+      "id": "n-rbb5a",
+      "x": 3292,
+      "y": 25116,
+      "w": 390,
+      "text": "The count-up sits between the resolution and the explanation.\nNO-TALLY STATE: the count block is replaced in place by a line of the same weight, so the layout does not collapse — but that line has no shipped string and nothing here invents one.",
+      "page": "v7"
+    },
+    {
+      "id": "n-rbb5b",
+      "x": 2822,
+      "y": 25116,
+      "w": 390,
+      "text": "The count as a filled proportion rather than numerals.\nNO-TALLY STATE: the bar is simply absent and the explanation moves up — nothing gapes.\n\nCOLOUR WARNING. This bar splits the vote into two coloured halves, which is colour coding VOTE DIRECTION — the one thing the board forbids. It is drawn so the trap is visible. Picking it means either finding a non-colour split or dropping the option.",
+      "color": "orange",
+      "page": "v7"
+    },
+    {
+      "id": "n-rbb5c",
+      "x": 2352,
+      "y": 25116,
+      "w": 390,
+      "text": "tf_explain carries the beat and the count is a chip beside it.\nNO-TALLY STATE: the chip is gone and NOTHING ELSE MOVES. The most robust of the five across both states, and the only one where the missing count is not visible as an absence.",
+      "page": "v7"
+    },
+    {
+      "id": "n-rbb5d",
+      "x": 1882,
+      "y": 25116,
+      "w": 390,
+      "text": "The count at 84px, owning the screen.\nUNUSABLE. It works beautifully on the 8 issues that have _tally and has nothing to show on the other 8 — half the game. The no-tally panel below is what that actually looks like: a hole where the design was.\n\nMARKED UNUSABLE. This option only works with numbers, and 8 of 16 issues have none.",
+      "color": "orange",
+      "page": "v7"
+    },
+    {
+      "id": "n-rbb5e",
+      "x": 1412,
+      "y": 25116,
+      "w": 390,
+      "text": "The bill title is re-shown with its glossary term live, and the definition opens under it — AFTER the guess, which is the only place a definition can go without helping the player answer.\nBoth states carry it, because the glossary has nothing to do with whether a vote was counted.\n\n22 glossary terms exist in data.js and the UI surfaces NONE of them. Measured: 14 terms occur somewhere in tf_explain / bill_summary / bill_title, reaching 14 of 16 issues — v2 and m2 get none. The other 8 terms (חוק ההסדרים, ועדת בדיקה, משמעת קואליציונית, אי-אמון, סטטוס-קוו, לימודי ליבה, רפורמה משפטית, הצהרת כנסת) occur in no issue text at all and would need to be triggered some other way or written out.",
+      "color": "orange",
+      "page": "v7"
+    },
+    {
+      "id": "n-crsplita",
+      "x": 942,
+      "y": 24986,
+      "w": 390,
+      "text": "SP-A — the preview keeps the screen, the sheet takes about 44%.\nThe avatar is 208px and never moves. Six hair options fit in two rows without scrolling; a category with more would scroll inside the sheet, which is the cost.\nThe primary in the action row is the SHIPPED «on to the map» string, and it is on THIS step as much as the last: the player leaves whenever they want and keeps what they have. Back and forward flank it, chevrons pointing outward as RTL reads.\nEvery control sits inside the thumb arc.",
+      "page": "v7"
+    },
+    {
+      "id": "n-sharec",
+      "x": 472,
+      "y": 24786,
+      "w": 390,
+      "text": "SH-3 — ARCHIVED, BLOCKED ON TAMAR. OPTIMISES FOR SUBSTANCE. One real bill and the player's guess against what happened. No MK is named. The two cells are one construction used twice — no colour, no size difference, nothing saying which is the good one.\nAll copy is data.js bill_title plus app.js labels.\n\nCONTENT POLICY — Tamar: a real bill on a card that leaves the app.",
+      "color": "orange",
+      "page": "v7"
+    },
+    {
+      "id": "n-shared",
+      "x": 2,
+      "y": 24786,
+      "w": 390,
+      "text": "SH-4 — ARCHIVED, BLOCKED ON THE OPT-IN RULE. Putting a player's own topic choices on a card that leaves the app is a disclosure, and there is no agreed opt-in for it. OPTIMISES FOR IDENTITY. The player's avatar and the three topics they put coins into. Topics by icon and label only.\nHeadline copy is unwritten.",
+      "page": "v7"
+    },
+    {
+      "id": "t-screens",
+      "x": 18,
+      "y": -1642,
+      "w": 2000,
+      "text": "v16 Screens — the flow\nEvery screen of the revised flow in one style. Hebrew appears only inside the screens; every annotation on this canvas is English.\nCopy comes from data.js, app.js and index.html, read and asserted at build time. Striped yellow slots are the only unwritten copy.\nIcons are placeholders — the pack's license is not verified.",
+      "size": 120,
+      "bold": true,
+      "page": "screens"
+    },
+    {
+      "id": "h-screens0",
+      "x": 8,
+      "y": -68,
+      "w": 1133,
+      "text": "1 — 1 — Intro\nINT-D, the chosen intro, with the saved chair size and the re-cut building.",
+      "size": 72,
+      "bold": true,
+      "color": "purple",
+      "page": "screens"
+    },
+    {
+      "id": "n-intd",
+      "x": 2,
+      "y": 1377,
+      "w": 390,
+      "text": "The chair sits ON the title so the two read as one composite sticker — the chair's die-cut edge overlapping the letters' die-cut edge is the whole idea, and it only works because both carry the same white cut.\nGROUND: dot grid. The composite is busy enough that a second treatment underneath would fight it.\nCosts the most vertical space of the five.\n\nSupplied illustrations. Provenance and licence NOT verified — nothing came with either file. Same flag as the MK illustrations.",
+      "color": "orange",
+      "page": "screens"
+    },
+    {
+      "id": "h-screens1",
+      "x": -1,
+      "y": 1989,
+      "w": 1240,
+      "text": "2 — 2 — Character\nThe preset sticker sheet, the character detail the HUD opens, and SP-B — the picked creation layout, one bottom sheet per step with PI-C progress.",
+      "size": 72,
+      "bold": true,
+      "color": "purple",
+      "page": "screens"
+    },
+    {
+      "id": "n-peelsheet",
+      "x": 942,
+      "y": 3452,
+      "w": 390,
+      "text": "The shipped mechanic, restyled. The 8 preset avatars are data.js AVATARS exactly as they are — only the die-cut treatment is new.\nOne sticker shown mid-peel. Skip stays available.\nThe second button is the door to the builder: the preset sheet is the route that ships, and most players should finish here without opening it.\n\nThe “customise your character” button is the one label on this board we wrote rather than found.",
+      "color": "orange",
+      "page": "screens"
+    },
+    {
+      "id": "n-profile",
+      "x": 472,
+      "y": 3292,
+      "w": 390,
+      "text": "Tapping the character in the HUD opens this. The gesture already exists — index.html wires the app-bar button and the map's user chip to goAvatar() — but the shipped build drops you into the whole selector with no screen in between.\nName field, voice chips and the swap action are all shipped copy. Two doors out: change the preset, or open the builder.\n\nThe “customise your character” button is written, not shipped.",
+      "color": "orange",
+      "page": "screens"
+    },
+    {
+      "id": "n-v15char",
+      "x": 2,
+      "y": 3552,
+      "w": 390,
+      "text": "THE CHARACTER FLOW, RECONNECTED. Same screen, same picked split — SP-B is not being reopened — and the same shipped strings. Only the construction changes.\nWHAT WAS WRONG: this flow was the one part of the board built out of flat dark panels and thin-keyline white boxes. Everything else is kraft with a 27px grid, a 5px white die-cut edge and a hard offset shadow. Two products, one app.\nWHAT CHANGED, and every substitution is to a token that already exists: the sheet is now the MK card's own material; the option chips are built the way the vote chips are built, at H-A's 14px radius, rather than a second chip construction at 12px; and the preview stands on a card instead of floating on the ground — the same move the MK halo makes, and for the same reason, so the figure is separated from the background by a shape the artwork does not have to supply.\nThe primary was already P-C and is untouched.\nTHE FIGURE IS THE OLD ONE HERE ON PURPOSE. Re-skinning the furniture and re-drawing the avatar are separate decisions; AV-1/2/3 are the second one and are on the Character page.",
+      "page": "screens"
+    },
+    {
+      "id": "h-screens2",
+      "x": -1,
+      "y": 4657,
+      "w": 862,
+      "text": "3 — 3 — The map\nThe path climbs; the window parks on the first incomplete node. H-A chips, AS-D avatar, IB-B icon buttons, and the progress count as bare type.",
+      "size": 72,
+      "bold": true,
+      "color": "purple",
+      "page": "screens"
+    },
+    {
+      "id": "n-pathmap",
+      "x": 472,
+      "y": 6241,
+      "w": 390,
+      "text": "One ring segment per issue: filled = played, pale = not. Casing and fill differ so the two states read at 390px.\nCurrent node gets the heavier ring and halo. Coins and X/8 live here only.\n\nA bonus issue hangs off the ring as a satellite — never a third segment.",
+      "color": "orange",
+      "page": "screens"
+    },
+    {
+      "id": "n-v16node",
+      "x": 2,
+      "y": 6101,
+      "w": 390,
+      "text": "THE PADLOCK ON THE MAP NODE, in all three states the map can show it in.\nNO data.js CHANGE IS NEEDED, and that was the thing to check first. app.js:271 writes '<div class=\"em\">'+t.icon+'</div>' — the glyph is a STRING inside .em, and CSS cannot select on text. But the card beside it carries the topic's colour inline: app.js:267 does card.style.setProperty('--tc', t.color), and all eight topic colours in data.js are distinct. So the hook already exists:\n  .topic-card[style*=\"#37c4ff\"] .em{font-size:0;width:64px;height:102px;\n    background:url(assets/mk/internal_sec_main_64.webp) center/contain no-repeat}\nfont-size:0 drops the glyph, the background paints the object, and styles/overrides.css already loads last and already filters .em on topic-card.done — so the done state's glow carries over for free.\nTHE TRADE, stated: that selector keys on a COLOUR VALUE from data.js. It works today and needs nobody's permission, but it breaks silently if a topic is recoloured. A data-topic attribute on the card is one line in app.js and would make it robust. Roman's call — the CSS route is not blocked on it.\nREADS AT 64px, NOT AT 40px. At 128 and 64 the shackle, the body and the hatching are all there. At 40 the shackle closes up into the body and it reads as a rounded block; the object survives, the fact that it is a PADLOCK does not. The node face is 76px and the mark inside it is 52px, so the map is comfortably above that line — 40px is only reached if the icon is reused somewhere smaller, and it should not be.",
+      "page": "screens"
+    },
+    {
+      "id": "h-screens3",
+      "x": 9,
+      "y": 7852,
+      "w": 1697,
+      "text": "4 — 4 — Beat 1 · the claim  ·  CHOSEN\nB1-B as developed: bigger card, topic graphic as a band inside it, loose stack behind, identical white answer buttons, swipe with a Reigns-style preview.\nThe two frames are the SAME option with the RTL swipe mapping inverted — that is one variable and the playtest settles it.",
+      "size": 72,
+      "bold": true,
+      "color": "purple",
+      "page": "screens"
+    },
+    {
+      "id": "n-v15b1cardr",
+      "x": 942,
+      "y": 9564,
+      "w": 390,
+      "text": "MAPPING A: dragging toward the RIGHT edge is heading to אמת.\nTHE CARD IS NOW THE MK CARD — 340x620, the same kraft and grid, the same 5px white edge and the same hard shadow, measured against beat 4 rather than eyeballed. Same object, different contents.\nThe yellow placeholder band and the rule under it are gone. In their place the topic graphic occupies the card's upper area the way the portrait occupies beat 4's, at 300px on a 340px card.\nTHE ARTWORK NEEDS NO REWORK TO MATCH. policehat.webp is already cut the way the rest of the set is: hard black keyline, flat fills, hatched shading, no cast shadow baked in and no soft halo outside the ink — 25% of the file is fully opaque and 75% fully transparent, with a clean edge between. It takes the same die-cut sticker edge as the chair.\nBuilt on s1, not r1: s1 is the police law, the cap is police, and the beat-4 card and the cascade on this board are s1 too. r1's own topic art does not exist and is still on the list.\n\nSupplied illustration. Provenance and licence NOT verified.",
+      "color": "orange",
+      "page": "screens"
+    },
+    {
+      "id": "n-v15b1cardl",
+      "x": 472,
+      "y": 9564,
+      "w": 390,
+      "text": "MAPPING B: dragging toward the LEFT edge is heading to אמת — the same card, the same preview, the inverse mapping.\nOne variable in the build, not two layouts. The pair goes into the playtest together: in a right-to-left reading order the «forward» edge is the left one, so the habit most swipe games ship may not transfer.\n\nSupplied illustration. Provenance and licence NOT verified.",
+      "color": "orange",
+      "page": "screens"
+    },
+    {
+      "id": "n-v16b1s2",
+      "x": 2,
+      "y": 9564,
+      "w": 390,
+      "text": "THE SECOND ISSUE IN THE SAME TOPIC, with its own graphic. Same card, same construction, same two answers — only the object and the claim change, which is the whole point of keying the art to the issue id.\nThe stamp is PORTRAIT where the cap is landscape (116x210 against 300x180), so the slot is sized by height rather than width and each object fills it on its own axis. Both are written at the exact pixel size they render at; neither is resampled by the browser.\nTHE COLLISION, and it is real: this issue's object is a RUBBER STAMP, and the verdict mark that lands at beat 4 of the same round is also a stamp. Two stamps in one round, 40 seconds apart. They are not confusable at a glance — the claim object is a wooden desk stamp in the topic's own palette, standing still and upright at the top of a card; the verdict is a flat magenta or lime ink ROUNDEL that lands at an angle across a face — but they are the same METAPHOR, and the verdict stamp's whole job is to feel like the round's one authoritative mark. On s2 it is the second stamp the player has seen. Worth a look before it ships; it is not a layout problem and I have not silently changed either one.\n\nSupplied illustration. Provenance and licence NOT verified.",
+      "color": "orange",
+      "page": "screens"
+    },
+    {
+      "id": "h-screens4",
+      "x": 9,
+      "y": 12120,
+      "w": 2000,
+      "text": "5 — 5 — Beat 2 · your own vote  ·  CHOSEN\nB2-CHAIR-FULL: the chair, full-height overlay. The other two are archived.\nBehind the blur: the pinned beat-1 answer and the MK cards ahead. No bill_summary, no tally.\nCHAIR ASPECT STANDARDISED. Lion set the intro chair to 278x309 — 0.900 against the source's 0.856 — and beat 2 was drawing the same object at the source ratio, so the chair was 5% wider in one place than the other. Everything is on Lion's 0.900 now. It does stretch the artwork 5%; restoring 0.856 on the intro is the alternative.",
+      "size": 72,
+      "bold": true,
+      "color": "purple",
+      "page": "screens"
+    },
+    {
+      "id": "n-v12b2chairfull",
+      "x": 2,
+      "y": 14059,
+      "w": 390,
+      "text": "Beat 2 as a translucent, backdrop-blurred overlay rather than a card — this is a meta question, an interruption, not a step in the same plane.\\nThe chair at full size on a full-height overlay — the most emphatic of the three, and the one where least of the round reads through.\\nWorth testing against the sheet: this is a 60-second round and a full-screen interruption is expensive.\\nWHAT IS ACTUALLY BEHIND THE BLUR, checked on the frame: the player's pinned beat-1 answer, and the MK cards they are about to meet. NOTHING ELSE. No bill_summary and no tally — 10 of 16 bill_summary strings end in the Knesset's own vote count, and putting that behind this screen would be the same guardrail violation removed from beat 2 in v11, just blurred.\\nThree vote options, one construction, never colour- or size-coded, never hidden.",
+      "page": "screens"
+    },
+    {
+      "id": "h-screens5",
+      "x": 7,
+      "y": 15734,
+      "w": 1955,
+      "text": "6 — 6 — Beat 3 · the bill  ·  CHOSEN, now an overlay\nNo longer a screen. B3-A's content — bill_title and bill_date, nothing else — on a blurred overlay over the beat-4 card, dismissed into the prediction. The bill is read while looking at the person it is about.\nThrough the blur: the MK card and nothing else. The merged-header alternative is retired.",
+      "size": 72,
+      "bold": true,
+      "color": "purple",
+      "page": "screens"
+    },
+    {
+      "id": "n-v13b3ov",
+      "x": 2,
+      "y": 17433,
+      "w": 390,
+      "text": "Beat 3 is no longer a screen. B3-A's content — bill_title and bill_date, nothing else — sits on a translucent, backdrop-blurred overlay over the beat-4 card, and the player dismisses it into the prediction. The bill is read while looking at the person it is about.\\nWHAT SHOWS THROUGH, and it is the whole card and only the card: the portrait, the name and the party. No bill_summary, no tally, no sources — the same guardrail as the beat-2 overlay, for the same reason.\\nThe merged-into-the-header alternative is retired.\n\nSupplied illustration. Provenance and licence NOT verified.",
+      "color": "orange",
+      "page": "screens"
+    },
+    {
+      "id": "h-screens6",
+      "x": -7,
+      "y": 17944,
+      "w": 2000,
+      "text": "7 — 7 — Beat 4 · the MK cascade  ·  both verdicts  ·  CHIP GAP: PICK ONE\nB4-D as developed: portrait to the card's edges, name at 38px, prediction chips over the head on their own fill, no stamp while predicting.\nTHE AXIS STAYS. Two landed frames side by side: the 190px stamp with the guess-vs-reality axis fully legible, and the 250px stamp without it. The trade is shown rather than argued.\nTHE CHIP GAP, REOPENED because it was reported fixed and was not. The three chips are laid out by .b3v, which votes3() wraps them in — the gap v16 set was on .v4pred, a row with one child, so nothing moved. The chips kept 9px, and because each one paints 4.6px of keyline OUTSIDE its box, 9px of gap is minus 0.2px of daylight: the keylines overlap. Beat 2 is fine at the same 9px only because its button paints nothing outside its box.\nCHIPS-RING is applied to every beat-4 frame here: same ring, 18px gap, 8.8px of daylight. CHIPS-FLAT is beat 2's button verbatim at 9px. Pick one.",
+      "size": 72,
+      "bold": true,
+      "color": "purple",
+      "page": "screens"
+    },
+    {
+      "id": "n-v12b4predict",
+      "x": 1882,
+      "y": 19847,
+      "w": 390,
+      "text": "PREDICTING. No stamp — the verdict does not exist yet, and that rule is not relaxed for this option.\\nThe portrait runs to the card's edges at 460px: the shoulders are not cut mid-way, the figure fills the card.\\nThe three prediction chips sit OVER the head rather than in a reserved band above it. They stay legible on their own fill and a heavier keyline — the portrait is never faded to make room.\n\nSupplied illustration. Provenance and licence NOT verified.",
+      "color": "orange",
+      "page": "screens"
+    },
+    {
+      "id": "n-v12b4axis",
+      "x": 1412,
+      "y": 19847,
+      "w": 390,
+      "text": "THE AXIS STAYS AND THE STAMP GIVES WAY. The guess-vs-reality axis is the payload of the round; the stamp is commentary on it, so the stamp is the thing that comes down.\n190px is the largest it can be and still leave the axis fully legible — it moves to the card's TOP-left corner, where the name is not (the name is right-aligned) and the axis is not (it sits at the foot of the card).\nIt still hangs past the card's edge onto the ground, and the landing motion is unchanged: 340ms total, scale 1.8 -> 1.0 over 190ms on cubic-bezier(.2,.9,.25,1), the ink-bleed displacement running 0 -> full over 60ms at contact, overshoot to 1.06 and settle by 340ms, and a 3px card jolt over 120ms from contact.\nBeside it is the 250px version with no axis, so the trade is visible rather than argued.\n\nSupplied illustration. Provenance and licence NOT verified.",
+      "color": "orange",
+      "page": "screens"
+    },
+    {
+      "id": "n-v15b4rightaxis",
+      "x": 942,
+      "y": 19847,
+      "w": 390,
+      "text": "THE CORRECT VERDICT, at the chosen 190px with the axis kept. Beside it is the surprise state on B4-AXIS, same size, same landing, same motion.\nTHE INK IS LIME, NOT GREEN — #B6E521, hue 74 degrees. That matters: 74 is a yellow-green, and it was picked in VP-2 because it clears style B's own hue bands by 54 degrees where a true green did not. Reading it as «green means right» is the habit this palette is trying not to lean on; what it actually says is «this ink is not that ink».\nStill correctness only. Neither ink appears anywhere near בעד, נגד or נמנע, and neither changes with which way the MK voted.\n\nSupplied illustration. Provenance and licence NOT verified.",
+      "color": "orange",
+      "page": "screens"
+    },
+    {
+      "id": "n-v12b4landed",
+      "x": 472,
+      "y": 19847,
+      "w": 390,
+      "text": "THE STAMP HAS LANDED. It is much larger than v11's, it sits ON TOP of the card and hangs past its edge onto the ground.\\nTHE FACE RULE IS RELAXED HERE, as briefed: the stamp crosses the portrait. Two things it still may not do, both checkable in this render — the MK's NAME stays readable (it has its own kraft plate under it, rather than relying on the card showing through), and the ring text does not sit on the eyes.\\nTHE MOTION, specified: 340ms total. 0-190ms the stamp scales 1.8 -> 1.0 on cubic-bezier(.2,.9,.25,1) while dropping in; 190ms CONTACT — the ink-bleed displacement runs from 0 to full over 60ms, so the edge ruptures as it lands rather than arriving already distressed; 190-250ms overshoot to 1.06 and settle back to 1.0 by 340ms; and the CARD takes a 3px jolt down and back over 120ms from contact. It lands, it does not glide.\nWHAT THE BIGGER STAMP COSTS: the guess-vs-reality axis does not fit under it. In v11 the reveal carried a three-stop axis with the player's guess and the MK's vote on it, and that was the beat's payload. At this scale there is nowhere to put it that can be read. Either the axis moves to a following screen, or the stamp comes down in size. Flagged rather than shrunk into illegibility — Lion's call.\n\nSupplied illustration. Provenance and licence NOT verified.",
+      "color": "orange",
+      "page": "screens"
+    },
+    {
+      "id": "n-v15b4right",
+      "x": 2,
+      "y": 19847,
+      "w": 390,
+      "text": "THE CORRECT VERDICT at 250px, beside B4-LANDED's surprise at the same size. The trade is the same one and it does not depend on which verdict landed: at 250px there is nowhere the axis can go.\nWorth looking at the two side by side for one reason in particular — the lime is a much lighter ink than the magenta (value 90%% against 100%%, but saturation 86%% against 77%%), so the correct stamp sits lighter on the portrait and reads as less of an interruption. If that asymmetry is wrong — if being right should land as hard as being surprised — it is a palette question, not a layout one.\n\nSupplied illustration. Provenance and licence NOT verified.",
+      "color": "orange",
+      "page": "screens"
+    },
+    {
+      "id": "h-screens7",
+      "x": -19,
+      "y": 21237,
+      "w": 2000,
+      "text": "8 — 8 — The set  ·  every MK on s1, one crop rule\nSix of the twenty-one politicians in data.js now have an illustration, and all six are framed by one recovered rule rather than by eye: 3:4, face at 68.3% of the frame width, eyeline at 37.7% — the numbers read off Ben Gvir's own shipped crop, so «the same prep» means the same numbers.\nDetection is measured, not asserted: eyes are found as dark ink with skin both above and below it, which is what separates them from hair and from a beard. Two faces broke the first two detectors and are the reason for that rule.\nThe seventh card is the initials fallback for an MK with no art. The eighth frame is the whole set at 48px, which is where a portrait set holds together or does not.",
+      "size": 72,
+      "bold": true,
+      "color": "purple",
+      "page": "screens"
+    },
+    {
+      "id": "n-v14pile5",
+      "x": 4702,
+      "y": 23482,
+      "w": 390,
+      "text": "THE DECK AT ITS DEEPEST — card 1 of 5, four backs under it.\nFIVE, NOT SIX. s1 lists six MKs in data.js. app.js:373 takes Math.min(5, issue.politicians.length) and deals five, so a sixth back would promise a card that never arrives. The depth is read off the sample, and it is asserted in the build rather than typed in.\nThe backs carry nothing — kraft, grid, keyline. No portrait, no name, no party, because who is next is the thing the beat withholds.\nThey pivot about the front card's bottom centre so the fan opens upward: the whole lower half of the card, where the stamp hangs and the axis sits, stays clear. Largest sideways excursion 21px against 25px of frame margin.\n\nSupplied illustration. Provenance and licence NOT verified.",
+      "color": "orange",
+      "page": "screens"
+    },
+    {
+      "id": "n-v14pile2",
+      "x": 4232,
+      "y": 23482,
+      "w": 390,
+      "text": "NEAR THE END — card 4 of 5, one back left.\nNothing about the treatment changes as the deck empties; there is simply less of it. The front card is identical in both states, which is the point: the pile is a progress reading the player gets for free, without a counter, a bar or a number.\n\nSupplied illustration. Provenance and licence NOT verified.",
+      "color": "orange",
+      "page": "screens"
+    },
+    {
+      "id": "n-v14pile1",
+      "x": 3762,
+      "y": 23482,
+      "w": 390,
+      "text": "THE LAST CARD — card 5 of 5, no pile at all.\nThis is the end of the depletion, not a state with something missing. When the deck is spent the card stands alone, which is exactly how beat 4 has looked on this board until now.\nIt is also the one card where the treatment costs nothing: no back to clear, so the stamp and the axis have the same room they always had.\n\nSupplied illustration. Provenance and licence NOT verified.",
+      "color": "orange",
+      "page": "screens"
+    },
+    {
+      "id": "n-v15casc1",
+      "x": 3292,
+      "y": 23482,
+      "w": 390,
+      "text": "איתמר בן-גביר, עוצמה יהודית. Card 1, 4 still under it.\ns1 deals FIVE of its six and shuffles which five, so the sixth card here carries a full pile rather than an empty one: in another round it is the one that comes first.\nNothing on this card is authored: the name and the party are read out of data.js by id, and the portrait is the framed export.\nThe point of the row is the SET, not the card — the same crop rule on six different faces, at the size the player sees them.\n\nSupplied illustration. Provenance and licence NOT verified.",
+      "color": "orange",
+      "page": "screens"
+    },
+    {
+      "id": "n-v15casc2",
+      "x": 2822,
+      "y": 23482,
+      "w": 390,
+      "text": "בנימין נתניהו, הליכוד. Card 2, 3 still under it.\ns1 deals FIVE of its six and shuffles which five, so the sixth card here carries a full pile rather than an empty one: in another round it is the one that comes first.\nNothing on this card is authored: the name and the party are read out of data.js by id, and the portrait is the framed export.\nThe point of the row is the SET, not the card — the same crop rule on six different faces, at the size the player sees them.\n\nSupplied illustration. Provenance and licence NOT verified.",
+      "color": "orange",
+      "page": "screens"
+    },
+    {
+      "id": "n-v15casc3",
+      "x": 2352,
+      "y": 23482,
+      "w": 390,
+      "text": "אריה דרעי, ש\"ס. Card 3, 2 still under it.\ns1 deals FIVE of its six and shuffles which five, so the sixth card here carries a full pile rather than an empty one: in another round it is the one that comes first.\nNothing on this card is authored: the name and the party are read out of data.js by id, and the portrait is the framed export.\nThe point of the row is the SET, not the card — the same crop rule on six different faces, at the size the player sees them.\n\nSupplied illustration. Provenance and licence NOT verified.",
+      "color": "orange",
+      "page": "screens"
+    },
+    {
+      "id": "n-v15casc4",
+      "x": 1882,
+      "y": 23482,
+      "w": 390,
+      "text": "יאיר לפיד, יש עתיד. Card 4, 1 still under it.\ns1 deals FIVE of its six and shuffles which five, so the sixth card here carries a full pile rather than an empty one: in another round it is the one that comes first.\nNothing on this card is authored: the name and the party are read out of data.js by id, and the portrait is the framed export.\nThe point of the row is the SET, not the card — the same crop rule on six different faces, at the size the player sees them.\n\nSupplied illustration. Provenance and licence NOT verified.",
+      "color": "orange",
+      "page": "screens"
+    },
+    {
+      "id": "n-v15casc5",
+      "x": 1412,
+      "y": 23482,
+      "w": 390,
+      "text": "בני גנץ, המחנה הממלכתי. Card 5, 0 still under it.\ns1 deals FIVE of its six and shuffles which five, so the sixth card here carries a full pile rather than an empty one: in another round it is the one that comes first.\nNothing on this card is authored: the name and the party are read out of data.js by id, and the portrait is the framed export.\nThe point of the row is the SET, not the card — the same crop rule on six different faces, at the size the player sees them.\n\nSupplied illustration. Provenance and licence NOT verified.",
+      "color": "orange",
+      "page": "screens"
+    },
+    {
+      "id": "n-v15casc6",
+      "x": 942,
+      "y": 23482,
+      "w": 390,
+      "text": "מרב מיכאלי, העבודה. Card 6, 4 still under it.\ns1 deals FIVE of its six and shuffles which five, so the sixth card here carries a full pile rather than an empty one: in another round it is the one that comes first.\nNothing on this card is authored: the name and the party are read out of data.js by id, and the portrait is the framed export.\nThe point of the row is the SET, not the card — the same crop rule on six different faces, at the size the player sees them.\n\nSupplied illustration. Provenance and licence NOT verified.",
+      "color": "orange",
+      "page": "screens"
+    },
+    {
+      "id": "n-v15cascnoart",
+      "x": 472,
+      "y": 23482,
+      "w": 390,
+      "text": "THE FALLBACK, on an MK who has no illustration. אביגדור ליברמן appears on eight MK cards across data.js and there is no art for him, which is the normal case: six of twenty-one are drawn.\nThe initials are the shipped name sliced at its spaces, so they cannot drift from it, and they sit on the SET'S OWN EYELINE — 37.7% down the box — so the badge occupies the card exactly as a portrait does.\nWHAT IT MUST NEVER DO is borrow a face. Substituting another MK's portrait would attach a real person's likeness to a vote that is not theirs.",
+      "page": "screens"
+    },
+    {
+      "id": "n-v15set48",
+      "x": 2,
+      "y": 23002,
+      "w": 390,
+      "text": "THE WHOLE SET AT 48px, which is the size the axis marker and the sort chips use, and the size at which a portrait set is actually tested.\nServed from the 128px export, not by shrinking the 400px one — under 150px that is the rule on this board, and at 48px a browser resampling a 400px halftone is a test of the resampler.\nWHAT TO LOOK FOR: every head the same size and every pair of eyes on the same line. That is the whole return on framing them to one rule, and it is only visible at this size.\nThe last chip is the initials fallback at the same size.\n\nSupplied illustrations. Provenance and licence NOT verified.",
+      "color": "orange",
+      "page": "screens"
+    },
+    {
+      "id": "h-screens9",
+      "x": 4,
+      "y": 24399,
+      "w": 1933,
+      "text": "10 — 10 — Beat 5 · the reveal  ·  CHOSEN, two variants open\nB5-A rebuilt with less on screen, not restyled. One thing dominant: the count and the resolution lead, tf_explain is the explanation beneath, sources are ONE line, and the glossary term is marked inline where it already occurs — no definition panel.\nTWO variants, differing only in whether the count is a large numeral or a quiet figure beside the resolution. Three states on each, because there are three: _tally present, no numbers at all, and the undesigned case where a count exists only inside bill_summary prose with no field to read it from.",
+      "size": 72,
+      "bold": true,
+      "color": "purple",
+      "page": "screens"
+    },
+    {
+      "id": "n-v13b5a1",
+      "x": 472,
+      "y": 26728,
+      "w": 390,
+      "text": "B5-A rebuilt. The density was not a styling problem — the beat was carrying four things at once, so the fix is that there is LESS on screen, in a strict order.\\nPRIMARY the count, large, with the resolution beside it. SECONDARY tf_explain, plainly beneath it. TERTIARY sources as ONE line — not a block, not a card, not chips. Present and checkable, not competing.\\nGLOSSARY: no panel. The term is marked inline in the sentence it already occurs in, and tapping it opens the definition — shown open on the first panel. Where a term does not occur in an issue's text, nothing is marked and nothing is manufactured to hold it. Measured: 14 of 16 issues carry at least one term in tf_explain, bill_summary or bill_title.\\nTHREE STATES, because there are three and not two:\\n  r1 — _tally exists, the count leads and counts up.\\n  e2 — no vote numbers anywhere. The RESOLUTION leads instead. Nothing collapses and nothing looks missing, because no space was reserved for a count.\\n  b2 — the undesigned case: a count exists but only inside bill_summary PROSE, with no field exposing it. It cannot be a numeral and it cannot count up, so the resolution leads and the one shipped sentence carrying the number is quoted underneath as words. b2, a2 and s2 are all in this state.",
+      "page": "screens"
+    },
+    {
+      "id": "n-v13b5a2",
+      "x": 2,
+      "y": 26728,
+      "w": 390,
+      "text": "B5-A rebuilt. The density was not a styling problem — the beat was carrying four things at once, so the fix is that there is LESS on screen, in a strict order.\\nPRIMARY the resolution, with the count quiet beside it. SECONDARY tf_explain, plainly beneath it. TERTIARY sources as ONE line — not a block, not a card, not chips. Present and checkable, not competing.\\nGLOSSARY: no panel. The term is marked inline in the sentence it already occurs in, and tapping it opens the definition — shown open on the first panel. Where a term does not occur in an issue's text, nothing is marked and nothing is manufactured to hold it. Measured: 14 of 16 issues carry at least one term in tf_explain, bill_summary or bill_title.\\nTHREE STATES, because there are three and not two:\\n  r1 — _tally exists, the count leads and counts up.\\n  e2 — no vote numbers anywhere. The RESOLUTION leads instead. Nothing collapses and nothing looks missing, because no space was reserved for a count.\\n  b2 — the undesigned case: a count exists but only inside bill_summary PROSE, with no field exposing it. It cannot be a numeral and it cannot count up, so the resolution leads and the one shipped sentence carrying the number is quoted underneath as words. b2, a2 and s2 are all in this state.",
+      "page": "screens"
+    },
+    {
+      "id": "h-screens10",
+      "x": -3,
+      "y": 28095,
+      "w": 862,
+      "text": "11 — 11 — Leaving the game\nEnd-game allocation at 8/8, and the share card.",
+      "size": 72,
+      "bold": true,
+      "color": "purple",
+      "page": "screens"
+    },
+    {
+      "id": "n-endgame",
+      "x": 472,
+      "y": 29397,
+      "w": 390,
+      "text": "Coins allocated across the 8 topics. Medals stick onto printed slots.\nConfetti is reserved for 8/8 and this is that screen.\n\nGuardrail, verbatim: across topics, never parties.",
+      "color": "orange",
+      "page": "screens"
+    },
+    {
+      "id": "n-share",
+      "x": 2,
+      "y": 29337,
+      "w": 390,
+      "text": "A sticker collage: the player's avatar plus the stickers they collected.\nYellow, not blue — blue is the most party-adjacent colour available and this artifact leaves the app.\nHeadline should be the surprise count; no such string exists in app.js yet.\n\nPhoto: Reda Raouchaia · Wikimedia Commons · CC BY-SA 4.0",
+      "color": "teal",
+      "page": "screens"
+    },
+    {
+      "id": "h-screens11",
+      "x": 6,
+      "y": 30044,
+      "w": 1626,
+      "text": "12 — 12 — Open items, and the primary's states\nEverything still undecided on one frame, with owners. Beside it, P-C at rest and pressed.",
+      "size": 72,
+      "bold": true,
+      "color": "purple",
+      "page": "screens"
+    },
+    {
+      "id": "n-openitems",
+      "x": 472,
+      "y": 32243,
+      "w": 390,
+      "text": "Every outstanding question on one frame, with who owns it, so it can go to Roman and Tamar without hunting the board.\nThe first six are findings in the SHIPPED app and its data, not design questions — they were turned up by reading app.js and data.js while building these screens, and each one changes what a screen can honestly show.",
+      "page": "screens"
+    },
+    {
+      "id": "n-pressstate",
+      "x": 2,
+      "y": 31043,
+      "w": 390,
+      "text": "P-C, the primary, in both states at true size.\nREST: yellow face, 3px white stroke, a 4.6px dark keyline outside it, and the same edge repeated 6px below as the extrusion.\nPRESSED: the face moves down by exactly that 6px and the offset copy collapses to 0, so the button ends up flush with the surface rather than merely darker. 80ms linear on transform and box-shadow together.\nThe mustard #C7A408 extrusion is gone from the board entirely — the white stroke replaced it rather than joining it.",
+      "page": "screens"
+    },
+    {
+      "id": "z-open",
+      "x": 2,
+      "y": 32876,
+      "w": 1160,
+      "text": "OPEN\n- Preset restyle (row 1) or builder (row 2)? Both are on the board.\n- Builder entry: map corner is drawn; early placement is the alternative.\n- Sorting named politicians into bins, with party lines visible — does it read as\n  sorting people by tribe? Tamar's call, not a design decision.\n- Share headline needs a surprise-count string; app.js counts coins.\n- Icon pack license is unverified.\n- 21 of 21 MKs have a licensed Commons portrait (photo-manifest.json). Tali\n  Gottlieb's is 428x480, tight for the framing rule.\n\nUNWRITTEN COPY — Tamar\n- Verdict, all three states. The shipped wrong-verdict word is out (the Knesset surprised the player; they did not fail) and the claim's TRUE answer word cannot double as a verdict, since the beat-1 buttons already use it. Three strings needed.\n- Verdict ring text — the line that runs round the inside of the stamp. Renders as [RING-TEXT]; nothing guesses at it.\n- Intro line — the player as the 121st MK\n- Beat 5 no-tally: the line that replaces the vote count\n- Share A: the surprise-count headline\n- Share D: the allocation headline\n- chyron kicker line\n- basis=bloc has no label anywhere in data.js\n- beat 5, no-tally: the line that replaces the count\n- no count exists\n- Topic graphic slot — a conscription-law illustration is in production\n- Beat 1: the line that says both swipe and tap work\n- Beat 3 overlay: the dismiss hint\n- Share card: the headline, which should be the surprise count, not the prediction record\n- Sort screen: the tap-to-assign instruction",
+      "size": 24,
+      "bold": true,
+      "color": "red",
+      "page": "screens"
+    },
+    {
+      "id": "t-handoff",
+      "x": 7,
+      "y": -409,
+      "w": 2000,
+      "text": "v16 Handoff — what the prototype gets\nTokens, components and an asset manifest, as files rather than as a description of files. Nothing here has to be reverse-engineered off an artboard.",
+      "size": 120,
+      "bold": true,
+      "page": "handoff"
+    },
+    {
+      "id": "h-handoff0",
+      "x": 12,
+      "y": 711,
+      "w": 1917,
+      "text": "1 — The component kit, drawn by the shipped stylesheet\nexplorations/v16/prototype/ is the deliverable: hachach.css (one stylesheet, tokens in :root then the components), manifest.json (id to asset path, generated from data.js and asserted against disk) and components.html (every class rendered from the stylesheet alone). README.md in explorations/v16/ says how to consume it.\nThis frame pastes hachach.css in verbatim, so it is the same file the prototype gets — not a picture of it.",
+      "size": 40,
+      "bold": true,
+      "color": "purple",
+      "page": "handoff"
+    },
+    {
+      "id": "n-v16kit",
+      "x": 2,
+      "y": 2515,
+      "w": 390,
+      "text": "THE HANDOFF, RENDERED. Every component on this frame is drawn by explorations/v16/prototype/hachach.css and by nothing else — the artboard pastes that file in verbatim, so if a class here is wrong the file the prototype gets is wrong too.\n53 tokens in :root. Colours are named by ROLE — --verdict-correct and --verdict-surprise, never by vote direction, because there is no token for בעד and there must not be one. Motion is named for what it times: --t-press, --t-stamp, --t-flip, --t-swipe, --t-finale, so a duration can be retuned in one place.\ncheck_tokens_v16.py renders this stylesheet in a browser and compares each component's COMPUTED value against the token the same file declares — a component that hardcoded a colour instead of reading a token fails there, rather than passing a search for the word ':root'.\nmanifest.json carries 6 politicians with art, 15 without, 1 topic icon and 2 issue graphics, generated from data.js and asserted against what is actually on disk. Paths, never base64.\nREADME.md says how to consume it, and names the three things that are easy to get wrong: portraits are top-anchored, most MKs have no art and must never borrow a face, and the pile counts the DEALT sample.",
+      "page": "handoff"
+    },
+    {
+      "id": "n-v16chipsring",
+      "x": 2822,
+      "y": 19847,
+      "w": 390,
+      "page": "screens",
+      "text": "RING KEPT, GAP WIDENED — and this is what is applied to every beat-4 frame on the board.\nThe chips carry 3px of white ring and 4.6px of keyline outside their own boxes, so two neighbours spend 9.2px of any gap on their own edges. At the old 9px that left MINUS 0.2px: the keylines overlapped and the three read as one segmented control. At 18px there is 8.8px of daylight, which is beat 2's 9px to within a rounding.\nChips 93x52. The ring is the reason to prefer this one: these chips sit ON a portrait — a suit, a collar, a face — where beat 2's sit on flat dark ground, and the keyline is what holds a chip against that.\n\nSupplied illustration. Provenance and licence NOT verified.",
+      "size": "s",
+      "color": "orange"
+    },
+    {
+      "id": "n-v16chipsflat",
+      "x": 2352,
+      "y": 19847,
+      "w": 390,
+      "page": "screens",
+      "text": "BEAT 2'S CONSTRUCTION, VERBATIM. The ring is gone; the chip has beat 2's plain downward extrusion and beat 2's 9px gap, which shows as a full 9px because nothing is painted outside the box.\nChips 99x52 — wider, because the gap is not paying for two rings.\nWHAT IT COSTS, and it is the only difference that matters: there is no longer a keyline between the chip and the portrait behind it. On the white shirt and the pale collar the chip's own cream fill is very close to the ground it sits on. Beat 2 never has this problem because its buttons sit on a flat dark overlay.\nWorth looking at the two against the shirt specifically.\n\nSupplied illustration. Provenance and licence NOT verified.",
+      "size": "s",
+      "color": "orange"
+    }
+  ],
+  "launch": {
+    "view": "canvas",
+    "page": "handoff"
+  },
+  "pages": [
+    {
+      "id": "screens",
+      "name": "v16 Screens — the flow"
+    },
+    {
+      "id": "handoff",
+      "name": "v16 Handoff — what the prototype gets"
+    },
+    {
+      "id": "character",
+      "name": "v12 Character"
+    },
+    {
+      "id": "bengvir",
+      "name": "v12 MK Illustration"
+    },
+    {
+      "id": "vdstamp",
+      "name": "v12 Verdict Stamp"
+    },
+    {
+      "id": "charsheet",
+      "name": "v12 Character Sheets"
+    },
+    {
+      "id": "components",
+      "name": "v12 Components"
+    },
+    {
+      "id": "sharecards",
+      "name": "v12 Share Cards"
+    },
+    {
+      "id": "mk",
+      "name": "v12 MK Treatment"
+    },
+    {
+      "id": "mechanics",
+      "name": "v12 MK-Choice Mechanics"
+    },
+    {
+      "id": "v7",
+      "name": "Archive"
+    }
+  ]
+}

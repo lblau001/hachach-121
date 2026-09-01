@@ -1,0 +1,60 @@
+{
+  "source": "gantz.jpg",
+  "sourceSize": [
+    2240,
+    3160
+  ],
+  "visionFaces": 1,
+  "matteBBox": [
+    4,
+    164,
+    2232,
+    3152
+  ],
+  "widestHeadRow": {
+    "y": 1292,
+    "left": 208,
+    "right": 1876,
+    "width": 1668
+  },
+  "headBandTo": 1509,
+  "chin": 2443,
+  "frameBottom": 2579,
+  "sideMarginGot": 0.075,
+  "strayMatteDropped": 0,
+  "largestComponent": 318812,
+  "crop": [
+    61,
+    -75,
+    1963,
+    2654
+  ],
+  "constants": {
+    "slot": [
+      176,
+      238
+    ],
+    "sideMargin": 0.075,
+    "headMargin": 0.09,
+    "headBand": 0.45
+  },
+  "shortOfSpec": {
+    "top": 75,
+    "sideCutFrom": 0.729
+  },
+  "subjectOnPortraitEdge": {
+    "top": "0/352 px",
+    "bottom": "352/352 px",
+    "left": "74/476 px",
+    "right": "129/476 px"
+  },
+  "silhouetteCutTo": 0.729,
+  "output": {
+    "file": "mk-portrait.webp",
+    "size": [
+      352,
+      476
+    ],
+    "bytes": 23686
+  }
+}
