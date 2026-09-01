@@ -1,0 +1,592 @@
+/* =====================================================================
+   הח״כ ה-121 — prototype, s1 round.
+   Sits ON TOP of ../prototype/hachach.css. Everything here is either
+   (a) screen-specific layout the handoff stylesheet deliberately does
+   not carry, (b) one of the two motion tokens the brief supersedes, or
+   (c) a documented workaround for a defect in the handoff file.
+   No colour is declared here that is not already a token.
+   ===================================================================== */
+
+@font-face{
+  font-family:'SimplerPro';
+  src:url('../../../fonts/SimplerPro_HLAR-Black.woff2') format('woff2');
+  font-weight:900; font-style:normal; font-display:block;
+}
+
+/* ---------------------------------------------------------------------
+   THE TWO OVERRIDDEN TOKENS, and why.
+   hachach.css ships --t-flip:260ms and --t-finale:620ms. Both are below
+   the figures the brief calls MEASURED: the flip wants 300-500ms (the
+   Doherty band, sheet §1.4) and the finale wants ~850ms (Balatro weight,
+   sheet §8b [M]). Overridden here, in one place, so the handoff file
+   stays the handoff file.
+   --------------------------------------------------------------------- */
+:root{
+  --t-flip:   380ms;   /* was 260ms — mid of the measured 300-500 band   */
+  --t-finale: 850ms;   /* was 620ms — the round's one held beat          */
+
+  /* ---- DERIVED. Baselines from the brief, tuned by hand on device. --- */
+  /* §1.2 THE ANSWER-FIRST HOLD. The brief's derived baseline was
+     250-300ms. On device that reads as latency, not as a held beat: the
+     player's choice does not get time to sit alone before the truth
+     arrives. --t-hold-long is the tuned figure; the switch in the spike
+     bar plays both. The FLIP is untouched at 380ms — lengthening the
+     hold does not touch the cascade-vs-finale contrast, because the hold
+     is the pause BEFORE the verdict, not the verdict's own duration. */
+  --t-hold-short:  275ms;   /* the brief's derived baseline              */
+  --t-hold-long:   640ms;   /* tuned: the choice reads as HELD           */
+  --t-hold:        var(--t-hold-long);
+
+  --t-draw:        225ms;  /* pile -> front, ease-out, deck not slide    */
+  --t-exit:        180ms;  /* the spent card leaving                     */
+  --t-ov-in:       260ms;  /* beat-2 overlay, blur ramps with it         */
+  --t-ov-collapse: 220ms;  /* beat-3 dismiss, INTO the card beneath      */
+  --t-snapback:    160ms;  /* release below the drag threshold           */
+  --t-resolve:     450ms;  /* the pinned claim resolving. A moment.      */
+  --t-coin:        400ms;  /* one coin award counting up                 */
+  --e-out:         cubic-bezier(.16,.84,.44,1);
+
+  --gate-hint:  4000ms;    /* §1.6 idle -> instruction line appears      */
+  --gate-grow:  8000ms;    /* §1.6 idle -> it grows. NEVER an error.     */
+
+  --card-scale: 1;         /* set from JS so a 620px card fits a short
+                              phone without ever introducing a scroll    */
+}
+:root[data-hold="short"]{ --t-hold: var(--t-hold-short); }
+
+*{ box-sizing:border-box; }
+
+/* =====================================================================
+   THE STAGE IS FIXED. NO SCROLL, EITHER AXIS, ON ANY BEAT.
+   The app is a fixed stage, not a document. html and body are pinned to
+   the visual viewport and cannot scroll, rubber-band or overscroll; the
+   stage is sized in DYNAMIC viewport units so it follows Safari's chrome
+   collapsing instead of assuming a height. Exactly two surfaces in the
+   whole app may scroll — the path map and character personalisation —
+   and they opt in with .scrolls, which is also the only place
+   touch-action is handed back.
+   ===================================================================== */
+html, body{
+  margin:0; padding:0;
+  position:fixed; inset:0;
+  width:100%; height:100%;
+  overflow:hidden;
+  overscroll-behavior:none;
+  touch-action:none;                 /* the body never pans. .scrolls opts back in. */
+  -webkit-text-size-adjust:100%;
+}
+body{
+  background:#6E6C68; color:var(--ink);
+  font-family:var(--font-ui); font-variant-numeric:tabular-nums;
+  -webkit-font-smoothing:antialiased;
+  display:flex; justify-content:center;
+}
+/* the only two surfaces that may ever scroll */
+.scrolls{ overflow-y:auto; touch-action:pan-y; overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch; }
+
+.defs{ position:absolute; width:0; height:0; }
+
+.stage{
+  position:relative; width:100%; max-width:390px;
+  /* --vh is set from window.innerHeight for Safari versions without dvh;
+     dvh wins wherever it exists. Either way the stage IS the viewport. */
+  height:calc(var(--vh, 1vh) * 100);
+  overflow:hidden; isolation:isolate;
+  display:flex; flex-direction:column;
+  padding:calc(10px + env(safe-area-inset-top))
+          calc(16px + env(safe-area-inset-right))
+          calc(12px + env(safe-area-inset-bottom) + var(--devbar-h, 0px))
+          calc(16px + env(safe-area-inset-left));
+  background:#403E3A;
+  box-shadow:0 3px 20px rgba(0,0,0,.4);
+}
+@supports (height: 100dvh){ .stage{ height:100dvh; } }
+
+.stage::before{
+  content:""; position:absolute; inset:0; z-index:0; pointer-events:none;
+  background-image:
+    radial-gradient(rgba(255,255,255,.07) .5px,transparent .6px),
+    radial-gradient(rgba(0,0,0,.34) .5px,transparent .6px);
+  background-size:4px 4px,7px 7px; background-position:0 0,2px 3px;
+}
+
+/* =====================================================================
+   HUD. Coins left, avatar right. Sits ABOVE the beat-2 overlay so the
+   coin count stays readable while the round is blurred out.
+   ===================================================================== */
+.hud{
+  position:relative; z-index:12; flex:none;
+  display:flex; align-items:center; gap:var(--sp-2);
+  padding-bottom:var(--sp-2);
+}
+.hud-mid{ flex:1; }
+.hud-coins{ direction:ltr; }
+.hud-coins .coin-glyph{ color:var(--primary); font-size:13px; line-height:1; }
+.hud-coins .num{ direction:ltr; unicode-bidi:isolate; }
+.hud-coins.is-awarding{ animation:coin-bump var(--t-coin) var(--e-out); }
+@keyframes coin-bump{ 0%,100%{transform:none} 35%{transform:translateY(-3px) scale(1.04)} }
+.hud-you{ width:40px; height:40px; }
+
+.round{ position:relative; z-index:1; flex:1; min-height:0;
+  display:flex; flex-direction:column; padding-top:26px; }
+
+.beat{ flex:1; min-height:0; display:flex; flex-direction:column; position:relative; }
+
+/* =====================================================================
+   NUMERALS · §7. Western numerals in an LTR run inside the RTL flow.
+   ===================================================================== */
+.num,.n{ direction:ltr; unicode-bidi:isolate; font-family:var(--font-display);
+  font-weight:900; }
+
+/* =====================================================================
+   PLACEHOLDER · copy Tamar has not written.
+   The spike bar hides these so the round can be played clean. They are
+   HIDDEN, never deleted: the marker is what makes a missing string
+   visible, and the layout has to hold without them because that is what
+   shipping looks like. Hiding targets the HOST element, so a paragraph
+   that exists only to carry a placeholder leaves no empty line behind.
+   ===================================================================== */
+.ph{
+  display:inline-block; background-color:var(--primary);
+  background-image:repeating-linear-gradient(45deg,#FFE03D 0 8px,var(--primary) 8px 16px);
+  color:var(--ink); border:2px dashed var(--ink); border-radius:4px;
+  padding:2px 8px 3px; font-size:var(--fs-meta); font-weight:700; line-height:1.4;
+}
+body.no-ph [data-ph]{ display:none !important; }
+
+/* =====================================================================
+   THE COMMIT GATE · §1.6.
+   Disabled until committed. Unfilled reads YELLOW and the instruction
+   copy escalates. No error state and no red: incompleteness is not a
+   mistake. The escalation lands on the INSTRUCTION LINE, never on one of
+   the three options — colouring one would break "three, always
+   identical" and leak an answer.
+   ===================================================================== */
+.gate{
+  flex:none; min-height:22px; margin-top:var(--sp-2);
+  display:flex; justify-content:center; align-items:center; text-align:center;
+}
+.gate-line{
+  opacity:0; transform:translateY(4px);
+  font-size:var(--fs-meta); font-weight:700; line-height:1.35;
+  color:var(--ink); background:var(--primary);
+  border-radius:var(--r-chip); padding:4px 12px 5px;
+  box-shadow:0 0 0 2px var(--keyline);
+  transition:opacity var(--t-flip) var(--e-settle),
+             transform var(--t-flip) var(--e-settle),
+             font-size var(--t-flip) var(--e-settle),
+             padding var(--t-flip) var(--e-settle);
+}
+.gate.is-hinting .gate-line{ opacity:1; transform:none; }
+.gate.is-urging  .gate-line{ opacity:1; transform:none;
+  font-size:var(--fs-body); padding:7px 16px 8px; }
+
+/* =====================================================================
+   THE CARD STACK
+   .cardwrap is the only thing that scales, so a 620px card fits a short
+   phone. It does NOT clip: the verdict stamp hangs outside the card and
+   .mf-b carries overflow:hidden, which is what clipped it before.
+   ===================================================================== */
+/* .stack is the only thing that scales, so a 620px card plus its axis
+   strip fits a short phone without ever introducing a scroll.
+   sizeStage() sets BOTH the transform and an explicit height, because a
+   transform does not shrink the box the flex column reserves — leaving
+   the layout claiming 620px while the eye saw 500. */
+.stack{
+  display:flex; flex-direction:column; align-items:center; flex:none;
+  transform-origin:top center;
+}
+/* .cardwrap does NOT clip: the verdict stamp hangs outside the card, and
+   .mf-b carries overflow:hidden, which is what was cutting it off. */
+.cardwrap{ position:relative; width:var(--card-w); flex:none; }
+
+/* =====================================================================
+   BEAT 1 · THE CLAIM · B1-B developed
+   ONLY THE TOP CARD MOVES. The stage, the pile and the ground are never
+   transformed — the drag is on .b1card and nothing else.
+   ===================================================================== */
+.b1{ align-items:center; justify-content:center; }
+
+.b1card{
+  display:flex; flex-direction:column; align-items:center;
+  padding:44px var(--sp-4) 84px;
+  touch-action:none;                 /* the card owns the gesture */
+  will-change:transform;
+}
+.b1card.is-dragging{ transition:none; }
+.b1card.is-snapping{ transition:transform var(--t-snapback) var(--e-settle); }
+/* ONE class drives the exit, so a tap and a swipe leave identically */
+.b1card.is-leaving{ transition:transform var(--t-swipe) var(--e-out),
+                                opacity var(--t-swipe) linear; }
+
+.b1art{ flex:none; display:grid; place-items:center; min-height:210px; }
+.b1art img{ display:block; filter:url(#dcw) drop-shadow(0 5px 0 rgba(0,0,0,.30)); }
+
+.b1claim{
+  flex:1; display:grid; place-items:center; margin-top:6px;
+  font-family:var(--font-display); font-weight:900; font-size:var(--fs-claim);
+  line-height:1.16; color:var(--ink); text-align:center; text-wrap:balance;
+}
+
+/* the two answers. IDENTICAL — same class, same size, same weight, same
+   ink. אמת and שקר are never told apart by anything but their letters. */
+.b1ans{ position:absolute; z-index:7; bottom:var(--sp-3); inset-inline:var(--sp-3); }
+.b1ans .v-a{ min-height:60px; font-size:var(--fs-action); }
+
+/* ---- the swipe, §2.2 · every gesture has a button twin -------------
+   THE REVEAL APPEARS ON THE SIDE THE CARD IS MOVING TOWARD. Written in
+   PHYSICAL left/right on purpose: the logical properties invert under
+   dir=rtl, which is exactly how this ended up mirrored. The mapping
+   switch changes which ANSWER a direction means, never which side the
+   reveal comes from.                                                  */
+/* ---- THE REVEAL, and why it is ON the card rather than behind it.
+   Measured: dragging left exposes 0px of ground on the left and 56-152px
+   on the right, because the card is 340px wide inside 25px of ground —
+   its leading edge leaves the stage before any gap can open there. A
+   panel parked behind the card on the travel side therefore cannot ever
+   become visible, at any drag distance. It is not a z-order or an RTL
+   bug; the geometry forbids it at this card width.
+   So the reveal is the Tinder/Reigns move instead: a wash on the card's
+   LEADING EDGE, which is visible from the first few pixels of travel, is
+   unambiguously on the side the card is going, and travels with it.
+   Same ink both directions — it names the word, never which one is the
+   "good" answer. The alternative, if the panel behind is wanted, is to
+   shrink the card during the drag so ground opens on the leading side. */
+.b1target{
+  position:absolute; z-index:6; top:0; bottom:0; width:62%;
+  display:flex; align-items:center; opacity:0; pointer-events:none;
+  border-radius:2px;
+}
+.b1target--left{
+  left:0; justify-content:flex-start; padding-inline-start:20px;
+  background:linear-gradient(to right, var(--kraft-deep) 0%,
+             color-mix(in srgb, var(--kraft-deep) 55%, transparent) 62%, transparent 100%);
+}
+.b1target--right{
+  right:0; justify-content:flex-end; padding-inline-end:20px;
+  background:linear-gradient(to left, var(--kraft-deep) 0%,
+             color-mix(in srgb, var(--kraft-deep) 55%, transparent) 62%, transparent 100%);
+}
+.b1target span{ font-family:var(--font-display); font-weight:900;
+  font-size:38px; color:var(--ink); white-space:nowrap;
+  text-shadow:0 2px 0 var(--edge); }
+
+/* §2.1 Reigns: the label fades in ACROSS the drag, before release.
+   It lives INSIDE the card so it travels with it — as a sibling it
+   floated loose on screen while the card moved out from under it. */
+.b1prev{
+  position:absolute; z-index:9; top:14px; opacity:0;
+  display:flex; align-items:center; gap:var(--sp-2);
+  background:var(--paper); border:3px solid var(--edge); border-radius:var(--r-pill);
+  padding:6px 14px 8px; pointer-events:none;
+  box-shadow:0 0 0 1.5px var(--keyline), 0 4px 0 rgba(0,0,0,.34);
+}
+.b1prev b{ font-family:var(--font-display); font-weight:900; font-size:22px; color:var(--ink); }
+.b1prev i{ font-style:normal; font-size:var(--fs-micro); font-weight:700;
+  color:var(--ink-soft); direction:ltr; }
+
+.b1hint{ text-align:center; margin:14px 0 0; }
+
+/* =====================================================================
+   BEAT 2 · YOUR OWN VOTE · B2-CHAIR-FULL
+   A full-height blurred overlay, not a card: this is an interruption,
+   a meta question, not a step in the same plane.
+   THE OVERLAY IS A CHILD OF .stage, NOT OF THE BEAT, so the blur reaches
+   every edge including the safe areas. Anchored to the beat it stopped
+   at the round's padding and the dot-grid ground showed through.
+   ===================================================================== */
+.b2under{
+  position:absolute; inset:0; z-index:0;
+  display:flex; flex-direction:column; align-items:center;
+  padding:22px var(--sp-4) 0; gap:var(--sp-3); overflow:hidden;
+}
+.b2backs{ display:flex; gap:var(--sp-2); margin-top:6px; }
+.b2backs i{
+  display:block; width:96px; height:128px;
+  background:var(--card-surface);
+  border:3px solid var(--edge-warm);
+  box-shadow:0 0 0 2px var(--keyline), 0 4px 0 rgba(0,0,0,.3);
+}
+.ov--stage{
+  position:absolute; inset:0; z-index:9;
+  display:grid; place-items:center;
+  padding:calc(18px + env(safe-area-inset-top)) 16px
+          calc(16px + env(safe-area-inset-bottom));
+  /* softer than beat 3's: what is behind it — the answer just given and
+     the cards ahead — is meant to be recognisable as those things */
+  -webkit-backdrop-filter:blur(9px) saturate(.9);
+  backdrop-filter:blur(9px) saturate(.9);
+  background:rgba(28,26,23,.52);
+  animation:ov-in var(--t-ov-in) var(--e-settle) both;
+}
+.ov-inner{ display:flex; flex-direction:column; align-items:center;
+  gap:clamp(8px, 1.6vh, 16px); width:100%; max-width:358px; }
+/* align-items:center on a flex column shrink-wraps every child, so the
+   vote row was 219px of a 326px line. The board writes width:100% here. */
+.ov-inner .v-a-row{ width:100%; }
+/* THE CHAIR IS NEVER CROPPED. It is the game's emblem; a cut one reads
+   as a bug. Height is capped against the viewport so a short phone
+   shrinks it rather than clipping it, and the aspect is Lion's 0.900. */
+.b2chair{
+  display:block; flex:none;
+  width:auto; height:clamp(96px, 23vh, 196px); aspect-ratio:168 / 196;
+  object-fit:contain;
+  filter:url(#dcw) drop-shadow(0 4px 0 rgba(0,0,0,.3));
+}
+.b2q{ font-family:var(--font-display); font-weight:900;
+  font-size:clamp(22px, 3.4vh, 29px); color:#EFECE4; text-align:center; margin:0; }
+.b2bill{ font-size:15px; font-weight:700; line-height:1.45; color:#D8D2C4;
+  text-align:center; max-width:30ch; margin:0; }
+/* §1.0 the consent line. The hold is explained, so it reads as suspense
+   rather than as a bug. It arrives WITH the pinned answer. */
+.b2consent{ font-size:var(--fs-meta); font-weight:700; color:var(--ink-faint);
+  text-align:center; margin:0; }
+.ov--out{ animation:ov-out var(--t-ov-in) var(--e-settle) both; }
+@keyframes ov-out{ from{opacity:1} to{opacity:0} }
+
+/* =====================================================================
+   BEAT 3 · THE BILL · B3-OVERLAY
+   bill_title + bill_date only, over the MK card. What shows through is
+   the card and nothing else. Dismiss COLLAPSES INTO the card beneath.
+   ===================================================================== */
+.ov--card{ align-content:center; justify-items:center; gap:var(--sp-4);
+  padding:26px 22px; text-align:center; cursor:pointer; }
+.b3title{ font-family:var(--font-display); font-weight:900; font-size:30px;
+  line-height:1.2; color:#F6F1E2; text-wrap:balance; margin:0; }
+.b3date{ font-size:15px; font-weight:700; color:var(--ink);
+  background:var(--paper); border-radius:var(--r-pill); padding:5px 15px; }
+.b3go{ margin-top:var(--sp-2); }
+.ov--collapse{ animation:ov-collapse var(--t-ov-collapse) var(--e-out) both;
+  transform-origin:50% 62%; }
+@keyframes ov-collapse{
+  from{ opacity:1; transform:scale(1);
+        -webkit-backdrop-filter:blur(16px) saturate(.9); backdrop-filter:blur(16px) saturate(.9) }
+  to  { opacity:0; transform:scale(.86);
+        -webkit-backdrop-filter:blur(0) saturate(1); backdrop-filter:blur(0) saturate(1) }
+}
+
+/* =====================================================================
+   BEAT 4 · THE MK CASCADE · B4-D developed, CHIPS-RING, D2 at 190px
+   ===================================================================== */
+.b4{ align-items:center; justify-content:center; }
+
+.mf-b.is-drawing{ animation:draw var(--t-draw) var(--e-out) both; }
+@keyframes draw{
+  from{ transform:translate(3px,-22px) rotate(1.6deg) scale(.97); opacity:.35 }
+  to  { transform:none; opacity:1 }
+}
+.mf-b.is-spent{ animation:spend var(--t-exit) var(--e-out) both; }
+@keyframes spend{
+  from{ transform:none; opacity:1 }
+  to  { transform:translateY(-16px) scale(.96); opacity:0 }
+}
+
+.mf-b__port{ filter:drop-shadow(0 2px 0 rgba(0,0,0,.18)); }
+
+/* ---- THE PARTY GOES ON ITS OWN LINE.
+   hachach.css styles .mf-b__id's <h2> and <p> both display:inline-block,
+   so on a short name they share a line and the party reads as a subtitle
+   beside it. Every board frame draws the party UNDER the name.
+   §1.4b the label itself stays — hiding it dumps the complexity on a
+   17-year-old as noise, and the fix for a boring round is curation. */
+.mf-b__id h2{ display:block; }
+.mf-b__id p { display:inline-block; margin-top:4px; }
+/* .mf-b__id p is (0,1,1), so the basis line needs the parent in the
+   selector to win and drop onto its own row under the party. */
+.mf-b__id .mf-b__basis{ display:block; }
+
+/* the initials badge. Never another politician's face. Set on the set's
+   own eyeline — 37.7% down the box — so it occupies the card as a
+   portrait does. */
+.mf-b__badge{
+  position:absolute; left:50%; top:37.7%; translate:-50% -50%;
+  width:170px; height:170px; border-radius:50%;
+  display:grid; place-items:center;
+  background:var(--paper); color:var(--ink);
+  font-family:var(--font-display); font-weight:900; font-size:56px;
+  box-shadow:0 0 0 4px var(--edge), 0 0 0 6px var(--keyline);
+}
+
+.mf-b__foot .v-a{ font-size:19px; }
+
+/* ---- the guess-vs-reality axis. The payload of the beat.
+   IT SITS BELOW THE CARD, not inside it. With the face rule re-locked
+   there is no 190px region on the card clear of both the portrait and
+   the right-aligned name plate, so the card's foot goes to the stamp and
+   the axis gets its own full-width strip — which also stops the stamp
+   covering the נמנע stop. Deviation from B4-RIGHT-AXIS, forced by the
+   rule; the alternative is a ~125px stamp with the axis back on-card. */
+.gx{
+  position:relative; width:var(--card-w); margin-top:52px; z-index:8;
+  animation:gx-in var(--t-hold) var(--e-settle) both;
+  background:rgba(216,201,168,.92); border-radius:12px; padding:7px 9px 5px;
+  box-shadow:0 0 0 2px rgba(0,0,0,.4);
+}
+@keyframes gx-in{ from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none} }
+.gx-track{
+  position:relative; height:38px; margin:0 4px;
+  background:rgba(34,31,23,.13); border-radius:19px;
+  box-shadow:inset 0 0 0 1.5px rgba(34,31,23,.22);
+}
+.gx-m{ position:absolute; top:50%; translate:50% -50%; width:38px; height:38px; display:block;
+  transition:right var(--t-flip) var(--e-settle); }
+.gx-you .as-d{ width:38px; height:38px; filter:url(#dcw-sm); }
+.gx-port{ display:block; width:34px; height:46px; object-fit:contain; object-position:50% 0; }
+.gx-badge{ display:grid; place-items:center; width:38px; height:38px; border-radius:50%;
+  background:var(--paper); font-family:var(--font-display); font-weight:900; font-size:14px;
+  box-shadow:0 0 0 2px var(--keyline); }
+.gx-m.is-paired.gx-you{ translate:50% -50%; transform:translateY(-30px) scale(.66); }
+.gx-stops{ display:flex; margin-top:5px; }
+.gx-stops i{ flex:1; text-align:center; font-style:normal; font-size:var(--fs-meta);
+  font-weight:700; color:var(--ink-soft); }
+.gx-cap{ display:flex; justify-content:space-between; margin:3px 0 0;
+  font-size:var(--fs-micro); font-weight:700; color:#413B2E; }
+
+/* ---- D2, THE VERDICT STAMP ---------------------------------------
+   TWO FIXES, both regressions against the board.
+
+   1  IT WAS CLIPPED at the card's left edge. .mf-b carries
+      overflow:hidden, so a stamp parented to the card loses everything
+      hanging past the edge — which is most of the point of the object.
+      Parented to .cardwrap now, which does not clip.
+
+   2  IT LANDED ON THE FACE. The board's CSS puts the 190px stamp at
+      bottom:112px, which crosses the portrait; the board says so and
+      relaxes the face rule to allow it. With that rule re-locked, the
+      stamp goes BELOW THE CHIN instead.
+      Geometry from manifest.json's crop rule: the portrait is
+      top-anchored at --mk-port-top (96px) and rendered 534.6px tall, the
+      eyeline sits at 37.7% of the frame (y=298) and the chin at roughly
+      54% (y≈385). Top at 400px clears it, and the name plate — which is
+      right-aligned and can run to x=66 on a long name — is 340px above.
+      400px cleared the anatomical chin but still crossed Deri's BEARD,
+      which is as much "the person" as the chin is, so the stamp drops to
+      470px — 70% down the portrait frame, below every face in the set —
+      and hangs off the card's bottom edge as well as its left. The left
+      overhang is held to 22px so it reaches the stage's edge without
+      being clipped by it. Checked against all six portraits, not just
+      the one it was reported on. ------------------------------------ */
+.d2{
+  width:190px; height:190px;
+  top:470px; left:-22px; bottom:auto; right:auto;
+}
+.d2__art{ position:absolute; inset:0; width:100%; height:100%; overflow:visible; fill:none; }
+.d2__art circle{ fill:none; stroke:currentColor; }
+.d2__art text{ fill:currentColor; stroke:none; font-family:var(--font-display);
+  font-weight:900; letter-spacing:.18em; direction:ltr; }
+.d2__lab{ position:relative; z-index:2; direction:ltr; transform:translateY(3px); }
+
+.pile{ pointer-events:none; }
+
+/* =====================================================================
+   BEAT 5 · THE REVEAL · B5-A1 (count leads) / B5-A2 (count quiet)
+   Strict order: resolution + count, then the shape of the guess, then
+   the explanation, then sources as ONE line.
+   §8 NEVER: >1 number at the emotional peak. The tally counts up alone;
+   the score and the coins arrive after it has settled.
+   IT DOES NOT SCROLL. Only the map and character personalisation ever
+   do. fitBeat() scales this block down on a short phone instead.
+   ===================================================================== */
+.b5{ padding-top:44px; gap:var(--sp-2); justify-content:flex-start; }
+.b5 > *{ flex:none; }
+.b5fit{ transform-origin:top center; }
+
+.b5panel{
+  background:rgba(0,0,0,.16); box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.10);
+  width:calc(100% + 32px); margin:0 -16px; padding:16px var(--sp-4) 14px;
+  display:flex; flex-direction:column; gap:var(--sp-2);
+}
+.b5lead{ display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; }
+.b5count{ font-size:66px; color:#EFECE4; line-height:.95; }
+.b5-a2 .b5count{ font-size:22px; color:var(--ink-faint); }
+.b5res{
+  font-family:var(--font-display); font-weight:900; font-size:44px; line-height:1;
+  background:#000; color:#fff; border:var(--card-border) solid var(--edge);
+  padding:2px 16px 6px;
+}
+.b5-a2 .b5res, .b5-nocount .b5res{ font-size:56px; }
+.b5outcome{ font-size:12.5px; font-weight:700; color:#8E897C; margin:0; }
+
+/* §1.4c THE 121st VOTE. Compared to the OUTCOME, never to a party or a
+   named MK. Usually nothing changes — that is the lesson. */
+.b5you{
+  display:flex; align-items:center; gap:var(--sp-2);
+  font-size:var(--fs-body); font-weight:700; color:#EFECE4;
+  background:rgba(255,255,255,.06); border-radius:var(--r-chip);
+  padding:9px var(--sp-3);
+}
+.b5you .as-d{ width:32px; height:32px; flex:none; }
+.b5you .num{ color:var(--primary); }
+
+/* §1.8 the SHAPE of the guess, narrated before the score.
+   Describes the pattern; never characterises the guesser. */
+.b5shape{ font-size:15px; font-weight:700; line-height:1.45; color:#D8D2C4; margin:0; }
+
+.b5exp{ font-size:14.5px; font-weight:700; line-height:1.5; color:#D8D2C4; margin:0; }
+
+/* §1.1 the unfinished sentence, completed. Verb + count, nothing added. */
+.b5sentence{
+  font-size:14.5px; font-weight:700; line-height:1.45; color:#BEB9AC;
+  border-inline-start:2px solid rgba(255,214,10,.5); padding-inline-start:10px; margin:0;
+}
+
+.gt{ background:rgba(55,196,255,.22); border-bottom:2px dotted #9FD9F2;
+  color:#EFECE4; padding:0 3px; font-weight:900; cursor:pointer; }
+.gdef{
+  margin:0; background:var(--paper); color:var(--ink); border-radius:12px;
+  padding:9px var(--sp-3); font-size:12.5px; font-weight:700; line-height:1.45;
+  box-shadow:0 0 0 2px rgba(0,0,0,.4);
+}
+/* sources: ONE line. Not a block, not a card, not chips. */
+.b5src{ font-size:11.5px; font-weight:700; color:#8E897C; margin:0; }
+.b5src a{ color:#8E897C; }
+
+.b5stage{ opacity:0; transform:translateY(6px);
+  transition:opacity var(--t-flip) var(--e-settle), transform var(--t-flip) var(--e-settle); }
+.b5stage.is-in{ opacity:1; transform:none; }
+
+.b5go{ margin-top:var(--sp-3); }
+
+/* ---- THE PINNED CLAIM ----------------------------------------------
+   hachach.css writes inset-inline-end:26px. The board's own frames write
+   right:26px. In an RTL document those are OPPOSITE EDGES: the logical
+   property moved the pinned answer to the left, onto the HUD avatar.
+   It also anchors to .round rather than .stage so it hangs over the top
+   of the PLAY AREA — the board frames have no HUD to collide with — and
+   sits above the beat-2 overlay, because at the moment it ENTERS it is
+   chrome arriving, not round content being blurred out. */
+.pinned{ inset-inline-start:6px; inset-inline-end:auto; top:0; z-index:11;
+  transition:none; }
+.pinned.is-resolving{ animation:pin-resolve var(--t-resolve) var(--e-settle) both; }
+@keyframes pin-resolve{
+  0%   { transform:none }
+  38%  { transform:rotateX(90deg) scale(1.04) }
+  62%  { transform:rotateX(-8deg) scale(1.04) }
+  100% { transform:none }
+}
+.pinned.is-truth{ box-shadow:0 0 0 3px var(--edge), 0 0 0 4.6px var(--keyline),
+  var(--shadow-press), 0 0 0 10px rgba(255,214,10,.22); }
+.pinned small{ display:block; font-size:9px; letter-spacing:.06em;
+  color:var(--ink-soft); font-weight:700; }
+
+/* =====================================================================
+   SPIKE CHROME. Not part of the design.
+   ===================================================================== */
+#devbar{
+  position:fixed; z-index:99; bottom:0; left:0; right:0;
+  display:flex; flex-wrap:wrap; gap:4px; align-items:center;
+  padding:4px 6px; background:rgba(20,19,17,.92); color:#BEB9AC;
+  font:600 9.5px/1.2 ui-monospace,Menlo,monospace;
+  touch-action:auto;
+}
+#devbar button{
+  font:inherit; cursor:pointer; padding:3px 6px; border-radius:4px;
+  border:1px solid #55524B; background:#2E2C29; color:#D6D2C8;
+}
+#devclock{ margin-inline-start:auto; color:var(--primary); }
+body.dev-off #devbar{ display:none; }
+
+@media (prefers-reduced-motion: reduce){
+  *{ animation-duration:1ms !important; transition-duration:1ms !important; }
+}

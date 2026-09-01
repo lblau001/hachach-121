@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<!-- width=device-width, NOT width=390. A fixed width makes every phone that
+     is not exactly 390 CSS px wide scale the whole page: on a 375pt device the
+     layout viewport becomes 390/375 = 1.04x, so 100dvh resolves to 693px inside
+     a 667px window and the document scrolls by 26px no matter what the stage
+     does. The stage keeps its 390 ceiling with max-width instead. -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='14'%3E%F0%9F%AA%91%3C/text%3E%3C/svg%3E">
+<title>הח״כ ה-121 — prototype (s1)</title>
+
+<!-- The v16 handoff stylesheet, verbatim. Tokens in :root, then the components.
+     Loaded FIRST so proto.css can override the two motion tokens the brief
+     supersedes (--t-flip, --t-finale) and nothing else. -->
+<link rel="stylesheet" href="../prototype/hachach.css">
+<link rel="stylesheet" href="proto.css">
+</head>
+<body>
+
+<!-- SVG filters. hachach.css says the stamp's distressed edge cannot live in a
+     stylesheet; these are copied from the board's <defs>. #ink is driven from
+     proto.js so the ink-bleed ruptures AT CONTACT rather than arriving already
+     distressed. -->
+<svg class="defs" width="0" height="0" aria-hidden="true"><defs>
+
+  <filter id="ink" x="-30%" y="-30%" width="160%" height="160%"
+          color-interpolation-filters="sRGB" primitiveUnits="userSpaceOnUse">
+    <feTurbulence type="fractalNoise" baseFrequency="0.028" numOctaves="2" seed="5" result="wob"/>
+    <feDisplacementMap id="inkDisp" in="SourceGraphic" in2="wob" scale="0"
+                       xChannelSelector="R" yChannelSelector="G" result="pressed"/>
+    <feTurbulence type="fractalNoise" baseFrequency="0.105" numOctaves="3" seed="13" result="dry"/>
+    <feColorMatrix in="dry" type="saturate" values="0" result="dryg"/>
+    <feComponentTransfer in="dryg" result="holes">
+      <feFuncA type="linear" slope="0.72" intercept="-0.70"/>
+    </feComponentTransfer>
+    <feComposite in="pressed" in2="holes" operator="out" result="inked"/>
+    <feGaussianBlur in="inked" stdDeviation="0.4"/>
+  </filter>
+
+  <!-- the 5px white die-cut edge every illustration carries -->
+  <filter id="dcw" x="-40%" y="-40%" width="180%" height="180%"
+          color-interpolation-filters="sRGB" primitiveUnits="userSpaceOnUse">
+    <feMorphology in="SourceAlpha" operator="dilate" radius="5" result="w1"/>
+    <feFlood flood-color="#fff" result="wf"/>
+    <feComposite in="wf" in2="w1" operator="in" result="cut"/>
+    <feMerge><feMergeNode in="cut"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+
+  <!-- the same, at avatar scale -->
+  <filter id="dcw-sm" x="-60%" y="-60%" width="220%" height="220%"
+          color-interpolation-filters="sRGB" primitiveUnits="userSpaceOnUse">
+    <feMorphology in="SourceAlpha" operator="dilate" radius="2" result="a1"/>
+    <feFlood flood-color="#fff" result="af"/>
+    <feComposite in="af" in2="a1" operator="in" result="acut"/>
+    <feMerge><feMergeNode in="acut"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+
+  <!-- the ring the stamp's text runs around -->
+  <path id="d2ring" d="M50 82 a32 32 0 1 1 0 -64 a32 32 0 1 1 0 64"/>
+</defs></svg>
+
+<!-- SPIKE CHROME. Not part of the design — the open decisions, switchable in
+     the hand rather than argued on paper. #4d (card count), #12 (RTL swipe),
+     the B5 variant, and the coin table §1.4d disagreement. -->
+<div id="devbar" dir="ltr">
+  <button data-dev="cards">cards: 5</button>
+  <button data-dev="swipe">swipe: R=אמת</button>
+  <button data-dev="b5">B5: A1</button>
+  <button data-dev="coins">coins: sheet</button>
+  <button data-dev="hold">hold: long</button>
+  <button data-dev="ph">placeholders: off</button>
+  <button data-dev="restart">restart</button>
+  <span id="devclock">0.0s</span>
+</div>
+
+<div class="stage" id="stage">
+  <header class="hud" id="hud">
+    <span class="h-a hud-coins"><span class="coin-glyph" aria-hidden="true">●</span><span class="num" id="coinNum">0</span></span>
+    <span class="hud-mid"></span>
+    <span class="as-d hud-you" id="hudAvatar"></span>
+  </header>
+  <main class="round" id="round"></main>
+</div>
+
+<script src="../../../data.js"></script>
+<script src="proto.js"></script>
+</body>
+</html>
