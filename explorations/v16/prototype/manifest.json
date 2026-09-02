@@ -141,7 +141,9 @@
       "52": "assets/topics/accountability_52.webp",
       "64": "assets/topics/accountability_64.webp",
       "128": "assets/topics/accountability_128.webp",
+      "256": "assets/topics/accountability_256.webp",
       "aspect": 0.9609,
+      "node_scale": 0.8729,
       "source": "accountability",
       "reads_down_to": 40
     },
@@ -150,7 +152,9 @@
       "52": "assets/topics/branches_52.webp",
       "64": "assets/topics/branches_64.webp",
       "128": "assets/topics/branches_128.webp",
+      "256": "assets/topics/branches_256.webp",
       "aspect": 0.6406,
+      "node_scale": 1.0418,
       "source": "branches",
       "reads_down_to": 40
     },
@@ -159,7 +163,9 @@
       "52": "assets/topics/economy_52.webp",
       "64": "assets/topics/economy_64.webp",
       "128": "assets/topics/economy_128.webp",
+      "256": "assets/topics/economy_256.webp",
       "aspect": 0.5312,
+      "node_scale": 1.0766,
       "source": "economy",
       "reads_down_to": 64
     },
@@ -168,7 +174,9 @@
       "52": "assets/topics/environment_52.webp",
       "64": "assets/topics/environment_64.webp",
       "128": "assets/topics/environment_128.webp",
+      "256": "assets/topics/environment_256.webp",
       "aspect": 0.6406,
+      "node_scale": 1.0681,
       "source": "environment",
       "reads_down_to": 40
     },
@@ -177,7 +185,9 @@
       "52": "assets/topics/gender_52.webp",
       "64": "assets/topics/gender_64.webp",
       "128": "assets/topics/gender_128.webp",
+      "256": "assets/topics/gender_256.webp",
       "aspect": 1.1429,
+      "node_scale": 1.1105,
       "source": "gender",
       "reads_down_to": 52
     },
@@ -186,7 +196,9 @@
       "52": "assets/topics/policehat_52.webp",
       "64": "assets/topics/policehat_64.webp",
       "128": "assets/topics/policehat_128.webp",
+      "256": "assets/topics/policehat_256.webp",
       "aspect": 1.5238,
+      "node_scale": 1.0285,
       "source": "policehat",
       "reads_down_to": 40
     },
@@ -195,7 +207,9 @@
       "52": "assets/topics/military_52.webp",
       "64": "assets/topics/military_64.webp",
       "128": "assets/topics/military_128.webp",
+      "256": "assets/topics/military_256.webp",
       "aspect": 1.0492,
+      "node_scale": 0.8134,
       "source": "military",
       "reads_down_to": 40
     },
@@ -204,7 +218,9 @@
       "52": "assets/topics/religion_52.webp",
       "64": "assets/topics/religion_64.webp",
       "128": "assets/topics/religion_128.webp",
+      "256": "assets/topics/religion_256.webp",
       "aspect": 0.7344,
+      "node_scale": 0.9881,
       "source": "religion",
       "reads_down_to": 64
     }

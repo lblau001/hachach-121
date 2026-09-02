@@ -1519,7 +1519,10 @@ function renderMap() {
     '<div class="mapwin scrolls" id="mapwin">' +
       '<div class="path" id="mappath" style="height:' + h + 'px">' +
         '<svg class="path-line" id="mapline" aria-hidden="true">' +
-          '<path class="pl-under" d=""></path><path class="pl-dots" d=""></path>' +
+          '<defs><mask id="pathmask" maskUnits="userSpaceOnUse"></mask></defs>' +
+          '<g mask="url(#pathmask)">' +
+            '<path class="pl-under" d=""></path><path class="pl-dots" d=""></path>' +
+          '</g>' +
         '</svg>' +
         DATA.topics.map((t, i) => nodeHTML(t, i, h, cur)).join('') +
       '</div>' +
@@ -1572,19 +1575,31 @@ function nodeHTML(t, i, h, cur) {
       G.dash.toFixed(2) + ' ' + G.rest.toFixed(2) + '" stroke-dashoffset="' +
       (k === 0 ? '0' : (-G.half).toFixed(2)) + '" stroke-linecap="round"></circle>';
 
-  /* THE ICON IS SIZED BY ITS LARGER DIMENSION, from the manifest's MEASURED
-     aspect — these eight run from a 0.53 receipt to a 1.52 police hat, and
-     a single width or a single height would blow one of them through the
-     ring. Rendered at 60px off the 64px file: a 1.07x downscale, inside the
-     manifest's own 1.2x rule. */
+  /* §2 THE ICON IS SIZED BY AREA, not by its larger dimension. node_scale
+     is measured per icon in tools/make_manifest.py and averages 1.0, so the
+     rendered size is --node-ico-avg times that and nothing else — the eight
+     then carry roughly the same visual mass instead of the same longest
+     edge, which is what made the seal read huge next to the receipt.
+     §3 THE SOURCE IS THE 256px FILE. These render at 36-49 CSS px, so a
+     3x phone asks for 107-147 DEVICE pixels; the 64px file it used to load
+     was being upscaled about 2.5x, and that was the softness on device.
+     256 downscales 1.7-2.4x instead, which is the right direction. */
   const T_ = M.topics && M.topics[t.id];
-  const art = T_ && T_['64'];
+  const art = T_ && (T_['256'] || T_['128'] || T_['64']);
   let face;
   if (art) {
-    const S = parseFloat(CSVAR('--node-ico')), a = T_.aspect || 1;
+    const S = parseFloat(CSVAR('--node-ico-avg')) * (T_.node_scale || 1);
+    const a = T_.aspect || 1;
     const w = a >= 1 ? S : S * a, hh = a >= 1 ? S / a : S;
-    face = '<img class="node-ico" src="' + ROOT + art + '" alt="" style="width:' +
-      w.toFixed(1) + 'px;height:' + hh.toFixed(1) + 'px">';
+    /* the tile is the icon's box plus a constant pad on every side, and its
+       radius is half its short edge — a stadium. See .node-tile. */
+    const P = parseFloat(CSVAR('--node-tile-pad'));
+    const tw = w + 2 * P, th = hh + 2 * P;
+    face =
+      '<span class="node-tile" aria-hidden="true" style="width:' + tw.toFixed(1) +
+        'px;height:' + th.toFixed(1) + 'px;border-radius:' + (Math.min(tw, th) / 2).toFixed(1) + 'px"></span>' +
+      '<img class="node-ico" src="' + ROOT + art + '" alt="" style="width:' +
+        w.toFixed(1) + 'px;height:' + hh.toFixed(1) + 'px">';
   } else {
     /* no drawn object for this topic — data.js's glyph, and nothing
        substituted for it */
@@ -1597,7 +1612,9 @@ function nodeHTML(t, i, h, cur) {
 
   return '<div class="' + cls + '" data-topic="' + esc(t.id) + '" data-i="' + i + '" ' +
       'style="left:calc(' + (NODE_X[i] * 100).toFixed(2) + '% - ' + G.c + 'px);top:' +
-      (cy - fcy) + 'px;--tc:' + t.color + '">' +
+      (cy - fcy) + 'px;--tc:' + t.color +
+      ';--tc-face:' + t.color +
+      ';--tc-shade:color-mix(in srgb,' + t.color + ' 78%,#000)">' +
     '<span class="ringnode">' +
       '<svg class="ring" viewBox="0 0 ' + G.box + ' ' + G.box + '" aria-hidden="true">' +
         '<g transform="rotate(-90 ' + G.c + ' ' + G.c + ')">' + seg(0) + seg(1) + '</g></svg>' +
@@ -1648,6 +1665,38 @@ function drawPath(h) {
          ',' + x1.toFixed(1) + ' ' + y1.toFixed(1);
   }
   $('#mapline').querySelectorAll('path').forEach(p => p.setAttribute('d', d));
+
+  /* §4 THE RIBBON IS PUNCHED OUT AT EVERY NODE.
+     The z-order was already right and still is: .node is z-index 2 over
+     .path-line's 1, so the ring's STROKE has always painted on top of the
+     ribbon. What was actually visible was the ribbon showing through the
+     ring's own transparent interior — the 18.5px of open ground between
+     the disc and the ring, which only became a gap worth seeing when the
+     ring was grown to make the icon's overhang possible. Raising a
+     z-index could never have fixed that; there was nothing above anything.
+     So the ribbon is masked instead: a hole of r = the ring's CENTRELINE
+     at each node centre, which ends the ribbon under the middle of the
+     ring stroke. The stroke covers the cut, so the path still reads as
+     arriving at the node rather than stopping short of it, and nothing of
+     it appears inside the ring.
+     IT DOES NOT DISCONNECT THE PATH. Node centres are 199px apart
+     vertically and up to 105px horizontally, so the run between two nodes
+     is 206-225px; two 63px holes leave 80-99px of ribbon visible on every
+     segment. */
+  const mask = $('#pathmask');
+  const rc = parseFloat(CSVAR('--ring-r'));
+  /* the ring sits 3.5px below the face centre — it is centred on the face
+     PLUS its base — and the path threads the FACE centre, so the hole has
+     to be punched at the RING's centre, not at the path's own point. */
+  const ringDrop = parseFloat(CSVAR('--node-box')) / 2
+                 - (parseFloat(CSVAR('--node-face-y')) + parseFloat(CSVAR('--node-face')) / 2);
+  mask.setAttribute('x', 0); mask.setAttribute('y', 0);
+  mask.setAttribute('width', w); mask.setAttribute('height', h);
+  mask.innerHTML =
+    '<rect x="0" y="0" width="' + w + '" height="' + h + '" fill="#fff"></rect>' +
+    pts.map(([x, y]) =>
+      '<circle cx="' + x.toFixed(1) + '" cy="' + (y + ringDrop).toFixed(1) +
+      '" r="' + rc + '" fill="#000"></circle>').join('');
 }
 
 function wireMap(cur, h) {

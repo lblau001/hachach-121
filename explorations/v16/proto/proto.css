@@ -102,8 +102,19 @@
   --node-face-y:   24.5px;  /* centres face+base on the ring at cy 66     */
   --ring-r:        63px;    /* was the board's 50.5 — see .node-ico       */
   --ring-w:        6px;     /* THINNER than --node-depth, as specified    */
-  --node-ico:      60px;    /* the icon's LARGER dimension                */
-  --node-ico-over: 12px;    /* how far it stands above the disc's top     */
+  /* the icon's larger dimension, AVERAGED over the eight. Each one is
+     this times its own manifest node_scale, so retuning the set is one
+     number here — see the node_mass note in tools/make_manifest.py. */
+  --node-ico-avg:  44px;
+  /* THE TILE IS THE THING THAT BREAKS OUT, so the overhang that matters is
+     the tile's: 9 + 5 = 14px, 18.4% of the 76px disc, inside the 15-20%
+     band the treatment was specified at. The icon's own 9px is measured
+     from the same disc edge and sits inside the tile.
+     These two were 54/11/4 for one build and the tile ate the disc — a
+     68px cream capsule on a 76px face left the hue as a crescent, which
+     is the opposite of "the disc carries the topic hue". */
+  --node-ico-over:  9px;    /* how far the ICON stands above the disc     */
+  --node-tile-pad:  5px;    /* cream showing around it on every side      */
   --node-gap:      199px;   /* centre to centre, up the path              */
   --node-pad-top:  84px;
   --node-pad-bot:  132px;   /* 84 + the name and status under the last    */
@@ -1150,42 +1161,67 @@ body.no-ph [data-ph]{ display:none !important; }
 .seg-off{ stroke:#6F6C63; }
 .seg-on { stroke:var(--tc); }
 
-/* §5 ONE COLOURED THING PER NODE, AND IT IS THE ICON. The disc used to
-   carry the topic hue too, which meant a coral receipt sat on a coral disc
-   and a gold seal on a gold one — the two loudest icons in the set both
-   disappearing into their own ground. The disc is now a constant neutral
-   dark for all eight, so every icon reads against the same value whatever
-   its own is, and the topic hue survives where it does not compete with
-   the artwork: the filled ring segments.
-   THE OTHER OPTION WAS A CREAM TILE UNDER THE ICON on a hued disc. It was
-   not taken because the icons are full-colour illustrations that cannot be
-   recoloured to a hue — they already ARE their hue — and a tile would have
-   been a second shape doing the job the die-cut keyline already does,
-   while leaving the receipt coral-on-coral everywhere the tile did not
-   reach.
+/* §1 THE DISC CARRIES THE HUE, AND THE ICON SITS ON CREAM. This reverses
+   the neutral-dark disc: on device that lost the eight-hue topic system
+   entirely, floated the icons on near-black, and sank the extrusion into a
+   ground that was almost the same value as the base.
+   The hue is now the raw data.js topic colour rather than a wash of it, so
+   the disc reads as the topic from across the screen, and the base is that
+   colour multiplied to 78% — a flat multiply, so the hue is preserved
+   exactly and the seam between face and base cannot show. Against the
+   charcoal ground a saturated disc over a darker version of itself is the
+   same figure-on-ground the cards and chips use.
 
    DUOLINGO EXTRUSION, NOT A DROP SHADOW. Zero blur, zero spread, offset
-   straight down by the depth. The 20-25% step that the hued discs used is
-   a flat multiply and is nearly invisible on a dark neutral, so these two
-   are picked for equal-looking separation instead of equal arithmetic. */
+   straight down by the depth. */
 .node-face{
   position:absolute; left:var(--node-face-x); top:var(--node-face-y); z-index:2;
   width:var(--node-face); height:var(--node-face); border-radius:50%;
   border:0; padding:0; cursor:pointer;
-  background:#2B2823;
-  box-shadow:0 var(--node-depth) 0 0 #131110,
-             inset 0 0 0 1.5px rgba(255,255,255,.09);
+  background:var(--tc-face);
+  box-shadow:0 var(--node-depth) 0 0 var(--tc-shade),
+             0 0 0 1.5px rgba(0,0,0,.42);
   transition:transform var(--t-node-press) linear, box-shadow var(--t-node-press) linear;
 }
 .node-face:active{ transform:translateY(var(--node-depth));
-  box-shadow:0 0 0 0 #131110, inset 0 0 0 1.5px rgba(255,255,255,.09); }
+  box-shadow:0 0 0 0 var(--tc-shade), 0 0 0 1.5px rgba(0,0,0,.42); }
 .node-face:focus-visible{ outline:3px solid var(--edge); outline-offset:3px; }
 
-/* ---- §4 THE ICON BREAKS OUT OF THE DISC ---------------------------
-   It stands --node-ico-over above the disc's top edge — 12px on a 76px
-   disc, 15.8%, inside the brief's 15-20% band — and carries the same 2px
-   white die-cut the avatars carry, so it reads as a sticker laid on the
-   node rather than as a picture printed inside it.
+/* ---- the cream tile the icon stands on -----------------------------
+   THIS IS WHAT SOLVES CORAL-ON-CORAL, and it only solves it by covering
+   the WHOLE icon: a tile behind part of the object would leave the rest of
+   a coral receipt sitting on a coral disc with nothing between them. It is
+   the icon's own box plus --node-tile-pad on every side, so every icon is
+   fully on cream whatever its shape, and the cream shows THROUGH the
+   object as well as around it — the gaps between the scales' beam and
+   pans, the hole in the magnifier — which is where most of the separation
+   actually comes from.
+
+   IT IS A STADIUM, NOT A RECTANGLE, and that is a fit constraint rather
+   than a style one. A rounded rectangle's top corners are the furthest
+   points from the node centre, and at this overhang they cross the ring on
+   every icon in the set — measured, at every size down to 44px. Rounding
+   the short side completely pulls those corners in far enough to clear it.
+   The tile has NO outer keyline for the same reason: a 2px spread ring
+   would put it back through the ring. It does not need one — cream on a
+   saturated hue is already the strongest edge on the node. */
+.node-tile{
+  position:absolute; left:50%; z-index:2;
+  top:calc(-1 * (var(--node-ico-over) + var(--node-tile-pad)));
+  transform:translateX(-50%);
+  background:var(--paper);
+  box-shadow:0 3px 0 rgba(0,0,0,.28);
+  pointer-events:none;
+}
+
+/* ---- THE ICON BREAKS OUT OF THE DISC ------------------------------
+   The icon stands --node-ico-over above the disc's top edge and its cream
+   tile stands --node-tile-pad beyond that, so the composite breaks out by
+   14px on a 76px disc — 18.4%. It keeps the 2px white die-cut the avatars
+   carry, over the cream, so it reads as a sticker laid on the node rather
+   than as a picture printed inside it. Its own drop shadow is gone: the
+   tile underneath carries the shadow now, and two stacked ones read as
+   dirt at this size.
 
    IT MOVES WITH THE FACE ON PRESS because it is a CHILD of the face, not
    a sibling: the 80ms translateY the disc takes is inherited rather than
@@ -1211,7 +1247,7 @@ body.no-ph [data-ph]{ display:none !important; }
   position:absolute; left:50%; top:calc(-1 * var(--node-ico-over)); z-index:3;
   transform:translateX(-50%);
   display:block; pointer-events:none;
-  filter:url(#dcw-sm) drop-shadow(0 2px 0 rgba(0,0,0,.34));
+  filter:url(#dcw-sm);
 }
 /* the emoji fallback has no die-cut to give it — it is a glyph, not art */
 span.node-ico{ font-size:38px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,0,0,.28)); }
@@ -1258,19 +1294,18 @@ span.node-ico{ font-size:38px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
 .node.is-current .ring{ filter:drop-shadow(0 0 9px rgba(255,214,10,.5)); }
 .node.is-current .seg-off{ stroke:#8E8B81; }
 .node.is-current .node-face{
-  box-shadow:0 var(--node-depth) 0 0 #131110,
-             inset 0 0 0 1.5px rgba(255,255,255,.09),
+  box-shadow:0 var(--node-depth) 0 0 var(--tc-shade),
              0 0 0 3px var(--edge), 0 0 0 4.6px rgba(0,0,0,.45);
 }
 .node.is-current .node-face:active{
-  box-shadow:0 0 0 0 #131110,
-             inset 0 0 0 1.5px rgba(255,255,255,.09),
+  box-shadow:0 0 0 0 var(--tc-shade),
              0 0 0 3px var(--edge), 0 0 0 4.6px rgba(0,0,0,.45);
 }
 /* an untouched node is carried by its RING — two unfilled casings — and by
-   the art sitting a little back. The disc cannot carry it: every disc is
-   the same neutral now, which is the point of §5. */
-.node.is-untouched .node-ico{ opacity:.82; }
+   the tile and art sitting a little back. The disc cannot carry it: the
+   disc is the topic's identity now and is the same on every state. */
+.node.is-untouched .node-ico{ opacity:.9; }
+.node.is-untouched .node-tile{ opacity:.9; }
 
 /* §3 THE PINNED SECTION HEADER IS GONE. It named the node nearest the
    middle of the window and swapped as you climbed — Duolingo's move, and

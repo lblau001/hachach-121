@@ -5,8 +5,9 @@ Generated, never hand-kept: the ids come out of data.js and the file list comes
 off disk, so the manifest cannot describe an asset that is not there or miss one
 that is. Every path is a PATH — nothing in this bundle is base64.
 """
-import json, pathlib
+import json, pathlib, math
 from PIL import Image
+import numpy as np
 HERE = pathlib.Path(__file__).resolve().parent.parent
 ROOT = HERE.parent.parent
 MK = ROOT / "assets" / "mk"
@@ -132,16 +133,43 @@ man["fallback"] = {
              "another politician's portrait."),
 }
 
-# ASPECT IS MEASURED, NOT DECLARED. The map sizes an icon by its LARGER
-# dimension and derives the other from this number, so a hand-typed ratio here
-# would silently stretch the artwork. It is read off the 128px export — the
-# same file the smaller ones were cut from — and rounded to 4 places.
+# ASPECT AND VISUAL MASS ARE MEASURED, NOT DECLARED. The map sizes an icon by
+# its LARGER dimension and derives the other from the aspect, so a hand-typed
+# ratio here would silently stretch the artwork. Both numbers are read off the
+# 128px export — the same file the smaller ones were cut from.
+#
+# node_scale IS WHY THE EIGHT NO LONGER LOOK LIKE EIGHT DIFFERENT SIZES.
+# Sizing every icon so its LARGER DIMENSION is the same makes a solid round
+# seal read enormous and a tall narrow receipt read small: the eye weighs
+# area, not the longest edge. So each icon is scaled to a common AREA, and
+# node_scale is the per-icon multiplier that does it, normalised so the eight
+# average 1.0 — the map multiplies it by --node-ico-avg and nothing else.
+#
+# THE AREA IS THE GEOMETRIC MEAN of the ink area (opaque pixels) and the box
+# area (w*h), and the middle is where it belongs. Equalising BOX area ignores
+# density, so a hairline drawing and a solid block come out the same size.
+# Equalising INK area over-rewards sparse line art: measured on this set it
+# pushes the scales to 80.6px wide on a 76px disc — wider than the node they
+# sit on — while shrinking the briefcase to 45. sqrt(ink * box) splits the
+# difference and keeps every icon inside the ring.
+def node_mass(stem):
+    im = Image.open(TOPICS / ("%s_128.webp" % stem)).convert("RGBA")
+    ink = int((np.array(im)[..., 3] > 8).sum())
+    return math.sqrt(ink * im.width * im.height), im.size
+
+_mass = {tid: node_mass(stem) for tid, stem in TOPIC_ICONS.items()}
+# a scale is 1/sqrt(mass); normalise so the mean MAX DIMENSION is 1.0
+_raw = {tid: 1.0 / math.sqrt(m) for tid, (m, _) in _mass.items()}
+_mean = sum(_raw[t] * max(_mass[t][1]) for t in _raw) / len(_raw)
+
 for tid, stem in sorted(TOPIC_ICONS.items()):
     assert any(t["id"] == tid for t in D["topics"]), (
         "topic icon has no matching topic id in data.js: " + tid)
-    man["topics"][tid] = {k: need_topic("%s_%d.webp" % (stem, k)) for k in (40, 52, 64, 128)}
-    w, h = Image.open(TOPICS / ("%s_128.webp" % stem)).size
+    man["topics"][tid] = {k: need_topic("%s_%d.webp" % (stem, k))
+                          for k in (40, 52, 64, 128, 256)}
+    w, h = _mass[tid][1]
     man["topics"][tid]["aspect"] = round(w / h, 4)
+    man["topics"][tid]["node_scale"] = round(_raw[tid] * max(w, h) / _mean, 4)
     man["topics"][tid]["source"] = stem
     man["topics"][tid]["reads_down_to"] = READS_DOWN_TO[tid]
 # the emoji stays the fallback for a topic with no drawn object. There are none

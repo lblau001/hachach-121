@@ -50,7 +50,13 @@ TOPIC_JOBS = [
     ("religion",       TOPICS / "religion_main.webp"),
     ("internal_sec",   MK / "policehat.webp"),
 ]
-TOPIC_SIZES = [40, 52, 64, 128]
+# 256 IS THE ONE THE MAP ACTUALLY USES. The node draws an icon at 36-49 CSS
+# px, and a 3x phone therefore asks for 107-147 DEVICE pixels — so the 64px
+# file it used to load was being upscaled about 2.5x, which is the softness
+# on device. 256 downscales 1.7-2.4x instead, which costs 14-19KB a file. The manifest's "never downscale more than 1.2x" rule
+# is written in CSS pixels and silently assumes DPR 1; at DPR 3 the file
+# has to be about three times the CSS size, not equal to it.
+TOPIC_SIZES = [40, 52, 64, 128, 256]
 
 print("%-20s %-14s %-24s %s" % ("source", "canvas", "ink box", "exports"))
 for stem, sizes in JOBS:
