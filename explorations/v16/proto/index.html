@@ -91,32 +91,62 @@
 <!-- The spike's open decisions are QUERY PARAMETERS now, not a bar on the
      screen: the game fills the viewport and nothing sits on top of it.
        ?hold=long|short   ?swipe=true|false   ?cards=N   ?placeholders=on|off
+       ?coins=sheet|brief ?chyron=band|note|off  ?b5=a1|a2
+       ?screen=intro|map|round   ?bonus=demo
      swipe and hold are live research questions — the swipe mapping goes to
      the teen playtest and the tempo is not settled — so they have to stay
      switchable without a rebuild. See DEV in proto.js. -->
 
-<div class="stage" id="stage">
+<div class="stage" id="stage" data-screen="intro">
+
+  <!-- ONE HUD FOR THE WHOLE APP, not one per screen. The map and the round
+       are the same row — coins, a centre slot, the avatar — and building it
+       twice is how the two drift apart. Only the CENTRE slot swaps: the
+       topic title in the round, the x/8 count on the map. The intro hides
+       the row outright; there is nothing to count yet. -->
   <header class="hud" id="hud">
     <span class="h-a hud-coins"><span class="coin-glyph" aria-hidden="true">●</span><span class="num" id="coinNum">0</span></span>
-    <!-- §B the topic this issue belongs to, read from data.js. Centred
-         between the coin chip and the avatar, on every beat. -->
-    <span class="hud-topic" id="hudTopic"></span>
+    <span class="hud-mid">
+      <!-- §B the topic this issue belongs to, read from data.js. Centred
+           between the coin chip and the avatar, on every beat. -->
+      <span class="hud-topic" id="hudTopic"></span>
+      <!-- the map's headline: TOPICS completed, never sub-issues (§3.2) -->
+      <span class="h-a hud-progress" id="hudProgress" hidden></span>
+    </span>
+    <!-- §4.1 the default avatar, assigned instantly, no creation step.
+         Tappable IN PRINCIPLE — it is the door to customisation — but it
+         opens nothing in this build, so it is a sticker and not a button:
+         a control that does nothing is worse than no control. -->
     <span class="as-d hud-you" id="hudAvatar"></span>
   </header>
-  <!-- ONE helper line for the whole round, and only on the first MK card.
-       Plain type on the ground between the HUD and the chyron — not a
-       pill, not on the card. Its box is reserved on every beat so
-       switching it on cannot resize the card. -->
-  <p class="helper is-empty" id="helper"></p>
-  <!-- THE PINNED CLAIM, as a chyron. It is a SIBLING of the HUD and the
-       round, in flow between them, which is what makes "it never overlaps
-       the card" structural rather than a z-index argument: the round —
-       and so the card — begins below it.
-       It is filled at beat 2 and emptied at restart; it is never created
-       or destroyed, because it has to hold its box on beat 1 for the card
-       to be the same size on every beat. -->
-  <div class="chyron is-empty" id="chyron" aria-hidden="true"></div>
-  <main class="round" id="round"></main>
+
+  <!-- 1 · INT-D. One primary action, straight to the map. -->
+  <section class="screen sc-intro" id="scIntro" hidden></section>
+
+  <!-- 2 · THE PATH MAP. The one thing in the app that scrolls. -->
+  <section class="screen sc-map" id="scMap" hidden></section>
+
+  <!-- 3 · THE ROUND, exactly as it was — the helper line and the chyron
+       move inside it because they belong to a round and to nothing else. -->
+  <section class="screen sc-round" id="scRound" hidden>
+    <!-- ONE helper line for the whole round, and only on the first MK card.
+         Plain type on the ground between the HUD and the chyron — not a
+         pill, not on the card. Its box is reserved on every beat so
+         switching it on cannot resize the card. -->
+    <p class="helper is-empty" id="helper"></p>
+    <!-- THE PINNED CLAIM, as a chyron. It is a SIBLING of the round's
+         inner column, in flow above it, which is what makes "it never
+         overlaps the card" structural rather than a z-index argument: the
+         round — and so the card — begins below it.
+         It is filled at beat 2 and emptied at restart; it is never created
+         or destroyed, because it has to hold its box on beat 1 for the
+         card to be the same size on every beat. -->
+    <div class="chyron is-empty" id="chyron" aria-hidden="true"></div>
+    <main class="round" id="round"></main>
+  </section>
+
+  <!-- the coins fly here, over everything, out of every layout -->
+  <div class="coinfly" id="coinfly" aria-hidden="true"></div>
 </div>
 
 <script src="../../../data.js"></script>

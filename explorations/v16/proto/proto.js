@@ -70,6 +70,11 @@ const T = {
   snapback:  ms('--t-snapback'),
   resolve:   ms('--t-resolve'),
   coin:      ms('--t-coin'),
+  coinFly:     ms('--t-coin-fly'),
+  coinStagger: ms('--t-coin-stagger'),
+  nodePress:   ms('--t-node-press'),
+  screen:      ms('--t-screen'),
+  mapIn:       ms('--t-map-in'),
   gateHint:  ms('--gate-hint'),
   gateGrow:  ms('--gate-grow')
 };
@@ -128,7 +133,18 @@ const DEV = {
      band = the full-width chyron, note = a small paper scrap at one side,
      off = nothing shown. The BOX is reserved in all three, so the card is
      the same size whichever is picked. */
-  chyron: qPick('chyron', { band:'band', note:'note', off:'off' }, 'band')
+  chyron: qPick('chyron', { band:'band', note:'note', off:'off' }, 'band'),
+
+  /* §7 THE DEMO DEEP-LINK. Jump straight to a screen in a meeting without
+     playing up to it. Every other switch above keeps working from any of
+     the three, because they are all read once, here, before any screen is
+     built. Default is the intro — the app has a front door now. */
+  screen: qPick('screen', { intro:'intro', map:'map', round:'round' }, 'intro'),
+
+  /* THE BONUS MARKER HAS NO DATA TO BIND TO — see hasBonus(). This forces
+     it on so the treatment can be looked at; it invents no issue and
+     changes no count. */
+  bonusDemo: (Q.get('bonus') || '') === 'demo'
 };
 
 let M = null;                       /* manifest.json                     */
@@ -231,6 +247,7 @@ addEventListener('touchmove', e => {
 
 /* ===================== small helpers ================================ */
 const $  = (s, r) => (r || document).querySelector(s);
+const $$ = (s, r) => [...(r || document).querySelectorAll(s)];
 const el = (t, c, h) => { const n = document.createElement(t);
   if (c) n.className = c; if (h != null) n.innerHTML = h; return n; };
 const esc = s => String(s).replace(/[&<>"]/g, c =>
@@ -305,20 +322,156 @@ function newRound() {
   machineMs = 0;
 }
 
-/* ---- coins. Every award is a visible increment at an award event.
-        No variable ratio, no jackpot register, no flourish. -------- */
-function award(n) {
+/* ===================== HAPTICS · §5 ================================
+   navigator.vibrate behind a capability check, and that check is the whole
+   feature on half the devices this ships to: iOS SAFARI DOES NOT IMPLEMENT
+   THE VIBRATION API AT ALL. On an iPhone every call here is a no-op — not
+   a silent failure to fix, just absent. It is testable on Android only.
+
+   Three events, and only three. A press is 10ms, the drag crossing its
+   commit threshold is 10ms — the same event, felt at the moment the
+   gesture becomes a decision — and the verdict stamp landing is 25ms,
+   because it is the one moment the game asserts something.
+
+   NOTHING ON BEAT 2, and not because it would be a small buzz: beat 2 is
+   the player's own opinion, §1.4d says it is never scored and never
+   rewarded, and a haptic is the most primitive reward the phone has.
+   Buzzing there would say "good answer" to a question that has none. */
+const CAN_BUZZ = typeof navigator !== 'undefined' &&
+                 typeof navigator.vibrate === 'function';
+function buzz(ms) {
+  if (!CAN_BUZZ) return;
+  if (S && S.beat === 2) return;            /* §5 categorical */
+  try { navigator.vibrate(ms); } catch (e) {}
+}
+/* one call site for every pressable thing, so the rule cannot be applied
+   to some buttons and forgotten on others */
+function pressable(node) { node.addEventListener('pointerdown', () => buzz(10)); return node; }
+
+/* ===================== COINS · §0.3 and §4 =========================
+   THE WALLET OUTLIVES THE ROUND. S.coins is the round's own tally and is
+   reset by newRound(); the number in the HUD is the player's total across
+   the session, because the map is now the thing you come back to and a
+   count that reset on every round would be a bug in front of a client.
+
+   THE AWARD IS SPAWNED AT THE POINT IT WAS EARNED (§4): the stamp on an MK
+   card, the verdict on the claim card — never from a fixed corner, because
+   a coin that appears in the corner is a number changing, and a coin that
+   leaves the stamp is a thing being paid for. Amounts are NOT invented
+   here: they come from COIN_TABLES above, which is the ?coins= mode.       */
+let wallet = 0;
+
+/* 3 to 5 tokens. Enough to read as a handful, few enough to arrive before
+   the beat moves on; scaled by the size of the award so +100 is visibly
+   more than +25 without anyone having to read the number. */
+const coinCount = n => Math.max(3, Math.min(5, Math.round(n / 25) + 2));
+
+function award(n, from) {
   if (!n) return;
   const chip = $('.hud-coins'), out = $('#coinNum');
-  const from = S.coins, to = S.coins + n, t0 = performance.now();
-  S.coins = to;
-  chip.classList.add('is-awarding');
+  const to = wallet + n;
+  if (S) S.coins += n;             /* the round's own tally; null on the map */
+
+  /* WITHOUT AN ORIGIN IT IS STILL A COUNT-UP, not a flight. Awards that
+     have no point on screen to leave from — the deferred claim payout at
+     beat 5 — must not fake one. */
+  const pts = from ? coinFlight(from, chip, coinCount(n)) : null;
+  if (!pts) { countCoins(out, wallet, to, T.coin); wallet = to; chip.classList.add('is-awarding');
+              setTimeout(() => chip.classList.remove('is-awarding'), T.coin); return; }
+
+  /* THE CHIP COUNTS UP AS THEY LAND, not before them and not after: each
+     token carries its own share of the award and pays it in on arrival. */
+  const share = n / pts.length;
+  let paid = 0, landed = 0;
+  pts.forEach((tok, i) => {
+    tok.onLand = () => {
+      landed++;
+      paid = (landed === pts.length) ? n : Math.round(share * landed);
+      out.textContent = wallet + paid;
+      chip.classList.remove('is-landing'); void chip.offsetWidth;
+      chip.classList.add('is-landing');    /* a small pop PER arrival */
+      if (landed === pts.length) { wallet = to; out.textContent = to; }
+    };
+  });
+}
+
+/* the plain count-up, for an award with no origin */
+function countCoins(out, from, to, dur) {
+  const t0 = performance.now();
   (function tick(now) {
-    const k = Math.min(1, (now - t0) / T.coin);
+    const k = Math.min(1, (now - t0) / dur);
     out.textContent = Math.round(from + (to - from) * (1 - Math.pow(1 - k, 3)));
-    if (k < 1) requestAnimationFrame(tick);
-    else { out.textContent = to; chip.classList.remove('is-awarding'); }
+    if (k < 1) requestAnimationFrame(tick); else out.textContent = to;
   })(t0);
+}
+
+/* ---- the flight ----------------------------------------------------
+   ~450ms per token, ~40ms apart, ease-out, on an arc — and the SHAPE of
+   that arc is the §4 rule "never fires over the payload" made geometric.
+
+   THE STRAIGHT LINE IS THE PROBLEM. The stamp lands at the card's foot on
+   the leading side and the coin chip sits at the top of the opposite side,
+   so a straight flight — and a shallow bow either way — runs diagonally
+   across the middle of the card, which is exactly where the portrait is.
+   Measured on s1 at 393x852, the mid-point of that line lands at (184,350)
+   and the portrait occupies (90..350, 240..415): straight through a face.
+
+   SO IT GOES OUT, UP AND IN. Both control points sit in the GUTTER beside
+   the card — the ~14px of ground between the card's edge and the stage —
+   which turns the path into an S: the token leaves the stamp sideways,
+   climbs the gutter clear of the artwork, and cuts in to the chip across
+   the empty strip ABOVE the card. It touches the card only in its blank
+   outer margin, never the portrait, the name plate or the stamp it just
+   left. It is also fired AFTER the verdict has landed at every call site,
+   so it follows the payload rather than racing it.                      */
+const GUTTER = 14;
+
+function coinFlight(from, chip, count) {
+  const layer = $('#coinfly'); if (!layer || !from || !chip) return null;
+  const box = layer.getBoundingClientRect();
+  const a   = from.getBoundingClientRect();
+  const b   = chip.getBoundingClientRect();
+  if (!a.width || !b.width) return null;
+
+  const x0 = a.left + a.width / 2 - box.left, y0 = a.top + a.height / 2 - box.top;
+  const x1 = b.left + b.width / 2 - box.left, y1 = b.top + b.height / 2 - box.top;
+  /* the gutter on the side the award happened, not the side the chip is on:
+     leaving is the half of the trip that has a card in the way */
+  const gx = (x0 < box.width / 2) ? GUTTER : box.width - GUTTER;
+
+  const toks = [];
+  for (let i = 0; i < count; i++) {
+    const t = el('i', 'coin-t');
+    /* a handful, not a stack: each token leaves from a slightly different
+       point on the award and takes a slightly wider or tighter line */
+    const jx = (Math.random() - 0.5) * 26, jy = (Math.random() - 0.5) * 26;
+    const g  = gx + (Math.random() - 0.5) * 16;
+    t.style.transform = 'translate(' + (x0 + jx - 9.5) + 'px,' + (y0 + jy - 9.5) + 'px)';
+    layer.appendChild(t);
+    toks.push(t);
+    flyOne(t, x0 + jx, y0 + jy, x1, y1, g, i * T.coinStagger, toks, i);
+  }
+  return toks;
+}
+
+/* a cubic whose two control points are both in the gutter: c1 level with
+   the award, c2 level with the chip. Out, up, in. */
+function flyOne(node, x0, y0, x1, y1, gx, delay, toks, idx) {
+  setTimeout(() => {
+    const t0 = performance.now();
+    (function tick(now) {
+      const k = Math.min(1, (now - t0) / T.coinFly);
+      const e = 1 - Math.pow(1 - k, 3);                  /* ease-out */
+      const m = 1 - e, m2 = m * m, e2 = e * e;
+      const x = m2 * m * x0 + 3 * m2 * e * gx + 3 * m * e2 * gx + e2 * e * x1;
+      const y = m2 * m * y0 + 3 * m2 * e * y0 + 3 * m * e2 * y1 + e2 * e * y1;
+      node.style.transform = 'translate(' + (x - 9.5) + 'px,' + (y - 9.5) + 'px) scale(' +
+        (1 - 0.25 * e).toFixed(3) + ')';
+      node.style.opacity = k > 0.9 ? String((1 - k) * 10) : '1';
+      if (k < 1) requestAnimationFrame(tick);
+      else { node.remove(); const t = toks[idx]; if (t && t.onLand) t.onLand(); }
+    })(t0);
+  }, delay);
 }
 
 /* ===================== the commit gate · §1.6 ======================= */
@@ -512,7 +665,7 @@ function beat1() {
      the tap runs the same preview and the same fling, in the direction
      that answer sits in under the current mapping. One code path. */
   card.querySelectorAll('[data-ans]').forEach(btn =>
-    btn.addEventListener('click', () => {
+    pressable(btn).addEventListener('click', () => {
       const dir = card._swipe.dirFor(btn.dataset.ans);
       card._swipe.show(dir * 999);        /* preview at full, leading side */
       commitClaim(btn.dataset.ans, card, dir);
@@ -572,8 +725,15 @@ function wireSwipe(card, tgt, prev) {
 
   const down = e => { if (S.claim || e.target.closest('.v-a')) return;
     on = true; sx = px(e); card.classList.add('is-dragging'); };
+  let crossed = false;
   const move = e => { if (!on) return;
     dx = px(e) - sx;
+    /* §5 THE MOMENT THE GESTURE BECOMES A DECISION. Once per drag, on the
+       crossing itself — not on every frame past it, which would be a
+       rattle rather than a signal. It fires on the way in and re-arms on
+       the way back out, so a drag that hesitates on the line says so. */
+    const over = Math.abs(dx) > TH;
+    if (over !== crossed) { crossed = over; if (over) buzz(10); }
     /* ONLY THE TOP CARD TRANSFORMS. The stage, the pile and the ground
        are never touched. */
     const k = dx / scale();
@@ -604,8 +764,12 @@ async function commitClaim(ans, card, dir) {
 
   const table = COIN_TABLES[DEV.coins];
   /* under 'sheet' this is deferred to beat 5: paying out on correctness
-     here would resolve the claim four beats early */
-  if (!table.claimNeedsCorrect) award(table.claim);
+     here would resolve the claim four beats early. Under 'brief' it pays
+     now, and the point of the award is the answer that was just given —
+     there is no verdict on screen at beat 1 to leave from. */
+  if (!table.claimNeedsCorrect) {
+    award(table.claim, card.querySelector('[data-ans="' + ans + '"]') || card);
+  }
 
   /* §1.2 the answer sits alone before anything else happens */
   await wait(T.hold);
@@ -686,8 +850,15 @@ function beat2() {
       if (S.position) return;
       S.position = btn.dataset.vote;
       ov.querySelectorAll('.v-a').forEach(x => x.disabled = true);
-      const table = COIN_TABLES[DEV.coins];
-      award(table.position);                    /* 0 under 'sheet' §1.4d */
+      /* BEAT 2 EARNS NOTHING, IN EVERY MODE. It used to pay
+         COIN_TABLES[mode].position, which is 0 under 'sheet' but 25 under
+         'brief' because that is what app.js does. The rule is now
+         categorical — §1.4d, and restated in this pass's brief — so the
+         award is gone rather than made conditional, and there is no path
+         through the switch that pays for an opinion.
+         `brief.position: 25` STAYS IN THE TABLE. The table is the record
+         of what each source says, not a list of things that fire; leaving
+         the row is how the disagreement stays visible. Nothing reads it. */
 
       /* §4 THE PLAYER TAKES THE SEAT. The chosen vote leaves the row and
          lands on the chair as one large object; the other two recede but
@@ -752,7 +923,7 @@ function armPredict(first) {
   helper(first ? 'מה הוא/היא הצביע/ה?' : '');
 
   foot.querySelectorAll('[data-pred]').forEach(btn =>
-    btn.addEventListener('click', () => verdict(btn.dataset.pred, foot, card)));
+    pressable(btn).addEventListener('click', () => verdict(btn.dataset.pred, foot, card)));
 }
 
 async function verdict(guess, foot, card) {
@@ -788,12 +959,20 @@ async function verdict(guess, foot, card) {
      card because .mf-b carries overflow:hidden and would cut it at the
      edge, and because the card is a 3D flipper — a stamp inside it would
      be mirrored by the rotation. */
-  $('.cardwrap').appendChild(stamp(ok));
+  const mark = stamp(ok);
+  $('.cardwrap').appendChild(mark);
   card.classList.add('is-stamped');
   inkBleed();
+  /* §5 25ms AT CONTACT, not when the stamp is appended: --t-stamp-drop is
+     the frame the disc actually hits the card, and the jolt is keyed to
+     the same number. The buzz and the hit are one event or neither. */
+  setTimeout(() => buzz(25), T.stampDrop);
 
   const table = COIN_TABLES[DEV.coins];
-  if (ok) setTimeout(() => award(table.perCorrect), T.stamp);
+  /* §4 THE COINS LEAVE THE STAMP. Fired after the stamp has fully landed
+     (T.stamp), so the flight follows the verdict rather than crossing it,
+     and spawned AT the mark so the award has a place it came from. */
+  if (ok) setTimeout(() => award(table.perCorrect, mark), T.stamp);
 
   await wait(T.stamp + T.flip);
 
@@ -1074,7 +1253,11 @@ async function beat5() {
 
   /* ---- 7. the deferred claim award, last, away from the peak. ---- */
   const table = COIN_TABLES[DEV.coins];
-  if (table.claimNeedsCorrect && correctClaim) { await wait(T.flip); award(table.claim); }
+  /* §4 it leaves THE VERDICT ON THE CLAIM — .b5res is where the round
+     finally says what was true — rather than appearing in the corner. */
+  if (table.claimNeedsCorrect && correctClaim) {
+    await wait(T.flip); award(table.claim, $('.b5res') || null);
+  }
 
   /* §1.3 wrongness has an author and it is not the player. */
   if (!correctClaim) {
@@ -1085,9 +1268,17 @@ async function beat5() {
     requestAnimationFrame(() => { line.classList.add('is-in'); fitBeat(); });
   }
 
+  /* THE ISSUE IS RECORDED, and it is one issue and not a topic. s1 is
+     `core:true` in internal_sec, so this fills SEGMENT 1 of that node's
+     ring and nothing else: the headline stays 0/8 and no check appears,
+     because the topic is not complete until s2 is played too. Awarding
+     topic-complete here is exactly the "הושלם feels like a lie" failure
+     §3.2 exists to prevent. */
+  PROGRESS[issue.id] = true;
+
   fitBeat();
   const go = el('button', 'p-c b5go b5stage', 'חזרה למפה ›');
-  go.addEventListener('click', start);          /* the map arrives in step 2 */
+  go.addEventListener('click', () => goMap());
   b.appendChild(go);
   requestAnimationFrame(() => { go.classList.add('is-in'); fitBeat(); });
 
@@ -1115,25 +1306,388 @@ function countUp(node, tally) {
 Object.defineProperty(window, 'S',   { get: () => S });
 Object.defineProperty(window, 'DEV', { get: () => DEV });
 
+/* =====================================================================
+   THE PROGRESS MODEL · §3.2, and the one place the data did not answer.
+
+   WHAT IS ACTUALLY IN data.js: 16 issues, exactly 2 per topic, and ONE
+   boolean — `core`. It is true on the first issue of every topic and false
+   on the second. There is no third issue anywhere and no field that says
+   "bonus". So the fields available to distinguish a bonus issue from a
+   non-bonus one are: `core`, and nothing else.
+
+   THE TWO READINGS OF `core:false`, and they are incompatible:
+     app.js  treats it as THE BONUS. x/8 counts core issues only
+             (app.js:248-251, doneCore/totalCore), and the topic-complete
+             screen offers the other issue as "סוגיית בונוס" (app.js:546).
+             Under that reading, finishing s1 alone would read 1/8.
+     the sheet  §0.2 says "8 topics x 2 סוגיות = 16 rounds, PLUS bonus
+             סוגיות per topic", and §3.2 puts one ring segment per סוגיה
+             with bonus explicitly outside the ring. Under that reading
+             BOTH issues are ring segments and the bonus is a third thing
+             that has not been written yet.
+
+   THE SHEET WINS — the brief says so where the sources disagree, and the
+   state the brief asks to see confirms it: complete s1, and the node shows
+   1 of 2 segments while the headline still reads 0/8. That is only true if
+   s2 is a segment rather than the bonus.
+
+   So: `core` orders the two segments, topic membership defines them, and
+   THERE IS NO BONUS ISSUE IN THE DATA TO MARK. hasBonus() is the seam —
+   one function, returning what the data says, which today is false for all
+   eight. Nothing is invented to fill it.
+   ===================================================================== */
+
+/* issueId -> true. In memory for the session only: the map is a demo
+   surface and a client meeting should open on a clean map, not on whatever
+   the last person did. Nothing here writes to localStorage. */
+const PROGRESS = {};
+
+/* core first, so segment 1 is always the topic's first issue */
+const topicIssues = id => DATA.issues
+  .filter(i => i.topic === id)
+  .sort((a, b) => (b.core === true) - (a.core === true));
+
+/* THE SEAM. Returns the topic's bonus issues, and data.js has none: every
+   issue belongs to the pair that makes up the two ring segments. When a
+   third issue per topic appears — or a field that marks one — this is the
+   only function that has to change. ?bonus=demo forces the marker on so
+   the treatment can be looked at; it fabricates no issue and moves no
+   count, because nothing else reads it. */
+function hasBonus(topicId) {
+  const extra = topicIssues(topicId).length - 2;
+  return extra > 0 || DEV.bonusDemo;
+}
+
+const issueDone  = id => PROGRESS[id] === true;
+/* 0, 1 or 2. Never more: the ring has two segments and bonus is not one. */
+const segsDone   = id => topicIssues(id).filter(i => issueDone(i.id)).length;
+const topicDone  = id => { const l = topicIssues(id); return l.length > 0 && l.every(i => issueDone(i.id)); };
+/* THE HEADLINE IS TOPICS, never sub-issues. §3.2: 0/16 is a longer and
+   more intimidating number for a one-minute game, and the topic is the
+   unit the player actually chooses. */
+const topicsDone = () => DATA.topics.filter(t => topicDone(t.id)).length;
+/* the soft nudge, and the only ordering the map has. No lock follows it. */
+const currentIdx = () => {
+  const i = DATA.topics.findIndex(t => !topicDone(t.id));
+  return i < 0 ? DATA.topics.length - 1 : i;
+};
+
+/* =====================================================================
+   THE SCREEN ROUTER
+   ===================================================================== */
+function showScreen(name) {
+  const st = $('#stage');
+  st.dataset.screen = name;
+  [['intro','#scIntro'], ['map','#scMap'], ['round','#scRound']].forEach(([n, sel]) => {
+    const node = $(sel); if (node) node.hidden = (n !== name);
+  });
+  /* the HUD's centre slot is the only part of the row that differs */
+  const t = $('#hudTopic'), pr = $('#hudProgress');
+  if (t)  t.hidden  = (name !== 'round');
+  if (pr) pr.hidden = (name !== 'map');
+}
+
+/* =====================================================================
+   1 · INT-D · THE INTRO
+   COPY IS LIFTED, NOT WRITTEN. Every string below is the shipped app's
+   own, from index.html's #intro block, quoted here with a line number so
+   the next person can check it rather than trust it. The one unwritten
+   line is the board's own striped slot and it renders as a placeholder.
+   ===================================================================== */
+const INTRO_COPY = {
+  tag:   'מבית המגדלור · פרוטוטייפ',                    /* index.html:  .intro-tag  */
+  t1:    'הח״כ',                                        /* index.html:  h1.display  */
+  t2:    'ה-121',
+  sub:   'מה באמת קורה בכנסת?',                         /* index.html:  .sub        */
+  para:  'לא בוחן ידע. לא אומר למי להצביע. משחק שמראה מה קרה — ומה אתם חושבים על זה.',
+  cta:   'בואו נשחק 🎮',                                 /* index.html:  button.cta  */
+  note:  'סוגיה אחת = דקה · אפשר לשחק כמה שרוצים',      /* index.html:  .intro-note */
+  /* the board's INT-D carries a striped slot above the title. It is
+     Tamar's, unwritten, and is NOT authored here. */
+  lede:  'טקסט — תמר: את/ה הח״כ ה-121'
+};
+
+/* one <svg><text> per glyph — see the .i-ls note in proto.css for why, and
+   why it is the one SVG text in the app that WebKit cannot reverse.
+
+   DIGITS ARE GROUPED, and they have to be. Splitting a string into
+   one-glyph flex items hands the ORDER to the RTL flex direction, which is
+   right for Hebrew and wrong for a number: 121 survives it only because it
+   reads the same backwards. Each run of digits becomes its own LTR flex
+   item, so the run sits where RTL puts it and reads left-to-right inside
+   itself — which is what §7's Western numerals in an RTL flow means. */
+const lsGlyph = ch =>
+  '<svg class="g" viewBox="0 0 100 116" aria-hidden="true">' +
+    '<text x="50" y="92">' + esc(ch) + '</text></svg>';
+
+const lsRow = str => '<span class="i-ls" aria-label="' + esc(str) + '">' +
+  str.split(/(\d+)/).filter(Boolean).map(part =>
+    /^\d+$/.test(part)
+      ? '<span class="i-run">' + [...part].map(lsGlyph).join('') + '</span>'
+      : [...part].map(lsGlyph).join('')
+  ).join('') +
+  '</span>';
+
+function renderIntro() {
+  const r = $('#scIntro');
+  r.innerHTML =
+    '<p class="i-tag">' + ph(INTRO_COPY.lede) + '</p>' +
+    '<div class="i-comp">' +
+      '<div class="i-title">' + lsRow(INTRO_COPY.t1) + lsRow(INTRO_COPY.t2) + '</div>' +
+      /* SIZED IN CSS, NOT HERE. An inline width/height beats the
+         stylesheet, so the vh clamp that keeps the composite inside a
+         667px phone was being overridden by the board's own 278x324 and
+         the intro overflowed the stage by 86px. */
+      '<img class="i-chair" src="' + ROOT + M.props.chair['300'] + '" alt="">' +
+    '</div>' +
+    '<p class="i-sub">' + esc(INTRO_COPY.sub) + '</p>' +
+    '<p class="i-para">' + esc(INTRO_COPY.para) + '</p>' +
+    '<div class="i-stage" aria-hidden="true">' +
+      '<img class="i-build" src="' + ROOT + M.props.building['390'] + '" alt=""></div>' +
+    '<button type="button" class="p-c i-cta">' + esc(INTRO_COPY.cta) + '</button>' +
+    '<p class="i-note">' + esc(INTRO_COPY.note) + '</p>';
+
+  /* ONE PRIMARY ACTION AND IT GOES TO THE MAP. Not to a character step:
+     §4.1 kills creation-as-first-step, the default avatar is already in
+     the HUD, and customisation moves to the map corner. The project
+     flowmap still shows Intro -> Character -> Map; it is superseded, and a
+     stub in between would be a screen we know is wrong. */
+  pressable($('.i-cta', r)).addEventListener('click', () => goMap());
+  showScreen('intro');
+}
+
+/* =====================================================================
+   2 · THE PATH MAP
+   Bottom to top. Node 1 is at the FOOT and the path climbs, which is why
+   the window opens parked low and why the first incomplete node lands in
+   the lower third rather than in the middle.
+   ===================================================================== */
+/* the board's own serpentine, as fractions of the path's width so it
+   holds its shape at 375 and at 430. PathMap puts the eight centres at
+   275 · 227 · 131 · 83 · 131 · 227 · 275 · 227 across 358px. */
+const NODE_X = [.7682, .6341, .3659, .2318, .3659, .6341, .7682, .6341];
+
+/* the map's geometry lives in proto.css with everything else, so JS reads
+   it back rather than carrying a second copy that can drift. */
+const CSVAR = n => CS.getPropertyValue(n).trim() || '0';
+const GAP  = () => parseFloat(CSVAR('--node-gap'));
+const PADB = () => parseFloat(CSVAR('--node-pad-bot'));
+/* node i's centre, measured DOWN from the top of the path. i=0 is the
+   first topic and sits at the foot. */
+const nodeY = (i, h) => h - PADB() - i * GAP();
+
+function renderMap() {
+  const r = $('#scMap');
+  const n = DATA.topics.length;
+  const h = parseFloat(CSVAR('--node-pad-top')) + PADB() + (n - 1) * GAP();
+  const cur = currentIdx();
+
+  r.innerHTML =
+    '<div class="mapwin scrolls" id="mapwin">' +
+      '<div class="path" id="mappath" style="height:' + h + 'px">' +
+        '<div class="path-glow" aria-hidden="true"></div>' +
+        '<svg class="path-line" id="mapline" viewBox="0 0 358 ' + h + '" ' +
+          'preserveAspectRatio="none" aria-hidden="true">' +
+          '<path class="pl-under" d=""></path><path class="pl-dots" d=""></path>' +
+        '</svg>' +
+        DATA.topics.map((t, i) => nodeHTML(t, i, h, cur)).join('') +
+      '</div>' +
+    '</div>' +
+    '<p class="map-head" id="maphead"><b></b></p>' +
+    '<button type="button" class="map-jump" id="mapjump">' +
+      '<i aria-hidden="true">↓</i>חזרה לנושא הנוכחי</button>';
+
+  drawPath(h);
+  paintHud();
+  /* SHOW IT BEFORE WIRING IT. A hidden element has no clientHeight and
+     will not take a scrollTop, so parking the window on the current node
+     silently did nothing and the map opened at the top of the path. */
+  showScreen('map');
+  wireMap(cur, h);
+}
+
+function nodeHTML(t, i, h, cur) {
+  const done = topicDone(t.id), segs = segsDone(t.id);
+  const cls = 'node' + (i === cur ? ' is-current' : '') + (segs === 0 ? ' is-untouched' : '');
+  const cy  = nodeY(i, h);
+  /* the ring's two segments. One circle each, so a segment is a real
+     element with its own state rather than a fraction of one stroke. */
+  const seg = k =>
+    '<circle class="seg ' + (k < segs ? 'seg-on' : 'seg-off') + '" cx="58" cy="55.5" r="50.5" ' +
+      'fill="none" stroke-dasharray="134.65 182.65" stroke-dashoffset="' +
+      (k === 0 ? '0' : '-158.65') + '" stroke-linecap="round"></circle>';
+  /* internal_sec has drawn art in the manifest; every other topic has a
+     glyph and only a glyph. Nothing is substituted for a missing one. */
+  const art = M.topics && M.topics[t.id] && M.topics[t.id]['52'];
+  const face = art
+    ? '<img class="node-ico" src="' + ROOT + art + '" alt="" style="width:33px;height:52px">'
+    : '<span class="node-ico" aria-hidden="true">' + t.icon + '</span>';
+
+  return '<div class="' + cls + '" data-topic="' + esc(t.id) + '" data-i="' + i + '" ' +
+      'style="left:calc(' + (NODE_X[i] * 100).toFixed(2) + '% - 58px);top:' + (cy - 52) + 'px;' +
+      '--tc:' + t.color + ';--tc-face:color-mix(in srgb,' + t.color + ' 30%,#fff);' +
+      '--tc-shade:color-mix(in srgb,color-mix(in srgb,' + t.color + ' 30%,#fff) 78%,#000)">' +
+    '<span class="ringnode">' +
+      '<svg class="ring" viewBox="0 0 116 115" aria-hidden="true">' +
+        '<g transform="rotate(-90 58 55.5)">' + seg(0) + seg(1) + '</g></svg>' +
+      '<button type="button" class="node-face" ' +
+        'aria-label="' + esc(t.label + ' — ' + segs + ' מתוך 2') + '">' +
+        face +
+        '<span class="node-num" aria-hidden="true">' + (i + 1) + '</span>' +
+        (done ? '<span class="node-check" aria-hidden="true">✓</span>' : '') +
+      '</button>' +
+      (hasBonus(t.id) ? '<span class="node-bonus" aria-hidden="true">★</span>' : '') +
+    '</span>' +
+    '<span class="node-name">' + esc(t.label) + '</span>' +
+    '<span class="node-status">' + statusLine(t.id) + '</span>' +
+  '</div>';
+}
+
+/* THE STATUS READS WITHOUT COLOUR — it is the same information the ring
+   carries, in words, which is what makes the node legible at 360px to
+   somebody who cannot separate the two hues. No lock, ever. */
+function statusLine(id) {
+  const s = segsDone(id), n = topicIssues(id).length;
+  if (topicDone(id)) return '✓ הושלם';
+  /* the shipped app's own string, app.js:274 — and the fraction goes
+     through .num like every other numeral in the prototype (§7), so it
+     stays an LTR run inside the RTL line instead of relying on the bidi
+     algorithm to guess what a slash between two digits is. */
+  return N(s + '/' + n) + ' סוגיות';
+}
+
+/* one smooth serpentine through the node centres, vertical tangents at
+   every node so the dashes arrive square to the face */
+function drawPath(h) {
+  const w = 358;
+  const pts = DATA.topics.map((t, i) => [
+    NODE_X[i] * w, nodeY(i, h)
+  ]);
+  let d = 'M' + pts[0][0].toFixed(1) + ' ' + pts[0][1].toFixed(1);
+  for (let i = 1; i < pts.length; i++) {
+    const [x0, y0] = pts[i - 1], [x1, y1] = pts[i], t = (y1 - y0) / 3;
+    d += ' C' + x0.toFixed(1) + ' ' + (y0 + t).toFixed(1) +
+         ',' + x1.toFixed(1) + ' ' + (y1 - t).toFixed(1) +
+         ',' + x1.toFixed(1) + ' ' + y1.toFixed(1);
+  }
+  $('#mapline').querySelectorAll('path').forEach(p => p.setAttribute('d', d));
+}
+
+function wireMap(cur, h) {
+  const win = $('#mapwin'), head = $('#maphead b'), jump = $('#mapjump');
+  const curY = nodeY(cur, h);
+
+  /* PARK THE FIRST INCOMPLETE NODE IN THE LOWER THIRD. Two thirds down the
+     window, so what is above it — everything still to play — is what fills
+     the screen, and the climb reads as the point of the map. */
+  const park = () => { win.scrollTop = Math.max(0, curY - win.clientHeight * 0.667); };
+  park();
+
+  const onScroll = () => {
+    /* THE PINNED HEADER NAMES THE NODE NEAREST THE MIDDLE of the window
+       and swaps as you climb, which is the whole reason it is pinned. */
+    const mid = win.scrollTop + win.clientHeight / 2;
+    let best = 0, bd = Infinity;
+    DATA.topics.forEach((t, i) => {
+      const d = Math.abs(nodeY(i, h) - mid); if (d < bd) { bd = d; best = i; }
+    });
+    head.textContent = DATA.topics[best].label;
+    /* THE JUMP BUTTON EXISTS ONLY WHILE THE CURRENT NODE IS OFF SCREEN.
+       It is a way back, not a nag, and it awards nothing. */
+    const vis = curY > win.scrollTop + 40 && curY < win.scrollTop + win.clientHeight - 40;
+    jump.classList.toggle('is-on', !vis);
+    jump.querySelector('i').textContent = curY > win.scrollTop ? '↓' : '↑';
+  };
+  win.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  pressable(jump).addEventListener('click', () => {
+    win.scrollTo({ top: Math.max(0, curY - win.clientHeight * 0.667), behavior: 'smooth' });
+  });
+
+  /* FREE CHOICE, no locking and no prerequisites — a SET decision (§3.1).
+     Only internal_sec has a round behind it in this build; the other seven
+     are a visible state and say so rather than opening a faked round. */
+  $$('.node-face', $('#scMap')).forEach(btn => {
+    const node = btn.closest('.node');
+    pressable(btn).addEventListener('click', () => openTopic(node.dataset.topic, btn));
+  });
+}
+
+/* the map's own HUD: the x/8 count and the coin total */
+function paintHud() {
+  const pr = $('#hudProgress');
+  if (pr) pr.innerHTML = '<span class="num">' + topicsDone() + '/' + DATA.topics.length + '</span>';
+  const cn = $('#coinNum'); if (cn) cn.textContent = wallet;
+}
+
+function goMap() {
+  renderMap();
+  const m = $('#scMap');
+  m.classList.remove('is-arriving'); void m.offsetWidth; m.classList.add('is-arriving');
+}
+
+/* MAP -> ROUND. One transition, cheap, under the 350ms cap: the map drops
+   back and fades while the round comes up over it. Only s1 has a round. */
+function openTopic(topicId, btn) {
+  const first = topicIssues(topicId).find(i => !issueDone(i.id)) || topicIssues(topicId)[0];
+  if (!first || first.id !== ISSUE_ID) {
+    /* NOT A FAKED ROUND. The node is a real state and nothing more, and
+       saying so beats opening an empty one. The words are MARKED AS A
+       PLACEHOLDER rather than written: what an unbuilt topic says to a
+       player is Tamar's line, not this file's, and a build-state label
+       dressed as product copy is how unwritten strings get shipped. */
+    const st = btn.closest('.node').querySelector('.node-status');
+    const was = st.innerHTML;
+    st.innerHTML = ph('טקסט — תמר: נושא שעוד לא נבנה');
+    setTimeout(() => { st.innerHTML = was; }, 1600);
+    return;
+  }
+  const m = $('#scMap');
+  m.classList.add('is-leaving');
+  setTimeout(() => {
+    m.classList.remove('is-leaving');
+    startRound();
+    const rd = $('#scRound');
+    rd.classList.remove('is-entering'); void rd.offsetWidth; rd.classList.add('is-entering');
+  }, T.screen);
+}
+
 /* ===================== boot ========================================= */
-function start() {
+/* THE ROUND, which is now one screen of three rather than the whole app.
+   It no longer resets the coin count: the wallet belongs to the session
+   and the map is the thing you come back to with it. */
+function startRound() {
   applyDev();
   helper('');
-  /* §B the topic the issue belongs to, from data.js, centred in the HUD
-     and present on every beat — the round is one issue inside one topic
-     and the HUD is the only thing on screen that can say which. */
   /* the chyron is emptied, never removed: it holds its box on beat 1 so
      the card is the same size before and after the answer is given */
   const c = $('#chyron');
   c.innerHTML = ''; c.classList.add('is-empty'); c.setAttribute('aria-hidden', 'true');
-  $('#coinNum').textContent = '0';
-  $('#hudAvatar').innerHTML = AV3;
   newRound();
-  /* after newRound(), which is what resolves `issue` */
+  /* §B the topic the issue belongs to, from data.js, centred in the HUD
+     and present on every beat — the round is one issue inside one topic
+     and the HUD is the only thing on screen that can say which.
+     Read AFTER newRound(), which is what resolves `issue`. */
   const t = $('#hudTopic');
   if (t) t.textContent = topicLabel();
+  showScreen('round');
   beat1();
   sizeStage();
+}
+
+/* §4.1 THE DEFAULT AVATAR IS ASSIGNED INSTANTLY, guest included. There is
+   no step where the player is asked to make one, and nothing gates on it. */
+function boot() {
+  applyDev();
+  $('#hudAvatar').innerHTML = AV3;
+  $('#coinNum').textContent = wallet;
+  /* §7 the deep-link. `round` drops straight in without a map behind it,
+     which is what makes it useful in a meeting; `map` and `intro` build
+     their screen and stop. */
+  if (DEV.screen === 'round')      startRound();
+  else if (DEV.screen === 'map')   goMap();
+  else                             renderIntro();
 }
 
 /* the topic's own label out of data.js. topic is resolved in newRound(),
@@ -1161,8 +1715,12 @@ fetch('../prototype/manifest.json')
                || 'assets/card_background.webp';
     document.documentElement.style.setProperty('--cardback-art',
       'url("' + ROOT + back + '")');
-    sizeStage(); start(); })
+    sizeStage(); boot(); })
   .catch(() => {
+    /* THE FAILURE HAS TO BE VISIBLE. #round now lives inside a screen that
+       starts `hidden`, so writing the message there and stopping would
+       have left a blank stage with the reason for it in the DOM. */
+    showScreen('round');
     $('#round').innerHTML =
       '<p style="color:#EFECE4;font-weight:700;line-height:1.5">' +
       'manifest.json could not be read. Serve the repo over http — ' +

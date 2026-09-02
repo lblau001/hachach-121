@@ -87,6 +87,29 @@
      the caption row came out. */
   --gx-h: 71px;
   --gx-bottom: 8px;        /* the strip's inset off the card's foot        */
+
+  /* ---- the map ----------------------------------------------------
+     Every one of these is the v16 board's own number, off the NODE and
+     PathMap artboards. Nothing here is re-derived. */
+  --node-box:      116px;   /* .ringnode, the whole node incl. the ring   */
+  --node-box-h:    115px;
+  --node-face:     76px;    /* the pressable top face                     */
+  --node-depth:    7px;     /* its extrusion. 9.2% of the face — the
+                               brief's "~10% of diameter".                */
+  --node-face-x:   20px;    /* the face's offset inside the box           */
+  --node-face-y:   14px;
+  --ring-r:        50.5px;  /* radius, on cx 58 cy 55.5                   */
+  --ring-w:        6px;     /* THINNER than --node-depth, as specified    */
+  --node-gap:      199px;   /* centre to centre, up the path              */
+  --node-pad-top:  84px;
+  --node-pad-bot:  132px;   /* 84 + the name and status under the last    */
+
+  /* ---- motion the map and the award add ----------------------------- */
+  --t-node-press:  80ms;    /* board: transform+box-shadow, linear        */
+  --t-screen:      300ms;   /* map -> round. Under the brief's 350ms cap. */
+  --t-coin-fly:    450ms;   /* one token, spawn to chip                   */
+  --t-coin-stagger: 40ms;   /* between tokens                            */
+  --t-map-in:      260ms;   /* the map settling under the round leaving   */
 }
 :root[data-hold="short"]{ --t-hold: var(--t-hold-short); }
 
@@ -933,6 +956,308 @@ body.no-ph [data-ph]{ display:none !important; }
    said, and says nothing about whether it was right. */
 .chyron-line b{ font:inherit; color:var(--ink); }
 
+
+/* =====================================================================
+   THE THREE SCREENS · intro -> map -> round
+   The stage carries data-screen and the screens are `hidden`; only one is
+   in the layout at a time, so nothing off-screen can charge the visible
+   screen for height. The HUD is OUTSIDE all three — see index.html.
+   ===================================================================== */
+.screen{ flex:1; min-height:0; display:flex; flex-direction:column; position:relative; z-index:1; }
+.screen[hidden]{ display:none; }
+/* the intro has nothing to count and nobody to be yet */
+.stage[data-screen="intro"] .hud{ display:none; }
+/* the HUD's centre slot. Exactly one of the two children is ever in it,
+   and the slot holds the same box either way so the row never jumps. */
+.hud-mid{ flex:1; min-width:0; display:flex; justify-content:center; align-items:center; }
+.hud-progress[hidden], .hud-topic[hidden]{ display:none; }
+
+/* §3 THE COIN CHIP GOES BACK TO A FULL PILL — deliberately, and it is now
+   the only 999px corner in the prototype. See the report: what hachach.css
+   CALLS H-A is the 14px chip (--r-chip), and 999px is the SHIPPED app's
+   coin chip (styles/home.css:9). The token is not touched, because
+   --r-chip is also .v-a, .ib-b, .p-c and the chyron; this is scoped to the
+   two chips that carry a NUMBER in the HUD row, so the pair still reads as
+   one family and the grammar chips are left where the board put them. */
+.hud-coins, .hud-progress{ border-radius:999px; }
+.hud-progress{ direction:ltr; font-size:var(--fs-body); }
+
+/* =====================================================================
+   1 · INT-D · THE INTRO
+   One primary action, and it goes straight to the map. There is no
+   character step: §4.1 kills creation-as-first-step outright and the
+   default avatar is assigned at boot. The flowmap's Intro -> Create -> Map
+   is superseded; a stub would be a screen we know is wrong.
+   ===================================================================== */
+/* EVERY VERTICAL NUMBER HERE IS TIED TO VIEWPORT HEIGHT, and it has to
+   be: the intro is the one screen with no card to scale, so if the
+   composite does not shrink it clips — the stage is overflow:hidden and
+   would simply eat the CTA. Margins are all explicit for the same reason;
+   the UA's 1em <p> margin is 26px under a 26px sub-head and was quietly
+   spending a fifth of the slack on a 667px phone. */
+.sc-intro{ align-items:center; text-align:center; padding-top:clamp(10px, 2.6vh, 22px); }
+/* the plaza the building stands on */
+.sc-intro::before{
+  content:""; position:absolute; left:-16px; right:-16px; bottom:-12px; height:62%;
+  z-index:0; pointer-events:none;
+  background:linear-gradient(to top,#6E6242 0%,#514A38 38%,rgba(64,62,58,0) 100%);
+}
+.i-tag{ flex:none; position:relative; z-index:5; margin:clamp(6px,1.5vh,16px) 0; }
+/* THE TITLE AND THE CHAIR ARE ONE COMPOSITE STICKER. The chair sits ON the
+   letters and both carry the same white die-cut edge — the overlap of the
+   two cuts is the whole idea, and it only works because neither is boxed. */
+.i-comp{ position:relative; z-index:5; display:flex; flex-direction:column;
+  align-items:center; margin-top:6px; flex:none; }
+.i-title{ display:flex; flex-direction:column; align-items:center; gap:2px; position:relative; z-index:4; }
+/* the chair sits ON the letters — the two die-cut edges overlapping IS
+   the composite — so the negative margin is the whole point of it. Sized
+   off viewport height for the same reason the title is. */
+.i-chair{ display:block; position:relative; z-index:3;
+  margin-top:clamp(-64px, -7.5vh, -40px);
+  width:auto; height:clamp(150px, 36vh, 324px); aspect-ratio:278 / 324;
+  filter:url(#dcw) drop-shadow(0 4px 0 rgba(0,0,0,.3)); }
+.i-sub{ margin:clamp(10px,2.4vh,20px) 0 0; font-size:clamp(21px,3.1vh,26px);
+  font-weight:700; color:#EFECE4; position:relative; z-index:4; flex:none; }
+.i-para{ margin:clamp(6px,1.2vh,10px) 0 0; max-width:30ch;
+  font-size:clamp(14px,1.9vh,16px); font-weight:700;
+  line-height:1.5; color:#EFECE4; position:relative; z-index:4; flex:none; }
+.i-stage{ position:absolute; left:-16px; right:-16px; bottom:-12px; top:0;
+  z-index:1; pointer-events:none; overflow:hidden; }
+.i-build{ position:absolute; left:0; right:0; bottom:0; width:100%; display:block; }
+/* a scrim OVER the building and under the type. On a 667px phone the
+   paragraph and the note come down onto the flags and the road stripes,
+   and light type on that is unreadable. It sits inside .i-stage so it can
+   never get between the composite and the viewer. */
+.i-stage::after{
+  content:""; position:absolute; left:0; right:0; bottom:0; height:46%; z-index:2;
+  background:linear-gradient(to top,rgba(43,41,38,.82),rgba(43,41,38,.55) 46%,rgba(43,41,38,0));
+}
+/* margin-top:auto pushes the action to the foot when there is room to
+   spare, and collapses to nothing when there is not */
+.i-cta{ margin-top:auto; width:280px; font-size:clamp(21px,3.1vh,26px);
+  position:relative; z-index:6; flex:none; }
+.i-note{ position:relative; z-index:6; flex:none;
+  margin:clamp(6px,1.3vh,11px) 0 clamp(8px,2.6vh,22px);
+  font-size:var(--fs-meta); font-weight:700; color:var(--ink-faint); }
+
+/* ---- the display title, letter by letter --------------------------
+   Each glyph is its own <svg><text>, which is how the white cut can
+   overlap its neighbour's — a single <text> would paint one stroke around
+   the whole run. paint-order puts the stroke behind the fill so the cut
+   reads as a cut and not as an outline.
+   AND IT IS IMMUNE TO THE WEBKIT BIDI BUG: one character per <text> has no
+   order to get wrong. The right-to-left run is done by RTL inline-flex on
+   .i-ls, which is HTML layout, not SVG text shaping. */
+/* THE ONE SIZE THE TITLE HAS. .g is sized in em, so without this the
+   glyphs inherit the body's 14px and the composite collapses. Tied to
+   viewport HEIGHT, not width: height is what runs out on a 667px phone,
+   and the chair below it is competing for the same space. */
+.i-ls{ display:inline-flex; align-items:center; line-height:1;
+  font-size:clamp(52px, 9.6vh, 84px); }
+/* a run of Western numerals, kept LTR inside the RTL row */
+.i-ls .i-run{ display:inline-flex; direction:ltr; flex:none; }
+.i-ls .g{ width:.86em; height:1em; overflow:visible; flex:none;
+  margin:0 -.115em; position:relative;
+  filter:drop-shadow(0 2px 0 rgba(0,0,0,.30)); }
+.i-ls .g:nth-child(2n){ z-index:2; }
+.i-ls .g:nth-child(3n){ z-index:3; }
+.i-ls text{
+  font-family:var(--font-display); font-weight:900; font-size:92px;
+  text-anchor:middle; fill:var(--ink); stroke:var(--edge); stroke-width:29px;
+  stroke-linejoin:round; paint-order:stroke fill;
+}
+
+/* =====================================================================
+   2 · THE PATH MAP
+   The one surface in the app that scrolls, and the only reason .scrolls
+   exists. Bottom to top: node 1 is at the FOOT of the path, which is why
+   the window opens parked near the bottom and climbs.
+   ===================================================================== */
+.sc-map{ min-height:0; }
+.mapwin{ position:relative; flex:1; min-height:0; margin:0 -16px; }
+.path{ position:relative; width:100%; }
+.path-glow{
+  position:absolute; left:0; right:0; top:-40px; bottom:-40px; z-index:0;
+  pointer-events:none;
+  background:
+    radial-gradient(120% 42% at 50% 0%,rgba(255,214,10,.16),transparent 70%),
+    radial-gradient(120% 34% at 50% 100%,rgba(61,91,255,.20),transparent 72%),
+    linear-gradient(180deg,#4A463E 0%,#43423E 38%,#3C3D40 68%,#353844 100%);
+}
+/* THE CONNECTOR IS DASHED, per §3.3 — the board's PathDots, not its
+   PathRoad. Two strokes: a dark one offset down, so the dashes are
+   extruded off the ground like everything else in the system. */
+.path-line{ position:absolute; inset:0; width:100%; height:100%; z-index:1; overflow:visible; }
+.pl-under{ fill:none; stroke:rgba(0,0,0,.34); stroke-width:11; stroke-linecap:round;
+  stroke-dasharray:2 17; transform:translateY(4px); }
+.pl-dots{ fill:none; stroke:rgba(255,255,255,.30); stroke-width:9; stroke-linecap:round;
+  stroke-dasharray:2 17; }
+
+.node{ position:absolute; z-index:2; width:var(--node-box);
+  display:flex; flex-direction:column; align-items:center; }
+.node-name{ margin-top:2px; font-size:14px; line-height:1.2; text-align:center;
+  color:#EFECE4; font-family:var(--font-display); font-weight:900; }
+.node-status{ font-size:11px; font-weight:700; color:var(--ink-faint); }
+
+/* ---- the node itself ----------------------------------------------
+   THE RING IS A SEPARATE ELEMENT BEHIND THE NODE and nothing the node
+   carries may touch it. The face is 76px centred on (58,52); the ring is
+   r=50.5 with a 6px stroke centred on (58,55.5) — 3.5px lower, because it
+   is centred on the face PLUS its 7px base, not on the face alone. That
+   puts 6px of clear ground between the base's foot and the ring's inner
+   edge, which is the gap the brief asks for; it falls out of the geometry
+   rather than being padded in. Both badges are inset from the face far
+   enough that their casings clear it too — see .node-check below. */
+.ringnode{ position:relative; display:block; overflow:visible;
+  width:var(--node-box); height:var(--node-box-h); }
+.ring{ position:absolute; left:0; top:0; z-index:1; overflow:visible;
+  width:var(--node-box); height:var(--node-box-h); }
+.seg{ stroke-width:var(--ring-w); fill:none; stroke-linecap:round; }
+/* the segment states read as FILL, not only as hue: an unplayed segment is
+   a thin recessed casing, a played one is the topic's own colour at full
+   weight. At 360px the difference is the stroke, not the colour. */
+.seg-off{ stroke:#8E8C82; stroke-width:calc(var(--ring-w) - 2px); opacity:.72; }
+.seg-on { stroke:var(--tc); }
+
+/* DUOLINGO EXTRUSION, NOT A DROP SHADOW. Zero blur, zero spread, offset
+   straight down by the depth, in a darker shade of the face's OWN hue —
+   colour-mix against black is a flat multiply, so the hue is preserved
+   exactly and the seam between face and base cannot show. */
+.node-face{
+  position:absolute; left:var(--node-face-x); top:var(--node-face-y); z-index:2;
+  width:var(--node-face); height:var(--node-face); border-radius:50%;
+  display:grid; place-items:center; border:0; padding:0; cursor:pointer;
+  font-size:34px; line-height:1;
+  background:var(--tc-face);
+  box-shadow:0 var(--node-depth) 0 0 var(--tc-shade);
+  transition:transform var(--t-node-press) linear, box-shadow var(--t-node-press) linear;
+}
+.node-face:active{ transform:translateY(var(--node-depth)); box-shadow:0 0 0 0 var(--tc-shade); }
+.node-face:focus-visible{ outline:3px solid var(--edge); outline-offset:3px; }
+.node-ico{ display:block; filter:drop-shadow(0 2px 0 rgba(0,0,0,.28)); }
+
+/* the two badges. The number is always there — nodes are numbered, and a
+   number that vanishes on completion stops being an address. */
+.node-num{
+  position:absolute; left:5px; bottom:5px; z-index:3;
+  width:21px; height:21px; border-radius:50%;
+  display:grid; place-items:center;
+  direction:ltr; font-family:var(--font-display); font-weight:900; font-size:12px;
+  background:var(--paper); color:var(--ink);
+  box-shadow:0 0 0 1.5px rgba(0,0,0,.45), 0 2px 0 rgba(0,0,0,.3);
+}
+/* THE BADGES CLEAR THE RING, halo included. 21px inset 5px puts a badge's
+   far corner 44.3px from the node centre — 45.8 with its 1.5px casing —
+   against the ring's 47.5px inner edge. At 22px inset 3px the casing
+   crossed it, which is the "nothing may overlap the ring" rule broken by
+   a shadow rather than by a box. */
+.node-check{
+  position:absolute; right:5px; bottom:5px; z-index:3;
+  width:21px; height:21px; border-radius:50%;
+  display:grid; place-items:center;
+  font-size:12px; font-weight:900;
+  background:#2B2926; color:#fff; border:2px solid var(--paper);
+  box-shadow:0 2px 0 0 #161413;
+}
+/* THE BONUS MARKER IS A SATELLITE OFF THE RING, never a third segment —
+   §3.2 is categorical, and the board's own note says the same. It hangs
+   OUTSIDE the ring (centre 64px from the node centre against the ring's
+   53.5px outer edge) so it cannot be misread as part of the completion
+   ring. It renders only when the topic actually has a bonus issue. */
+.node-bonus{
+  position:absolute; left:2px; top:-1px; z-index:3;
+  width:23px; height:23px; border-radius:50%;
+  display:grid; place-items:center; font-size:12px; line-height:1;
+  background:var(--primary); color:var(--ink);
+  box-shadow:0 0 0 2px var(--edge), 0 0 0 3.4px rgba(0,0,0,.45), 0 2px 0 rgba(0,0,0,.3);
+}
+
+/* THE SOFT NUDGE, and it is the only one. No lock, no prerequisite, no
+   "pick needed" warning: free choice is a SET decision (§3.1) and the
+   current node is a suggestion for choice-paralysis, nothing more. */
+.node.is-current .ring{ filter:drop-shadow(0 0 9px rgba(255,214,10,.5)); }
+.node.is-current .seg-off{ stroke-width:var(--ring-w); opacity:.9; }
+.node.is-current .node-face{
+  box-shadow:0 var(--node-depth) 0 0 var(--tc-shade),
+             0 0 0 3px var(--edge), 0 0 0 4.6px rgba(0,0,0,.45);
+}
+.node.is-current .node-face:active{
+  box-shadow:0 0 0 0 var(--tc-shade),
+             0 0 0 3px var(--edge), 0 0 0 4.6px rgba(0,0,0,.45);
+}
+/* a node with no round behind it yet still shows its topic's hue — the
+   brief asks for per-topic hue PER NODE — so "untouched" is carried by the
+   ring and the badge, which read without colour, and by the art sitting
+   back rather than by draining the node grey. */
+.node.is-untouched .node-ico{ opacity:.72; }
+
+/* ---- the pinned section header --------------------------------------
+   Names the node nearest the middle of the window, and swaps as you
+   climb. It is the map's only fixed chrome. */
+.map-head{
+  position:absolute; z-index:20; top:0; left:0; right:0;
+  display:flex; justify-content:center; pointer-events:none;
+  padding:6px 16px 10px;
+  background:linear-gradient(to bottom,#403E3A 62%,rgba(64,62,58,0));
+}
+.map-head b{
+  font-family:var(--font-display); font-weight:900; font-size:14px;
+  color:#D8D2C4; line-height:1;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+
+/* ---- jump back to the current node ---------------------------------
+   Only ever visible when the current node is off screen; it is a way back,
+   not a nag. It is not a Claim button and it awards nothing. */
+.map-jump{
+  position:absolute; z-index:21; bottom:14px; left:50%; transform:translateX(-50%);
+  display:flex; align-items:center; gap:7px;
+  padding:7px 15px 8px; border:0; cursor:pointer;
+  border-radius:999px; background:var(--paper); color:var(--ink);
+  font-family:var(--font-display); font-weight:900; font-size:14px;
+  box-shadow:0 0 0 2px var(--keyline), 0 3px 0 rgba(0,0,0,.34);
+  opacity:0; visibility:hidden;
+  transition:opacity 160ms linear, visibility 160ms linear;
+}
+.map-jump.is-on{ opacity:1; visibility:visible; }
+.map-jump i{ font-style:normal; line-height:1; }
+
+/* ---- map -> round -------------------------------------------------
+   Under the brief's 350ms cap and deliberately cheap: the map drops back
+   and fades, the round comes up. It is a cut with a hinge on it, not a
+   transition to spend time on. */
+.sc-map.is-leaving{ animation:map-out var(--t-screen) var(--e-in) both; }
+.sc-round.is-entering{ animation:round-in var(--t-screen) var(--e-settle) both; }
+.sc-map.is-arriving{ animation:map-in var(--t-map-in) var(--e-settle) both; }
+@keyframes map-out  { to{ opacity:0; transform:scale(.965) } }
+@keyframes round-in { from{ opacity:0; transform:scale(1.03) } }
+@keyframes map-in   { from{ opacity:0; transform:scale(1.02) } }
+
+/* =====================================================================
+   4 · THE COIN AWARD, AS A FLIGHT
+   Tokens leave the point the award was earned at — the stamp, the verdict
+   — and arrive at the chip that counts them. They are spawned into a fixed
+   layer over everything so no beat has to make room for them, and they are
+   pointer-transparent so they cannot eat a tap mid-flight.
+   ===================================================================== */
+/* direction:ltr IS LOAD-BEARING, and this cost a bug. A token is
+   positioned entirely by transform, so it was left with left:auto and
+   top:auto — and in an RTL containing block the static position of an
+   absolutely positioned box is its inline START, which is the RIGHT edge.
+   Every token therefore began 390px to the right of where the maths put
+   it and flew off the stage, where overflow:hidden ate it silently.
+   left:0/top:0 pins the origin; direction:ltr keeps it pinned if the
+   offsets are ever dropped again. */
+.coinfly{ position:absolute; inset:0; z-index:60; pointer-events:none; direction:ltr; }
+.coin-t{
+  position:absolute; left:0; top:0; width:19px; height:19px; border-radius:50%;
+  background:var(--primary);
+  box-shadow:inset 0 0 0 2px rgba(0,0,0,.55), 0 2px 0 rgba(0,0,0,.3);
+  will-change:transform, opacity;
+}
+/* the chip's own acknowledgement, once per arrival */
+.hud-coins.is-landing{ animation:coin-land 180ms var(--e-out); }
+@keyframes coin-land{ 0%,100%{transform:none} 40%{transform:scale(1.09)} }
 
 @media (prefers-reduced-motion: reduce){
   *{ animation-duration:1ms !important; transition-duration:1ms !important; }
