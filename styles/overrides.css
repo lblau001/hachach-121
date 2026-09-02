@@ -77,8 +77,53 @@
   /* ═══════════════════════════════════════════
      MOBILE: safe areas, overscroll, background
   ═══════════════════════════════════════════ */
-  html,body{overscroll-behavior:none}
-  @media(max-width:480px),(max-height:900px){body{background:var(--paper)}}
+  /* ═══════════════════════════════════════════
+     A2 · THE GREY BAND BELOW THE APP
+     Repro: GitHub Pages link opened from WhatsApp on iOS.
+
+     ROOT CAUSE, and it is not the 900px cap. base.css:25 sets .app's
+     height three times:
+         height: min(900px, 100vh);
+         height: min(900px, 100dvh);
+         height: min(900px, calc(var(--vh, 1vh) * 100));   <-- last wins
+     Every browser supports calc() and custom properties, so the THIRD
+     declaration always wins and the 100dvh line is dead. The app's height
+     therefore depends entirely on --vh, which app.js:102-105 refreshes on
+     `resize` and `orientationchange` only.
+     iOS Safari does not fire `resize` when its chrome collapses — it
+     fires visualViewport.resize. In the WhatsApp in-app browser --vh is
+     captured while the toolbars are up, the toolbars then retract, the
+     visual viewport grows, and .app and body both keep the old short
+     height. What shows under them is the canvas.
+
+     THE FIX IS ORDER, NOT A NEW LISTENER. Put --vh FIRST as the fallback
+     for iOS below 15.4 and let 100dvh win wherever it is supported; dvh
+     tracks chrome collapse natively, so nothing has to be recomputed in
+     JS and app.js does not need to change at all.
+     The backgrounds are belt and braces: if any strip is ever uncovered
+     it is the app's own charcoal rather than the near-black --void, so a
+     gap reads as nothing instead of as a band.
+     ═══════════════════════════════════════════ */
+  html,body{
+    overscroll-behavior:none;
+    background:var(--paper);
+    min-height:100%;
+  }
+  body{
+    height:calc(var(--vh, 1vh) * 100);
+    height:100dvh;
+  }
+  .app{
+    height:calc(var(--vh, 1vh) * 100);
+    height:100dvh;
+    max-height:100dvh;
+  }
+  /* the dot grid is .app::before, so it reaches the full viewport once the
+     app does — and past the safe areas, which the app already spans */
+  @media(max-width:480px),(max-height:900px){
+    body{background:var(--paper)}
+    .app{width:100vw;max-width:100vw;box-shadow:none}
+  }
 
   :root{
     --safe-t:env(safe-area-inset-top,0px);

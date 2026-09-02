@@ -58,6 +58,11 @@
      still the beat's pause rather than a wait. */
   --t-b2-seat:     520ms;
 
+  /* A6 · how long the claim's stamp holds alone before the explanation
+     arrives under it. Long enough to read one word and register the
+     colour, short enough that it is a beat and not a wait. */
+  --t-claim-hold:  700ms;
+
   /* §A the deck. A card is turned over, never swapped: --t-card-flip is
      the turn, --t-card-exit the resolved card being swiped off. */
   --t-card-flip:   450ms;
@@ -213,17 +218,44 @@ body{
 .hud-coins.is-awarding{ animation:coin-bump var(--t-coin) var(--e-out); }
 @keyframes coin-bump{ 0%,100%{transform:none} 35%{transform:translateY(-3px) scale(1.04)} }
 .hud-you{ width:40px; height:40px; }
+/* A4 · the right slot holds whichever of the two is on this screen, and
+   holds the SAME 40px box either way so the row never shifts when the
+   avatar swaps for the ✕. */
+.hud-right{ flex:none; width:40px; height:40px; display:grid; place-items:center; }
+.hud-right > [hidden]{ display:none; }
+.hud-x{ font-size:17px; line-height:1; }
+
+/* A4 · the exit confirm. UNSTYLED ON PURPOSE — B5 picks between a minimal
+   sheet and a chip expanding out of the ✕. Layout only. */
+.exitsheet{
+  position:absolute; inset:0; z-index:70; display:grid; place-items:end center;
+  padding:var(--sp-4); background:rgba(20,18,15,.72);
+}
+.exitsheet__box{
+  width:100%; max-width:330px; margin-bottom:calc(12px + env(safe-area-inset-bottom));
+  background:var(--paper); color:var(--ink);
+  border-radius:var(--r-chip); padding:var(--sp-4);
+  display:flex; flex-direction:column; gap:var(--sp-3);
+}
+.exitsheet__q{ margin:0; font-size:var(--fs-body); font-weight:700;
+  line-height:1.4; text-align:center; }
+.exitsheet__row{ display:flex; flex-direction:column; gap:8px; }
 
 /* §C THE ONE HELPER LINE. Not a pill: plain type on the ground, low
    contrast, between the HUD and the chyron. Its box is reserved on every
    beat — is-empty hides the text, never the space — so turning it on for
    the first MK card cannot change the card's size. */
+/* A8 · 1.5x. --fs-micro is 11px and that is what the MK question was set
+   in; it is now 17px with a box to match. The box is still RESERVED on
+   every beat — is-empty hides the text, never the space — so the card is
+   the same size on the claim, the overlay and every cascade card. */
 .helper{
   /* margin, not margin-bottom: it is a <p>, and the UA's default 1em top
      margin was quietly taking another 13px off the card. */
-  flex:none; min-height:12px; margin:0;
-  font-size:var(--fs-micro); font-weight:700; line-height:1.05;
-  color:var(--ink-faint); text-align:center; opacity:.78;
+  flex:none; min-height:18px; margin:5px 0 0;
+  font-size:17px; font-weight:900; line-height:1.05;
+  font-family:var(--font-display);
+  color:#D8D2C4; text-align:center; opacity:1;
 }
 .helper.is-empty{ visibility:hidden; }
 
@@ -708,7 +740,23 @@ body.no-ph [data-ph]{ display:none !important; }
 /* agreement: the two share one slot and settle instead of travelling */
 .gx.is-agreed .gx-track{ animation:gx-settle var(--t-gx-settle) var(--e-land); }
 @keyframes gx-settle{ 0%,100%{transform:none} 45%{transform:scale(1.015)} }
-.gx-you .as-d{ width:38px; height:38px; filter:url(#dcw-sm); }
+/* A8 · the neutral "your guess" mark. A punch-hole: paper ring, dark
+   centre, NO hue — the verdict stamp beside it is the only coloured thing
+   in the beat and this must never compete with it or be mistaken for it.
+   Its label sits above the token rather than inside: 38px cannot hold
+   three Hebrew words, and the strip's own height is fixed. PLACEHOLDER,
+   marked as such — B4 replaces the whole mark. */
+.gx-punch{
+  display:block; width:38px; height:38px; border-radius:50%;
+  background:var(--paper);
+  box-shadow:inset 0 0 0 6px var(--ground), 0 0 0 2px rgba(0,0,0,.45),
+             0 2px 0 rgba(0,0,0,.3);
+}
+.gx-punch__lab{
+  position:absolute; bottom:calc(100% + 3px); left:50%; transform:translateX(-50%);
+  white-space:nowrap; font-size:9px; line-height:1;
+}
+.gx-punch__lab .ph{ padding:1px 5px 2px; font-size:9px; border-width:1px; }
 .gx-port{ display:block; width:34px; height:46px; object-fit:contain; object-position:50% 0; }
 .gx-badge{ display:grid; place-items:center; width:38px; height:38px; border-radius:50%;
   background:var(--paper); font-family:var(--font-display); font-weight:900; font-size:14px;
@@ -1027,7 +1075,13 @@ body.no-ph [data-ph]{ display:none !important; }
    would simply eat the CTA. Margins are all explicit for the same reason;
    the UA's 1em <p> margin is 26px under a 26px sub-head and was quietly
    spending a fifth of the slack on a 667px phone. */
-.sc-intro{ align-items:center; text-align:center; padding-top:clamp(10px, 2.6vh, 22px); }
+/* A1 · ONE COMPOSED GROUP, SHIFTED UP. With the lede pill and the note
+   gone, the four things left — title, chair, tagline, CTA — are centred as
+   a block rather than spread between the top and the bottom edges. The CTA
+   keeps a small auto margin so it settles at the foot of the group instead
+   of being pushed to the foot of the screen. */
+.sc-intro{ align-items:center; text-align:center;
+  justify-content:center; padding-top:clamp(6px, 1.6vh, 14px); }
 /* the plaza the building stands on */
 .sc-intro::before{
   content:""; position:absolute; left:-16px; right:-16px; bottom:-12px; height:62%;
@@ -1064,13 +1118,12 @@ body.no-ph [data-ph]{ display:none !important; }
   content:""; position:absolute; left:0; right:0; bottom:0; height:46%; z-index:2;
   background:linear-gradient(to top,rgba(43,41,38,.82),rgba(43,41,38,.55) 46%,rgba(43,41,38,0));
 }
-/* margin-top:auto pushes the action to the foot when there is room to
-   spare, and collapses to nothing when there is not */
-.i-cta{ margin-top:auto; width:280px; font-size:clamp(21px,3.1vh,26px);
+/* the action sits with the group, not at the bottom of the screen — that
+   is the whole point of A1's rebalance. A capped top margin keeps it
+   clearly separate from the paragraph without opening a gap. */
+.i-cta{ margin:clamp(18px,4vh,34px) 0 clamp(10px,2.4vh,20px);
+  width:280px; font-size:clamp(21px,3.1vh,26px);
   position:relative; z-index:6; flex:none; }
-.i-note{ position:relative; z-index:6; flex:none;
-  margin:clamp(6px,1.3vh,11px) 0 clamp(8px,2.6vh,22px);
-  font-size:var(--fs-meta); font-weight:700; color:var(--ink-faint); }
 
 /* ---- the display title, letter by letter --------------------------
    Each glyph is its own <svg><text>, which is how the white cut can
@@ -1275,19 +1328,6 @@ span.node-ico{ font-size:38px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
   background:#2B2926; color:#fff; border:2px solid var(--paper);
   box-shadow:0 2px 0 0 #161413;
 }
-/* THE BONUS MARKER IS A SATELLITE OFF THE RING, never a third segment —
-   §3.2 is categorical, and the board's own note says the same. It hangs
-   OUTSIDE the ring (centre 64px from the node centre against the ring's
-   53.5px outer edge) so it cannot be misread as part of the completion
-   ring. It renders only when the topic actually has a bonus issue. */
-.node-bonus{
-  position:absolute; left:2px; top:-1px; z-index:3;
-  width:23px; height:23px; border-radius:50%;
-  display:grid; place-items:center; font-size:12px; line-height:1;
-  background:var(--primary); color:var(--ink);
-  box-shadow:0 0 0 2px var(--edge), 0 0 0 3.4px rgba(0,0,0,.45), 0 2px 0 rgba(0,0,0,.3);
-}
-
 /* THE SOFT NUDGE, and it is the only one. No lock, no prerequisite, no
    "pick needed" warning: free choice is a SET decision (§3.1) and the
    current node is a suggestion for choice-paralysis, nothing more. */
@@ -1366,6 +1406,126 @@ span.node-ico{ font-size:38px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
 /* the chip's own acknowledgement, once per arrival */
 .hud-coins.is-landing{ animation:coin-land 180ms var(--e-out); }
 @keyframes coin-land{ 0%,100%{transform:none} 40%{transform:scale(1.09)} }
+
+/* =====================================================================
+   A6 · THE CLAIM RESOLVES ON THE SPOT
+   A full-screen surface over everything: the verdict stamp alone first,
+   then the explanation under it and one way out. It sits above the HUD
+   because the claim is the only thing on screen at this moment — the coin
+   count and the issue title are not competing with the answer.
+   ===================================================================== */
+.creveal{
+  position:absolute; inset:0; z-index:50;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:var(--sp-4);
+  padding:calc(20px + env(safe-area-inset-top)) var(--sp-4)
+          calc(20px + env(safe-area-inset-bottom));
+  background:rgba(20,18,15,.90);
+  -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+  opacity:0; transition:opacity var(--t-ov-in) var(--e-out);
+}
+.creveal.is-in{ opacity:1; }
+.creveal.is-out{ opacity:0; }
+/* the stamp is the SAME .d2 the cascade uses, so correctness reads the
+   same way in both places. It is placed rather than positioned: .d2 is
+   absolute by default and the claim reveal has no card to hang it off. */
+.creveal__stamp{ position:relative; flex:none; width:190px; height:190px; }
+.creveal__stamp .d2{ position:absolute; inset:0; top:0; left:0; width:190px; height:190px; }
+/* the explanation arrives UNDER the stamp, after the hold */
+.creveal__exp{
+  flex:none; width:100%; max-width:330px;
+  display:flex; flex-direction:column; align-items:stretch; gap:var(--sp-3);
+  opacity:0; transform:translateY(10px);
+  transition:opacity var(--t-flip) var(--e-out), transform var(--t-flip) var(--e-settle);
+}
+.creveal__exp.is-in{ opacity:1; transform:none; }
+.creveal__text{
+  margin:0; font-size:var(--fs-body); font-weight:700; line-height:1.5;
+  color:#EFECE4; text-align:center; text-wrap:balance;
+}
+.creveal__go{ width:100%; }
+
+/* =====================================================================
+   A9 · THE FINAL REVEAL, rebuilt on Tamar's fields
+   The explanation paragraph and the bill summary are GONE from here: the
+   explanation resolves the claim at beat 1 now, and the bill's description
+   lives in the law modal. What is left is the result, the terms and the
+   ways out — no prose we wrote ourselves.
+   ===================================================================== */
+/* the result is PROSE and it wraps. Some rows are three lines about a
+   committee; nothing here truncates or ellipsises. */
+.b5result{
+  margin:6px 0 0; font-size:var(--fs-body); font-weight:700; line-height:1.45;
+  color:var(--ink); text-align:center; text-wrap:pretty;
+}
+.b5panel.b5-nocount .b5result{ margin-top:0; }
+
+/* glossary terms as chips, not as body text */
+.b5gloss{ display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-top:2px; }
+.b5chip{
+  appearance:none; cursor:pointer; border:0;
+  padding:4px 11px 5px; border-radius:var(--r-chip);
+  background:rgba(255,255,255,.10); color:#EFECE4;
+  font-family:var(--font-display); font-weight:900; font-size:var(--fs-meta);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);
+}
+.b5def{
+  margin:6px 0 0; font-size:var(--fs-meta); font-weight:700; line-height:1.5;
+  color:#D8D2C4; text-align:start;
+  background:rgba(0,0,0,.22); border-radius:var(--r-chip); padding:8px 11px;
+}
+.b5def b{ color:#EFECE4; }
+
+/* the links row. A missing URL is a DEAD chip that looks dead — it is
+   marked data-missing-url and listed in the report, never a live-looking
+   anchor that goes nowhere. */
+.b5links{ display:flex; flex-direction:column; gap:5px; margin-top:4px; align-items:stretch; }
+.b5link{
+  display:flex; align-items:center; gap:7px;
+  font-size:var(--fs-meta); font-weight:700; line-height:1.3;
+  color:#D8D2C4; text-decoration:none;
+}
+.b5link i{ font-style:normal; flex:none; opacity:.85; }
+.b5link:not(.is-missing){ text-decoration:underline; text-underline-offset:3px; }
+.b5link.is-missing{ color:var(--ink-faint); opacity:.55; cursor:default; }
+
+/* the secondary way out, under the primary */
+.b5back{ margin-top:8px; }
+
+/* A7 · the law name, small and underlined, under the tachles prompt */
+.b2bill--link{
+  appearance:none; border:0; background:none; cursor:pointer;
+  font:inherit; color:inherit; text-decoration:underline;
+  text-underline-offset:3px; padding:0;
+}
+/* A7 · THE LAW MODAL IS UNSTYLED ON PURPOSE — B3 picks its treatment
+   (bottom sheet / card flip / die-cut sticker) and anything decided here
+   would be thrown away. This is layout only: legible, closable, on top. */
+.lawmodal{
+  position:absolute; inset:0; z-index:60; display:grid; place-items:center;
+  padding:var(--sp-4); background:rgba(20,18,15,.72);
+}
+.lawmodal__box{
+  position:relative; width:100%; max-width:330px; max-height:80%;
+  overflow-y:auto; -webkit-overflow-scrolling:touch;
+  background:var(--paper); color:var(--ink);
+  border-radius:var(--r-chip); padding:var(--sp-4);
+  display:flex; flex-direction:column; align-items:center; gap:var(--sp-2);
+}
+.lawmodal__x{
+  position:absolute; inset-inline-end:8px; top:8px; width:32px; height:32px;
+  border:0; background:none; cursor:pointer; font-size:18px; line-height:1; color:var(--ink);
+}
+.lawmodal__art{ width:64px; height:auto; display:block; }
+.lawmodal__title{ margin:0; font-family:var(--font-display); font-weight:900;
+  font-size:var(--fs-body); line-height:1.25; text-align:center; }
+.lawmodal__date{ margin:0; font-size:var(--fs-meta); color:var(--ink-soft); }
+.lawmodal__body{ margin:0; font-size:var(--fs-meta); font-weight:700;
+  line-height:1.55; text-align:start; }
+
+/* A7 · the avatar inside the pinned own-vote band, at the leading edge */
+.chyron-av{ flex:none; width:28px; height:28px; line-height:0; }
+.chyron-av svg{ width:100%; height:100%; display:block; }
 
 @media (prefers-reduced-motion: reduce){
   *{ animation-duration:1ms !important; transition-duration:1ms !important; }

@@ -61,6 +61,7 @@ const T = {
   ovCollapse:ms('--t-ov-collapse'),
   ovSwap:    ms('--t-ov-swap'),
   b2Seat:    ms('--t-b2-seat'),
+  claimHold: ms('--t-claim-hold'),
   cardFlip:  ms('--t-card-flip'),
   cardExit:  ms('--t-card-exit'),
   gxLock:    ms('--t-gx-lock'),
@@ -142,12 +143,7 @@ const DEV = {
      playing up to it. Every other switch above keeps working from any of
      the three, because they are all read once, here, before any screen is
      built. Default is the intro — the app has a front door now. */
-  screen: qPick('screen', { intro:'intro', map:'map', round:'round' }, 'intro'),
-
-  /* THE BONUS MARKER HAS NO DATA TO BIND TO — see hasBonus(). This forces
-     it on so the treatment can be looked at; it invents no issue and
-     changes no count. */
-  bonusDemo: (Q.get('bonus') || '') === 'demo'
+  screen: qPick('screen', { intro:'intro', map:'map', round:'round' }, 'intro')
 };
 
 let M = null;                       /* manifest.json                     */
@@ -519,28 +515,38 @@ function helper(text) {
    The element itself lives in index.html and is never created or removed,
    only filled and emptied — see .chyron.is-empty for why it keeps its box
    on beat 1.                                                           */
-function pin(word) {
+/* A7 · WHAT THE BAND CARRIES IS THE PLAYER'S OWN VOTE, and the avatar
+   comes with it. This is the "121st MK" object: the player and the way
+   they voted, on screen together for the whole cascade and the reveal.
+   The avatar leads at the RIGHT edge — the leading edge in RTL — because
+   the sentence is about them.
+   IT IS NEVER SCORED. No colour by direction, no comparison to a correct
+   answer, no change when the cascade disagrees with it. It is a statement
+   of what the player said, and nothing in the round is allowed to grade
+   it. Before beat 2 there is no vote and so no band; the slot still holds
+   its box, so the card does not resize when it fills.
+   COPY IS OURS, NOT TAMAR'S — marked, including the gendered נמנע/ת which
+   needs checking against the player's gender setting. */
+const VOTE_PIN = { for: 'בעד', against: 'נגד', abstain: 'נמנע/ת' };  /* TAMAR */
+function pinVote(vote) {
   const c = $('#chyron');
   c.classList.remove('is-empty');
   c.removeAttribute('aria-hidden');
-  /* PLACEHOLDER COPY. "אמרת:" is ours, not Tamar's, so it carries the
-     placeholder marker; the answer word beside it is the player's real
-     answer out of S.claim and stays whatever the final copy turns out to
-     be. The word is NEVER coloured by which way it points — אמת and שקר
-     get exactly the same treatment, or the band starts scoring the claim
-     four beats before the round resolves it. */
-  /* §3d NO AVATAR. The HUD already carries the player's sticker; a second
-     copy of it inside the band was saying who twice and crowding the one
-     thing the band exists to hold. */
   c.innerHTML =
-    '<span class="chyron-line">' + ph('אמרת:') +
-      '<b>' + esc(word) + '</b></span>';
+    '<span class="chyron-av as-d" aria-hidden="true">' + AV3 + '</span>' +
+    '<span class="chyron-line">' + ph('הצבעת:') +
+      '<b>' + esc(VOTE_PIN[vote] || '') + '</b></span>';
   return c;
 }
 /* the round re-renders on every beat; the chyron is outside #round and
    survives that, but the call is kept so a beat can never render without
    it having been asserted */
-function repin() { if (S.claim) pin(S.claim === 'true' ? 'אמת' : 'שקר'); }
+/* A6 · THE `אמרת:` BANNER IS GONE. It existed to carry the player's
+   unresolved answer through four beats; the claim now resolves at beat 1,
+   so there is nothing left to pin. The slot is not deleted — A7 fills it
+   with the player's own VOTE from beat 2 onward, which is the thing that
+   does stay unresolved for the rest of the round. */
+function repin() { if (S.ownVote) pinVote(S.ownVote); }
 
 /* ===================== THE DECK ===================================== */
 /* ONE ISSUE, ONE DECK, AND NOTHING IS EVER SUBSTITUTED. The next card is
@@ -649,8 +655,12 @@ function beat1() {
   const wrap = el('div', 'cardwrap');
   const pile = el('span', 'pile');
   /* THE FIRST MK CARD IS ALREADY HERE, face down, under the claim. When
-     the claim leaves it is not replaced — it is uncovered. */
-  const next = deckCard(0);
+     the claim leaves it is not replaced — it is uncovered.
+     UNLESS THERE IS NO CASCADE. A round with no MK data has nothing to
+     uncover, so the claim card stands alone over the ground and beat 3
+     ends the round. deckCard(0) read S.dealt[0].id and threw on an empty
+     deal, which blanked the whole round screen. */
+  const next = S.dealt.length ? deckCard(0) : null;
   const card = el('article', 'mf-b b1card');
   card.innerHTML =
     claimArt() +
@@ -671,7 +681,7 @@ function beat1() {
        the direction, the button is the word. */
     '<div class="b1target"></div>';
 
-  wrap.append(pile, next, card);
+  if (next) wrap.append(pile, next, card); else wrap.append(card);
   stack.appendChild(wrap);
   b.appendChild(stack);
 
@@ -812,7 +822,96 @@ async function commitClaim(ans, card, dir) {
   /* the claim card is GONE, not hidden — what is under it was always
      under it, and is now simply the top of the deck */
   card.remove();
+  await claimReveal(ans);
   beat2();
+}
+
+/* ===== A6 · THE CLAIM RESOLVES IMMEDIATELY =========================
+   The old arc answered the claim at beat 1 and held the truth back until
+   beat 5, four beats later. It now resolves on the spot: answer -> stamp
+   -> explanation -> הלאה, and the round moves on knowing the answer.
+
+   THE STAMP CARRIES THE TRUE ANSWER, NOT THE PLAYER'S. It reads אמת or
+   שקר because that is what was true; whether the player agreed is coded
+   ONLY by the VP-2 colour pair, never by which word is shown and never by
+   direction. That is the locked rule and this is the beat where it is
+   easiest to break.
+   `partial` resolves as correct and prints חלקית — the player cannot be
+   wrong about a claim the data calls partly true. */
+async function claimReveal(ans) {
+  const truth = issue.tf_answer === 'true' ? 'אמת'
+              : issue.tf_answer === 'false' ? 'שקר' : 'חלקית';
+  const ok = issue.tf_answer === 'partial' || ans === issue.tf_answer;
+  S.claimCorrect = ok;
+
+  const sc = el('div', 'creveal' + (ok ? ' is-correct' : ' is-surprise'));
+  sc.innerHTML = '<div class="creveal__stamp"></div>';
+  $('#stage').appendChild(sc);
+  const mark = stamp(ok, truth);
+  $('.creveal__stamp', sc).appendChild(mark);
+  inkBleed();
+  setTimeout(() => buzz(25), T.stampDrop);
+  requestAnimationFrame(() => sc.classList.add('is-in'));
+
+  /* the coin for a correct claim is paid HERE now — the claim is resolved,
+     so there is nothing left to give away by paying for it */
+  const table = COIN_TABLES[DEV.coins];
+  if (table.claimNeedsCorrect && ok) setTimeout(() => award(table.claim, mark), T.stamp);
+
+  /* §A6 the stamp holds alone before the explanation arrives under it */
+  await wait(T.claimHold);
+
+  const panel = el('div', 'creveal__exp');
+  panel.innerHTML =
+    '<p class="creveal__text">' + markGlossary(issue.tf_explain || '') + '</p>' +
+    '<button type="button" class="p-c creveal__go">' + esc('הלאה') + '</button>';
+  sc.appendChild(panel);
+  requestAnimationFrame(() => panel.classList.add('is-in'));
+
+  /* the glossary opens inline here too, where the term occurs */
+  panel.addEventListener('click', e => {
+    const t = e.target.closest('.gt'); if (!t) return;
+    if (t.nextElementSibling && t.nextElementSibling.classList.contains('gdef'))
+      return t.nextElementSibling.remove();
+    t.after(el('p', 'gdef', '<b>' + esc(t.dataset.gt) + '</b> — ' + esc(DATA.glossary[t.dataset.gt])));
+  });
+
+  await new Promise(res => {
+    pressable($('.creveal__go', panel)).addEventListener('click', async () => {
+      sc.classList.add('is-out');
+      await wait(T.ovCollapse);
+      sc.remove();
+      res();
+    }, { once:true });
+  });
+}
+
+/* A7 · THE LAW MODAL, functional and deliberately unstyled — B3 picks
+   between a bottom sheet, a card flip and a die-cut sticker modal, and
+   styling it now would mean throwing that away. Title is bill_title, body
+   is bill_description (bill_summary), graphic is the police-hat asset as
+   the agreed placeholder for every issue.
+   SPOILER RISK: on s1 and m2 this text names an MK who is in that round's
+   own cascade. Tamar's copy is NOT edited and no MK is dropped; the issues
+   carry `spoiler_risk:true` in data.js and stay on her list. */
+function lawModal() {
+  const m = el('div', 'lawmodal');
+  m.innerHTML =
+    '<div class="lawmodal__box" role="dialog" aria-modal="true">' +
+      '<button type="button" class="lawmodal__x" aria-label="סגירה">✕</button>' +
+      /* the police hat, from the MANIFEST rather than a literal path — it
+         moved to assets/topics/ when the topic icons were framed, and the
+         hard-coded assets/mk/ path 404'd. internal_sec's entry is the hat. */
+      (function(){ const h = M.topics && M.topics.internal_sec && M.topics.internal_sec['128'];
+        return h ? '<img class="lawmodal__art" src="' + ROOT + h + '" alt="">' : ''; })() +
+      '<h2 class="lawmodal__title">' + esc(issue.bill_title || '') + '</h2>' +
+      (issue.bill_date ? '<p class="lawmodal__date">' + esc(issue.bill_date) + '</p>' : '') +
+      '<p class="lawmodal__body">' + esc(issue.bill_summary || '') + '</p>' +
+    '</div>';
+  const close = () => m.remove();
+  $('.lawmodal__x', m).addEventListener('click', close);
+  m.addEventListener('click', e => { if (e.target === m) close(); });
+  $('#stage').appendChild(m);
 }
 
 /* ============= BEATS 2 AND 3 · ONE OVERLAY, TWO CONTENTS ============ */
@@ -834,8 +933,7 @@ function beat2() {
   /* NOTHING IS RE-RENDERED HERE. The deck is already on screen and the
      claim card has left it; what shows through the blur is the deck's
      own top card, face down, at full card size in its own position. */
-  /* the pinned answer enters HERE, with the consent line */
-  pin(S.claim === 'true' ? 'אמת' : 'שקר');
+  /* nothing is pinned yet — the band fills when the player votes, below */
 
   /* THE OVERLAY IS A CHILD OF .stage, NOT OF THE BEAT. Anchored to the
      beat it stopped at the round's padding and the dot-grid ground showed
@@ -855,8 +953,19 @@ function beat2() {
           '<img class="b2chair" src="' + ROOT + M.props.chair['300'] + '" alt="">' +
           '<p class="b2taken" aria-live="polite"></p>' +
         '</div>' +
-        '<p class="b2q">איך הייתם מצביעים?</p>' +
-        '<p class="b2bill">' + esc(issue.bill_title) + '</p>' +
+        /* A7 · THE PROMPT IS TAMAR'S, from the sheet's תכלס- בגדול column.
+           It replaces our generic "איך הייתם מצביעים?" with the issue's
+           own framing — "פטור משירות עבור החרדים - בעד או נגד?" — so the
+           question names the thing being voted on. Falls back to the old
+           line only if the field is empty, which it is on none of the
+           eleven active issues. */
+        '<p class="b2q">' + esc(issue.tachles_prompt || 'איך הייתם מצביעים?') + '</p>' +
+        /* A7 · the law's name, small and tappable, opening the modal. It is
+           a SEPARATE field from the prompt — the prompt is the plain-language
+           question, this is the bill's formal name — so it is never dug out
+           of the prompt text. */
+        '<button type="button" class="b2bill b2bill--link" data-law>' +
+          esc(issue.bill_title || '') + '</button>' +
         '<div class="v-a-row b2votes">' +
           VOTES.map(v => '<button class="v-a" data-vote="' + v + '">' + VLABEL[v] + '</button>').join('') +
         '</div>' +
@@ -874,10 +983,17 @@ function beat2() {
 
   /* NO INSTRUCTION LINE. Three vote chips are the instruction. */
 
+  const law = $('[data-law]', ov);
+  if (law) pressable(law).addEventListener('click', e => { e.stopPropagation(); lawModal(); });
+
   ov.querySelectorAll('[data-vote]').forEach(btn =>
     btn.addEventListener('click', async () => {
       if (S.position) return;
       S.position = btn.dataset.vote;
+      /* A7 · the choice pins into the band and stays there for the rest of
+         the round — through the cascade and into the reveal */
+      S.ownVote = btn.dataset.vote;
+      pinVote(S.ownVote);
       ov.querySelectorAll('.v-a').forEach(x => x.disabled = true);
       /* BEAT 2 EARNS NOTHING, IN EVERY MODE. It used to pay
          COIN_TABLES[mode].position, which is 0 under 'sheet' but 25 under
@@ -927,6 +1043,12 @@ async function beat3(ov) {
     ov.classList.add('ov--collapse');
     await wait(T.ovCollapse);
     ov.remove();
+    /* BEAT 4 IS OPTIONAL. Five of the eleven active issues arrived from
+       Tamar's sheet with no MK vote data at all, and an issue whose bill
+       changed does not inherit the old bill's votes. Those rounds run
+       claim -> stamp -> tachles -> reveal and the cascade simply does not
+       happen: no empty state, no placeholder MKs, no error. */
+    if (!S.dealt.length) return beat5();
     S.beat = 4;
     /* the card the overlay was sitting on turns over in front of the
        player. It is the same element, not a replacement. */
@@ -1028,8 +1150,19 @@ function axis(guess, p) {
   g.innerHTML =
     '<div class="gx-track">' +
       '<span class="gx-fill"></span>' +
-      '<span class="gx-m gx-you is-landing" style="right:' + stopPct(guess) + '%">' +
-        '<span class="as-d">' + AV3 + '</span></span>' +
+      /* A8 · THE AVATAR IS NOT ALLOWED IN THIS BAR. It used to be the
+         player's own sticker, which put the same object in two places
+         meaning two different things: pinned in the chyron it is the
+         player's VOTE on the bill, and down here it was their GUESS about
+         someone else. One of them had to stop being the avatar, and it is
+         this one — the vote is the "121st MK" object and the guess is not.
+         Neutral by construction: a punch-hole in paper, no hue at all, so
+         it can never be read as a correctness verdict the way a coloured
+         mark would. PLACEHOLDER — B4 picks between four treatments. */
+      '<span class="gx-m gx-you is-landing" style="right:' + stopPct(guess) + '%" ' +
+        'role="img" aria-label="הניחוש שלך">' +
+        '<span class="gx-punch" aria-hidden="true"></span>' +
+        '<span class="gx-punch__lab">' + ph('הניחוש שלך') + '</span></span>' +
       /* THE MK TOKEN STARTS IN THE PLAYER'S SLOT, not in its own. The
          comparison begins where the player put it and travels from
          there; starting it at the answer would state the answer before
@@ -1130,8 +1263,12 @@ const D2_COPY_PLACEHOLDER = {
   surprise: 'הופתעת'
 };
 
-function stamp(ok) {
-  const word = ok ? D2_COPY_PLACEHOLDER.correct : D2_COPY_PLACEHOLDER.surprise;
+/* `override` is the A6 claim reveal passing the TRUE answer — אמת / שקר /
+   חלקית — because that stamp reports what was true rather than how the
+   player did. Correctness is still carried by `ok`, i.e. by colour alone,
+   which is the locked rule. Everywhere else the placeholder copy stands. */
+function stamp(ok, override) {
+  const word = override || (ok ? D2_COPY_PLACEHOLDER.correct : D2_COPY_PLACEHOLDER.surprise);
   const s = el('span', 'd2 ' + (ok ? 'd2--correct' : 'd2--surprise'));
   /* the disc is aria-hidden, so the word has to be announced by the host */
   s.setAttribute('role', 'img');
@@ -1180,29 +1317,28 @@ async function beat5() {
   r.appendChild(outer);
   repin();
 
-  const correctClaim = issue.tf_answer === 'partial' || S.claim === issue.tf_answer;
-  const truth = issue.tf_answer === 'true' ? 'אמת'
-              : issue.tf_answer === 'false' ? 'שקר' : 'חלקית';
-
-  /* ---- 1. the chyron HOLDS. It used to flip in place to the truth; how
-             the band resolves is the next pass's decision, so for now it
-             simply stays, unchanged, saying what the player said. The
-             beat still spends the moment — the truth arrives in the panel
-             below rather than in the band. --------------------------- */
+  /* ---- 1. the chyron HOLDS — it carries the player's own vote now, and
+             that is the one thing the reveal must not contradict. ---- */
   repin();
   await wait(T.resolve);
 
-  /* ---- 2. the count and the resolution. The round's held peak. ---- */
+  /* ---- 2. THE RESULT, IN TAMAR'S OWN WORDS. §A9: the result line is the
+             sheet's תוצאות ההצבעה, verbatim prose — "עבר 63 מול 57." or
+             three lines about a committee — so it is a paragraph that
+             wraps, never a truncated string and never a number we derived.
+             THE CLAIM'S TRUTH WORD IS GONE FROM HERE. It used to headline
+             this panel; A6 resolves the claim four beats earlier, so
+             printing אמת/שקר again would be answering a question the
+             player has already been told the answer to.
+             The count-up stays where it is when the round has a _tally —
+             it is the animated peak — with the prose underneath it. */
   const tally = issue._tally || null;
   const panel = el('div', 'b5panel b5stage' + (tally ? '' : ' b5-nocount'));
   panel.innerHTML =
-    '<div class="b5lead">' +
-      (tally ? '<span class="b5count num" id="b5count">0–0</span>' : '') +
-      '<span class="b5res">' + esc(truth) + '</span>' +
-    '</div>' +
-    (tally ? '<p class="b5outcome">הכנסת: ' +
-        (tally.for > tally.against ? 'העבירה' : 'דחתה') + '</p>'
-           : '<p class="b5outcome">' + ph('[טקסט — תמר: מה מחליף את הספירה]') + '</p>');
+    (tally ? '<div class="b5lead"><span class="b5count num" id="b5count">0–0</span></div>' : '') +
+    (issue.vote_result
+      ? '<p class="b5result">' + esc(issue.vote_result) + '</p>'
+      : '<p class="b5result">' + ph('[טקסט — תמר: תוצאות ההצבעה]') + '</p>');
   b.appendChild(panel);
   requestAnimationFrame(() => { panel.classList.add('is-in'); fitBeat(); });
 
@@ -1225,7 +1361,12 @@ async function beat5() {
   }
 
   /* ---- 4. §1.8 the SHAPE of the guess, narrated before the score.
-             Describes the pattern; never characterises the guesser. -- */
+             Describes the pattern; never characterises the guesser.
+     SKIPPED ENTIRELY WITHOUT A CASCADE. There is no shape to narrate and
+     no anchor MK to complete the sentence on, so both blocks are omitted
+     rather than rendered empty — a cascade-less round ends on the result
+     and the explanation. */
+  if (S.dealt.length) {
   const n = S.dealt.length;
   const hits = S.dealt.filter(d => S.guesses[d.id] === d.vote).length;
   const counts = {}; VOTES.forEach(v => counts[v] = 0);
@@ -1256,66 +1397,147 @@ async function beat5() {
     ' האחרים שראיתם.';
   b.appendChild(sent);
   requestAnimationFrame(() => { sent.classList.add('is-in'); fitBeat(); });
+  }
 
-  /* ---- 6. the explanation, then sources as ONE line. ------------- */
-  const exp = el('p', 'b5exp b5stage', markGlossary(issue.tf_explain));
-  b.appendChild(exp);
-  requestAnimationFrame(() => { exp.classList.add('is-in'); fitBeat(); });
+  /* ---- 6. GLOSSARY CHIPS. §A9: "מילות הרחבה" is a LIST OF TERMS, not
+             body text, so it renders as tappable chips under the result
+             rather than as a paragraph. Only terms that resolve against
+             data.js's own definitions are in `glossary_terms` — the import
+             filters the rest — so a chip can never open an empty sheet.
+             Six of the eleven active issues have at least one. */
+  const terms = issue.glossary_terms || [];
+  if (terms.length) {
+    const gl = el('div', 'b5gloss b5stage');
+    gl.innerHTML = terms.map(t =>
+      '<button type="button" class="b5chip" data-term="' + esc(t) + '">' +
+        esc(t) + '</button>').join('');
+    b.appendChild(gl);
+    requestAnimationFrame(() => { gl.classList.add('is-in'); fitBeat(); });
+  }
 
-  const src = el('p', 'b5src b5stage');
-  src.innerHTML = '🔗 מקור: <a href="' + esc(issue.source.url) + '" target="_blank" rel="noopener">' +
-    esc(issue.source.name) + '</a>' +
-    (issue.knesset_url ? ' · <a href="' + esc(issue.knesset_url) +
-      '" target="_blank" rel="noopener">🏛️ הצבעה רשמית בכנסת</a>' : '');
-  b.appendChild(src);
-  requestAnimationFrame(() => { src.classList.add('is-in'); fitBeat(); });
+  /* ---- 7. LINKS. further_links is always an array of {label,url}; a link
+             whose URL the HTML export did not carry renders DISABLED and
+             marked, rather than as a dead anchor that looks live. Video
+             labels get a play glyph, everything else a link glyph — the
+             label is Tamar's and is never rewritten to fit the glyph.
+             The Knesset link joins the same row when there is one. */
+  const links = (issue.further_links || []).slice();
+  if (issue.knesset_url) links.push({ label: 'ההצבעה באתר הכנסת', url: issue.knesset_url }); /* TAMAR */
+  if (links.length) {
+    const lk = el('div', 'b5links b5stage');
+    lk.innerHTML = links.map(l => {
+      const vid  = /^\s*סרטון/.test(l.label || '');
+      const icon = vid ? '▶' : '🔗';
+      if (!l.url) {
+        return '<span class="b5link is-missing" data-missing-url>' +
+          '<i aria-hidden="true">' + icon + '</i>' + esc(l.label) + '</span>';
+      }
+      return '<a class="b5link" href="' + esc(l.url) + '" target="_blank" rel="noopener">' +
+        '<i aria-hidden="true">' + icon + '</i>' + esc(l.label) + '</a>';
+    }).join('');
+    b.appendChild(lk);
+    requestAnimationFrame(() => { lk.classList.add('is-in'); fitBeat(); });
+  }
 
-  /* the glossary opens INLINE, where the term already occurs. */
+  /* a chip opens its definition inline, under the row, one at a time */
   b.addEventListener('click', e => {
-    const t = e.target.closest('.gt'); if (!t) return;
-    if (t.nextElementSibling && t.nextElementSibling.classList.contains('gdef')) {
-      return t.nextElementSibling.remove();
-    }
-    const d = el('p', 'gdef', '<b>' + esc(t.dataset.gt) + '</b> — ' + esc(DATA.glossary[t.dataset.gt]));
-    t.after(d);
+    const c = e.target.closest('.b5chip'); if (!c) return;
+    const open = $('.b5def', b);
+    const same = open && open.dataset.term === c.dataset.term;
+    if (open) open.remove();
+    if (same) { fitBeat(); return; }
+    const d = el('p', 'b5def b5stage is-in',
+      '<b>' + esc(c.dataset.term) + '</b> — ' + esc(DATA.glossary[c.dataset.term] || ''));
+    d.dataset.term = c.dataset.term;
+    c.parentElement.after(d);
+    fitBeat();
   });
 
-  /* ---- 7. the deferred claim award, last, away from the peak. ---- */
-  const table = COIN_TABLES[DEV.coins];
-  /* §4 it leaves THE VERDICT ON THE CLAIM — .b5res is where the round
-     finally says what was true — rather than appearing in the corner. */
-  if (table.claimNeedsCorrect && correctClaim) {
-    await wait(T.flip); award(table.claim, $('.b5res') || null);
-  }
-
-  /* §1.3 wrongness has an author and it is not the player. */
-  if (!correctClaim) {
-    const line = el('p', 'b5shape b5stage');
-    line.style.color = '#EFECE4';
-    line.textContent = 'הכנסת הפתיעה אתכם.';
-    b.insertBefore(line, shape);
-    requestAnimationFrame(() => { line.classList.add('is-in'); fitBeat(); });
-  }
-
-  /* THE ISSUE IS RECORDED, and it is one issue and not a topic. s1 is
-     `core:true` in internal_sec, so this fills SEGMENT 1 of that node's
-     ring and nothing else: the headline stays 0/8 and no check appears,
-     because the topic is not complete until s2 is played too. Awarding
-     topic-complete here is exactly the "הושלם feels like a lie" failure
-     §3.2 exists to prevent. */
+  /* THE ISSUE IS RECORDED, and it is one issue and not a topic. This fills
+     ONE segment of the topic's ring; the topic completes only when every
+     active issue in it is done, so a two-issue topic still reads 1/2 here
+     and דת ומדינה — which has one — completes outright.
+     It must run BEFORE the buttons below, because they ask which issues
+     are still unplayed. */
+  const segsWas   = segsDone(issue.topic);
+  const topicsWas = topicsDone();
   PROGRESS[issue.id] = true;
+  assertProgress(issue, segsWas, topicsWas);
 
   fitBeat();
-  const go = el('button', 'p-c b5go b5stage', 'חזרה למפה ›');
-  go.addEventListener('click', () => goMap());
-  b.appendChild(go);
-  requestAnimationFrame(() => { go.classList.add('is-in'); fitBeat(); });
+  /* ---- 8. THE WAY OUT. §A9: if the topic has another unplayed issue the
+             PRIMARY action opens it directly — the player is already in
+             this topic and going back to the map to come straight back is
+             a step that buys nothing. When the topic is finished the only
+             action is the map, and it becomes primary.
+             A one-issue topic (דת ומדינה) has no next issue and therefore
+             takes the second branch, which is the same code path as a
+             finished two-issue topic. */
+  const rest = topicIssues(issue.topic).filter(x => !issueDone(x.id));
+  const next = rest[0];
+  if (next) {
+    const go = el('button', 'p-c b5go b5stage', 'לסוגיה הבאה ›');   /* TAMAR */
+    pressable(go).addEventListener('click', () => startRound(next.id));
+    b.appendChild(go);
+    requestAnimationFrame(() => { go.classList.add('is-in'); fitBeat(); });
+    const back = el('button', 'r-b b5back b5stage', 'חזרה למפה');   /* TAMAR */
+    pressable(back).addEventListener('click', () => goMap());
+    b.appendChild(back);
+    requestAnimationFrame(() => { back.classList.add('is-in'); fitBeat(); });
+  } else {
+    const go = el('button', 'p-c b5go b5stage', 'חזרה למפה ›');
+    pressable(go).addEventListener('click', () => goMap());
+    b.appendChild(go);
+    requestAnimationFrame(() => { go.classList.add('is-in'); fitBeat(); });
+  }
 
   /* the 60s budget, still measured — it just has nowhere on screen to go
      now that the spike bar is off the stage */
   S.machineS = +(machineMs / 1000).toFixed(1);
   S.wallS    = +((performance.now() - S.t0) / 1000).toFixed(1);
 }
+
+/* ===== SELF-TEST · the round actually counted =======================
+   A rewrite of beat 5 once deleted `PROGRESS[issue.id] = true` and nothing
+   said so: the reveal still rendered, the buttons still worked, and the
+   only symptom was a map that never filled and a "next issue" that handed
+   back the issue just played. This asserts the two things that regression
+   broke, at the moment they are supposed to become true, and says so
+   loudly rather than leaving it to be noticed on the map.
+
+   It checks CONSEQUENCES, not the assignment: that the issue reads as done
+   through the same accessor the map uses, that the topic's filled-segment
+   count went up by exactly one, and that the x/N headline moved if and
+   only if that was the topic's last unplayed issue. Asserting
+   `PROGRESS[id] === true` would have passed on a build where segsDone()
+   was reading the wrong list. */
+function assertProgress(iss, segsWas, topicsWas) {
+  const fail = [];
+  if (!issueDone(iss.id))
+    fail.push('issueDone(' + iss.id + ') is false right after recording it');
+  const segsNow = segsDone(iss.topic);
+  if (segsNow !== segsWas + 1)
+    fail.push('segsDone(' + iss.topic + ') went ' + segsWas + ' -> ' + segsNow + ', expected +1');
+  const wasLast = topicIssues(iss.topic).every(x => issueDone(x.id));
+  const topicsNow = topicsDone();
+  if (topicsNow !== topicsWas + (wasLast ? 1 : 0))
+    fail.push('topicsDone() went ' + topicsWas + ' -> ' + topicsNow +
+              ', expected ' + (topicsWas + (wasLast ? 1 : 0)));
+  if (fail.length) {
+    console.error('%c PROGRESS SELF-TEST FAILED ',
+      'background:#FF3BC0;color:#fff;font-weight:bold;padding:2px 8px', fail);
+  } else {
+    console.log('%c progress ok ',
+      'background:#B6E521;color:#22300A;font-weight:bold;padding:2px 6px',
+      iss.id + ' done · ' + iss.topic + ' ' + segsNow + '/' + SEGS(iss.topic) +
+      ' · map ' + topicsNow + '/' + TOPICS().length);
+  }
+  return fail;
+}
+/* assertProgress is a top-level function declaration, so it is already on
+   window for the harness to call. Wrapping it in defineProperty — the way
+   S and DEV are exposed, because those are `let` and are not — throws
+   "Cannot redefine property" and took the whole boot down with it. */
 
 /* the count-up. ~--t-finale regardless of magnitude, ease-out. */
 function countUp(node, tally) {
@@ -1360,10 +1582,12 @@ Object.defineProperty(window, 'DEV', { get: () => DEV });
    1 of 2 segments while the headline still reads 0/8. That is only true if
    s2 is a segment rather than the bonus.
 
-   So: `core` orders the two segments, topic membership defines them, and
-   THERE IS NO BONUS ISSUE IN THE DATA TO MARK. hasBonus() is the seam —
-   one function, returning what the data says, which today is false for all
-   eight. Nothing is invented to fill it.
+   RESOLVED BY THE SHEET. Tamar's set has eleven issues over six topics and
+   no bonus among them, so the concept is gone rather than stubbed: no
+   marker, no seam, no demo flag. `core` no longer decides anything here —
+   it has been reassigned to "first ACTIVE issue in the topic" purely so
+   app.js's derived progress maths keeps working, and this file orders by
+   array position instead.
    ===================================================================== */
 
 /* issueId -> true. In memory for the session only: the map is a demo
@@ -1371,34 +1595,53 @@ Object.defineProperty(window, 'DEV', { get: () => DEV });
    the last person did. Nothing here writes to localStorage. */
 const PROGRESS = {};
 
-/* core first, so segment 1 is always the topic's first issue */
+/* ACTIVE ISSUES ONLY, in data.js's own array order.
+   `active:false` retires an issue without deleting it — the row, its MK
+   cascade and its tally all stay in data.js, they just stop being playable.
+   Ten issues are retired that way: the three in the two cut topics, and
+   seven in surviving topics that Tamar's sheet replaced.
+   ORDER IS ARRAY ORDER, NOT `core`. It used to sort core-first, but `core`
+   is deliberately untouched by the sheet import, so a topic can now have no
+   active core issue at all (economy) or an active core:false one (military).
+   Array order is the only ordering that still means "first issue". */
 const topicIssues = id => DATA.issues
-  .filter(i => i.topic === id)
-  .sort((a, b) => (b.core === true) - (a.core === true));
+  .filter(i => i.topic === id && i.active !== false);
 
-/* THE SEAM. Returns the topic's bonus issues, and data.js has none: every
-   issue belongs to the pair that makes up the two ring segments. When a
-   third issue per topic appears — or a field that marks one — this is the
-   only function that has to change. ?bonus=demo forces the marker on so
-   the treatment can be looked at; it fabricates no issue and moves no
-   count, because nothing else reads it. */
-function hasBonus(topicId) {
-  const extra = topicIssues(topicId).length - 2;
-  return extra > 0 || DEV.bonusDemo;
-}
+/* A TOPIC IS ON THE MAP IF IT HAS AN ACTIVE ISSUE. Derived rather than
+   flagged, so there is one source of truth: retiring a topic's last issue
+   retires the topic, and nothing can disagree about which six are live.
+   סביבה ואקלים and ביטחון פנים drop out this way — internal_sec because
+   its only remaining issue, חוק המשטרה, was re-parented to branches. */
+const TOPICS = () => DATA.topics.filter(t => topicIssues(t.id).length > 0);
+
+/* NO BONUS ISSUES, AND NO SLOT FOR ONE. The satellite marker, hasBonus()
+   and ?bonus=demo are all gone. Tamar's sheet defines eleven issues across
+   six topics and not one of them is a bonus; the marker was a structural
+   placeholder for a concept the content does not have, and a placeholder
+   nobody can ever populate is just a thing to explain.
+   FOR ROMAN: the shipped app still has the presentation — app.js:546
+   offers the topic's `core:false` issue as '🎁 סוגיית בונוס בנושא הזה',
+   and app.js:258 says 'יש עוד סוגיות בונוס' at 6/6. Both are now wrong:
+   `core` has been reassigned so that the second active issue of each topic
+   is ordinary content, not a bonus. */
 
 const issueDone  = id => PROGRESS[id] === true;
-/* 0, 1 or 2. Never more: the ring has two segments and bonus is not one. */
+/* HOW MANY SEGMENTS THIS TOPIC'S RING HAS. Two for most, ONE for
+   דת ומדינה, which the sheet leaves with a single issue — the ring, the
+   status line and the next-issue button all read this rather than 2, so a
+   one-issue topic can never render "1/2". */
+const SEGS       = id => Math.max(1, topicIssues(id).length);
 const segsDone   = id => topicIssues(id).filter(i => issueDone(i.id)).length;
 const topicDone  = id => { const l = topicIssues(id); return l.length > 0 && l.every(i => issueDone(i.id)); };
 /* THE HEADLINE IS TOPICS, never sub-issues. §3.2: 0/16 is a longer and
    more intimidating number for a one-minute game, and the topic is the
    unit the player actually chooses. */
-const topicsDone = () => DATA.topics.filter(t => topicDone(t.id)).length;
+const topicsDone = () => TOPICS().filter(t => topicDone(t.id)).length;
 /* the soft nudge, and the only ordering the map has. No lock follows it. */
 const currentIdx = () => {
-  const i = DATA.topics.findIndex(t => !topicDone(t.id));
-  return i < 0 ? DATA.topics.length - 1 : i;
+  const T = TOPICS();
+  const i = T.findIndex(t => !topicDone(t.id));
+  return i < 0 ? T.length - 1 : i;
 };
 
 /* =====================================================================
@@ -1410,10 +1653,43 @@ function showScreen(name) {
   [['intro','#scIntro'], ['map','#scMap'], ['round','#scRound']].forEach(([n, sel]) => {
     const node = $(sel); if (node) node.hidden = (n !== name);
   });
-  /* the HUD's centre slot is the only part of the row that differs */
+  /* the HUD's centre slot and its RIGHT slot are what differ between the
+     two screens. Centre: the issue title in a round, the x/N count on the
+     map. Right: the ✕ in a round, the avatar on the map — A4. */
   const t = $('#hudTopic'), pr = $('#hudProgress');
   if (t)  t.hidden  = (name !== 'round');
   if (pr) pr.hidden = (name !== 'map');
+  const av = $('#hudAvatar'), x = $('#hudX');
+  if (av) av.hidden = (name === 'round');
+  if (x)  x.hidden  = (name !== 'round');
+}
+
+/* ===== A4 · THE WAY OUT OF A ROUND ==================================
+   On beat 1 nothing has been answered and on the final reveal everything
+   has, so both leave immediately — a confirm there would be asking the
+   player to approve throwing away nothing. In between there is real
+   progress that is not saved, so it asks.
+   THE SHEET IS UNSTYLED ON PURPOSE. B5 chooses between a minimal sheet
+   and a chip that expands out of the ✕; anything decided here would be
+   thrown away. Copy is ours and is marked. */
+function exitRound() {
+  const midRound = S && S.beat > 1 && S.beat < 5;
+  if (!midRound) return goMap();
+
+  const sh = el('div', 'exitsheet');
+  sh.innerHTML =
+    '<div class="exitsheet__box" role="dialog" aria-modal="true">' +
+      '<p class="exitsheet__q">' + ph('לצאת מהסוגיה? ההתקדמות בה לא תישמר') + '</p>' +
+      '<div class="exitsheet__row">' +
+        '<button type="button" class="p-c" data-go>' + esc('לצאת') + '</button>' +
+        '<button type="button" class="r-b" data-stay>' + esc('להישאר') + '</button>' +
+      '</div>' +
+    '</div>';
+  const close = () => sh.remove();
+  pressable($('[data-go]', sh)).addEventListener('click', () => { close(); goMap(); });
+  pressable($('[data-stay]', sh)).addEventListener('click', close);
+  sh.addEventListener('click', e => { if (e.target === sh) close(); });
+  $('#stage').appendChild(sh);
 }
 
 /* =====================================================================
@@ -1459,8 +1735,17 @@ const lsRow = str => '<span class="i-ls" aria-label="' + esc(str) + '">' +
 
 function renderIntro() {
   const r = $('#scIntro');
+  /* A1 · THE STRIPED LEDE PILL IS GONE, and so is the note under the CTA.
+     The pill held Tamar's unwritten headline; on a phone it sat above the
+     composite as a loud yellow bar that read as a system message rather
+     than as part of the screen, and it pushed the whole group down. The
+     note under the CTA ("סוגיה אחת = דקה · אפשר לשחק כמה שרוצים") is
+     shipped copy but it is the third line of small print under the one
+     action, and removing it is what lets title + chair + tagline + CTA
+     close up into a single composed group.
+     BOTH STRINGS SURVIVE IN INTRO_COPY — they are not deleted from the
+     file, only from the screen, so putting either back is one line. */
   r.innerHTML =
-    '<p class="i-tag">' + ph(INTRO_COPY.lede) + '</p>' +
     '<div class="i-comp">' +
       '<div class="i-title">' + lsRow(INTRO_COPY.t1) + lsRow(INTRO_COPY.t2) + '</div>' +
       /* SIZED IN CSS, NOT HERE. An inline width/height beats the
@@ -1473,8 +1758,7 @@ function renderIntro() {
     '<p class="i-para">' + esc(INTRO_COPY.para) + '</p>' +
     '<div class="i-stage" aria-hidden="true">' +
       '<img class="i-build" src="' + ROOT + M.props.building['390'] + '" alt=""></div>' +
-    '<button type="button" class="p-c i-cta">' + esc(INTRO_COPY.cta) + '</button>' +
-    '<p class="i-note">' + esc(INTRO_COPY.note) + '</p>';
+    '<button type="button" class="p-c i-cta">' + esc(INTRO_COPY.cta) + '</button>';
 
   /* ONE PRIMARY ACTION AND IT GOES TO THE MAP. Not to a character step:
      §4.1 kills creation-as-first-step, the default avatar is already in
@@ -1494,7 +1778,11 @@ function renderIntro() {
 /* the board's own serpentine, as fractions of the path's width so it
    holds its shape at 375 and at 430. PathMap puts the eight centres at
    275 · 227 · 131 · 83 · 131 · 227 · 275 · 227 across 358px. */
-const NODE_X = [.7682, .6341, .3659, .2318, .3659, .6341, .7682, .6341];
+const NODE_SERPENTINE = [.7682, .6341, .3659, .2318, .3659, .6341, .7682, .6341];
+/* the board drew eight; the sheet leaves six. Taking the first N keeps the
+   board's own x positions and its single S-curve rather than inventing a
+   new serpentine for every count. */
+const NODE_X = i => NODE_SERPENTINE[i % NODE_SERPENTINE.length];
 
 /* the map's geometry lives in proto.css with everything else, so JS reads
    it back rather than carrying a second copy that can drift. */
@@ -1524,7 +1812,7 @@ function renderMap() {
             '<path class="pl-under" d=""></path><path class="pl-dots" d=""></path>' +
           '</g>' +
         '</svg>' +
-        DATA.topics.map((t, i) => nodeHTML(t, i, h, cur)).join('') +
+        TOPICS().map((t, i) => nodeHTML(t, i, h, cur)).join('') +
       '</div>' +
     '</div>' +
     '<button type="button" class="map-jump" id="mapjump">' +
@@ -1544,36 +1832,41 @@ function renderMap() {
 /* the path height is a pure function of the topic count and the two pads,
    so a redraw does not need anything the first draw was given */
 function pathHeight() {
-  return parseFloat(CSVAR('--node-pad-top')) + PADB() + (DATA.topics.length - 1) * GAP();
+  return parseFloat(CSVAR('--node-pad-top')) + PADB() + (TOPICS().length - 1) * GAP();
 }
 function redrawPath() { drawPath(pathHeight()); }
 
 /* THE RING, in the node box's own units. Everything here is derived from
    --ring-r so the SVG cannot fall out of step with the CSS that sizes the
-   box around it: the two segments split the circle in half, and each half
-   carries the board's own 27.2-degree gap — the proportion is the board's
-   even though the radius is not. */
-function ringGeom() {
+   box around it, and each arc carries the board's own 27.2-degree gap —
+   the proportion is the board's even though the radius is not. */
+function ringGeom(n) {
   const box = parseFloat(CSVAR('--node-box'));
   const r   = parseFloat(CSVAR('--ring-r'));
   const c   = box / 2;
   const circ = 2 * Math.PI * r;
-  const gap  = circ * (27.2 / 360);          /* the board's gap angle     */
-  return { box, r, c, half: circ / 2, dash: circ / 2 - gap, rest: circ / 2 + gap };
+  /* N SEGMENTS, NOT ALWAYS TWO. The circle is divided n ways and each arc
+     keeps the board's 27.2-degree gap, so a one-issue topic draws ONE arc
+     with a single break in it rather than a full circle that would read as
+     already complete. */
+  const seg  = circ / Math.max(1, n);
+  const gap  = circ * (27.2 / 360);
+  return { box, r, c, seg, dash: Math.max(1, seg - gap), rest: circ - Math.max(1, seg - gap) };
 }
 
 function nodeHTML(t, i, h, cur) {
   const done = topicDone(t.id), segs = segsDone(t.id);
   const cls = 'node' + (i === cur ? ' is-current' : '') + (segs === 0 ? ' is-untouched' : '');
   const cy  = nodeY(i, h);
-  const G   = ringGeom();
-  /* the ring's two segments. One circle each, so a segment is a real
-     element with its own state rather than a fraction of one stroke. */
+  const n   = SEGS(t.id);
+  const G   = ringGeom(n);
+  /* one circle per segment, so a segment is a real element with its own
+     state rather than a fraction of one stroke */
   const seg = k =>
     '<circle class="seg ' + (k < segs ? 'seg-on' : 'seg-off') + '" cx="' + G.c +
       '" cy="' + G.c + '" r="' + G.r + '" fill="none" stroke-dasharray="' +
       G.dash.toFixed(2) + ' ' + G.rest.toFixed(2) + '" stroke-dashoffset="' +
-      (k === 0 ? '0' : (-G.half).toFixed(2)) + '" stroke-linecap="round"></circle>';
+      (-k * G.seg).toFixed(2) + '" stroke-linecap="round"></circle>';
 
   /* §2 THE ICON IS SIZED BY AREA, not by its larger dimension. node_scale
      is measured per icon in tools/make_manifest.py and averages 1.0, so the
@@ -1611,20 +1904,20 @@ function nodeHTML(t, i, h, cur) {
   const fcy = parseFloat(CSVAR('--node-face-y')) + parseFloat(CSVAR('--node-face')) / 2;
 
   return '<div class="' + cls + '" data-topic="' + esc(t.id) + '" data-i="' + i + '" ' +
-      'style="left:calc(' + (NODE_X[i] * 100).toFixed(2) + '% - ' + G.c + 'px);top:' +
+      'style="left:calc(' + (NODE_X(i) * 100).toFixed(2) + '% - ' + G.c + 'px);top:' +
       (cy - fcy) + 'px;--tc:' + t.color +
       ';--tc-face:' + t.color +
       ';--tc-shade:color-mix(in srgb,' + t.color + ' 78%,#000)">' +
     '<span class="ringnode">' +
       '<svg class="ring" viewBox="0 0 ' + G.box + ' ' + G.box + '" aria-hidden="true">' +
-        '<g transform="rotate(-90 ' + G.c + ' ' + G.c + ')">' + seg(0) + seg(1) + '</g></svg>' +
+        '<g transform="rotate(-90 ' + G.c + ' ' + G.c + ')">' +
+          Array.from({ length: n }, (_, k) => seg(k)).join('') + '</g></svg>' +
       '<button type="button" class="node-face" ' +
-        'aria-label="' + esc(t.label + ' — ' + segs + ' מתוך 2') + '">' +
+        'aria-label="' + esc(t.label + ' — ' + segs + ' מתוך ' + n) + '">' +
         face +
         '<span class="node-num" aria-hidden="true">' + (i + 1) + '</span>' +
         (done ? '<span class="node-check" aria-hidden="true">✓</span>' : '') +
       '</button>' +
-      (hasBonus(t.id) ? '<span class="node-bonus" aria-hidden="true">★</span>' : '') +
     '</span>' +
     '<span class="node-name">' + esc(t.label) + '</span>' +
     '<span class="node-status">' + statusLine(t.id) + '</span>' +
@@ -1635,7 +1928,7 @@ function nodeHTML(t, i, h, cur) {
    carries, in words, which is what makes the node legible at 360px to
    somebody who cannot separate the two hues. No lock, ever. */
 function statusLine(id) {
-  const s = segsDone(id), n = topicIssues(id).length;
+  const s = segsDone(id), n = SEGS(id);
   if (topicDone(id)) return '✓ הושלם';
   /* the shipped app's own string, app.js:274 — and the fraction goes
      through .num like every other numeral in the prototype (§7), so it
@@ -1654,8 +1947,8 @@ function drawPath(h) {
   const path = $('#mappath'); if (!path) return;
   const w = path.clientWidth || 358;
   $('#mapline').setAttribute('viewBox', '0 0 ' + w + ' ' + h);
-  const pts = DATA.topics.map((t, i) => [
-    NODE_X[i] * w, nodeY(i, h)
+  const pts = TOPICS().map((t, i) => [
+    NODE_X(i) * w, nodeY(i, h)
   ]);
   let d = 'M' + pts[0][0].toFixed(1) + ' ' + pts[0][1].toFixed(1);
   for (let i = 1; i < pts.length; i++) {
@@ -1732,10 +2025,10 @@ function wireMap(cur, h) {
   });
 }
 
-/* the map's own HUD: the x/8 count and the coin total */
+/* the map's own HUD: the topics-complete count and the coin total */
 function paintHud() {
   const pr = $('#hudProgress');
-  if (pr) pr.innerHTML = '<span class="num">' + topicsDone() + '/' + DATA.topics.length + '</span>';
+  if (pr) pr.innerHTML = '<span class="num">' + topicsDone() + '/' + TOPICS().length + '</span>';
   const cn = $('#coinNum'); if (cn) cn.textContent = wallet;
 }
 
@@ -1793,8 +2086,13 @@ function startRound(issueId) {
      and present on every beat — the round is one issue inside one topic
      and the HUD is the only thing on screen that can say which.
      Read AFTER newRound(), which is what resolves `issue`. */
+  /* A5 · THE CENTRE OF THE HUD IS THE ISSUE, NOT THE TOPIC. The player
+     chose the topic on the map a second ago; what they cannot see from
+     inside the round is which of its issues they are in. data.js carries
+     both a short `title` (חוק הגיוס) and a long `bill_title` (החלת דין
+     רציפות על חוק הגיוס) — the short one is the header, per A5. */
   const t = $('#hudTopic');
-  if (t) t.textContent = topicLabel();
+  if (t) t.textContent = issue.title || issue.bill_title || '';
   showScreen('round');
   beat1();
   sizeStage();
@@ -1805,6 +2103,7 @@ function startRound(issueId) {
 function boot() {
   applyDev();
   $('#hudAvatar').innerHTML = AV3;
+  pressable($('#hudX')).addEventListener('click', exitRound);
   $('#coinNum').textContent = wallet;
   /* §7 the deep-link. `round` drops straight in without a map behind it,
      which is what makes it useful in a meeting; `map` and `intro` build
