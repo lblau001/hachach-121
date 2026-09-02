@@ -572,8 +572,13 @@ function deckCard(i) {
   const front = el('article', 'mf-b mkcard');
   front.innerHTML =
     '<span class="mf-b__halo"></span>' +
+    /* `hi` IS THE NATIVE CROP, `400` the fallback. .mf-b__port draws at 401
+       CSS px, so under the DPR-3 rule this wants a 1203px file; the masters
+       top out at the crop box (474-723px), which is what `hi` is. It is
+       still 1.18-1.80x rather than 3x — see manifest.json's `dpr` per
+       portrait and the ceiling note in frame_mk.py. */
     (art
-      ? '<img class="mf-b__port" src="' + ROOT + art['400'] + '" alt="">'
+      ? '<img class="mf-b__port" src="' + ROOT + (art.hi || art['400']) + '" alt="">'
       : '<span class="mf-b__badge">' + esc(initials(pol.name)) + '</span>') +
     /* §1.4b the party label STAYS. Hiding it dumps the complexity on a
        17-year-old as noise — Tesler's Law. The fix for a boring round
@@ -758,7 +763,12 @@ function claimArt() {
   if (T_ && T_['128']) {
     const ar = T_.aspect || 1, S_ = 128;
     const w = ar >= 1 ? S_ : S_ * ar, h = ar >= 1 ? S_ / ar : S_;
-    return '<div class="b1art b1art--topic"><img src="' + ROOT + T_['128'] +
+    /* THE LAYOUT BOX STAYS 128, THE SOURCE BECOMES 384. This is the single
+       worst-served surface the asset audit found: the 128px file was being
+       drawn at 128 CSS px, which is 1:1 and therefore a 3x UPSCALE on a 3x
+       phone — and it is the fallback for 14 of the 16 issues, so it is what
+       most claim cards actually show. width/height stay the CSS size. */
+    return '<div class="b1art b1art--topic"><img src="' + ROOT + (T_['384'] || T_['128']) +
       '" alt="" width="' + w.toFixed(0) + '" height="' + h.toFixed(0) + '"></div>';
   }
   /* no object either: the slot still holds its box, so the card cannot
@@ -1075,7 +1085,11 @@ function stickerModal(o) {
    assets/topics/ when the topic icons were framed and the hard-coded
    assets/mk/ path 404'd. internal_sec's entry is the hat. */
 function lawModal() {
-  const h = M.topics && M.topics.internal_sec && M.topics.internal_sec['128'];
+  /* 65 CSS px x DPR 3 = 195, so 256 is the right entry and 384 would be
+     paying for detail no screen can show — over-target is a defect in bytes
+     the same way under-target is one in pixels. It was on the 128. */
+  const T_ = M.topics && M.topics.internal_sec;
+  const h = T_ && (T_['256'] || T_['128']);
   return stickerModal({
     title: issue.bill_title || '',
     meta:  issue.bill_date || '',
@@ -1129,7 +1143,7 @@ function beat2() {
            the confirmation lands ON it rather than beside it — one
            object, not an illustration with a caption under it. */
         '<div class="b2seat">' +
-          '<img class="b2chair" src="' + ROOT + M.props.chair['300'] + '" alt="">' +
+          '<img class="b2chair" src="' + ROOT + (M.props.chair['900'] || M.props.chair['300']) + '" alt="">' +
           '<p class="b2taken" aria-live="polite"></p>' +
         '</div>' +
         /* A7 · THE PROMPT IS TAMAR'S, from the sheet's תכלס- בגדול column.
@@ -1984,12 +1998,12 @@ function renderIntro() {
          stylesheet, so the vh clamp that keeps the composite inside a
          667px phone was being overridden by the board's own 278x324 and
          the intro overflowed the stage by 86px. */
-      '<img class="i-chair" src="' + ROOT + M.props.chair['300'] + '" alt="">' +
+      '<img class="i-chair" src="' + ROOT + (M.props.chair['900'] || M.props.chair['300']) + '" alt="">' +
     '</div>' +
     '<p class="i-sub">' + esc(INTRO_COPY.sub) + '</p>' +
     '<p class="i-para">' + esc(INTRO_COPY.para) + '</p>' +
     '<div class="i-stage" aria-hidden="true">' +
-      '<img class="i-build" src="' + ROOT + M.props.building['390'] + '" alt=""></div>' +
+      '<img class="i-build" src="' + ROOT + (M.props.building['1170'] || M.props.building['390']) + '" alt=""></div>' +
     '<button type="button" class="p-c i-cta">' + esc(INTRO_COPY.cta) + '</button>';
 
   /* ONE PRIMARY ACTION AND IT GOES TO THE MAP. Not to a character step:

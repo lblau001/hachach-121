@@ -228,10 +228,47 @@ if A.contact:
 
 if A.write:
     out = pathlib.Path(A.out)
+    # ---- THE NATIVE EXPORT, and why there is no 1200 -------------------
+    # The DPR-3 rule wants a file about 3x the largest CSS size the asset is
+    # drawn at. .mf-b__port is `width:118%` of a 340px card, so the portrait
+    # is drawn at 401 CSS px and the rule asks for 1203.
+    #
+    # THE MASTERS CANNOT GIVE IT. The source is 832x1248 (848x1264 for two of
+    # them) and the frame is a SUB-RECTANGLE of it: cw = face_w / FACE_AT,
+    # which lands between 474 (lahav, who is framed tight because his face
+    # fills more of his source) and 723 (netanyahu). Asking for 1203 would
+    # upscale every portrait in the set by 1.7x to 2.5x. That adds file size
+    # and no detail, and on flat illustration LANCZOS upscaling softens
+    # exactly the alpha edge the #dcw die-cut depends on — so it would make
+    # the cards worse, not better, while tripling the bytes.
+    #
+    # So the largest export is the crop box's OWN size: every pixel in it is
+    # a real pixel off the master and nothing is invented. That reaches DPR
+    # 1.18 (lahav) to 1.80 (netanyahu) against the card's 401 CSS px, and the
+    # shortfall is recorded per portrait in manifest.json rather than hidden.
+    # Closing it needs LARGER SOURCES, which is an art request, not a tooling
+    # one — see the report.
+    #
+    # The size goes in the filename because that is this bundle's contract:
+    # the number in the name is the number in the file. It differs per MK,
+    # which is why make_manifest.py discovers it by glob instead of being
+    # told a constant.
     for n, box, got in rows:
         big = srcs[n].crop(box)
-        for px in (400, 128):
-            r = big.resize((px, round(px / AR)), Image.LANCZOS)
+        native = big.width
+        # QUALITY 78 FOR THE NATIVE, 88 FOR THE OTHER TWO, and the difference
+        # is not a compromise — it is what the extra pixels are for. The native
+        # file is DOWNSCALED 1.2x to 1.8x on the way to the card, and a
+        # downscale averages quantisation noise away; the 400 is drawn nearly
+        # 1:1 and has nothing to hide behind. Measured at the card's rendered
+        # 401px against the q88 native as reference: today's 400/q88 file
+        # scores 30.4 dB, a q76 native scores 38.3 and a q82 native 40.8. q78
+        # takes almost the whole 8 dB for half the bytes q88 costs — 100KB a
+        # portrait rather than 148KB. 88 is left alone on 400 and 128 so those
+        # files stay byte-identical to what is committed.
+        for px in (native, 400, 128):
+            r = big if px == native else big.resize((px, round(px / AR)), Image.LANCZOS)
             f = out / ("mk_%s_%d.webp" % (n.replace("bengvir_styleB", "ben_gvir"), px))
-            r.save(f, "WEBP", quality=88, method=6, exact=True)
-            print("wrote %-30s %dx%d" % (f.name, r.width, r.height))
+            r.save(f, "WEBP", quality=78 if px == native else 88, method=6, exact=True)
+            print("wrote %-30s %dx%d%s" % (f.name, r.width, r.height,
+                  "   native, DPR %.2f at the card's 401px" % (px / 401.2) if px == native else ""))
