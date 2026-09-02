@@ -1506,30 +1506,62 @@ function renderMap() {
   wireMap(cur, h);
 }
 
+/* THE RING, in the node box's own units. Everything here is derived from
+   --ring-r so the SVG cannot fall out of step with the CSS that sizes the
+   box around it: the two segments split the circle in half, and each half
+   carries the board's own 27.2-degree gap — the proportion is the board's
+   even though the radius is not. */
+function ringGeom() {
+  const box = parseFloat(CSVAR('--node-box'));
+  const r   = parseFloat(CSVAR('--ring-r'));
+  const c   = box / 2;
+  const circ = 2 * Math.PI * r;
+  const gap  = circ * (27.2 / 360);          /* the board's gap angle     */
+  return { box, r, c, half: circ / 2, dash: circ / 2 - gap, rest: circ / 2 + gap };
+}
+
 function nodeHTML(t, i, h, cur) {
   const done = topicDone(t.id), segs = segsDone(t.id);
   const cls = 'node' + (i === cur ? ' is-current' : '') + (segs === 0 ? ' is-untouched' : '');
   const cy  = nodeY(i, h);
+  const G   = ringGeom();
   /* the ring's two segments. One circle each, so a segment is a real
      element with its own state rather than a fraction of one stroke. */
   const seg = k =>
-    '<circle class="seg ' + (k < segs ? 'seg-on' : 'seg-off') + '" cx="58" cy="55.5" r="50.5" ' +
-      'fill="none" stroke-dasharray="134.65 182.65" stroke-dashoffset="' +
-      (k === 0 ? '0' : '-158.65') + '" stroke-linecap="round"></circle>';
-  /* internal_sec has drawn art in the manifest; every other topic has a
-     glyph and only a glyph. Nothing is substituted for a missing one. */
-  const art = M.topics && M.topics[t.id] && M.topics[t.id]['52'];
-  const face = art
-    ? '<img class="node-ico" src="' + ROOT + art + '" alt="" style="width:33px;height:52px">'
-    : '<span class="node-ico" aria-hidden="true">' + t.icon + '</span>';
+    '<circle class="seg ' + (k < segs ? 'seg-on' : 'seg-off') + '" cx="' + G.c +
+      '" cy="' + G.c + '" r="' + G.r + '" fill="none" stroke-dasharray="' +
+      G.dash.toFixed(2) + ' ' + G.rest.toFixed(2) + '" stroke-dashoffset="' +
+      (k === 0 ? '0' : (-G.half).toFixed(2)) + '" stroke-linecap="round"></circle>';
+
+  /* THE ICON IS SIZED BY ITS LARGER DIMENSION, from the manifest's MEASURED
+     aspect — these eight run from a 0.53 receipt to a 1.52 police hat, and
+     a single width or a single height would blow one of them through the
+     ring. Rendered at 60px off the 64px file: a 1.07x downscale, inside the
+     manifest's own 1.2x rule. */
+  const T_ = M.topics && M.topics[t.id];
+  const art = T_ && T_['64'];
+  let face;
+  if (art) {
+    const S = parseFloat(CSVAR('--node-ico')), a = T_.aspect || 1;
+    const w = a >= 1 ? S : S * a, hh = a >= 1 ? S / a : S;
+    face = '<img class="node-ico" src="' + ROOT + art + '" alt="" style="width:' +
+      w.toFixed(1) + 'px;height:' + hh.toFixed(1) + 'px">';
+  } else {
+    /* no drawn object for this topic — data.js's glyph, and nothing
+       substituted for it */
+    face = '<span class="node-ico" aria-hidden="true">' + t.icon + '</span>';
+  }
+
+  /* the face's centre inside the box: the path threads the DISC, not the
+     ring, so this is what the node is positioned by */
+  const fcy = parseFloat(CSVAR('--node-face-y')) + parseFloat(CSVAR('--node-face')) / 2;
 
   return '<div class="' + cls + '" data-topic="' + esc(t.id) + '" data-i="' + i + '" ' +
-      'style="left:calc(' + (NODE_X[i] * 100).toFixed(2) + '% - 58px);top:' + (cy - 52) + 'px;' +
-      '--tc:' + t.color + ';--tc-face:color-mix(in srgb,' + t.color + ' 30%,#fff);' +
-      '--tc-shade:color-mix(in srgb,color-mix(in srgb,' + t.color + ' 30%,#fff) 78%,#000)">' +
+      'style="left:calc(' + (NODE_X[i] * 100).toFixed(2) + '% - ' + G.c + 'px);top:' +
+      (cy - fcy) + 'px;--tc:' + t.color + '">' +
     '<span class="ringnode">' +
-      '<svg class="ring" viewBox="0 0 116 115" aria-hidden="true">' +
-        '<g transform="rotate(-90 58 55.5)">' + seg(0) + seg(1) + '</g></svg>' +
+      '<svg class="ring" viewBox="0 0 ' + G.box + ' ' + G.box + '" aria-hidden="true">' +
+        '<g transform="rotate(-90 ' + G.c + ' ' + G.c + ')">' + seg(0) + seg(1) + '</g></svg>' +
       '<button type="button" class="node-face" ' +
         'aria-label="' + esc(t.label + ' — ' + segs + ' מתוך 2') + '">' +
         face +

@@ -6,10 +6,13 @@ off disk, so the manifest cannot describe an asset that is not there or miss one
 that is. Every path is a PATH — nothing in this bundle is base64.
 """
 import json, pathlib
+from PIL import Image
 HERE = pathlib.Path(__file__).resolve().parent.parent
 ROOT = HERE.parent.parent
 MK = ROOT / "assets" / "mk"
 REL = "assets/mk"                       # relative to the app's own index.html
+TOPICS = ROOT / "assets" / "topics"
+TREL = "assets/topics"
 
 src = (ROOT / "data.js").read_text(encoding="utf-8")
 D = json.loads(src[src.index("{"):src.index("const AVATARS")].rstrip().rstrip(";").rstrip())
@@ -24,7 +27,50 @@ PORTRAITS = tuple(sorted(
     pid for pid in D["politicians"]
     if (MK / ("mk_%s_400.webp" % pid)).exists()
        and (MK / ("mk_%s_128.webp" % pid)).exists()))
-TOPIC_ICONS = {"internal_sec": "internal_sec_main"}
+# THE MAP'S TOPIC ICONS — one drawn object per topic, all eight, framed by
+# tools/prep_topic.py into assets/topics/. The value is the FILE STEM, which is
+# the topic id for seven of them and deliberately is not for the eighth.
+#
+# internal_sec IS THE POLICE HAT. Two files were rejected for that node and
+# both are still on disk:
+#   assets/mk/internal_sec_main.png   a PADLOCK. Seven object nodes and one
+#       padlock reads as "this topic is locked", and locks are on the §3.3 /
+#       §8 NEVER list for the map. Retired from here; the issue cards may
+#       still reference the framed set, so the files stay.
+#   assets/topics/internal_sec_main.webp   a SHIELD carrying a Star of David.
+#       A national symbol where the other seven are neutral objects — a
+#       receipt, a lectern, a plant, a briefcase. Left in place, unregistered.
+# The hat is the neutral object for משטרה, פשיעה ונשק, so it is the one used.
+TOPIC_ICONS = {
+    "accountability": "accountability",
+    "branches":       "branches",
+    "economy":        "economy",
+    "environment":    "environment",
+    "gender":         "gender",
+    "internal_sec":   "policehat",
+    "military":       "military",
+    "religion":       "religion",
+}
+# THE SMALLEST SIZE EACH OBJECT STILL READS AT, judged on the exports
+# themselves at 4x nearest-neighbour against the node's own ground — not
+# asserted, and not the same number for all eight. The map renders at 60px off
+# the 64px file, so every one of these is comfortably inside its floor; this is
+# here so a future screen that wants a 40px topic icon knows which three it
+# cannot have.
+#   economy   the receipt IS its ruled lines and its torn zigzag edge. At 40px
+#             the rules mush into a red block and the tear flattens: it reads
+#             as a red slip of paper, not as a receipt.
+#   religion  the seal IS its scalloped rim. At 40px the scallops round off to
+#             a plain disc and the two ribbon tails merge into one blob.
+#   gender    the beam and the two hanger strings are 1px hairlines at 40px and
+#             largely dissolve; the pans survive as two dashes. Marginal, not
+#             gone — 52 is the honest floor.
+# The other five are objects with one strong silhouette and hold at 40.
+READS_DOWN_TO = {
+    "accountability": 40, "branches": 40, "economy": 64, "environment": 40,
+    "gender": 52, "internal_sec": 40, "military": 40, "religion": 64,
+}
+
 ISSUE_ART = {"s1": ("internal_sec_s1", 300, 180),
              "s2": ("internal_sec_s2", 116, 210)}
 
@@ -32,6 +78,11 @@ def need(name):
     p = MK / name
     assert p.exists(), "manifest names a file that is not on disk: " + name
     return "%s/%s" % (REL, name)
+
+def need_topic(name):
+    p = TOPICS / name
+    assert p.exists(), "manifest names a file that is not on disk: " + name
+    return "%s/%s" % (TREL, name)
 
 def need_asset(rel):
     """An asset under assets/ that is not part of the MK set. Same guarantee:
@@ -81,11 +132,20 @@ man["fallback"] = {
              "another politician's portrait."),
 }
 
-for tid, stem in TOPIC_ICONS.items():
-    assert any(t["id"] == tid for t in D["topics"]), tid
-    man["topics"][tid] = {k: need("%s_%d.webp" % (stem, k)) for k in (40, 52, 64, 128)}
-    man["topics"][tid]["aspect"] = round(812 / 1294, 4)
-    man["topics"][tid]["reads_down_to"] = 64
+# ASPECT IS MEASURED, NOT DECLARED. The map sizes an icon by its LARGER
+# dimension and derives the other from this number, so a hand-typed ratio here
+# would silently stretch the artwork. It is read off the 128px export — the
+# same file the smaller ones were cut from — and rounded to 4 places.
+for tid, stem in sorted(TOPIC_ICONS.items()):
+    assert any(t["id"] == tid for t in D["topics"]), (
+        "topic icon has no matching topic id in data.js: " + tid)
+    man["topics"][tid] = {k: need_topic("%s_%d.webp" % (stem, k)) for k in (40, 52, 64, 128)}
+    w, h = Image.open(TOPICS / ("%s_128.webp" % stem)).size
+    man["topics"][tid]["aspect"] = round(w / h, 4)
+    man["topics"][tid]["source"] = stem
+    man["topics"][tid]["reads_down_to"] = READS_DOWN_TO[tid]
+# the emoji stays the fallback for a topic with no drawn object. There are none
+# today; the loop is the guarantee, not a placeholder.
 for t in D["topics"]:
     if t["id"] not in man["topics"]:
         man["topics"][t["id"]] = {"glyph": t["icon"]}

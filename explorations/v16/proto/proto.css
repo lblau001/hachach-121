@@ -89,17 +89,21 @@
   --gx-bottom: 8px;        /* the strip's inset off the card's foot        */
 
   /* ---- the map ----------------------------------------------------
-     Every one of these is the v16 board's own number, off the NODE and
-     PathMap artboards. Nothing here is re-derived. */
-  --node-box:      116px;   /* .ringnode, the whole node incl. the ring   */
-  --node-box-h:    115px;
-  --node-face:     76px;    /* the pressable top face                     */
+     The disc and its extrusion are the v16 board's own numbers, off the
+     NODE and PathMap artboards. THE RING IS NOT, any more, and this is the
+     one measurement in the file that departs from the board — see the
+     block by .node-ico for the arithmetic that forced it. */
+  --node-box:      132px;   /* .ringnode, the whole node incl. the ring   */
+  --node-box-h:    132px;
+  --node-face:     76px;    /* the pressable top face — board             */
   --node-depth:    7px;     /* its extrusion. 9.2% of the face — the
-                               brief's "~10% of diameter".                */
-  --node-face-x:   20px;    /* the face's offset inside the box           */
-  --node-face-y:   14px;
-  --ring-r:        50.5px;  /* radius, on cx 58 cy 55.5                   */
+                               brief's "~10% of diameter". Board.         */
+  --node-face-x:   28px;    /* (132 - 76) / 2                             */
+  --node-face-y:   24.5px;  /* centres face+base on the ring at cy 66     */
+  --ring-r:        63px;    /* was the board's 50.5 — see .node-ico       */
   --ring-w:        6px;     /* THINNER than --node-depth, as specified    */
+  --node-ico:      60px;    /* the icon's LARGER dimension                */
+  --node-ico-over: 12px;    /* how far it stands above the disc's top     */
   --node-gap:      199px;   /* centre to centre, up the path              */
   --node-pad-top:  84px;
   --node-pad-bot:  132px;   /* 84 + the name and status under the last    */
@@ -1101,40 +1105,93 @@ body.no-ph [data-ph]{ display:none !important; }
 
 /* ---- the node itself ----------------------------------------------
    THE RING IS A SEPARATE ELEMENT BEHIND THE NODE and nothing the node
-   carries may touch it. The face is 76px centred on (58,52); the ring is
-   r=50.5 with a 6px stroke centred on (58,55.5) — 3.5px lower, because it
-   is centred on the face PLUS its 7px base, not on the face alone. That
-   puts 6px of clear ground between the base's foot and the ring's inner
-   edge, which is the gap the brief asks for; it falls out of the geometry
-   rather than being padded in. Both badges are inset from the face far
-   enough that their casings clear it too — see .node-check below. */
+   carries may touch it. The face is 76px centred on (66,62.5); the ring is
+   r=63 with a 6px stroke centred on (66,66) — 3.5px lower, because it is
+   centred on the face PLUS its 7px base, not on the face alone. Both
+   badges are inset from the face far enough that their casings clear it
+   too — see .node-check below. */
 .ringnode{ position:relative; display:block; overflow:visible;
   width:var(--node-box); height:var(--node-box-h); }
 .ring{ position:absolute; left:0; top:0; z-index:1; overflow:visible;
   width:var(--node-box); height:var(--node-box-h); }
 .seg{ stroke-width:var(--ring-w); fill:none; stroke-linecap:round; }
-/* the segment states read as FILL, not only as hue: an unplayed segment is
-   a thin recessed casing, a played one is the topic's own colour at full
-   weight. At 360px the difference is the stroke, not the colour. */
-.seg-off{ stroke:#8E8C82; stroke-width:calc(var(--ring-w) - 2px); opacity:.72; }
+/* THE CASING CARRIES FULL WEIGHT NOW. It used to be a 4px arc at 72%
+   opacity, which was legible when the ring hugged the disc at 6px; at the
+   18.5px stand-off the icon's overhang forces, a thin pale arc stopped
+   reading as part of the node and became two brackets floating near it.
+   Both states are --ring-w, and the difference is VALUE and hue, not
+   thickness — so the ring reads as one track with part of it filled,
+   which is what a progress ring has to look like.
+   The unplayed state is still legible without colour: it is a dark inert
+   casing against the topic's own saturated hue. */
+.seg-off{ stroke:#6F6C63; }
 .seg-on { stroke:var(--tc); }
 
-/* DUOLINGO EXTRUSION, NOT A DROP SHADOW. Zero blur, zero spread, offset
-   straight down by the depth, in a darker shade of the face's OWN hue —
-   colour-mix against black is a flat multiply, so the hue is preserved
-   exactly and the seam between face and base cannot show. */
+/* §5 ONE COLOURED THING PER NODE, AND IT IS THE ICON. The disc used to
+   carry the topic hue too, which meant a coral receipt sat on a coral disc
+   and a gold seal on a gold one — the two loudest icons in the set both
+   disappearing into their own ground. The disc is now a constant neutral
+   dark for all eight, so every icon reads against the same value whatever
+   its own is, and the topic hue survives where it does not compete with
+   the artwork: the filled ring segments.
+   THE OTHER OPTION WAS A CREAM TILE UNDER THE ICON on a hued disc. It was
+   not taken because the icons are full-colour illustrations that cannot be
+   recoloured to a hue — they already ARE their hue — and a tile would have
+   been a second shape doing the job the die-cut keyline already does,
+   while leaving the receipt coral-on-coral everywhere the tile did not
+   reach.
+
+   DUOLINGO EXTRUSION, NOT A DROP SHADOW. Zero blur, zero spread, offset
+   straight down by the depth. The 20-25% step that the hued discs used is
+   a flat multiply and is nearly invisible on a dark neutral, so these two
+   are picked for equal-looking separation instead of equal arithmetic. */
 .node-face{
   position:absolute; left:var(--node-face-x); top:var(--node-face-y); z-index:2;
   width:var(--node-face); height:var(--node-face); border-radius:50%;
-  display:grid; place-items:center; border:0; padding:0; cursor:pointer;
-  font-size:34px; line-height:1;
-  background:var(--tc-face);
-  box-shadow:0 var(--node-depth) 0 0 var(--tc-shade);
+  border:0; padding:0; cursor:pointer;
+  background:#2B2823;
+  box-shadow:0 var(--node-depth) 0 0 #131110,
+             inset 0 0 0 1.5px rgba(255,255,255,.09);
   transition:transform var(--t-node-press) linear, box-shadow var(--t-node-press) linear;
 }
-.node-face:active{ transform:translateY(var(--node-depth)); box-shadow:0 0 0 0 var(--tc-shade); }
+.node-face:active{ transform:translateY(var(--node-depth));
+  box-shadow:0 0 0 0 #131110, inset 0 0 0 1.5px rgba(255,255,255,.09); }
 .node-face:focus-visible{ outline:3px solid var(--edge); outline-offset:3px; }
-.node-ico{ display:block; filter:drop-shadow(0 2px 0 rgba(0,0,0,.28)); }
+
+/* ---- §4 THE ICON BREAKS OUT OF THE DISC ---------------------------
+   It stands --node-ico-over above the disc's top edge — 12px on a 76px
+   disc, 15.8%, inside the brief's 15-20% band — and carries the same 2px
+   white die-cut the avatars carry, so it reads as a sticker laid on the
+   node rather than as a picture printed inside it.
+
+   IT MOVES WITH THE FACE ON PRESS because it is a CHILD of the face, not
+   a sibling: the 80ms translateY the disc takes is inherited rather than
+   duplicated, so the two can never drift apart or be retuned separately.
+
+   WHY THE RING GREW FROM 50.5 TO 63, and it is the only board measurement
+   this file overrides. The ring clears the face+base composite by a
+   constant margin all the way round, so the room above the disc's top edge
+   IS that margin: at the board's r=50.5 it is 6px, and an overhang can
+   therefore never exceed 6px — 7.9% — at the very centre line, and less
+   than that anywhere the icon has width. Measured against the real
+   silhouettes, the largest overhang that keeps every die-cut inside the
+   board's ring is 1.0px, or 1.3% of the disc. There is no icon size that
+   fixes it; 15% is unreachable by construction.
+   The brief says reduce the overhang, never the ring gap. Reducing the
+   overhang to 1.3% deletes the feature, so the ring was moved the other
+   way: r=63 puts its inner edge at 60, which clears the widest icon in the
+   set — the police hat, at 60x39 the binding one every time — with 1.4px
+   to spare at a 12px overhang. THE GAP IS INCREASED, NEVER REDUCED: 6px
+   becomes 18.5px, and nothing whatsoever overlaps the ring. The node box
+   grows 116 -> 132px, which the 199px node spacing absorbs untouched. */
+.node-ico{
+  position:absolute; left:50%; top:calc(-1 * var(--node-ico-over)); z-index:3;
+  transform:translateX(-50%);
+  display:block; pointer-events:none;
+  filter:url(#dcw-sm) drop-shadow(0 2px 0 rgba(0,0,0,.34));
+}
+/* the emoji fallback has no die-cut to give it — it is a glyph, not art */
+span.node-ico{ font-size:38px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,0,0,.28)); }
 
 /* the two badges. The number is always there — nodes are numbered, and a
    number that vanishes on completion stops being an address. */
@@ -1176,20 +1233,21 @@ body.no-ph [data-ph]{ display:none !important; }
    "pick needed" warning: free choice is a SET decision (§3.1) and the
    current node is a suggestion for choice-paralysis, nothing more. */
 .node.is-current .ring{ filter:drop-shadow(0 0 9px rgba(255,214,10,.5)); }
-.node.is-current .seg-off{ stroke-width:var(--ring-w); opacity:.9; }
+.node.is-current .seg-off{ stroke:#8E8B81; }
 .node.is-current .node-face{
-  box-shadow:0 var(--node-depth) 0 0 var(--tc-shade),
+  box-shadow:0 var(--node-depth) 0 0 #131110,
+             inset 0 0 0 1.5px rgba(255,255,255,.09),
              0 0 0 3px var(--edge), 0 0 0 4.6px rgba(0,0,0,.45);
 }
 .node.is-current .node-face:active{
-  box-shadow:0 0 0 0 var(--tc-shade),
+  box-shadow:0 0 0 0 #131110,
+             inset 0 0 0 1.5px rgba(255,255,255,.09),
              0 0 0 3px var(--edge), 0 0 0 4.6px rgba(0,0,0,.45);
 }
-/* a node with no round behind it yet still shows its topic's hue — the
-   brief asks for per-topic hue PER NODE — so "untouched" is carried by the
-   ring and the badge, which read without colour, and by the art sitting
-   back rather than by draining the node grey. */
-.node.is-untouched .node-ico{ opacity:.72; }
+/* an untouched node is carried by its RING — two unfilled casings — and by
+   the art sitting a little back. The disc cannot carry it: every disc is
+   the same neutral now, which is the point of §5. */
+.node.is-untouched .node-ico{ opacity:.82; }
 
 /* ---- the pinned section header --------------------------------------
    Names the node nearest the middle of the window, and swaps as you
