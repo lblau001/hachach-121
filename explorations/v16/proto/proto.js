@@ -16,7 +16,14 @@
 const ISSUE_ID = 's1';
 const ROOT     = '../../../';                 /* manifest paths are app-root relative */
 
-const VOTES  = ['for', 'against', 'abstain'];
+/* §2 THE ORDER IS THE SPECTRUM, and this array is its single source.
+   RTL renders index 0 rightmost, so this is  בעד · נמנע · נגד  on screen.
+   Buttons, the strip's slots and stopPct() all read it, so the three can
+   never disagree — and if they did, the player's token would land in the
+   wrong slot. Putting נמנע in the middle makes travel distance MEAN
+   something: 1 slot is partial disagreement (either side vs נמנע), 2
+   slots is the opposite end (בעד vs נגד). */
+const VOTES  = ['for', 'abstain', 'against'];
 const VLABEL = { for: 'בעד', against: 'נגד', abstain: 'נמנע' };
 
 /* ---------------------------------------------------------------------
@@ -24,7 +31,18 @@ const VLABEL = { for: 'בעד', against: 'נגד', abstain: 'נמנע' };
    truth for a duration: retuning a token retunes the JS with it.
    --------------------------------------------------------------------- */
 const CS = getComputedStyle(document.documentElement);
-const ms = n => parseFloat(CS.getPropertyValue(n)) || 0;
+/* A MISSING TOKEN USED TO RESOLVE TO ZERO IN SILENCE. --t-ov-swap was
+   never actually added to :root last pass; ms() handed back 0, the JS
+   wait became instant, and the CSS shorthand that also read it dropped
+   to transition-duration:0s because a shorthand with no duration is
+   invalid. Nothing threw and nothing looked wrong in the DOM — the
+   classes toggled exactly as intended, on a 0ms transition. Now a token
+   that is not there says so. */
+const ms = n => {
+  const v = CS.getPropertyValue(n).trim();
+  if (!v) { console.warn('[proto] motion token ' + n + ' is not defined in :root'); return 0; }
+  return parseFloat(v) || 0;
+};
 const T = {
   press:     ms('--t-press'),
   stamp:     ms('--t-stamp'),
@@ -38,6 +56,16 @@ const T = {
   exit:      ms('--t-exit'),
   ovIn:      ms('--t-ov-in'),
   ovCollapse:ms('--t-ov-collapse'),
+  ovSwap:    ms('--t-ov-swap'),
+  cardFlip:  ms('--t-card-flip'),
+  cardExit:  ms('--t-card-exit'),
+  gxLock:    ms('--t-gx-lock'),
+  gxHold:    ms('--t-gx-hold'),
+  gxAppear:  ms('--t-gx-appear'),
+  gxTravel1: ms('--t-gx-travel-1'),
+  gxTravel2: ms('--t-gx-travel-2'),
+  gxSettle:  ms('--t-gx-settle'),
+  gxStampLag:ms('--t-gx-stamp-lag'),
   snapback:  ms('--t-snapback'),
   resolve:   ms('--t-resolve'),
   coin:      ms('--t-coin'),
@@ -66,16 +94,40 @@ const COIN_TABLES = {
   brief: { claim:25, claimNeedsCorrect:false, position:25, perCorrect:25, topic:0   }
 };
 
-/* the spike's open decisions, switchable in the hand */
+/* ---------------------------------------------------------------------
+   THE SPIKE'S OPEN DECISIONS. The switch bar is GONE from the screen —
+   the game fills the viewport and nothing sits on top of it — so the
+   switches live in the query string instead, defaulting to exactly what
+   the bar defaulted to:
+
+     ?hold=long|short        §1.2 the answer-first tempo. NOT SETTLED.
+     ?swipe=true|false       true = dragging RIGHT means אמת; false flips
+                             it. Goes to the teen playtest. UNRESOLVED.
+     ?cards=N                #4d — the sheet says 3, the app deals 5
+     ?placeholders=on|off    Tamar's unwritten copy, shown as markers
+
+   b5 and coins were on the bar too and would otherwise become
+   unreachable, so they read from the query string on the same terms.
+   --------------------------------------------------------------------- */
+const Q = new URLSearchParams(location.search);
+/* an unknown or absent value falls back to the default rather than
+   breaking the round — a mistyped switch must never blank the screen */
+function qPick(key, map, dflt) {
+  const v = (Q.get(key) || '').trim().toLowerCase();
+  return Object.prototype.hasOwnProperty.call(map, v) ? map[v] : dflt;
+}
 const DEV = {
-  cards: 5,          /* #4d — the sheet says 3 (§8b, Hick's); app deals 5 */
-  swipe: 'R',        /* #12 — which edge is אמת. Dual input either way    */
-  b5:    'A1',       /* the two open beat-5 variants                     */
-  coins: 'sheet',
-  hold:  'long',     /* §1.2 the answer-first hold. short = the brief's
-                        derived 275ms; long = the tuned 640ms.           */
-  ph:    false       /* placeholders. OFF by default so the round plays
-                        clean; the markers are hidden, never deleted.    */
+  cards: (n => n > 0 ? n : 5)(parseInt(Q.get('cards'), 10)),
+  swipe: qPick('swipe', { 'true':'R', 'false':'L' }, 'R'),
+  b5:    qPick('b5',    { a1:'A1', a2:'A2' }, 'A1'),
+  coins: qPick('coins', { sheet:'sheet', brief:'brief' }, 'sheet'),
+  hold:  qPick('hold',  { long:'long', short:'short' }, 'long'),
+  ph:    qPick('placeholders', { on:true, off:false }, false),
+  /* §5 the pinned answer's presentation, for comparison in the hand:
+     band = the full-width chyron, note = a small paper scrap at one side,
+     off = nothing shown. The BOX is reserved in all three, so the card is
+     the same size whichever is picked. */
+  chyron: qPick('chyron', { band:'band', note:'note', off:'off' }, 'band')
 };
 
 let M = null;                       /* manifest.json                     */
@@ -89,8 +141,13 @@ let issue, topic, S;
    round actually has, so a short phone never needs a scrollbar to see a
    whole card. Nothing in the app scrolls except .scrolls.
    --------------------------------------------------------------------- */
-const CARD_STACK_H = 620 + 96 + 52;  /* card + the axis strip + the gap that
-                                        clears the stamp hanging below   */
+/* THE STACK IS THE CARD AND NOTHING ELSE. The axis strip is inside the
+   card now and the stamp paints on top of it, so there is no box below
+   the card to reserve — and the gate and the swipe hint are out of flow,
+   so they cannot charge the card for their own height either. The card is
+   the game: if reserving room for something else costs card size, the
+   something else loses. */
+const CARD_STACK_H = 620;
 
 function sizeStage() {
   const d = document.documentElement;
@@ -108,13 +165,35 @@ function sizeStage() {
     stack.style.height = '';
     const natural = stack.offsetHeight || CARD_STACK_H;
     const beat = stack.parentElement;
+    /* WHAT THE CARD IS CHARGED FOR. Only siblings that are actually IN
+       FLOW: an absolutely positioned one paints over the beat and takes
+       none of its height, and a display:none one still reports a margin
+       even though it occupies nothing — that margin alone was making the
+       claim card 14px shorter than the cascade cards. The gate and the
+       swipe hint are both out of flow now, so in practice this sums to
+       zero and the card gets the whole round. */
     const others = [...beat.children]
       .filter(c => c !== stack)
-      .reduce((a, c) => a + c.offsetHeight +
-        (parseFloat(getComputedStyle(c).marginTop) || 0), 0);
-    /* 4px of slack absorbs sub-pixel rounding in the scale, which was
-       clipping the last 2px of the gate on the shortest phone. */
-    const avail = Math.max(120, round.clientHeight - others - 4);
+      .reduce((a, c) => {
+        const cs = getComputedStyle(c);
+        if (cs.display === 'none' || cs.position === 'absolute') return a;
+        return a + c.offsetHeight + (parseFloat(cs.marginTop) || 0);
+      }, 0);
+    /* clientHeight INCLUDES the round's own padding, but the stack lives
+       inside .beat, which starts BELOW that padding — so scaling against
+       it handed the card 26px it does not have and the card's foot hung
+       past the stage on the shortest phone. Measure the content box.
+       4px of slack absorbs sub-pixel rounding in the scale. */
+    const rcs = getComputedStyle(round);
+    const box = round.clientHeight
+      - (parseFloat(rcs.paddingTop) || 0) - (parseFloat(rcs.paddingBottom) || 0);
+    /* §3 the stack carries a bottom margin now, to sit the deck higher in
+       the beat. It is the stack's OWN margin, so `others` never sees it —
+       and uncounted it would push the card's foot past the stage on a
+       short viewport. */
+    const scs = getComputedStyle(stack);
+    const stackM = (parseFloat(scs.marginTop) || 0) + (parseFloat(scs.marginBottom) || 0);
+    const avail = Math.max(120, box - others - stackM - 4);
     const s = Math.min(1, avail / natural);
     stack.style.transform = 'scale(' + s.toFixed(4) + ')';
     stack.style.height = Math.round(natural * s) + 'px';
@@ -246,36 +325,130 @@ function award(n) {
    instruction escalates on idle. There is no error state, and the
    escalation never lands on one of the three options — colouring one
    would break "three, always identical" and leak an answer.          */
-let gateTimers = [];
-function gate(host, hint, urge) {
-  clearGate();
-  const g = el('div', 'gate', '<span class="gate-line"></span>');
-  const line = $('.gate-line', g);
-  host.appendChild(g);
-  gateTimers.push(setTimeout(() => { line.textContent = hint; g.classList.add('is-hinting'); }, T.gateHint));
-  gateTimers.push(setTimeout(() => { line.textContent = urge || hint; g.classList.add('is-urging'); }, T.gateGrow));
-  /* the gate is appended after the beat has laid out, so the stack has to
-     be re-sized with the gate's height counted — otherwise the card sits
-     on top of it and the instruction line is clipped off a short phone. */
-  sizeStage();
-  return g;
+/* ONE HELPER LINE FOR THE WHOLE ROUND, and it is not a gate.
+   There were three yellow pills: beat 1 telling the player to pick one of
+   two buttons, beat 2 telling them to pick one of three, beat 4 telling
+   them to guess. The first two named what the buttons already say — two
+   answers and three votes are self-evident — and all three were the
+   loudest thing on a screen whose point is the card. Gone.
+   What survives is a single line on the FIRST MK card only, because the
+   cascade is the one beat whose question is not written on its controls.
+   Plain type on the ground, low contrast, between the HUD and the chyron:
+   not a pill, not on the card, not over a button. Its box is reserved on
+   every beat so switching it on cannot resize the card. */
+function helper(text) {
+  const h = $('#helper');
+  if (!h) return;
+  h.textContent = text || '';
+  h.classList.toggle('is-empty', !text);
 }
-function clearGate() { gateTimers.forEach(clearTimeout); gateTimers = []; }
 
-/* ===================== the pinned claim ============================= */
-/* Enters the chrome at beat 2 WITH the consent line, persists to beat 5,
-   and resolves there. The one element continuously on screen for the
-   whole round, so it is the round's load-bearing identity object.     */
+/* ===================== the pinned claim · the chyron ================= */
+/* Enters the chrome at beat 2 WITH the consent line and persists to the
+   end of the round. The one element continuously on screen for the whole
+   round, so it is the round's load-bearing identity object.
+
+   IT IS A BAND, NOT A CHIP. As a pill it was the same shape and weight as
+   the coin chip opposite it, so it read as a status pip rather than as
+   the player's held commitment — and being absolutely positioned over the
+   play area it sat ON the card and clipped the first letter of the MK's
+   name (איתמר בן-גביר rendering as יתמר בן-גביר). The chyron is in FLOW
+   between the HUD and the round, so it cannot overlap the card at any
+   viewport: the card's top edge starts below it, by construction.
+
+   The element itself lives in index.html and is never created or removed,
+   only filled and emptied — see .chyron.is-empty for why it keeps its box
+   on beat 1.                                                           */
 function pin(word) {
-  const host = $('#round');
-  let p = $('.pinned', host);
-  if (!p) { p = el('span', 'pinned'); host.appendChild(p); }
-  p.innerHTML = esc(word);
-  return p;
+  const c = $('#chyron');
+  c.classList.remove('is-empty');
+  c.removeAttribute('aria-hidden');
+  /* PLACEHOLDER COPY. "אמרת:" is ours, not Tamar's, so it carries the
+     placeholder marker; the answer word beside it is the player's real
+     answer out of S.claim and stays whatever the final copy turns out to
+     be. The word is NEVER coloured by which way it points — אמת and שקר
+     get exactly the same treatment, or the band starts scoring the claim
+     four beats before the round resolves it. */
+  c.innerHTML =
+    '<span class="as-d chyron-av">' + AV3 + '</span>' +
+    '<span class="chyron-line">' + ph('אמרת:') +
+      '<b>' + esc(word) + '</b></span>';
+  return c;
 }
-/* the round re-renders on every beat, so the pinned answer has to be
-   re-attached rather than assumed to have survived */
+/* the round re-renders on every beat; the chyron is outside #round and
+   survives that, but the call is kept so a beat can never render without
+   it having been asserted */
 function repin() { if (S.claim) pin(S.claim === 'true' ? 'אמת' : 'שקר'); }
+
+/* ===================== THE DECK ===================================== */
+/* ONE ISSUE, ONE DECK, AND NOTHING IS EVER SUBSTITUTED. The next card is
+   already lying in the deck, face down, under the card the player is
+   looking at; it becomes the top card by being TURNED OVER. No card in
+   the round appears from nowhere.
+
+   A deck card is a flipper: one element carrying a back and a front,
+   rotated in 3D. The front is in the DOM from the moment the card is
+   dealt but is never visible — backface-visibility hides it — so the
+   flip has nothing to load, and the overlay at beats 2 and 3 sits over a
+   card BACK rather than over a blurred MK face, which is what used to
+   leak a portrait a beat before the cascade revealed it. */
+function deckCard(i) {
+  const p = S.dealt[i], pol = DATA.politicians[p.id], art = M.politicians[p.id];
+  const d = el('div', 'deckcard is-next');
+  d.dataset.i = i;
+  const back  = el('div', 'cardback');
+  const front = el('article', 'mf-b mkcard');
+  front.innerHTML =
+    '<span class="mf-b__halo"></span>' +
+    (art
+      ? '<img class="mf-b__port" src="' + ROOT + art['400'] + '" alt="">'
+      : '<span class="mf-b__badge">' + esc(initials(pol.name)) + '</span>') +
+    /* §1.4b the party label STAYS. Hiding it dumps the complexity on a
+       17-year-old as noise — Tesler's Law. The fix for a boring round
+       is curation, not concealment. */
+    '<div class="mf-b__id"><h2>' + esc(pol.name) + '</h2><p>' + esc(pol.party) + '</p></div>';
+  d.append(back, front);
+  return d;
+}
+/* the backs drawn BEHIND the face-down card: everything still in the deck
+   after it, capped at what .pile draws. Counted from the dealt sample so
+   a back never promises a card that does not arrive. */
+function setPile(afterIndex) {
+  const pile = $('.pile');
+  if (pile) pile.innerHTML =
+    '<i></i>'.repeat(Math.min(4, Math.max(0, S.dealt.length - afterIndex - 1)));
+}
+function currentCard() {
+  const d = $('.deckcard.is-current');
+  return d ? $('.mf-b', d) : null;
+}
+/* THE TURN. The face-down top card rotates to its front, and the card
+   after it joins the deck face down underneath in the same motion, so
+   there is always a next card visible under the active one. */
+async function flipUp() {
+  const wrap = $('.cardwrap');
+  const d = $('.deckcard.is-next', wrap);
+  if (!d) return null;
+  const i = +d.dataset.i;
+  d.classList.remove('is-next');
+  d.classList.add('is-current');
+  if (i + 1 < S.dealt.length) {
+    const nxt = deckCard(i + 1);
+    wrap.insertBefore(nxt, d);        /* earlier in the DOM = underneath */
+  }
+  setPile(i + 1);
+  await wait(T.cardFlip);
+  return $('.mf-b', d);
+}
+/* the resolved card is swiped off the stack. The stamp rides with it —
+   it is parented to .cardwrap, not to the card, so it has to be told. */
+function leaveCard() {
+  const cur = $('.deckcard.is-current'), st = $('.d2');
+  /* d2-land holds transform:scale(1) with fill:both, which would win
+     against a transition; the animation has finished landing by now. */
+  if (st) { st.style.animation = 'none'; st.classList.add('is-leaving'); }
+  if (cur) cur.classList.add('is-leaving');
+}
 
 /* ===================== BEAT 1 · THE CLAIM =========================== */
 /* B1-B developed: the claim card IS the MK card — same .mf-b, same
@@ -289,24 +462,31 @@ function beat1() {
 
   const stack = el('div', 'stack');
   const wrap = el('div', 'cardwrap');
-  /* the deck the round will be dealt from, already under the claim.
-     Counted from the DEALT sample so a back never promises a card that
-     does not arrive. */
-  const pile = el('span', 'pile', '<i></i>'.repeat(Math.min(4, S.dealt.length)));
+  const pile = el('span', 'pile');
+  /* THE FIRST MK CARD IS ALREADY HERE, face down, under the claim. When
+     the claim leaves it is not replaced — it is uncovered. */
+  const next = deckCard(0);
   const card = el('article', 'mf-b b1card');
   card.innerHTML =
     '<div class="b1art"><img src="' + ROOT + art.file + '" alt="" width="' + art.w + '" height="' + art.h + '"></div>' +
     '<p class="b1claim">' + esc(issue.tf) + '</p>' +
+    /* data-label is the fill layer's copy — see .b1ans .v-a::after. It is
+       the SAME string as the button's own text and must stay that way. */
     '<div class="v-a-row b1ans">' +
-      '<button class="v-a" data-ans="true">אמת</button>' +
-      '<button class="v-a" data-ans="false">שקר</button>' +
+      '<button class="v-a" data-ans="true"  data-label="אמת">אמת</button>' +
+      '<button class="v-a" data-ans="false" data-label="שקר">שקר</button>' +
     '</div>' +
-    /* §2.1 the preview pill lives INSIDE the card so it travels with it */
-    '<div class="b1prev"><i>DRAG</i><b></b></div>' +
-    /* the reveal wash, on the card's leading edge */
-    '<div class="b1target"><span></span></div>';
+    /* §2.1 the preview pill lives INSIDE the card so it travels with it.
+       It carries the WORD ALONE. It used to read "DRAG שקר": Latin caps
+       in a Hebrew-first UI, and debug scaffolding that survived into the
+       frames. With the card face and the button also naming the answer
+       the same word was on screen three times during one drag. */
+    '<div class="b1prev"><b></b></div>' +
+    /* the reveal wash, on the card's leading edge. NO LABEL: the wash is
+       the direction, the button is the word. */
+    '<div class="b1target"></div>';
 
-  wrap.append(pile, card);
+  wrap.append(pile, next, card);
   stack.appendChild(wrap);
   b.appendChild(stack);
 
@@ -317,7 +497,11 @@ function beat1() {
   b.appendChild(hint);
 
   r.appendChild(b);
-  gate(b, 'אמת או שקר?', 'בחרו אמת או שקר כדי להמשיך');
+  setPile(0);
+  /* NO INSTRUCTION LINE. Two buttons that say אמת and שקר do not need a
+     third element telling the player to choose one of them. */
+  helper('');
+  sizeStage();
 
   wireSwipe(card, $('.b1target', card), $('.b1prev', card));
 
@@ -348,10 +532,12 @@ function wireSwipe(card, tgt, prev) {
   /* PHYSICAL left/right on purpose. The logical properties invert under
      dir=rtl, which is exactly how the reveal ended up on the wrong side:
      the card went one way and the panel appeared on the other. */
+  /* the two answer buttons, which are also the drag's readout */
+  const ansBtns = [...card.querySelectorAll('[data-ans]')];
+
   const show = d => {
     const a = ansFor(d), k = Math.min(1, Math.abs(d) / (TH * FADE));
     const right = d > 0;                       /* moving toward the right */
-    $('span', tgt).textContent = a === 'true' ? 'אמת' : 'שקר';
     $('b', prev).textContent   = a === 'true' ? 'אמת' : 'שקר';
     /* same ink both directions — the preview names the word, never which
        one is the "good" answer, because neither of them is */
@@ -359,13 +545,21 @@ function wireSwipe(card, tgt, prev) {
     tgt.classList.toggle('b1target--right', right);
     tgt.classList.toggle('b1target--left', !right);
     prev.style.opacity = k;
-    /* the pill sits on the TRAILING edge. On the leading edge it left the
-       stage with the card and only the word "DRAG" stayed visible — the
-       wash already carries the answer on the side you are going to. */
+    /* the pill sits on the TRAILING edge — the wash already carries the
+       direction on the side you are going to. */
     prev.style.left  = right ? '14px' : 'auto';
     prev.style.right = right ? 'auto' : '14px';
+    /* §2.2 THE BUTTON IS THE DRAG'S READOUT. The answer the gesture is
+       currently choosing fills solid --ink on the SAME ramp as the pill's
+       opacity, so it is fully solid by the time the commit threshold is
+       reached. The other button is not touched: not dimmed, not shrunk,
+       not faded. Only --fill moves, and --fill changes no geometry, so
+       the two stay identical in size and weight for the whole drag. */
+    ansBtns.forEach(b =>
+      b.style.setProperty('--fill', b.dataset.ans === a ? k : 0));
   };
-  const clear = () => { tgt.style.opacity = 0; prev.style.opacity = 0; };
+  const clear = () => { tgt.style.opacity = 0; prev.style.opacity = 0;
+    ansBtns.forEach(b => b.style.setProperty('--fill', 0)); };
   card._swipe = { show, dirFor, clear };
 
   /* the card assembly is scaled to fit short phones, so a finger moving
@@ -403,7 +597,6 @@ function wireSwipe(card, tgt, prev) {
 async function commitClaim(ans, card, dir) {
   if (S.claim) return;
   S.claim = ans;
-  clearGate();
   card.querySelectorAll('.v-a').forEach(b => b.disabled = true);
 
   const table = COIN_TABLES[DEV.coins];
@@ -420,133 +613,121 @@ async function commitClaim(ans, card, dir) {
   card.style.transform = 'translateX(' + (dir * 620) + 'px) rotate(' + (dir * 25) + 'deg)';
   card.style.opacity = 0;
   await wait(T.swipe);
+  /* the claim card is GONE, not hidden — what is under it was always
+     under it, and is now simply the top of the deck */
+  card.remove();
   beat2();
 }
 
-/* ===================== BEAT 2 · YOUR OWN VOTE ======================= */
-/* B2-CHAIR-FULL. An interruption, not a step in the same plane.
-   Behind the blur: the pinned answer and the cards ahead. NOTHING else
-   — no bill_summary, no tally, no sources, no crowd data.             */
+/* ============= BEATS 2 AND 3 · ONE OVERLAY, TWO CONTENTS ============ */
+/* THE DECK IS ONE ISSUE. Every card in the round belongs to the same
+   issue and they are ONE deck: the claim card on top, the MK cards
+   stacked under it from the first frame. Beat 2 is not a card in that
+   deck — it asks the player's OPINION, not their knowledge — so it
+   floats outside it, on a blurred surface, with the deck legible
+   underneath at full card size and in the deck's own position.
+
+   THE SURFACE IS CREATED ONCE AND PERSISTS THROUGH BEAT 3. The backdrop
+   never blinks, never re-renders and never moves; only the content
+   changes. On commit the vote pane travels UP and out while the bill
+   pane arrives from BELOW, both on the same blur, in the same geometry.
+   Two overlays doing this were two blurs, and the seam between them
+   read as a page load.                                                */
 function beat2() {
   S.beat = 2;
-  const r = $('#round'); r.innerHTML = '';
-  const b = el('div', 'beat b2');
-
-  const under = el('div', 'b2under');
-  under.innerHTML = '<div class="b2backs">' + '<i></i>'.repeat(Math.min(3, S.dealt.length)) + '</div>';
+  /* NOTHING IS RE-RENDERED HERE. The deck is already on screen and the
+     claim card has left it; what shows through the blur is the deck's
+     own top card, face down, at full card size in its own position. */
+  /* the pinned answer enters HERE, with the consent line */
+  pin(S.claim === 'true' ? 'אמת' : 'שקר');
 
   /* THE OVERLAY IS A CHILD OF .stage, NOT OF THE BEAT. Anchored to the
      beat it stopped at the round's padding and the dot-grid ground showed
      through at every border. At stage level the blur reaches the edges
-     and the safe areas; the HUD and the pinned answer sit above it. */
+     and the safe areas; the HUD and the chyron sit above it. */
   const ov = el('div', 'ov ov--stage');
   ov.innerHTML =
-    '<div class="ov-inner">' +
-      /* the chair is height-capped against the viewport and never cropped:
-         it is the game's emblem and a cut one reads as a bug */
-      '<img class="b2chair" src="' + ROOT + M.props.chair['300'] + '" alt="">' +
-      '<p class="b2q">איך הייתם מצביעים?</p>' +
-      '<p class="b2bill">' + esc(issue.bill_title) + '</p>' +
-      '<div class="v-a-row b2votes">' +
-        VOTES.map(v => '<button class="v-a" data-vote="' + v + '">' + VLABEL[v] + '</button>').join('') +
+    '<div class="ovpane ovpane--vote">' +
+      '<div class="ov-inner">' +
+        /* the chair is height-capped against the viewport and never
+           cropped: it is the game's emblem and a cut one reads as a bug */
+        '<img class="b2chair" src="' + ROOT + M.props.chair['300'] + '" alt="">' +
+        '<p class="b2q">איך הייתם מצביעים?</p>' +
+        '<p class="b2bill">' + esc(issue.bill_title) + '</p>' +
+        '<div class="v-a-row b2votes">' +
+          VOTES.map(v => '<button class="v-a" data-vote="' + v + '">' + VLABEL[v] + '</button>').join('') +
+        '</div>' +
+        '<p class="b2consent">את התוצאה נגלה בסוף ›</p>' +
       '</div>' +
-      '<p class="b2consent">את התוצאה נגלה בסוף ›</p>' +
+    '</div>' +
+    '<div class="ovpane ovpane--bill is-below">' +
+      '<div class="ov-inner b3inner">' +
+        '<p class="b3title">' + esc(issue.bill_title) + '</p>' +
+        '<span class="b3date">' + esc(issue.bill_date) + '</span>' +
+        '<p class="b3go" data-ph>' + ph('[טקסט — תמר: רמז לסגירה]') + '</p>' +
+      '</div>' +
     '</div>';
-
-  b.appendChild(under);
-  r.appendChild(b);
   $('#stage').appendChild(ov);
 
-  /* the pinned answer enters HERE, with the consent line */
-  pin(S.claim === 'true' ? 'אמת' : 'שקר');
-  /* and it is what shows behind the blur, per the board's beat-2 frame */
-
-  gate(ov.firstElementChild, 'שלוש האפשרויות פתוחות', 'בחרו איך הייתם מצביעים — אין תשובה נכונה כאן');
+  /* NO INSTRUCTION LINE. Three vote chips are the instruction. */
 
   ov.querySelectorAll('[data-vote]').forEach(btn =>
     btn.addEventListener('click', async () => {
       if (S.position) return;
       S.position = btn.dataset.vote;
-      clearGate();
       ov.querySelectorAll('.v-a').forEach(x => x.disabled = true);
       const table = COIN_TABLES[DEV.coins];
       award(table.position);                    /* 0 under 'sheet' §1.4d */
+      /* §1.2 the choice sits alone before the surface moves */
       await wait(T.hold);
-      ov.classList.add('ov--out');
-      await wait(T.ovIn);
-      ov.remove();
-      beat3();
+      beat3(ov);
     }));
 }
 
 /* ===================== BEAT 3 · THE BILL ============================ */
-/* No longer a screen. bill_title + bill_date ONLY, on an overlay over
-   the first MK card — the bill is read while looking at the person it
-   is about. Dismiss COLLAPSES INTO the card beneath.                  */
-function beat3() {
+/* bill_title + bill_date ONLY, on the surface beat 2 already put up, over
+   the MK card the bill is about. No new backdrop: the content swaps on
+   the one that is already there. Dismiss COLLAPSES INTO the card. */
+async function beat3(ov) {
   S.beat = 3;
-  renderCascade();                                   /* the card is already there */
-  const wrap = $('.cardwrap');
-  const ov = el('div', 'ov ov--card');
-  ov.innerHTML =
-    '<p class="b3title">' + esc(issue.bill_title) + '</p>' +
-    '<span class="b3date">' + esc(issue.bill_date) + '</span>' +
-    '<p class="b3go" data-ph>' + ph('[טקסט — תמר: רמז לסגירה]') + '</p>';
-  wrap.appendChild(ov);
+  const vote = $('.ovpane--vote', ov), bill = $('.ovpane--bill', ov);
+  /* the swap. Both panes move on the same tick and the same duration, so
+     the eye reads one surface whose content travelled rather than two
+     surfaces trading places. */
+  vote.classList.add('is-above');
+  bill.classList.remove('is-below');
 
+  /* the dismiss is armed only AFTER the bill has arrived, or the tap that
+     answered beat 2 would carry straight through and skip the bill */
+  await wait(T.ovSwap);
+  ov.classList.add('is-dismissable');
   ov.addEventListener('click', async () => {
     ov.classList.add('ov--collapse');
     await wait(T.ovCollapse);
     ov.remove();
     S.beat = 4;
-    armPredict();
+    /* the card the overlay was sitting on turns over in front of the
+       player. It is the same element, not a replacement. */
+    await flipUp();
+    armPredict(true);          /* first card of the round: helper line */
   }, { once:true });
 }
 
 /* ===================== BEAT 4 · THE CASCADE ========================= */
-function renderCascade() {
-  const r = $('#round'); r.innerHTML = '';
-  const b = el('div', 'beat b4');
-  const stack = el('div', 'stack');
-  const wrap = el('div', 'cardwrap');
-
-  /* the pile shows dealt - index - 1 backs, capped at what .pile draws */
-  const left = Math.max(0, S.dealt.length - S.ci - 1);
-  const pile = el('span', 'pile', '<i></i>'.repeat(Math.min(4, left)));
-
-  const p = S.dealt[S.ci], pol = DATA.politicians[p.id];
-  const art = M.politicians[p.id];
-
-  const card = el('article', 'mf-b mkcard');
-  card.innerHTML =
-    '<span class="mf-b__halo"></span>' +
-    (art
-      ? '<img class="mf-b__port" src="' + ROOT + art['400'] + '" alt="">'
-      : '<span class="mf-b__badge">' + esc(initials(pol.name)) + '</span>') +
-    /* §1.4b the party label STAYS. Hiding it dumps the complexity on a
-       17-year-old as noise — Tesler's Law. The fix for a boring round
-       is curation, not concealment. */
-    '<div class="mf-b__id"><h2>' + esc(pol.name) + '</h2><p>' + esc(pol.party) + '</p></div>';
-
-  wrap.append(pile, card);
-  stack.appendChild(wrap);
-  b.appendChild(stack);
-  r.appendChild(b);
-  repin();
-  sizeStage();
-  return card;
-}
-
-function armPredict() {
+function armPredict(first) {
   S.phase = 'predict';
-  const card = $('.mkcard');
+  const card = currentCard();
+  if (!card) return;
   const foot = el('div', 'v-a-row mf-b__foot');
+  /* §H VOTE ORDER IS FIXED: בעד first, so in RTL it is rightmost. The
+     order is VOTES', and VOTES is not reordered anywhere. */
   foot.innerHTML = VOTES.map(v =>
     '<button class="v-a" data-pred="' + v + '">' + VLABEL[v] + '</button>').join('');
   card.appendChild(foot);
 
-  gate($('.beat'), 'מה הוא/היא הצביע/ה?',
-       'בחרו ניחוש כדי לראות איך הוא/היא באמת הצביע/ה');
+  /* the one surviving helper line, on the FIRST card of the round only.
+     Cards 2..n never carry it: by then the player has done this. */
+  helper(first ? 'מה הוא/היא הצביע/ה?' : '');
 
   foot.querySelectorAll('[data-pred]').forEach(btn =>
     btn.addEventListener('click', () => verdict(btn.dataset.pred, foot, card)));
@@ -555,7 +736,7 @@ function armPredict() {
 async function verdict(guess, foot, card) {
   if (S.phase !== 'predict') return;
   S.phase = 'verdict';
-  clearGate();
+  helper('');
   const p = S.dealt[S.ci];
   S.guesses[p.id] = guess;
   const ok = guess === p.vote;
@@ -575,69 +756,160 @@ async function verdict(guess, foot, card) {
   basis.innerHTML = p.basis === 'bloc' ? ph('[תווית — תמר: basis=bloc]') : 'הצבעה מתועדת';
   idBox.appendChild(basis);
 
-  /* THE AXIS LEAVES THE CARD. With the face rule re-locked there is no
-     190px region inside the card clear of both the portrait and the
-     right-aligned name, so the card's foot is given to the stamp and the
-     axis becomes its own strip underneath — full width, fully legible. */
-  $('.stack').appendChild(axis(guess, p));
-  /* THE STAMP LEAVES THE CARD TOO: .mf-b carries overflow:hidden, which
-     is what was clipping it at the left edge. .cardwrap does not clip. */
+  /* THE AXIS IS INSIDE THE CARD, at its foot. Absolutely positioned, so
+     it adds nothing to the card's box and cannot re-scale it. */
+  const g = axis(guess, p);
+  card.appendChild(g);
+  await runAxis(g, guess, p.vote);
+
+  /* THE STAMP IS ONE PLANE, ON TOP. Parented to .cardwrap rather than the
+     card because .mf-b carries overflow:hidden and would cut it at the
+     edge, and because the card is a 3D flipper — a stamp inside it would
+     be mirrored by the rotation. */
   $('.cardwrap').appendChild(stamp(ok));
   card.classList.add('is-stamped');
   inkBleed();
-  sizeStage();
 
   const table = COIN_TABLES[DEV.coins];
   if (ok) setTimeout(() => award(table.perCorrect), T.stamp);
 
-  /* MK flip: the whole verdict lands inside the measured band and the
-     next card is the point, so the card leaves fast */
   await wait(T.stamp + T.flip);
-  S.ci++;
-  if (S.ci >= S.dealt.length) { card.classList.add('is-spent'); await wait(T.exit); return beat5(); }
 
-  card.classList.add('is-spent');
-  await wait(T.exit);
-  const next = renderCascade();
-  next.classList.add('is-drawing');
-  await wait(T.draw);
-  armPredict();
+  /* THE RESOLVED CARD IS SWIPED OFF, then the next one turns over. The
+     player never sees a card replaced in place. */
+  S.ci++;
+  leaveCard();
+  await wait(T.cardExit);
+  if (S.ci >= S.dealt.length) return beat5();
+  const spent = $('.deckcard.is-leaving'); if (spent) spent.remove();
+  const spentStamp = $('.d2.is-leaving');  if (spentStamp) spentStamp.remove();
+  await flipUp();
+  armPredict(false);
 }
 
-/* the guess-vs-reality axis — the payload of the beat */
+/* ---- the guess-vs-reality axis. The payload of the beat. -------------
+   It is BUILT EMPTY and then played: the strip is a small piece of
+   narration, not a readout that arrives already true. See runAxis(). */
+const stopPct = v => +(((VOTES.indexOf(v) * 2 + 1) / 6) * 100).toFixed(3);
+
 function axis(guess, p) {
-  const stop = v => ((VOTES.indexOf(v) * 2 + 1) / 6 * 100).toFixed(2) + '%';
-  const same = guess === p.vote;
-  const pol  = DATA.politicians[p.id], art = M.politicians[p.id];
+  const pol = DATA.politicians[p.id], art = M.politicians[p.id];
   const g = el('div', 'gx');
   g.innerHTML =
     '<div class="gx-track">' +
-      '<span class="gx-m gx-you' + (same ? ' is-paired' : '') + '" style="right:' + stop(guess) + '">' +
+      '<span class="gx-fill"></span>' +
+      '<span class="gx-m gx-you is-landing" style="right:' + stopPct(guess) + '%">' +
         '<span class="as-d">' + AV3 + '</span></span>' +
-      '<span class="gx-m gx-mk" style="right:' + stop(p.vote) + '">' +
+      /* THE MK TOKEN STARTS IN THE PLAYER'S SLOT, not in its own. The
+         comparison begins where the player put it and travels from
+         there; starting it at the answer would state the answer before
+         the strip has said anything. */
+      '<span class="gx-m gx-mk is-hidden" style="right:' + stopPct(guess) + '%">' +
         (art ? '<img class="gx-port" src="' + ROOT + art['128'] + '" alt="">'
              : '<span class="gx-badge">' + esc(initials(pol.name)) + '</span>') +
       '</span>' +
     '</div>' +
-    '<div class="gx-stops">' + VOTES.map(v => '<i>' + VLABEL[v] + '</i>').join('') + '</div>' +
-    '<p class="gx-cap"><span>הניחוש שלכם</span><span>הצביע/ה</span></p>';
+    '<div class="gx-stops">' + VOTES.map(v => '<i>' + VLABEL[v] + '</i>').join('') + '</div>';
   return g;
+}
+
+/* the strip, played out. Every duration is a token; see :root. */
+async function runAxis(g, guess, vote) {
+  const you  = $('.gx-you', g), mk = $('.gx-mk', g), fill = $('.gx-fill', g);
+  /* 1 · the player's token locks into the slot the player chose.
+         A FORCED REFLOW, NOT requestAnimationFrame. rAF does not fire in
+         a backgrounded tab, so the class never came off and the token
+         stayed at opacity:0 — and the awaited rAF further down never
+         resolved at all, which left the round stuck in the verdict with
+         no stamp, permanently. Reading a layout property flushes the
+         pending style synchronously and gives the transition its "from". */
+  void g.offsetWidth;
+  you.classList.remove('is-landing');
+  await wait(T.gxLock);
+  /* 2 · and sits there. Nothing moves. This pause is the whole reason
+         the strip reads as a comparison rather than as a result. */
+  await wait(T.gxHold);
+  /* 3 · the MK's token appears in the PLAYER'S slot */
+  mk.classList.remove('is-hidden');
+  await wait(T.gxAppear);
+  /* 4 · the fill travels to where the MK actually voted and carries the
+         token with it. DISTANCE-PROPORTIONAL on one easing, so two slots
+         of disagreement feel like twice one slot rather than like the
+         same event with a different endpoint. */
+  const dist = Math.abs(VOTES.indexOf(vote) - VOTES.indexOf(guess));
+  const from = stopPct(guess), to = stopPct(vote);
+  if (!dist) {
+    /* agreement: there is nowhere to travel. A zero-length fill reads as
+       a bug, so the pair settles in place instead and the player's token
+       takes the badge treatment that keeps both readable in one slot. */
+    you.classList.add('is-paired');
+    mk.classList.add('is-paired-mk');
+    g.classList.add('is-agreed');
+    await wait(T.gxSettle);
+  } else {
+    const dur = dist === 1 ? T.gxTravel1 : T.gxTravel2;
+    /* RTL: the fill grows FROM the player's stop. Anchoring the edge the
+       growth STARTS at is what makes it read right-to-left when it runs
+       that way — anchored at the far end it slides in from the wrong
+       side and reads as an arrival rather than as a journey. */
+    if (to > from) { fill.style.right = from + '%';        fill.style.left  = 'auto'; }
+    else           { fill.style.left  = (100 - from) + '%'; fill.style.right = 'auto'; }
+    fill.style.transition = 'width ' + dur + 'ms var(--e-settle)';
+    mk.style.transition   = 'right ' + dur + 'ms var(--e-settle)';
+    void fill.offsetWidth;            /* flush, so 0 is the "from" width */
+    fill.style.width = Math.abs(to - from) + '%';
+    mk.style.right   = to + '%';
+    await wait(dur);
+  }
+  /* 5 · the stamp lands after the token has settled, not with it */
+  await wait(T.gxStampLag);
 }
 
 /* D2 · the verdict stamp. Correctness only — neither ink appears
    anywhere near בעד, נגד or נמנע, and neither changes with which way
-   the MK voted. The words are Tamar's and render as placeholders.    */
+   the MK voted.
+
+   EVERY MARK IS PRINTED BY THE SAME STAMP. The ring, the two circles and
+   the centre word all live inside ONE <g filter="url(#ink)">, so they
+   take the same ink colour (currentColor), the same displacement, the
+   same dry-brush holes and the same rupture at contact. The centre word
+   used to be an HTML <span> sitting on top of an SVG graphic: clean UI
+   type inside a distressed disc, which read as a label pasted onto a
+   stamp rather than as something the stamp printed.
+
+   PLACEHOLDER COPY, AWAITING THE CLIENT'S SIGN-OFF. These strings and no
+   others; do not author alternatives.
+
+   HARD RULE, from the locked guardrails: THE PLAYER NEVER FAILS. Never
+   "טעית", never "לא נכון", never any string that puts the player in the
+   subject position of an error. "הופתעת" is something that happened TO
+   the player, which is the whole point.
+
+   The ring string is unwritten copy as well and is the plainest possible
+   marker for it — it is not a verdict and says nothing about the player. */
+const D2_COPY_PLACEHOLDER = {
+  correct:  'צדקת',
+  surprise: 'הופתעת',
+  ring:     'טקסט טבעת'
+};
+
 function stamp(ok) {
+  const word = ok ? D2_COPY_PLACEHOLDER.correct : D2_COPY_PLACEHOLDER.surprise;
   const s = el('span', 'd2 ' + (ok ? 'd2--correct' : 'd2--surprise'));
+  /* the disc is aria-hidden, so the word has to be announced by the host */
+  s.setAttribute('role', 'img');
+  s.setAttribute('aria-label', word);
   s.innerHTML =
     '<svg class="d2__art" viewBox="0 0 100 100" aria-hidden="true">' +
       '<g filter="url(#ink)">' +
         '<circle cx="50" cy="50" r="45.5" stroke-width="6"></circle>' +
         '<circle cx="50" cy="50" r="38" stroke-width="2.2"></circle>' +
-        '<text font-size="9.5" text-anchor="middle">' +
-          '<textPath href="#d2ring" startOffset="50%">[RING-TEXT]</textPath></text>' +
-      '</g></svg>' +
-    '<span class="d2__lab">' + (ok ? '[RIGHT]' : '[SURPRISE]') + '</span>';
+        '<text class="d2__ring">' +
+          '<textPath href="#d2ring" startOffset="50%" text-anchor="middle">' +
+            esc(D2_COPY_PLACEHOLDER.ring) + '</textPath></text>' +
+        '<text class="d2__word" x="50" y="50" text-anchor="middle" ' +
+          'dominant-baseline="central">' + esc(word) + '</text>' +
+      '</g></svg>';
   return s;
 }
 
@@ -673,13 +945,13 @@ async function beat5() {
   const truth = issue.tf_answer === 'true' ? 'אמת'
               : issue.tf_answer === 'false' ? 'שקר' : 'חלקית';
 
-  /* ---- 1. the pinned claim RESOLVES. A moment, not a swap. -------- */
-  const p = pin(S.claim === 'true' ? 'אמת' : 'שקר');
-  p.classList.add('is-resolving');
-  await wait(T.resolve * 0.38);
-  p.innerHTML = esc(truth) + '<small>התשובה</small>';
-  p.classList.add('is-truth');
-  await wait(T.resolve * 0.62);
+  /* ---- 1. the chyron HOLDS. It used to flip in place to the truth; how
+             the band resolves is the next pass's decision, so for now it
+             simply stays, unchanged, saying what the player said. The
+             beat still spends the moment — the truth arrives in the panel
+             below rather than in the band. --------------------------- */
+  repin();
+  await wait(T.resolve);
 
   /* ---- 2. the count and the resolution. The round's held peak. ---- */
   const tally = issue._tally || null;
@@ -788,9 +1060,10 @@ async function beat5() {
   b.appendChild(go);
   requestAnimationFrame(() => { go.classList.add('is-in'); fitBeat(); });
 
-  $('#devclock').textContent =
-    'machine ' + (machineMs / 1000).toFixed(1) + 's · wall ' +
-    ((performance.now() - S.t0) / 1000).toFixed(1) + 's';
+  /* the 60s budget, still measured — it just has nowhere on screen to go
+     now that the spike bar is off the stage */
+  S.machineS = +(machineMs / 1000).toFixed(1);
+  S.wallS    = +((performance.now() - S.t0) / 1000).toFixed(1);
 }
 
 /* the count-up. ~--t-finale regardless of magnitude, ease-out. */
@@ -814,45 +1087,50 @@ Object.defineProperty(window, 'DEV', { get: () => DEV });
 /* ===================== boot ========================================= */
 function start() {
   applyDev();
-  clearGate();
-  const old = $('.pinned', $('#stage')); if (old) old.remove();
+  helper('');
+  /* §B the topic the issue belongs to, from data.js, centred in the HUD
+     and present on every beat — the round is one issue inside one topic
+     and the HUD is the only thing on screen that can say which. */
+  /* the chyron is emptied, never removed: it holds its box on beat 1 so
+     the card is the same size before and after the answer is given */
+  const c = $('#chyron');
+  c.innerHTML = ''; c.classList.add('is-empty'); c.setAttribute('aria-hidden', 'true');
   $('#coinNum').textContent = '0';
   $('#hudAvatar').innerHTML = AV3;
   newRound();
+  /* after newRound(), which is what resolves `issue` */
+  const t = $('#hudTopic');
+  if (t) t.textContent = topicLabel();
   beat1();
   sizeStage();
 }
 
-function applyDev() {
-  document.documentElement.dataset.hold = DEV.hold;
-  document.body.classList.toggle('no-ph', !DEV.ph);
-  /* the spike bar is not part of the design, so it must not sit on top of
-     anything that is — it was covering the pinned claim. It is anchored to
-     the bottom and the stage reserves its height. */
-  const bar = document.getElementById('devbar');
-  if (bar) document.documentElement.style
-    .setProperty('--devbar-h', bar.offsetHeight + 'px');
+/* the topic's own label out of data.js. topic is resolved in newRound(),
+   so this is read after it, never before. */
+function topicLabel() {
+  const tp = DATA.topics.find(x => x.id === issue.topic);
+  return tp ? tp.label : '';
 }
 
-$('#devbar').addEventListener('click', e => {
-  const k = e.target.dataset && e.target.dataset.dev; if (!k) return;
-  if (k === 'cards') { DEV.cards = DEV.cards === 5 ? 3 : 5; e.target.textContent = 'cards: ' + DEV.cards; }
-  if (k === 'swipe') { DEV.swipe = DEV.swipe === 'R' ? 'L' : 'R';
-    e.target.textContent = 'swipe: ' + DEV.swipe + '=אמת'; }
-  if (k === 'b5')    { DEV.b5 = DEV.b5 === 'A1' ? 'A2' : 'A1'; e.target.textContent = 'B5: ' + DEV.b5; }
-  if (k === 'coins') { DEV.coins = DEV.coins === 'sheet' ? 'brief' : 'sheet';
-    e.target.textContent = 'coins: ' + DEV.coins; }
-  if (k === 'hold')  { DEV.hold = DEV.hold === 'long' ? 'short' : 'long';
-    e.target.textContent = 'hold: ' + DEV.hold; }
-  if (k === 'ph')    { DEV.ph = !DEV.ph;
-    e.target.textContent = 'placeholders: ' + (DEV.ph ? 'on' : 'off'); }
-  applyDev();
-  start();
-});
+function applyDev() {
+  document.documentElement.dataset.hold = DEV.hold;
+  document.documentElement.dataset.chyron = DEV.chyron;
+  document.body.classList.toggle('no-ph', !DEV.ph);
+}
+
 
 fetch('../prototype/manifest.json')
   .then(r => r.json())
-  .then(j => { M = j; sizeStage(); start(); })
+  .then(j => { M = j;
+    /* THE CARD BACK'S ARTWORK, from the manifest like every other asset —
+       props.card_back, added to make_manifest.py when the set was
+       reframed. The literal is a fallback for a manifest generated before
+       that entry existed; it is not the path in use. */
+    const back = (M.props.card_back && (M.props.card_back.file || M.props.card_back['390']))
+               || 'assets/card_background.webp';
+    document.documentElement.style.setProperty('--cardback-art',
+      'url("' + ROOT + back + '")');
+    sizeStage(); start(); })
   .catch(() => {
     $('#round').innerHTML =
       '<p style="color:#EFECE4;font-weight:700;line-height:1.5">' +

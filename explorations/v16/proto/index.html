@@ -57,30 +57,42 @@
     <feMerge><feMergeNode in="acut"/><feMergeNode in="SourceGraphic"/></feMerge>
   </filter>
 
-  <!-- the ring the stamp's text runs around -->
-  <path id="d2ring" d="M50 82 a32 32 0 1 1 0 -64 a32 32 0 1 1 0 64"/>
+  <!-- §7 the arc the stamp's ring text runs along. It traces the TOP of
+       the disc, drawn LEFT TO RIGHT, so the glyphs stand upright on it.
+       The path this replaces started at the bottom (M50 82) and ran the
+       whole circle; startOffset:50% then landed the text on the bottom
+       arc, upside down and unreadable. -->
+  <path id="d2ring" d="M 19.5 50 A 30.5 30.5 0 0 1 80.5 50"/>
 </defs></svg>
 
-<!-- SPIKE CHROME. Not part of the design — the open decisions, switchable in
-     the hand rather than argued on paper. #4d (card count), #12 (RTL swipe),
-     the B5 variant, and the coin table §1.4d disagreement. -->
-<div id="devbar" dir="ltr">
-  <button data-dev="cards">cards: 5</button>
-  <button data-dev="swipe">swipe: R=אמת</button>
-  <button data-dev="b5">B5: A1</button>
-  <button data-dev="coins">coins: sheet</button>
-  <button data-dev="hold">hold: long</button>
-  <button data-dev="ph">placeholders: off</button>
-  <button data-dev="restart">restart</button>
-  <span id="devclock">0.0s</span>
-</div>
+<!-- The spike's open decisions are QUERY PARAMETERS now, not a bar on the
+     screen: the game fills the viewport and nothing sits on top of it.
+       ?hold=long|short   ?swipe=true|false   ?cards=N   ?placeholders=on|off
+     swipe and hold are live research questions — the swipe mapping goes to
+     the teen playtest and the tempo is not settled — so they have to stay
+     switchable without a rebuild. See DEV in proto.js. -->
 
 <div class="stage" id="stage">
   <header class="hud" id="hud">
     <span class="h-a hud-coins"><span class="coin-glyph" aria-hidden="true">●</span><span class="num" id="coinNum">0</span></span>
-    <span class="hud-mid"></span>
+    <!-- §B the topic this issue belongs to, read from data.js. Centred
+         between the coin chip and the avatar, on every beat. -->
+    <span class="hud-topic" id="hudTopic"></span>
     <span class="as-d hud-you" id="hudAvatar"></span>
   </header>
+  <!-- ONE helper line for the whole round, and only on the first MK card.
+       Plain type on the ground between the HUD and the chyron — not a
+       pill, not on the card. Its box is reserved on every beat so
+       switching it on cannot resize the card. -->
+  <p class="helper is-empty" id="helper"></p>
+  <!-- THE PINNED CLAIM, as a chyron. It is a SIBLING of the HUD and the
+       round, in flow between them, which is what makes "it never overlaps
+       the card" structural rather than a z-index argument: the round —
+       and so the card — begins below it.
+       It is filled at beat 2 and emptied at restart; it is never created
+       or destroyed, because it has to hold its box on beat 1 for the card
+       to be the same size on every beat. -->
+  <div class="chyron is-empty" id="chyron" aria-hidden="true"></div>
   <main class="round" id="round"></main>
 </div>
 

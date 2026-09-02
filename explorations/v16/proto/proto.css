@@ -44,6 +44,33 @@
   --t-snapback:    160ms;  /* release below the drag threshold           */
   --t-resolve:     450ms;  /* the pinned claim resolving. A moment.      */
   --t-coin:        400ms;  /* one coin award counting up                 */
+
+  /* §D THE OVERLAY CONTENT SWAP. This token went missing last pass — the
+     edit that was meant to add it silently matched nothing — so the
+     shorthand `transition:transform var(--t-ov-swap) var(--e-settle)`
+     resolved with NO duration, which makes the whole declaration invalid
+     and leaves transition-duration at its 0s initial value. T.ovSwap read
+     the same empty token and became 0ms, so the JS wait was zero too.
+     Both halves were instant and the class toggle I checked looked fine. */
+  --t-ov-swap:     360ms;
+
+  /* §A the deck. A card is turned over, never swapped: --t-card-flip is
+     the turn, --t-card-exit the resolved card being swiped off. */
+  --t-card-flip:   450ms;
+  --t-card-exit:   320ms;
+
+  /* §F the strip, played rather than stated: lock -> hold -> the MK's
+     token appears in the PLAYER'S slot -> the fill travels to the truth,
+     distance-proportional on one easing -> the stamp lands after it. */
+  --t-gx-lock:     200ms;
+  --t-gx-hold:     350ms;
+  --t-gx-appear:   140ms;
+  --t-gx-travel-1: 420ms;   /* one slot of disagreement                 */
+  --t-gx-travel-2: 650ms;   /* two — felt as bigger, not just longer    */
+  --t-gx-settle:   220ms;   /* agreement: nowhere to travel             */
+  --t-gx-stamp-lag: 80ms;
+
+  --e-in:          cubic-bezier(.55,.06,.9,.5);   /* leaving, not arriving */
   --e-out:         cubic-bezier(.16,.84,.44,1);
 
   --gate-hint:  4000ms;    /* §1.6 idle -> instruction line appears      */
@@ -51,6 +78,11 @@
 
   --card-scale: 1;         /* set from JS so a 620px card fits a short
                               phone without ever introducing a scroll    */
+
+  /* the guess-vs-reality strip, inside the card at its foot. 88px before
+     the caption row came out. */
+  --gx-h: 71px;
+  --gx-bottom: 8px;        /* the strip's inset off the card's foot        */
 }
 :root[data-hold="short"]{ --t-hold: var(--t-hold-short); }
 
@@ -96,7 +128,7 @@ body{
   display:flex; flex-direction:column;
   padding:calc(10px + env(safe-area-inset-top))
           calc(16px + env(safe-area-inset-right))
-          calc(12px + env(safe-area-inset-bottom) + var(--devbar-h, 0px))
+          calc(12px + env(safe-area-inset-bottom))
           calc(16px + env(safe-area-inset-left));
   background:#403E3A;
   box-shadow:0 3px 20px rgba(0,0,0,.4);
@@ -120,13 +152,34 @@ body{
   display:flex; align-items:center; gap:var(--sp-2);
   padding-bottom:var(--sp-2);
 }
-.hud-mid{ flex:1; }
+/* §B the topic title. flex:1 so it centres between the chip and the
+   avatar whatever their widths, and truncates rather than wrapping the
+   HUD onto a second line. */
+.hud-topic{
+  flex:1; min-width:0; text-align:center;
+  font-family:var(--font-display); font-weight:900; font-size:15px;
+  color:#D8D2C4; line-height:1;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
 .hud-coins{ direction:ltr; }
 .hud-coins .coin-glyph{ color:var(--primary); font-size:13px; line-height:1; }
 .hud-coins .num{ direction:ltr; unicode-bidi:isolate; }
 .hud-coins.is-awarding{ animation:coin-bump var(--t-coin) var(--e-out); }
 @keyframes coin-bump{ 0%,100%{transform:none} 35%{transform:translateY(-3px) scale(1.04)} }
 .hud-you{ width:40px; height:40px; }
+
+/* §C THE ONE HELPER LINE. Not a pill: plain type on the ground, low
+   contrast, between the HUD and the chyron. Its box is reserved on every
+   beat — is-empty hides the text, never the space — so turning it on for
+   the first MK card cannot change the card's size. */
+.helper{
+  /* margin, not margin-bottom: it is a <p>, and the UA's default 1em top
+     margin was quietly taking another 13px off the card. */
+  flex:none; min-height:17px; margin:0 0 5px;
+  font-size:var(--fs-meta); font-weight:700; line-height:1.3;
+  color:var(--ink-faint); text-align:center; opacity:.78;
+}
+.helper.is-empty{ visibility:hidden; }
 
 .round{ position:relative; z-index:1; flex:1; min-height:0;
   display:flex; flex-direction:column; padding-top:26px; }
@@ -155,32 +208,6 @@ body{
 }
 body.no-ph [data-ph]{ display:none !important; }
 
-/* =====================================================================
-   THE COMMIT GATE · §1.6.
-   Disabled until committed. Unfilled reads YELLOW and the instruction
-   copy escalates. No error state and no red: incompleteness is not a
-   mistake. The escalation lands on the INSTRUCTION LINE, never on one of
-   the three options — colouring one would break "three, always
-   identical" and leak an answer.
-   ===================================================================== */
-.gate{
-  flex:none; min-height:22px; margin-top:var(--sp-2);
-  display:flex; justify-content:center; align-items:center; text-align:center;
-}
-.gate-line{
-  opacity:0; transform:translateY(4px);
-  font-size:var(--fs-meta); font-weight:700; line-height:1.35;
-  color:var(--ink); background:var(--primary);
-  border-radius:var(--r-chip); padding:4px 12px 5px;
-  box-shadow:0 0 0 2px var(--keyline);
-  transition:opacity var(--t-flip) var(--e-settle),
-             transform var(--t-flip) var(--e-settle),
-             font-size var(--t-flip) var(--e-settle),
-             padding var(--t-flip) var(--e-settle);
-}
-.gate.is-hinting .gate-line{ opacity:1; transform:none; }
-.gate.is-urging  .gate-line{ opacity:1; transform:none;
-  font-size:var(--fs-body); padding:7px 16px 8px; }
 
 /* =====================================================================
    THE CARD STACK
@@ -193,13 +220,93 @@ body.no-ph [data-ph]{ display:none !important; }
    sizeStage() sets BOTH the transform and an explicit height, because a
    transform does not shrink the box the flex column reserves — leaving
    the layout claiming 620px while the eye saw 500. */
+/* §3 THE DECK SITS HIGHER. The beat centres the stack, so a bottom
+   margin lifts it by half its own value: 20px here moves the deck up
+   10px and leaves that much more air under it. sizeStage() subtracts
+   this margin from the card's budget — it is the stack's own margin, so
+   the `others` sum never sees it, and uncounted it would push the card's
+   foot past the stage on a short viewport. */
 .stack{
   display:flex; flex-direction:column; align-items:center; flex:none;
-  transform-origin:top center;
+  transform-origin:top center; margin-bottom:20px;
 }
 /* .cardwrap does NOT clip: the verdict stamp hangs outside the card, and
    .mf-b carries overflow:hidden, which is what was cutting it off. */
-.cardwrap{ position:relative; width:var(--card-w); flex:none; }
+/* §A THE DECK. .cardwrap is the deck's own box and the 3D context the
+   cards turn inside: perspective HAS to sit on the parent, not on the
+   card, or every card gets its own vanishing point and the turn reads
+   flat. Fixed height because the cards are stacked absolutely on top of
+   each other now — the claim card, the active card and the face-down
+   next card all occupy it at once. */
+.cardwrap{
+  position:relative; width:var(--card-w); height:var(--card-h); flex:none;
+  perspective:1400px;
+}
+/* one card: a back and a front on one element, turned in 3D.
+   THE TRANSFORM LISTS MATCH between states on purpose. Interpolating
+   `translate+rotate` against a bare `rotateY` falls back to matrix
+   decomposition, which squashes the card instead of turning it. */
+.deckcard{
+  position:absolute; inset:0; transform-style:preserve-3d;
+  transform:translate(2px,-7px) rotate(.9deg) rotateY(0deg);
+  transition:transform var(--t-card-flip) var(--e-settle);
+}
+.deckcard.is-current{
+  z-index:2;
+  transform:translate(0px,0px) rotate(0deg) rotateY(180deg);
+}
+.deckcard.is-next{ z-index:1; }
+/* the resolved card is swiped off — ease-IN, because it is leaving */
+.deckcard.is-leaving{
+  transform:translate(-420px,8px) rotate(-13deg) rotateY(180deg); opacity:.2;
+  transition:transform var(--t-card-exit) var(--e-in),
+             opacity   var(--t-card-exit) linear;
+}
+.deckcard > .cardback,
+.deckcard > .mf-b{
+  position:absolute; inset:0; margin:0;
+  backface-visibility:hidden; -webkit-backface-visibility:hidden;
+}
+/* the front is pre-turned, so the card shows its back at rest and its
+   face at rotateY(180deg). It is in the DOM from the deal but never
+   visible until then — which is what stopped an MK's face showing
+   through the beat-2 blur a whole beat before the cascade. */
+.deckcard > .mf-b{ transform:rotateY(180deg); }
+
+/* §6 THE JOLT WAS UN-TURNING THE CARD. hachach.css lands the stamp with
+   `.mf-b.is-stamped{ animation:d2-jolt ... both }`, and d2-jolt's frames
+   set `transform:translateY(...)` — a WHOLE transform, which replaced the
+   front face's own rotateY(180deg). With fill:both it then held that
+   value forever. The front's net rotation went from 360 to 180, its
+   backface turned to the viewer, backface-visibility hid it, and what
+   showed through was the face-down card underneath: the MK vanished and
+   the player saw a card back the instant the stamp landed.
+   The jolt is kept — it is the card taking the hit — but it now carries
+   the face's rotation with it. */
+.deckcard > .mf-b.is-stamped{
+  animation:d2-jolt-face 120ms var(--e-land) var(--t-stamp-drop) both;
+}
+@keyframes d2-jolt-face{
+  0%,100%{ transform:rotateY(180deg) translateY(0) }
+  40%    { transform:rotateY(180deg) translateY(3px) }
+}
+
+/* §1 THE CARD BACK. One illustration, identical on every back and on
+   every pile card, at FULL STRENGTH — the previous treatment greyed it,
+   dropped it to 20% and multiplied it into the kraft, which was far too
+   faint to read as a card back at all.
+   BOTTOM-ANCHORED AND COVERED. The art is 1536x2752 (0.558) against a
+   340x620 card (0.548), so `cover` crops a sliver — and anchoring the
+   bottom takes that sliver off the EMPTY SKY at the top, keeping the
+   building and the flags at its foot, which is the part worth seeing. */
+.cardback{
+  background:var(--cardback-art) bottom center / cover no-repeat, #C4B48F;
+  border:var(--card-border) solid var(--edge-warm);
+  box-shadow:0 0 0 2px var(--keyline), var(--shadow-card);
+  overflow:hidden;
+}
+/* the claim card sits on top of the deck it belongs to */
+.b1card{ z-index:3; }
 
 /* =====================================================================
    BEAT 1 · THE CLAIM · B1-B developed
@@ -230,9 +337,42 @@ body.no-ph [data-ph]{ display:none !important; }
 }
 
 /* the two answers. IDENTICAL — same class, same size, same weight, same
-   ink. אמת and שקר are never told apart by anything but their letters. */
+   ink. אמת and שקר are never told apart by anything but their letters.
+
+   §2.2 THE BUTTON IS THE DRAG'S READOUT. The answer the gesture is
+   choosing fills solid --ink on the same ramp as the preview pill, so it
+   is fully solid at the commit threshold and partially filled below it.
+   Only --fill moves. It changes no geometry and it is never set on the
+   other button, so the pair is identical in size and weight at every
+   point of the drag — which is the whole reason the feedback could not
+   be "shrink the one you are not choosing".                            */
 .b1ans{ position:absolute; z-index:7; bottom:var(--sp-3); inset-inline:var(--sp-3); }
-.b1ans .v-a{ min-height:60px; font-size:var(--fs-action); }
+.b1ans .v-a{
+  --fill:0;
+  min-height:60px; font-size:var(--fs-action);
+  position:relative; overflow:hidden;      /* clips the fill to the radius */
+}
+/* THE FILL IS A WIPE, NOT A CROSS-FADE. Fading the background to --ink
+   while fading the label to --paper puts mid-grey text on a mid-grey
+   ground at --fill:.5 and the word vanishes at exactly the moment the
+   player is deciding. The wipe carries a hard edge instead: every pixel
+   is either ink-on-paper or paper-on-ink, so both halves stay at full
+   contrast at every value. The two layers share one clip so the dark
+   ground and the light lettering can never drift apart.
+   RTL: the fill grows from the inline-start edge, which is the right. */
+.b1ans .v-a::before,
+.b1ans .v-a::after{
+  position:absolute; inset:0; pointer-events:none;
+  clip-path:inset(0 0 0 calc((1 - var(--fill)) * 100%));
+}
+.b1ans .v-a::before{ content:""; background:var(--ink); }
+/* the label's light copy. data-label is the same string as the button's
+   own text; the pseudo-element inherits the font, and the padding is
+   symmetric, so the two copies land on the same baseline. */
+.b1ans .v-a::after{
+  content:attr(data-label);
+  display:grid; place-items:center; color:var(--paper);
+}
 
 /* ---- the swipe, §2.2 · every gesture has a button twin -------------
    THE REVEAL APPEARS ON THE SIDE THE CARD IS MOVING TOWARD. Written in
@@ -268,25 +408,38 @@ body.no-ph [data-ph]{ display:none !important; }
   background:linear-gradient(to left, var(--kraft-deep) 0%,
              color-mix(in srgb, var(--kraft-deep) 55%, transparent) 62%, transparent 100%);
 }
-.b1target span{ font-family:var(--font-display); font-weight:900;
-  font-size:38px; color:var(--ink); white-space:nowrap;
-  text-shadow:0 2px 0 var(--edge); }
+/* THE WASH CARRIES NO WORD. It used to hold the answer at 38px across the
+   card face, which — with the pill above it and the button below it —
+   put the same word on screen three times during a single drag. The wash
+   is the DIRECTION; the pill and the button carry the word. */
 
 /* §2.1 Reigns: the label fades in ACROSS the drag, before release.
    It lives INSIDE the card so it travels with it — as a sibling it
    floated loose on screen while the card moved out from under it. */
+/* IT IS A STAMP, NOT A BUTTON. As a paper pill with --r-pill corners, a
+   white die-cut edge and an extruded shadow it was built out of exactly
+   the parts a control is built from, so the one thing on the card that
+   is NOT pressable looked the most pressable. Now it takes the committed
+   button's own treatment — solid --ink, --paper lettering — with every
+   affordance removed: no radius, no die-cut, no extrusion, nothing that
+   implies a press. It sits ON the card surface and hangs slightly over
+   the top edge, the way a stamp lands on top of a thing rather than
+   being part of it. The opacity ramp is unchanged: it is still the
+   drag's readout and still arrives on the same k as the button fill. */
 .b1prev{
-  position:absolute; z-index:9; top:14px; opacity:0;
-  display:flex; align-items:center; gap:var(--sp-2);
-  background:var(--paper); border:3px solid var(--edge); border-radius:var(--r-pill);
-  padding:6px 14px 8px; pointer-events:none;
-  box-shadow:0 0 0 1.5px var(--keyline), 0 4px 0 rgba(0,0,0,.34);
+  position:absolute; z-index:9; top:-9px; opacity:0;
+  display:flex; align-items:center;
+  background:var(--ink); border:0; border-radius:0;
+  padding:7px 16px 9px; pointer-events:none;
+  box-shadow:none;
 }
-.b1prev b{ font-family:var(--font-display); font-weight:900; font-size:22px; color:var(--ink); }
-.b1prev i{ font-style:normal; font-size:var(--fs-micro); font-weight:700;
-  color:var(--ink-soft); direction:ltr; }
+.b1prev b{ font-family:var(--font-display); font-weight:900; font-size:22px;
+  color:var(--paper); }
 
-.b1hint{ text-align:center; margin:14px 0 0; }
+/* out of flow so unwritten copy must not be
+   able to cost the card 40px when the placeholders are switched on */
+.b1hint{ position:absolute; left:0; right:0; bottom:0; z-index:10;
+  text-align:center; margin:0; pointer-events:none; }
 
 /* =====================================================================
    BEAT 2 · YOUR OWN VOTE · B2-CHAIR-FULL
@@ -296,18 +449,6 @@ body.no-ph [data-ph]{ display:none !important; }
    every edge including the safe areas. Anchored to the beat it stopped
    at the round's padding and the dot-grid ground showed through.
    ===================================================================== */
-.b2under{
-  position:absolute; inset:0; z-index:0;
-  display:flex; flex-direction:column; align-items:center;
-  padding:22px var(--sp-4) 0; gap:var(--sp-3); overflow:hidden;
-}
-.b2backs{ display:flex; gap:var(--sp-2); margin-top:6px; }
-.b2backs i{
-  display:block; width:96px; height:128px;
-  background:var(--card-surface);
-  border:3px solid var(--edge-warm);
-  box-shadow:0 0 0 2px var(--keyline), 0 4px 0 rgba(0,0,0,.3);
-}
 .ov--stage{
   position:absolute; inset:0; z-index:9;
   display:grid; place-items:center;
@@ -320,11 +461,42 @@ body.no-ph [data-ph]{ display:none !important; }
   background:rgba(28,26,23,.52);
   animation:ov-in var(--t-ov-in) var(--e-settle) both;
 }
+/* ONE SURFACE, TWO CONTENTS. Both panes occupy the same grid cell of the
+   same .ov, so the backdrop is painted once and never re-rendered: at the
+   commit the vote pane travels UP and out while the bill pane arrives
+   from BELOW, and the blur behind them does not move, blink or restart.
+   Two overlays doing this were two blurs and the seam read as a load. */
+.ovpane{
+  grid-area:1 / 1; width:100%; display:grid; place-items:center;
+  transition:transform var(--t-ov-swap) var(--e-settle),
+             opacity   var(--t-ov-swap) var(--e-settle);
+}
+.ovpane--vote.is-above{ transform:translateY(-44px); opacity:0; pointer-events:none; }
+.ovpane--bill.is-below{ transform:translateY( 44px); opacity:0; pointer-events:none; }
+
 .ov-inner{ display:flex; flex-direction:column; align-items:center;
   gap:clamp(8px, 1.6vh, 16px); width:100%; max-width:358px; }
 /* align-items:center on a flex column shrink-wraps every child, so the
    vote row was 219px of a 326px line. The board writes width:100% here. */
 .ov-inner .v-a-row{ width:100%; }
+/* THE VOTE ROW IS THE CARD'S WIDTH, NOT THE OVERLAY'S. At the overlay's
+   358px the three chips were wider and taller than anything on the claim
+   card, so beat 2 read as a bigger, more important surface than the deck
+   it interrupts. Same width as the card, same min-height and same type as
+   the claim card's two answers. */
+/* the parent selector is load-bearing: `.ov-inner .v-a-row{width:100%}`
+   above is (0,2,0) and a bare .b2votes would lose to it silently. */
+/* §4 AIR BETWEEN THE QUESTION AND THE ANSWERS. .ov-inner's own gap is
+   clamp(8px,1.6vh,16px) and it applies between every child, which left
+   the vote row sitting as close to the bill title as the title sits to
+   the question — one undifferentiated block. This is on top of the gap,
+   so the space before the buttons roughly doubles while the copy above
+   stays as tight as it was. */
+.ov-inner .b2votes{
+  width:var(--card-w); max-width:100%;
+  margin-top:clamp(10px, 2.2vh, 22px);
+}
+.b2votes .v-a{ min-height:60px; font-size:var(--fs-action); }
 /* THE CHAIR IS NEVER CROPPED. It is the game's emblem; a cut one reads
    as a bug. Height is capped against the viewport so a short phone
    shrinks it rather than clipping it, and the aspect is Lion's 0.900. */
@@ -350,8 +522,10 @@ body.no-ph [data-ph]{ display:none !important; }
    bill_title + bill_date only, over the MK card. What shows through is
    the card and nothing else. Dismiss COLLAPSES INTO the card beneath.
    ===================================================================== */
-.ov--card{ align-content:center; justify-items:center; gap:var(--sp-4);
-  padding:26px 22px; text-align:center; cursor:pointer; }
+/* the bill pane's own column. The surface is .ov--stage's; this is only
+   the content that arrives on it. */
+.b3inner{ gap:var(--sp-4); text-align:center; }
+.ov--stage.is-dismissable{ cursor:pointer; }
 .b3title{ font-family:var(--font-display); font-weight:900; font-size:30px;
   line-height:1.2; color:#F6F1E2; text-wrap:balance; margin:0; }
 .b3date{ font-size:15px; font-weight:700; color:var(--ink);
@@ -371,16 +545,8 @@ body.no-ph [data-ph]{ display:none !important; }
    ===================================================================== */
 .b4{ align-items:center; justify-content:center; }
 
-.mf-b.is-drawing{ animation:draw var(--t-draw) var(--e-out) both; }
-@keyframes draw{
-  from{ transform:translate(3px,-22px) rotate(1.6deg) scale(.97); opacity:.35 }
-  to  { transform:none; opacity:1 }
-}
-.mf-b.is-spent{ animation:spend var(--t-exit) var(--e-out) both; }
-@keyframes spend{
-  from{ transform:none; opacity:1 }
-  to  { transform:translateY(-16px) scale(.96); opacity:0 }
-}
+/* draw/spend are gone: a card is TURNED OVER to arrive (.deckcard) and
+   SWIPED OFF to leave (.deckcard.is-leaving). Nothing fades in place. */
 
 .mf-b__port{ filter:drop-shadow(0 2px 0 rgba(0,0,0,.18)); }
 
@@ -410,15 +576,24 @@ body.no-ph [data-ph]{ display:none !important; }
 
 .mf-b__foot .v-a{ font-size:19px; }
 
-/* ---- the guess-vs-reality axis. The payload of the beat.
-   IT SITS BELOW THE CARD, not inside it. With the face rule re-locked
-   there is no 190px region on the card clear of both the portrait and
-   the right-aligned name plate, so the card's foot goes to the stamp and
-   the axis gets its own full-width strip — which also stops the stamp
-   covering the נמנע stop. Deviation from B4-RIGHT-AXIS, forced by the
-   rule; the alternative is a ~125px stamp with the axis back on-card. */
+/* ---- the guess-vs-reality axis. The payload of the beat, and it is
+   INSIDE the card again, at the foot, where the board draws it.
+   It is absolutely positioned, so it contributes nothing to the card's
+   box: the card is 340x620 and the strip arriving at the verdict cannot
+   re-scale it. The reserved box that used to hold its footprint below the
+   card is gone with it — reserving space out there is what was making the
+   card smaller.
+
+   IT CROSSES THE LOWEST FACES IN THE SET, and that is known and accepted
+   for this build. Face boxes measured per portrait (card-local px, skin
+   mask + beard density, validated against the render):
+     ben_gvir  y_max 508 · netanyahu 450 · lapid 516
+     gantz     y_max 551 · michaeli  578 · deri  553
+   The strip's top edge sits at y=541, so it lands on Michaeli's neck by
+   37px and on Deri's beard by 12px. Unresolved, on the record. */
 .gx{
-  position:relative; width:var(--card-w); margin-top:52px; z-index:8;
+  position:absolute; z-index:8; bottom:var(--gx-bottom); inset-inline:var(--sp-3);
+  height:var(--gx-h);
   animation:gx-in var(--t-hold) var(--e-settle) both;
   background:rgba(216,201,168,.92); border-radius:12px; padding:7px 9px 5px;
   box-shadow:0 0 0 2px rgba(0,0,0,.4);
@@ -429,55 +604,119 @@ body.no-ph [data-ph]{ display:none !important; }
   background:rgba(34,31,23,.13); border-radius:19px;
   box-shadow:inset 0 0 0 1.5px rgba(34,31,23,.22);
 }
+/* the fill. It grows FROM the player's stop toward the MK's, anchored on
+   the edge the growth starts at — see runAxis() for why that anchor is
+   what makes it read right-to-left when it runs that way. */
+.gx-fill{
+  position:absolute; top:0; bottom:0; width:0; border-radius:19px;
+  background:rgba(34,31,23,.26); pointer-events:none;
+}
 .gx-m{ position:absolute; top:50%; translate:50% -50%; width:38px; height:38px; display:block;
-  transition:right var(--t-flip) var(--e-settle); }
+  transition:right var(--t-flip) var(--e-settle); z-index:2; }
+/* the player's token drops into its slot rather than being there */
+.gx-you{ transition:right var(--t-flip) var(--e-settle),
+                    transform var(--t-gx-lock) var(--e-land),
+                    opacity var(--t-gx-lock) linear; }
+.gx-you.is-landing{ transform:translateY(-14px) scale(1.12); opacity:0; }
+/* the MK's token arrives in the PLAYER'S slot before it travels */
+.gx-mk{ transition:right var(--t-flip) var(--e-settle),
+                   opacity var(--t-gx-appear) linear,
+                   transform var(--t-gx-appear) var(--e-land); }
+.gx-mk.is-hidden{ opacity:0; transform:scale(.72); }
+/* agreement: the two share one slot and settle instead of travelling */
+.gx.is-agreed .gx-track{ animation:gx-settle var(--t-gx-settle) var(--e-land); }
+@keyframes gx-settle{ 0%,100%{transform:none} 45%{transform:scale(1.015)} }
 .gx-you .as-d{ width:38px; height:38px; filter:url(#dcw-sm); }
 .gx-port{ display:block; width:34px; height:46px; object-fit:contain; object-position:50% 0; }
 .gx-badge{ display:grid; place-items:center; width:38px; height:38px; border-radius:50%;
   background:var(--paper); font-family:var(--font-display); font-weight:900; font-size:14px;
   box-shadow:0 0 0 2px var(--keyline); }
-.gx-m.is-paired.gx-you{ translate:50% -50%; transform:translateY(-30px) scale(.66); }
+/* ---- THE PAIRED PLAYER TOKEN, and the bug it was.
+   When the guess and the vote land on the SAME stop the player's token is
+   lifted clear of the MK's so both read. The lift was translateY(-30px)
+   on a 38px token centred in a 38px track with 7px of strip padding above
+   it: 30px up put its top edge 16.6px ABOVE .gx's own top edge, so after
+   the verdict the avatar floated over the strip, outside it, attached to
+   nothing. The lift has to fit the headroom that exists.
+   A pure vertical stack cannot be made to fit: the MK's portrait already
+   overflows the track to -4px, so clearing it needs a 26px lift and the
+   strip has 7px. The paired token becomes a BADGE on the shared stop
+   instead — up and toward the inline-start, small, above the portrait in
+   z-order, and read as separate by the die-cut edge it already carries.
+   It costs no height, and it stays inside both the track and the slot at
+   every stop and every card scale. */
+.gx-m.is-paired.gx-you{
+  translate:50% -50%; transform:translate(13px,-8px) scale(.58); z-index:2;
+}
 .gx-stops{ display:flex; margin-top:5px; }
 .gx-stops i{ flex:1; text-align:center; font-style:normal; font-size:var(--fs-meta);
   font-weight:700; color:var(--ink-soft); }
-.gx-cap{ display:flex; justify-content:space-between; margin:3px 0 0;
-  font-size:var(--fs-micro); font-weight:700; color:#413B2E; }
 
-/* ---- D2, THE VERDICT STAMP ---------------------------------------
-   TWO FIXES, both regressions against the board.
+/* ---- D2, THE VERDICT STAMP · ONE PLANE, ON TOP ---------------------
+   It paints OVER everything the card carries — portrait, name plate, the
+   axis strip at the foot — and it is flat while it does it: no drop
+   shadow against the card, no ring, nothing that reads as a layer
+   sitting between the card and the viewer. hachach.css gives .d2 a
+   1px black shadow for exactly that depth cue; it is removed here.
 
-   1  IT WAS CLIPPED at the card's left edge. .mf-b carries
-      overflow:hidden, so a stamp parented to the card loses everything
-      hanging past the edge — which is most of the point of the object.
-      Parented to .cardwrap now, which does not clip.
+   Parented to .cardwrap rather than .mf-b, which carries overflow:hidden
+   and would cut the overhang, with a z-index above the card so it clears
+   the strip's z-index 8 inside it.
 
-   2  IT LANDED ON THE FACE. The board's CSS puts the 190px stamp at
-      bottom:112px, which crosses the portrait; the board says so and
-      relaxes the face rule to allow it. With that rule re-locked, the
-      stamp goes BELOW THE CHIN instead.
-      Geometry from manifest.json's crop rule: the portrait is
-      top-anchored at --mk-port-top (96px) and rendered 534.6px tall, the
-      eyeline sits at 37.7% of the frame (y=298) and the chin at roughly
-      54% (y≈385). Top at 400px clears it, and the name plate — which is
-      right-aligned and can run to x=66 on a long name — is 340px above.
-      400px cleared the anatomical chin but still crossed Deri's BEARD,
-      which is as much "the person" as the chin is, so the stamp drops to
-      470px — 70% down the portrait frame, below every face in the set —
-      and hangs off the card's bottom edge as well as its left. The left
-      overhang is held to 22px so it reaches the stage's edge without
-      being clipped by it. Checked against all six portraits, not just
-      the one it was reported on. ------------------------------------ */
+   IT LANDS ON THE FACE ON ALL SIX, and that is accepted for this build
+   rather than solved. top:430 puts the disc's foot exactly on the card's
+   bottom edge — the largest inside-the-card placement — and the share of
+   the disc covering skin or beard is then:
+     netanyahu 4% · lapid 12% · ben_gvir 18% · gantz 35% · deri 42% ·
+     michaeli 69%
+   No placement that keeps a 190px disc wholly on the card clears anyone:
+   the faces run y[115,450..578] and the card is 620, so there is no 190px
+   band inside it that misses them. Dropping to top:470, which hangs 40px
+   below the card, would clear netanyahu and ben_gvir — but the overhang
+   is not reserved anywhere (reserving it would shrink the card) and it
+   clips ~19px off the stage at 375x667. Card size wins. ON THE RECORD,
+   UNRESOLVED. */
 .d2{
   width:190px; height:190px;
-  top:470px; left:-22px; bottom:auto; right:auto;
+  top:430px; left:-22px; bottom:auto; right:auto;
+  z-index:14;
+  box-shadow:none;
 }
 .d2__art{ position:absolute; inset:0; width:100%; height:100%; overflow:visible; fill:none; }
 .d2__art circle{ fill:none; stroke:currentColor; }
-.d2__art text{ fill:currentColor; stroke:none; font-family:var(--font-display);
-  font-weight:900; letter-spacing:.18em; direction:ltr; }
-.d2__lab{ position:relative; z-index:2; direction:ltr; transform:translateY(3px); }
+/* §7 BOTH MARKS ARE THE STAMP'S OWN. Ring and centre word are <text>
+   inside the filtered <g>, so they inherit currentColor and take the
+   same displacement, dry-brush holes and blur as the two circles — and
+   the same rupture at contact, because inkBleed() drives the filter
+   rather than the elements. Nothing re-declares fill or weight per mark;
+   that is what would let them drift apart.
+   The old .d2__lab was an HTML span layered ON the disc: clean UI type
+   inside a distressed graphic. It is gone with the span. */
+.d2__art text{
+  fill:currentColor; stroke:none;
+  font-family:var(--font-display); font-weight:900;
+  direction:rtl; unicode-bidi:isolate;
+}
+/* the ring runs the top arc, upright. 8.6 viewBox units on a 190px disc
+   renders at ~16px; the letter-spacing keeps it from crowding into
+   itself around the curve. */
+.d2__ring{ font-size:8.6px; letter-spacing:.1em; }
+/* ONE word, filling the inner circle without touching it */
+.d2__word{ font-size:17px; letter-spacing:.01em; }
 
-.pile{ pointer-events:none; }
+/* EVERY BACK IS THE SAME BACK — the pile's cards carry the identical
+   artwork to .cardback, at the same strength, so the deck reads as one
+   deck. hachach.css gives .pile i a grid-on-kraft background; this
+   replaces it outright rather than layering over it.
+   The offsets start one step deeper than they did, because the face-down
+   .deckcard now occupies the slot the first pile back used to. */
+.pile i{
+  background:var(--cardback-art) bottom center / cover no-repeat, #C4B48F;
+}
+.pile i:nth-last-child(1){ transform:translate(3px,-17px) rotate(1.7deg); }
+.pile i:nth-last-child(2){ transform:translate(2px,-22px) rotate(1.4deg); }
+.pile i:nth-last-child(3){ transform:translate(2px,-32px) rotate(1.85deg); }
+.pile i:nth-last-child(4){ transform:translate(3px,-41px) rotate(1.2deg); }
 
 /* =====================================================================
    BEAT 5 · THE REVEAL · B5-A1 (count leads) / B5-A2 (count quiet)
@@ -548,44 +787,94 @@ body.no-ph [data-ph]{ display:none !important; }
 
 .b5go{ margin-top:var(--sp-3); }
 
-/* ---- THE PINNED CLAIM ----------------------------------------------
-   hachach.css writes inset-inline-end:26px. The board's own frames write
-   right:26px. In an RTL document those are OPPOSITE EDGES: the logical
-   property moved the pinned answer to the left, onto the HUD avatar.
-   It also anchors to .round rather than .stage so it hangs over the top
-   of the PLAY AREA — the board frames have no HUD to collide with — and
-   sits above the beat-2 overlay, because at the moment it ENTERS it is
-   chrome arriving, not round content being blurred out. */
-.pinned{ inset-inline-start:6px; inset-inline-end:auto; top:0; z-index:11;
-  transition:none; }
-.pinned.is-resolving{ animation:pin-resolve var(--t-resolve) var(--e-settle) both; }
-@keyframes pin-resolve{
-  0%   { transform:none }
-  38%  { transform:rotateX(90deg) scale(1.04) }
-  62%  { transform:rotateX(-8deg) scale(1.04) }
-  100% { transform:none }
-}
-.pinned.is-truth{ box-shadow:0 0 0 3px var(--edge), 0 0 0 4.6px var(--keyline),
-  var(--shadow-press), 0 0 0 10px rgba(255,214,10,.22); }
-.pinned small{ display:block; font-size:9px; letter-spacing:.06em;
-  color:var(--ink-soft); font-weight:700; }
+/* ---- THE PINNED CLAIM · a chyron ------------------------------------
+   WHAT THIS REPLACES. hachach.css's .pinned is a pill: absolutely
+   positioned, --r-chip radius, --shadow-press, the same shape and weight
+   as the .h-a coin chip in the HUD opposite it. Two problems, and the
+   second is a defect. It read as a STATUS CHIP — a pip the round had
+   awarded — when it is the player's held commitment and has to read as a
+   declaration. And being positioned over the play area it sat ON the
+   card: measured on the beat-4 frame it covered the first letter of the
+   MK's name, so איתמר בן-גביר rendered as יתמר בן-גביר.
 
-/* =====================================================================
-   SPIKE CHROME. Not part of the design.
-   ===================================================================== */
-#devbar{
-  position:fixed; z-index:99; bottom:0; left:0; right:0;
-  display:flex; flex-wrap:wrap; gap:4px; align-items:center;
-  padding:4px 6px; background:rgba(20,19,17,.92); color:#BEB9AC;
-  font:600 9.5px/1.2 ui-monospace,Menlo,monospace;
-  touch-action:auto;
+   A BAND INSTEAD, IN FLOW. .chyron is a sibling of .hud and .round rather
+   than a child of either, so "it never overlaps the card" is structural:
+   the round begins where the band ends, at every viewport, and no z-index
+   is doing the work. Horizontal, flat, unrotated — the shape reports what
+   the player said rather than posturing it.
+
+   IT HOLDS ITS BOX ON BEAT 1. There is nothing to pin before the claim is
+   answered, so it renders empty — but it keeps its height. Collapsing it
+   would make .round 52px taller on beat 1 than on beats 2-5, and
+   sizeStage() would hand the card a different scale on either side of the
+   answer. visibility, not display, for exactly that reason.             */
+.chyron{
+  position:relative; z-index:12; flex:none;
+  display:flex; align-items:center; gap:var(--sp-2);
+  min-height:44px; margin-bottom:var(--sp-2);
+  color:var(--ink);
 }
-#devbar button{
-  font:inherit; cursor:pointer; padding:3px 6px; border-radius:4px;
-  border:1px solid #55524B; background:#2E2C29; color:#D6D2C8;
+/* THE BOX IS RESERVED IN ALL THREE STATES. Only the contents change,
+   never the height, so the card is the same size whichever state is
+   switched on and whichever beat is showing. */
+.chyron.is-empty{ visibility:hidden; }
+
+/* ---- band · the full-width chyron, restyled to recede ---------------
+   It was opaque paper with a hard keyline and an extruded shadow, which
+   made it the highest-contrast object on a screen whose subject is the
+   card. It now takes the coin chip's own radius and sits as a translucent
+   pane with the ground blurred behind it: still continuously present,
+   still legible, no longer competing with the deck. */
+[data-chyron="band"] .chyron{
+  padding-inline:0 var(--sp-2);
+  border-radius:var(--r-chip);
+  background:rgba(251,247,238,.62);
+  -webkit-backdrop-filter:blur(7px) saturate(1.05);
+  backdrop-filter:blur(7px) saturate(1.05);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.35);
 }
-#devclock{ margin-inline-start:auto; color:var(--primary); }
-body.dev-off #devbar{ display:none; }
+/* the lower-third's leading block, inside the rounded end */
+[data-chyron="band"] .chyron::before{
+  content:""; flex:none; width:7px; align-self:stretch;
+  background:var(--ink);
+  border-start-start-radius:var(--r-chip);
+  border-end-start-radius:var(--r-chip);
+}
+
+/* ---- note · a scrap left on the table -------------------------------
+   Not a band at all: a small square of paper resting at the leading side
+   of the same reserved box, carrying the ANSWER WORD and nothing else —
+   no avatar, no lead-in. Low-key by construction: small, off to one side,
+   and the only thing in the row. */
+[data-chyron="note"] .chyron{
+  background:none; box-shadow:none; padding:0;
+  justify-content:flex-start;
+}
+[data-chyron="note"] .chyron::before,
+[data-chyron="note"] .chyron-av,
+[data-chyron="note"] .chyron-line .ph{ display:none; }
+[data-chyron="note"] .chyron-line{
+  width:40px; height:40px; display:grid; place-items:center;
+  background:var(--paper); color:var(--ink);
+  font-size:15px; line-height:1;
+  transform:rotate(-2.5deg);          /* set down by hand, not placed    */
+  box-shadow:0 2px 0 rgba(0,0,0,.28), 0 0 0 1px rgba(0,0,0,.18);
+}
+
+/* ---- off · nothing shown, box still reserved ---------------------- */
+[data-chyron="off"] .chyron{ visibility:hidden; }
+
+.chyron-av{ width:28px; height:28px; flex:none; }
+.chyron-line{
+  display:flex; align-items:baseline; gap:var(--sp-2); min-width:0;
+  font-family:var(--font-display); font-weight:900; font-size:20px;
+  line-height:1; color:var(--ink);
+}
+/* THE WORD IS NEVER COLOURED BY DIRECTION. אמת and שקר take exactly the
+   same ink, the same weight and the same size — the band says what was
+   said, and says nothing about whether it was right. */
+.chyron-line b{ font:inherit; color:var(--ink); }
+
 
 @media (prefers-reduced-motion: reduce){
   *{ animation-duration:1ms !important; transition-duration:1ms !important; }
