@@ -57,6 +57,7 @@ const T = {
   ovIn:      ms('--t-ov-in'),
   ovCollapse:ms('--t-ov-collapse'),
   ovSwap:    ms('--t-ov-swap'),
+  b2Seat:    ms('--t-b2-seat'),
   cardFlip:  ms('--t-card-flip'),
   cardExit:  ms('--t-card-exit'),
   gxLock:    ms('--t-gx-lock'),
@@ -369,8 +370,10 @@ function pin(word) {
      be. The word is NEVER coloured by which way it points — אמת and שקר
      get exactly the same treatment, or the band starts scoring the claim
      four beats before the round resolves it. */
+  /* §3d NO AVATAR. The HUD already carries the player's sticker; a second
+     copy of it inside the band was saying who twice and crowding the one
+     thing the band exists to hold. */
   c.innerHTML =
-    '<span class="as-d chyron-av">' + AV3 + '</span>' +
     '<span class="chyron-line">' + ph('אמרת:') +
       '<b>' + esc(word) + '</b></span>';
   return c;
@@ -651,7 +654,14 @@ function beat2() {
       '<div class="ov-inner">' +
         /* the chair is height-capped against the viewport and never
            cropped: it is the game's emblem and a cut one reads as a bug */
-        '<img class="b2chair" src="' + ROOT + M.props.chair['300'] + '" alt="">' +
+        /* §4 THE CHAIR IS THE BEAT. It is the seat the player is being
+           asked to take, so it is the largest thing on the surface, and
+           the confirmation lands ON it rather than beside it — one
+           object, not an illustration with a caption under it. */
+        '<div class="b2seat">' +
+          '<img class="b2chair" src="' + ROOT + M.props.chair['300'] + '" alt="">' +
+          '<p class="b2taken" aria-live="polite"></p>' +
+        '</div>' +
         '<p class="b2q">איך הייתם מצביעים?</p>' +
         '<p class="b2bill">' + esc(issue.bill_title) + '</p>' +
         '<div class="v-a-row b2votes">' +
@@ -678,6 +688,18 @@ function beat2() {
       ov.querySelectorAll('.v-a').forEach(x => x.disabled = true);
       const table = COIN_TABLES[DEV.coins];
       award(table.position);                    /* 0 under 'sheet' §1.4d */
+
+      /* §4 THE PLAYER TAKES THE SEAT. The chosen vote leaves the row and
+         lands on the chair as one large object; the other two recede but
+         stay on screen, because the round never hides the options it
+         offered. PLACEHOLDER COPY — "בחרת:" is ours, pending the client's
+         sign-off, so it carries the marker. */
+      $('.b2taken', ov).innerHTML =
+        ph('בחרת:') + '<b>' + esc(VLABEL[btn.dataset.vote]) + '</b>';
+      btn.classList.add('is-chosen');
+      $('.ovpane--vote', ov).classList.add('is-taken');
+      await wait(T.b2Seat);
+
       /* §1.2 the choice sits alone before the surface moves */
       await wait(T.hold);
       beat3(ov);

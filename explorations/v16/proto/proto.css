@@ -53,6 +53,10 @@
      the same empty token and became 0ms, so the JS wait was zero too.
      Both halves were instant and the class toggle I checked looked fine. */
   --t-ov-swap:     360ms;
+  /* §4 the chosen vote landing on the chair. Long enough to read as an
+     object arriving and settling, short enough that the hold after it is
+     still the beat's pause rather than a wait. */
+  --t-b2-seat:     520ms;
 
   /* §A the deck. A card is turned over, never swapped: --t-card-flip is
      the turn, --t-card-exit the resolved card being swiped off. */
@@ -150,7 +154,11 @@ body{
 .hud{
   position:relative; z-index:12; flex:none;
   display:flex; align-items:center; gap:var(--sp-2);
-  padding-bottom:var(--sp-2);
+  /* §3c the chyron sits 12px under the HUD, not 32. 8px of HUD padding
+     plus a 22px helper box was making that gap the widest space on the
+     screen. The helper still reserves its box on every beat — the card
+     cannot change size — it is just the size of its own line now. */
+  padding-bottom:0;
 }
 /* §B the topic title. flex:1 so it centres between the chip and the
    avatar whatever their widths, and truncates rather than wrapping the
@@ -175,8 +183,8 @@ body{
 .helper{
   /* margin, not margin-bottom: it is a <p>, and the UA's default 1em top
      margin was quietly taking another 13px off the card. */
-  flex:none; min-height:17px; margin:0 0 5px;
-  font-size:var(--fs-meta); font-weight:700; line-height:1.3;
+  flex:none; min-height:12px; margin:0;
+  font-size:var(--fs-micro); font-weight:700; line-height:1.05;
   color:var(--ink-faint); text-align:center; opacity:.78;
 }
 .helper.is-empty{ visibility:hidden; }
@@ -400,13 +408,17 @@ body.no-ph [data-ph]{ display:none !important; }
 }
 .b1target--left{
   left:0; justify-content:flex-start; padding-inline-start:20px;
-  background:linear-gradient(to right, var(--kraft-deep) 0%,
-             color-mix(in srgb, var(--kraft-deep) 55%, transparent) 62%, transparent 100%);
+  /* §2 A SHADOW, NOT A LEAK. This was --kraft-deep, a pale beige, which
+     read as light escaping from behind the card instead of the card
+     lifting away from the deck. Deep warm brown-black: the gap a card
+     opens when it moves off is dark. */
+  background:linear-gradient(to right, rgba(14,10,6,.90) 0%,
+             rgba(14,10,6,.52) 58%, rgba(14,10,6,0) 100%);
 }
 .b1target--right{
   right:0; justify-content:flex-end; padding-inline-end:20px;
-  background:linear-gradient(to left, var(--kraft-deep) 0%,
-             color-mix(in srgb, var(--kraft-deep) 55%, transparent) 62%, transparent 100%);
+  background:linear-gradient(to left, rgba(14,10,6,.90) 0%,
+             rgba(14,10,6,.52) 58%, rgba(14,10,6,0) 100%);
 }
 /* THE WASH CARRIES NO WORD. It used to hold the answer at 38px across the
    card face, which — with the pill above it and the button below it —
@@ -497,15 +509,47 @@ body.no-ph [data-ph]{ display:none !important; }
   margin-top:clamp(10px, 2.2vh, 22px);
 }
 .b2votes .v-a{ min-height:60px; font-size:var(--fs-action); }
-/* THE CHAIR IS NEVER CROPPED. It is the game's emblem; a cut one reads
-   as a bug. Height is capped against the viewport so a short phone
-   shrinks it rather than clipping it, and the aspect is Lion's 0.900. */
+/* §4 THE SEAT. The chair and the confirmation share one positioning
+   context so the confirmation can sit ON the chair rather than under it.
+   THE CHAIR IS NEVER CROPPED — it is the game's emblem and a cut one
+   reads as a bug — so it is height-capped against the viewport and the
+   cap is what shrinks on a short phone, never the crop. */
+.b2seat{ position:relative; flex:none; display:grid; place-items:center; }
 .b2chair{
   display:block; flex:none;
-  width:auto; height:clamp(96px, 23vh, 196px); aspect-ratio:168 / 196;
+  /* was clamp(96px, 23vh, 196px) — at that size it read as an icon beside
+     the question instead of the thing the question is about */
+  width:auto; height:clamp(168px, 40vh, 330px); aspect-ratio:168 / 196;
   object-fit:contain;
-  filter:url(#dcw) drop-shadow(0 4px 0 rgba(0,0,0,.3));
+  filter:url(#dcw) drop-shadow(0 5px 0 rgba(0,0,0,.34));
+  transition:transform var(--t-b2-seat) var(--e-settle);
 }
+/* the confirmation lands on the seat itself, ~62% down the chair, which
+   is where the seat pan is in the illustration */
+.b2taken{
+  position:absolute; left:50%; top:62%; margin:0; z-index:2;
+  display:flex; align-items:baseline; gap:var(--sp-2); white-space:nowrap;
+  padding:8px 20px 11px;
+  background:var(--paper); color:var(--ink);
+  box-shadow:0 0 0 3px var(--edge), 0 0 0 5px var(--keyline), 0 5px 0 rgba(0,0,0,.34);
+  font-family:var(--font-display); font-weight:900;
+  font-size:clamp(21px, 4.2vh, 32px); line-height:1;
+  opacity:0; pointer-events:none;
+  transform:translate(-50%,-50%) scale(.82);
+  transition:opacity var(--t-b2-seat) var(--e-settle),
+             transform var(--t-b2-seat) var(--e-land);
+}
+.ovpane--vote.is-taken .b2taken{ opacity:1; transform:translate(-50%,-50%) scale(1); }
+/* the chair settles under the weight of being taken */
+.ovpane--vote.is-taken .b2chair{ transform:translateY(4px) scale(1.02); }
+/* the two not chosen RECEDE, they are not deleted: the round never hides
+   an option it offered, and beat 5 still has to be able to talk about
+   what was on the table. */
+.ovpane--vote.is-taken .b2votes .v-a{
+  opacity:.3; transform:scale(.94);
+  transition:opacity var(--t-b2-seat) linear, transform var(--t-b2-seat) var(--e-settle);
+}
+.ovpane--vote.is-taken .b2votes .v-a.is-chosen{ opacity:1; transform:none; }
 .b2q{ font-family:var(--font-display); font-weight:900;
   font-size:clamp(22px, 3.4vh, 29px); color:#EFECE4; text-align:center; margin:0; }
 .b2bill{ font-size:15px; font-weight:700; line-height:1.45; color:#D8D2C4;
@@ -692,10 +736,20 @@ body.no-ph [data-ph]{ display:none !important; }
    that is what would let them drift apart.
    The old .d2__lab was an HTML span layered ON the disc: clean UI type
    inside a distressed graphic. It is gone with the span. */
+/* §1 BIDI. `unicode-bidi:isolate` is gone. Hebrew is strongly RTL by
+   character class, so the Unicode Bidi Algorithm orders these strings
+   correctly on its own and `direction:rtl` is enough to state the intent
+   — verified against an HTML control at the same size: the SVG output is
+   pixel-identical to a <div dir="rtl"> of the same string.
+   `unicode-bidi` is the one bidi property whose SVG support is patchy —
+   WebKit implemented isolate on SVG text late and inconsistently — and
+   the reported reversal is exactly what a UA that ignores or mishandles
+   it produces. The source strings are NOT reversed to compensate; the
+   logical order in the file stays the logical order. */
 .d2__art text{
   fill:currentColor; stroke:none;
   font-family:var(--font-display); font-weight:900;
-  direction:rtl; unicode-bidi:isolate;
+  direction:rtl;
 }
 /* the ring runs the top arc, upright. 8.6 viewBox units on a 190px disc
    renders at ~16px; the letter-spacing keeps it from crowding into
@@ -819,27 +873,24 @@ body.no-ph [data-ph]{ display:none !important; }
    switched on and whichever beat is showing. */
 .chyron.is-empty{ visibility:hidden; }
 
-/* ---- band · the full-width chyron, restyled to recede ---------------
-   It was opaque paper with a hard keyline and an extruded shadow, which
-   made it the highest-contrast object on a screen whose subject is the
-   card. It now takes the coin chip's own radius and sits as a translucent
-   pane with the ground blurred behind it: still continuously present,
-   still legible, no longer competing with the deck. */
+/* ---- band · the full-width chyron -----------------------------------
+   §3b REAL TRANSPARENCY. It was a 62% paper film, which over the dark
+   ground composites to an almost solid mid-grey — a grey bar with a blur
+   nobody can see behind it. A LOW-ALPHA DARK film instead: the ground and
+   whatever card is under it genuinely read through, the blur does visible
+   work, and the type goes light because the band is now dark.
+   §3a the hard ink block down the leading edge is gone with the ::before
+   that drew it. §3d so is the avatar — the band carries the answer. */
 [data-chyron="band"] .chyron{
-  padding-inline:0 var(--sp-2);
+  padding-inline:var(--sp-3);
   border-radius:var(--r-chip);
-  background:rgba(251,247,238,.62);
-  -webkit-backdrop-filter:blur(7px) saturate(1.05);
-  backdrop-filter:blur(7px) saturate(1.05);
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.35);
+  background:rgba(16,14,11,.30);
+  -webkit-backdrop-filter:blur(12px) saturate(1.15);
+  backdrop-filter:blur(12px) saturate(1.15);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);
+  color:#EFECE4;
 }
-/* the lower-third's leading block, inside the rounded end */
-[data-chyron="band"] .chyron::before{
-  content:""; flex:none; width:7px; align-self:stretch;
-  background:var(--ink);
-  border-start-start-radius:var(--r-chip);
-  border-end-start-radius:var(--r-chip);
-}
+[data-chyron="band"] .chyron-line{ color:#EFECE4; }
 
 /* ---- note · a scrap left on the table -------------------------------
    Not a band at all: a small square of paper resting at the leading side
@@ -850,8 +901,6 @@ body.no-ph [data-ph]{ display:none !important; }
   background:none; box-shadow:none; padding:0;
   justify-content:flex-start;
 }
-[data-chyron="note"] .chyron::before,
-[data-chyron="note"] .chyron-av,
 [data-chyron="note"] .chyron-line .ph{ display:none; }
 [data-chyron="note"] .chyron-line{
   width:40px; height:40px; display:grid; place-items:center;
@@ -864,7 +913,6 @@ body.no-ph [data-ph]{ display:none !important; }
 /* ---- off · nothing shown, box still reserved ---------------------- */
 [data-chyron="off"] .chyron{ visibility:hidden; }
 
-.chyron-av{ width:28px; height:28px; flex:none; }
 .chyron-line{
   display:flex; align-items:baseline; gap:var(--sp-2); min-width:0;
   font-family:var(--font-display); font-weight:900; font-size:20px;
