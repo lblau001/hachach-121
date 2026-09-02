@@ -721,42 +721,52 @@ body.no-ph [data-ph]{ display:none !important; }
    clips ~19px off the stage at 375x667. Card size wins. ON THE RECORD,
    UNRESOLVED. */
 .d2{
-  width:190px; height:190px;
+  /* one number for the disc. The word's size and the ink's CSS-px scale
+     are both derived from it, so they cannot drift out of step with it. */
+  --d2-size:190px;
+  width:var(--d2-size); height:var(--d2-size);
   top:430px; left:-22px; bottom:auto; right:auto;
   z-index:14;
   box-shadow:none;
 }
 .d2__art{ position:absolute; inset:0; width:100%; height:100%; overflow:visible; fill:none; }
 .d2__art circle{ fill:none; stroke:currentColor; }
-/* §7 BOTH MARKS ARE THE STAMP'S OWN. Ring and centre word are <text>
-   inside the filtered <g>, so they inherit currentColor and take the
-   same displacement, dry-brush holes and blur as the two circles — and
-   the same rupture at contact, because inkBleed() drives the filter
-   rather than the elements. Nothing re-declares fill or weight per mark;
-   that is what would let them drift apart.
-   The old .d2__lab was an HTML span layered ON the disc: clean UI type
-   inside a distressed graphic. It is gone with the span. */
-/* §1 BIDI. `unicode-bidi:isolate` is gone. Hebrew is strongly RTL by
-   character class, so the Unicode Bidi Algorithm orders these strings
-   correctly on its own and `direction:rtl` is enough to state the intent
-   — verified against an HTML control at the same size: the SVG output is
-   pixel-identical to a <div dir="rtl"> of the same string.
-   `unicode-bidi` is the one bidi property whose SVG support is patchy —
-   WebKit implemented isolate on SVG text late and inconsistently — and
-   the reported reversal is exactly what a UA that ignores or mishandles
-   it produces. The source strings are NOT reversed to compensate; the
-   logical order in the file stays the logical order. */
-.d2__art text{
-  fill:currentColor; stroke:none;
+/* §1 THE CENTRE WORD IS HTML. No bidi property fixes SVG text in WebKit
+   — direction, unicode-bidi and every combination of them render Hebrew
+   left-to-right there — so the word does not go through SVG's text
+   shaping at all. HTML text is reordered correctly by every engine, and
+   the source strings stay in logical order in the file.
+
+   IT IS STILL THE STAMP'S OWN MARK, not type layered on a graphic:
+   · it lives INSIDE .d2, so d2-land's scale — and any rotation the disc
+     is ever given — carries it; disc and word are one object;
+   · `color` is unset, so it takes the disc's currentColor (--d2-on), the
+     identical ink the circles are stroked with;
+   · the display face at 900, as the ring had;
+   · filter:url(#ink-h) is #ink rescaled from viewBox units to CSS px, so
+     the displacement, the dry-brush holes and the blur land at the same
+     rendered grain — and inkBleed() drives both maps off one clock, so
+     the word ruptures at contact with the disc rather than after it.
+   WHAT IS LOST: nothing measurable. The one difference is that the word
+   is filtered in its own pass instead of inside the disc's <g>, so the
+   noise field is sampled from its own origin — the grain does not
+   continue unbroken from circle to letter. At 32px on a 190px disc that
+   is not visible; it would be if the word ever overlapped a circle.
+
+   .d2__ring is GONE. Curved text is the one case HTML cannot take over
+   without hand-placing glyphs in visual order, which is the reversal
+   being refused here. The ring stays as the two stroked circles. */
+.d2__word{
+  position:absolute; inset:0;
+  display:grid; place-items:center;
   font-family:var(--font-display); font-weight:900;
-  direction:rtl;
+  font-size:calc(var(--d2-size) * .17);      /* the 17 viewBox units it was */
+  letter-spacing:.01em; line-height:1;
+  filter:url(#ink-h);
+  /* the disc is role="img" with an aria-label; this is the same word
+     again, and pointer-events would otherwise put it over the card */
+  pointer-events:none;
 }
-/* the ring runs the top arc, upright. 8.6 viewBox units on a 190px disc
-   renders at ~16px; the letter-spacing keeps it from crowding into
-   itself around the curve. */
-.d2__ring{ font-size:8.6px; letter-spacing:.1em; }
-/* ONE word, filling the inner circle without touching it */
-.d2__word{ font-size:17px; letter-spacing:.01em; }
 
 /* EVERY BACK IS THE SAME BACK — the pile's cards carry the identical
    artwork to .cardback, at the same strength, so the deck reads as one

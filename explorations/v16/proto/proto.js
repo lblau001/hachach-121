@@ -891,13 +891,22 @@ async function runAxis(g, guess, vote) {
    anywhere near בעד, נגד or נמנע, and neither changes with which way
    the MK voted.
 
-   EVERY MARK IS PRINTED BY THE SAME STAMP. The ring, the two circles and
-   the centre word all live inside ONE <g filter="url(#ink)">, so they
-   take the same ink colour (currentColor), the same displacement, the
-   same dry-brush holes and the same rupture at contact. The centre word
-   used to be an HTML <span> sitting on top of an SVG graphic: clean UI
-   type inside a distressed disc, which read as a label pasted onto a
-   stamp rather than as something the stamp printed.
+   THE CENTRE WORD IS HTML, NOT SVG <text>. WebKit lays Hebrew out
+   left-to-right inside SVG text — confirmed on device and reproduced in a
+   WebKit build here — and no bidi property changes it, so the one route
+   that cannot fail is to stop asking SVG to shape Hebrew at all. The disc,
+   the two circles and the ink stay SVG; the word is a <span dir="rtl">,
+   where bidi is correct in every engine.
+   IT IS STILL PRINTED BY THE SAME STAMP. It sits inside .d2, so it lands,
+   scales and rotates with the disc as one object; it takes the disc's
+   currentColor and the display face at 900; and it carries #ink-h, which
+   is #ink rescaled to CSS px, driven off the same clock by inkBleed(). It
+   is not type layered on a graphic — it is the same ink.
+
+   THE RING TEXT IS GONE, keeping the ring as a graphic band. Curved text
+   has no HTML equivalent that does not hand-place glyphs in visual order,
+   which is the source-string reversal we are refusing; leaving it as SVG
+   would leave it reversed on iOS. An illegible ring is worse than none.
 
    PLACEHOLDER COPY, AWAITING THE CLIENT'S SIGN-OFF. These strings and no
    others; do not author alternatives.
@@ -907,12 +916,10 @@ async function runAxis(g, guess, vote) {
    subject position of an error. "הופתעת" is something that happened TO
    the player, which is the whole point.
 
-   The ring string is unwritten copy as well and is the plainest possible
-   marker for it — it is not a verdict and says nothing about the player. */
+   `ring` is retired with the ring text and is not read anywhere. */
 const D2_COPY_PLACEHOLDER = {
   correct:  'צדקת',
-  surprise: 'הופתעת',
-  ring:     'טקסט טבעת'
+  surprise: 'הופתעת'
 };
 
 function stamp(ok) {
@@ -926,25 +933,27 @@ function stamp(ok) {
       '<g filter="url(#ink)">' +
         '<circle cx="50" cy="50" r="45.5" stroke-width="6"></circle>' +
         '<circle cx="50" cy="50" r="38" stroke-width="2.2"></circle>' +
-        '<text class="d2__ring">' +
-          '<textPath href="#d2ring" startOffset="50%" text-anchor="middle">' +
-            esc(D2_COPY_PLACEHOLDER.ring) + '</textPath></text>' +
-        '<text class="d2__word" x="50" y="50" text-anchor="middle" ' +
-          'dominant-baseline="central">' + esc(word) + '</text>' +
-      '</g></svg>';
+      '</g></svg>' +
+    '<span class="d2__word" dir="rtl">' + esc(word) + '</span>';
   return s;
 }
 
 /* the ink ruptures AT CONTACT — 0 to full across --t-stamp-bleed,
    starting at --t-stamp-drop — rather than arriving already distressed */
+/* BOTH displacement maps run off this one clock. #ink works in the art's
+   viewBox units and #ink-h in CSS px, so the same rupture is 2.2 there and
+   2.2 * 1.9 here — the disc and the word break up at one rate. */
+const INK_PX = 190 / 100;              /* .d2 is 190px; the viewBox is 100 */
 function inkBleed() {
-  const d = $('#inkDisp');
+  const d = $('#inkDisp'), h = $('#inkDispH');
   d.setAttribute('scale', 0);
+  h.setAttribute('scale', 0);
   setTimeout(() => {
     const t0 = performance.now();
     (function tick(now) {
       const k = Math.min(1, (now - t0) / T.stampBleed);
       d.setAttribute('scale', (2.2 * k).toFixed(2));
+      h.setAttribute('scale', (2.2 * INK_PX * k).toFixed(2));
       if (k < 1) requestAnimationFrame(tick);
     })(t0);
   }, T.stampDrop);

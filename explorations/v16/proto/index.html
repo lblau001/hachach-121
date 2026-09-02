@@ -57,12 +57,35 @@
     <feMerge><feMergeNode in="acut"/><feMergeNode in="SourceGraphic"/></feMerge>
   </filter>
 
-  <!-- §7 the arc the stamp's ring text runs along. It traces the TOP of
-       the disc, drawn LEFT TO RIGHT, so the glyphs stand upright on it.
-       The path this replaces started at the bottom (M50 82) and ran the
-       whole circle; startOffset:50% then landed the text on the bottom
-       arc, upside down and unreadable. -->
-  <path id="d2ring" d="M 19.5 50 A 30.5 30.5 0 0 1 80.5 50"/>
+  <!-- §1 THE SAME INK, FOR AN HTML ELEMENT. The stamp's centre word is no
+       longer SVG <text> — WebKit lays Hebrew out left-to-right inside SVG
+       text — so it is an HTML span, and it has to take the same ink as the
+       disc it sits in or it reads as UI type pasted onto a stamp.
+       This is #ink verbatim with one change: its user space. #ink runs in
+       the art's viewBox units, where 1 unit = 1.9px on the 190px disc; a
+       CSS filter on an HTML element runs in CSS px. So every LENGTH here
+       is x1.9 and every FREQUENCY is /1.9, which puts the grain, the
+       dry-brush holes and the bleed at the identical rendered scale.
+       #inkDispH is driven by inkBleed() alongside #inkDisp, off the same
+       clock, so word and disc rupture together at contact. -->
+  <filter id="ink-h" x="-30%" y="-30%" width="160%" height="160%"
+          color-interpolation-filters="sRGB" primitiveUnits="userSpaceOnUse">
+    <feTurbulence type="fractalNoise" baseFrequency="0.01474" numOctaves="2" seed="5" result="wob"/>
+    <feDisplacementMap id="inkDispH" in="SourceGraphic" in2="wob" scale="0"
+                       xChannelSelector="R" yChannelSelector="G" result="pressed"/>
+    <feTurbulence type="fractalNoise" baseFrequency="0.05526" numOctaves="3" seed="13" result="dry"/>
+    <feColorMatrix in="dry" type="saturate" values="0" result="dryg"/>
+    <feComponentTransfer in="dryg" result="holes">
+      <feFuncA type="linear" slope="0.72" intercept="-0.70"/>
+    </feComponentTransfer>
+    <feComposite in="pressed" in2="holes" operator="out" result="inked"/>
+    <feGaussianBlur in="inked" stdDeviation="0.76"/>
+  </filter>
+
+  <!-- #d2ring, the arc the ring text ran along, is GONE with the ring
+       text. Curved type has no HTML equivalent that does not hand-place
+       glyphs in visual order, which is the source-string reversal this
+       pass exists to avoid. The ring survives as the two circles. -->
 </defs></svg>
 
 <!-- The spike's open decisions are QUERY PARAMETERS now, not a bar on the
