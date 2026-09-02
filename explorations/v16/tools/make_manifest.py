@@ -96,6 +96,12 @@ DISPLAY_CSS = {
     "chair":         288.5,   # .i-chair (intro) and .b2chair (tachles)
     "building":      390.0,   # .i-build, the intro
     "issue_art_s1":  300.0,   # .b1art on the claim card
+    # the card back's DRIVING dimension is its height: `cover` against a
+    # 340x620 box scales by max(340/1536, 620/2752) = 0.2253, height-driven,
+    # so the image paints 346 x 620. Measured off offsetHeight, NOT
+    # getBoundingClientRect() — the deck rotates its cards and the rotated
+    # bounding box reads 359-387px, which would have over-sized the file 12%.
+    "card_back":     620.0,
 }
 DPR = 3
 
@@ -162,8 +168,17 @@ man = {
                      "390": need("knesset_building_390.webp"),
                      "display_css": DISPLAY_CSS["building"],
                      "dpr": round(1170 / DISPLAY_CSS["building"], 2)},
-        # the deck's card back, drawn full-bleed and bottom-anchored
-        "card_back": {"file": need_asset("assets/card_background.webp")},
+        # THE DECK'S CARD BACK, drawn full-bleed and bottom-anchored.
+        # `background-size:cover` into the card's own 340x620 box, and cover is
+        # driven by whichever axis needs the larger scale — 620/2752 beats
+        # 340/1536, so HEIGHT drives and the image paints at 346 x 620 CSS px.
+        # 3x that is 1038 x 1860, which is what the file now is. It was
+        # 1536x2752 (DPR 4.44) and 1322KB, which made it 89% of the round's
+        # first-load payload; it is 324KB now. It has no master and was
+        # re-encoded from itself — see the CARD_BACK note in prep_topic.py.
+        "card_back": {"file": need_asset("assets/card_background.webp"),
+                      "display_css": DISPLAY_CSS["card_back"],
+                      "dpr": round(1860 / 620.0, 2)},
     },
 }
 

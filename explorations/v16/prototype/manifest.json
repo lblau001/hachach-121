@@ -347,7 +347,9 @@
       "dpr": 3.0
     },
     "card_back": {
-      "file": "assets/card_background.webp"
+      "file": "assets/card_background.webp",
+      "display_css": 620.0,
+      "dpr": 3.0
     }
   },
   "politicians_without_art": [],

@@ -38,6 +38,41 @@ PROP_JOBS = [
     ("knesset_building",   MK / "knessetbuilding.webp", [(1170, 780), (390, 260)]),
 ]
 
+# ---- THE CARD BACK, and the one job here with no master --------------------
+# assets/card_background.webp is its OWN source: one blob, one commit
+# (ffc488c), nothing larger in tools/, in explorations/v16/build/, or anywhere
+# in the git object store — checked. It is also not a crop of
+# knessetbuilding.webp: different palette, different composition, portrait
+# where that one is landscape. So this is the one asset in the bundle that is
+# re-encoded FROM A LOSSY FILE rather than framed from a master.
+#
+# THE OLD FILE WAS OVER TARGET, NOT UNDER IT, which is why this is a shrink.
+# .cardback paints with `background-size:cover` into the card's own 340x620
+# box, and cover is driven by whichever axis needs the larger scale:
+#   340/1536 = 0.2214   620/2752 = 0.2253  -> HEIGHT drives
+# so the image is painted at 346 x 620 CSS px, and --card-scale can only ever
+# make that smaller. 3x that is 1038 x 1860. The 1536x2752 file was DPR 4.44 --
+# 1.48x more than any screen can resolve, for 1322KB, which made it 89% of the
+# round's entire first-load payload.
+#
+# MEASURE THE PAINTED BOX, NOT getBoundingClientRect(). The deck rotates its
+# cards (.deckcard has rotate(.9deg), .pile more), and a rotated element's
+# bounding rect is its axis-aligned box -- 359 and 387px, not 340. Sizing off
+# that would have over-shot by 12%. offsetWidth/offsetHeight is the box the
+# background actually paints into.
+#
+# QUALITY 88 ON A RECOMPRESS. The 0.68x downscale averages most of the first
+# generation's artefacts away before re-encoding, which is why lossy->lossy at
+# a REDUCED size is safe where lossy->lossy at the same size would not be.
+# Measured against a lossless LANCZOS downscale to the same 1038x1860: q88 is
+# 38.1 dB at 324KB, q80 is 35.9 dB at 203KB. No quality level from 76 to 92
+# introduces banding beyond what the source gradient already carries -- the
+# sky's own step count is 311 in the lossless reference and every candidate
+# came in below it. 88 is the conservative pick on a chain that cannot be
+# undone; the extra 121KB q80 would save is not worth a second generation of
+# loss on the only copy that exists.
+CARD_BACK = (ROOT / "assets" / "card_background.webp", 1038, 1860, 88)
+
 JOBS = [
     # file stem            rendered sizes as (w, h) or (w, None) to keep aspect
     # the padlock is PORTRAIT (812x1294), so it is sized by height: driving it
@@ -152,6 +187,36 @@ for stem, src, sizes in PROP_JOBS:
           % (stem, "%dx%d" % im.size, "%dx%d" % (ink.width, ink.height), out[0]))
     for o in out[1:]:
         print("%-20s %-14s %-24s %s" % ("", "", "", o))
+
+
+# ---- the card back --------------------------------------------------------
+print()
+src, cw, ch, cq = CARD_BACK
+im = Image.open(src).convert("RGB")
+before = src.stat().st_size
+# IDEMPOTENT, AND IT HAS TO BE. This is the one job whose source and
+# destination are the same file, so a second run would re-encode an already
+# re-encoded file and lose another generation — silently, every time anybody
+# regenerates the bundle. The guard is the size: the job runs only on the
+# 1536x2752 original and refuses anything else. Recovering the original to
+# re-run is `git checkout -- assets/card_background.webp`.
+if (im.width, im.height) == (cw, ch):
+    print("card back            already %dx%d — SKIPPED. This job re-encodes its"
+          % (cw, ch))
+    print("%-20s own source; re-running it would cost another generation." % "")
+    print("%-20s To redo it: git checkout -- assets/card_background.webp" % "")
+elif (im.width, im.height) != (1536, 2752):
+    print("card back            REFUSED: expected the 1536x2752 original, found "
+          "%dx%d" % im.size)
+else:
+    im.resize((cw, ch), Image.LANCZOS).save(src, "WEBP", quality=cq, method=6)
+    after = src.stat().st_size
+    print("card back            %s -> %dx%d q%d   %.0fKB -> %.0fKB  (%.0f%% off)"
+          % ("%dx%d" % im.size, cw, ch, cq, before / 1024, after / 1024,
+             100 * (before - after) / before))
+    print("%-20s NOTE: re-encoded from itself. There is no master; the previous"
+          % "")
+    print("%-20s      file is recoverable only from git (blob f345e369)." % "")
 
 
 # ---- the topic icons ------------------------------------------------------

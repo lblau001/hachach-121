@@ -137,7 +137,7 @@ the 256 (DPR 3.94; 384 would be over-target).
 | Knesset building | `_390` (390×260) | **`_1170` (1170×780)** | 3.00 |
 | `s1` claim-card art | `_300` (300×180) | **`_900` (900×539)** | 3.00 |
 | MK portraits, strip | `_128` | unchanged | 3.41, already above |
-| `card_background.webp` | 1536×2752 | unchanged | 4.27 — **over target, see below** |
+| `card_background.webp` | 1536×2752, 1322 KB | **1038×1860, 324 KB** | 3.00 |
 
 **The chair and the building had no tool at all.** Their sizes were whatever somebody
 exported once, which is exactly why they were the two worst-served props — a 300px chair
@@ -166,49 +166,104 @@ what is committed.
 
 ---
 
-## 5 · Bundle size — and the answer is not the MK set
+## 5 · Bundle size — and the answer was not the MK set
 
-**Repo assets: 29.07 MB → 31.89 MB (+2.82 MB, +32 files).**
+**Repo assets: 29.07 MB → 30.91 MB (+1.84 MB net, +32 files)** — the portrait and prop
+upgrades added 2.82 MB and the card back gave 0.98 MB of it back.
 
 But total repo size is the wrong number, because **nothing loads the set**. The deck creates
 one `<img>` per dealt card and preloads exactly one ahead, so a portrait is fetched when its
 card is next. Measured transfer per screen at 393×852:
 
-| screen | before | after | delta |
+| screen | at session start | after the re-exports | **final, card back fixed** |
 |---|---|---|---|
-| intro, first paint | 64 KB | **282 KB** | +218 KB |
-| map, first paint | 95 KB | **95 KB** | 0 |
-| round → first MK card | 1491 KB | **1795 KB** | +304 KB |
-| full 9-card cascade | 1726 KB | **2139 KB** | +413 KB |
+| intro, first paint | 64 KB | 282 KB | **282 KB** |
+| map, first paint | 95 KB | 95 KB | **95 KB** |
+| **round → first MK card** | 1491 KB | 1795 KB | **765 KB — 49% below where we started** |
+| full 9-card cascade | 1726 KB | 2139 KB | **1140 KB — 34% below** |
 
 Per additional cascade card: **+43 KB** (63 → 106 KB).
 
-**You asked to be told before committing if the MK set could hurt 3G. It is not the MK set.**
+**You asked to be told before committing if the MK set could hurt 3G. It was not the MK set** —
+it was `card_background.webp` at 1322 KB, 89% of the round's first-load payload, and it is now
+fixed. On 3G at ~50 KB/s the round's first load goes from **30 s to 15 s** while every asset in
+it got sharper. A cascade card's portrait goes 1.3 s → 2.1 s; the per-card tempo is ~850 ms, so
+portraits were already arriving late on that link and the one-ahead preload was already doing
+the work.
 
-`card_background.webp` is **1322 KB — 89% of the round's first-load payload** and 61% of a
-full cascade. It is *already over target*: 1536×2752 against a 387.3 CSS px render is
-**DPR 4.27**, 1.42× more than any screen can show. Re-exported at exactly DPR 3.0:
-
-| | size | bytes | saving |
-|---|---|---|---|
-| current | 1536×2752 | 1322 KB | — |
-| DPR 3.01 @ q88 | 1164×2086 | **409 KB** | **−913 KB** |
-| DPR 3.01 @ q82 | 1164×2086 | 286 KB | −1036 KB |
-
-**That one file saves more than the entire portrait upgrade costs**, with no visible change,
-because 3.01× still exceeds any device. **I have not done it**, for two reasons: it is a
-reduction rather than an improvement and you did not ask for one; and there is no master —
-`card_background.webp` is the only copy, so re-exporting means a lossy→lossy recompress. If
-whatever produced the 1536 original still exists, that is where the 1164 should come from.
-Say go and I will do it either way.
-
-Same shape at a much smaller scale: the map's 6 topic icons cost 95 KB at 256 where the
+The map's 6 topic icons are the one remaining over-target case: 95 KB at 256 where the
 governing call site wants 195px. Inside my own 1.3× tolerance, so I left them.
 
-On 3G at ~50 KB/s: a cascade card's portrait goes 1.3 s → 2.1 s. The cascade's per-card
-tempo is ~850 ms, so portraits were *already* arriving late on 3G and the one-ahead preload
-was already doing the work. The card background at 1322 KB is a 26-second stall on the same
-link and is the thing that actually needs fixing.
+---
+
+## 5b · The card back, re-exported
+
+**No larger original exists.** Checked `tools/`, `explorations/v16/build/`, every master, and
+the git object store: **one blob, one commit** (`ffc488c`, sha `f345e369`), byte-identical to
+what was on disk, and nothing larger anywhere — including the dangling commit. It is also *not*
+a crop of `knessetbuilding.webp`: different palette, different composition, portrait against
+that one's landscape. So this is the lossy→lossy recompress, as you allowed.
+
+**The target is 1038×1860, and the 1164 I quoted last time was wrong.** `.cardback` paints with
+`background-size:cover` into the card's own **340×620** box, and cover is driven by whichever
+axis needs the larger scale: `620/2752 = 0.2253` beats `340/1536 = 0.2214`, so **height drives**
+and the image paints at **346×620 CSS px**. I had taken the size from
+`getBoundingClientRect()`, which for the deck is the *rotated* axis-aligned box — the cards
+carry `rotate(.9deg)`, the pile more, a leaving card `-13deg` — and reads 359–387px. That would
+have over-sized the file by 12%. `offsetWidth`/`offsetHeight` is the box the background actually
+paints into.
+
+| | size | bytes | DPR |
+|---|---|---|---|
+| before | 1536×2752 | 1322 KB | 4.44 |
+| **after** | **1038×1860 q88** | **324 KB** | **3.00** |
+
+**−998 KB, 75% off.**
+
+**The recompress itself costs 1.7%.** Measured as RMS edge energy with everything compared at
+the same on-screen size — 1038×1860 device px, what a 393-wide phone at DPR 3 actually paints,
+and what the browser was *already* downscaling the 1536 file to at render time:
+
+| | RMS gradient | vs a lossless 1038 |
+|---|---|---|
+| the 1536 original, downscaled to 1038 | 26.93 | 0.0% |
+| a lossless 1038 (resize only) | 26.93 | 0.0% |
+| **the shipped 1038 q88** | **26.49** | **−1.7%** |
+| 1038 q84 | 26.45 | −1.8% |
+
+The encode costs 1.7%; the resize costs nothing, because the resize was happening anyway.
+
+**What is actually visible is a resampler change, not a quality loss** — and I had this wrong
+before I isolated it. Comparing the two *rendered* crops, edge energy reads −13% on the
+building, which looks like softening. It is not the encode. The browser was downscaling
+1536→1038 at paint time with a cheaper filter that left the artwork's halftone screen aliasing;
+the file now arrives pre-downscaled through a properly antialiased LANCZOS, so the stipple in
+the sky reads smoother. Whether that is "cleaner" or "softer" is a taste call on the texture,
+which is what the crops are for. The linework is untouched: flagpoles, flag detail and the roof
+line are equally crisp in both.
+
+q88 rather than q84 or q80 is the conservative pick on a chain that cannot be undone — q80 would
+have saved another 121 KB for 2.2 dB on the only copy that exists. No quality from 76 to 92
+introduced banding beyond what the source gradient already carries (the sky's own step count is
+311 in a lossless reference; every candidate came in below it).
+
+**The job is in `prep_topic.py` and is idempotent.** It is the one job whose source and
+destination are the same file, so it refuses to run on anything but the 1536×2752 original —
+without that guard, every future regeneration of the bundle would silently cost another
+generation. To redo it: `git checkout -- assets/card_background.webp`, then re-run.
+
+### 1:1 crops, 393×852 at DPR 3
+
+`cb-before-*` / `cb-after-*` in `explorations/v19/shots/`. True device pixels, no resampling
+anywhere: the page is captured at `deviceScaleFactor:3` and the clip is given in CSS
+coordinates, so each PNG is 3× its clip. The claim card is hidden **by the test harness only**
+so the card back is fully visible at exactly the size the app paints it.
+
+| crop | device px | PSNR | what it shows |
+|---|---|---|---|
+| `cb-*-building.png` | 600×450 | 33.4 dB | linework and halftone. Flags, poles, roof identical; the stipple differs. |
+| `cb-*-sky.png` | 450×330 | 46.0 dB | the flat gradient. 0.1% of pixels differ by more than 8 levels. |
+| `cb-*-card.png` | 1050×1875 | 38.4 dB | the whole card back in situ. |
 
 ---
 
@@ -265,8 +320,8 @@ one unbroken subpath, 70 gap probes, 0 gaps.
 1. **No upscaling to hit DPR 3 on portraits.** Native crop is the ceiling; the shortfall is
    recorded per portrait rather than hidden. Needs larger sources to close — item 8.
 2. **q78 on the native portraits only**, on the measured PSNR-per-byte above.
-3. **`card_background.webp` left alone** despite being over target — reduction plus a
-   lossy→lossy recompress is your call, and it is the largest single lever in the repo.
+3. **`card_background.webp` recompressed at q88**, on your go-ahead, after confirming no
+   larger original exists. q88 rather than q80 because the chain cannot be undone.
 4. **Nothing deleted**, including 4.7 MB of exact duplicates in `mk-test/` and the styleA/B set.
 5. **The four orphan portrait masters not framed** — they would be dead files until `data.js`
    has ids for them.
