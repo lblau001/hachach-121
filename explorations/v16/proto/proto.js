@@ -143,7 +143,11 @@ const DEV = {
      playing up to it. Every other switch above keeps working from any of
      the three, because they are all read once, here, before any screen is
      built. Default is the intro — the app has a front door now. */
-  screen: qPick('screen', { intro:'intro', map:'map', round:'round' }, 'intro')
+  screen: qPick('screen', { intro:'intro', map:'map', round:'round' }, 'intro'),
+  /* B1-2 · null means "ask localStorage". on/off force the overlay in
+     either direction WITHOUT writing the flag, which is the only way to
+     look twice at something that by definition happens once. */
+  intro:  qPick('intro',  { on:true, off:false }, null)
 };
 
 let M = null;                       /* manifest.json                     */
@@ -618,6 +622,123 @@ function leaveCard() {
   if (cur) cur.classList.add('is-leaving');
 }
 
+/* ===== B1-2 · THE FIRST-RUN INSTRUCTION OVERLAY =====================
+   Full screen, on the player's FIRST EVER issue, never again. It is the
+   only option on the v17 board that adds persisted state, and the board
+   said so: "a seen-it flag that has to survive a reload, which the
+   prototype currently has nowhere to put." It has somewhere now.
+
+   localStorage, ONE KEY, AND IT FAILS OPEN. Private mode, a cleared
+   store and a browser that throws on access all land in the same place:
+   the overlay shows. Showing an instruction to somebody who has already
+   seen it is a small cost; swallowing it for somebody who has not is the
+   whole feature. So every read and write is wrapped and every failure
+   resolves toward showing it.
+
+   ?intro=on / ?intro=off OVERRIDES THE FLAG without touching it, which is
+   how this gets demoed and tested at all — a feature that by definition
+   happens once cannot otherwise be looked at twice.
+
+   IT IS SKIPPABLE BY TAP, anywhere, including the CTA. There is no way to
+   be stuck behind it and no way to dismiss it by accident before it has
+   arrived: the ground does not take a tap until it has faded in. */
+const SEEN_KEY = 'h121.proto.b1intro.seen';
+function seenIntro() {
+  if (DEV.intro !== null) return !DEV.intro;
+  try { return localStorage.getItem(SEEN_KEY) === '1'; } catch (e) { return false; }
+}
+function markIntroSeen() {
+  /* an ?intro= override never writes: forcing the overlay on to look at it
+     must not silently spend the player's one first run */
+  if (DEV.intro !== null) return;
+  try { localStorage.setItem(SEEN_KEY, '1'); } catch (e) { /* fails open */ }
+}
+
+/* COPY IS PLACEHOLDER except the heading, which is the same string the
+   claim sticker carries — one question, asked once big and then kept
+   small on the card. */
+const INTRO_B1 = {
+  title: 'אמת או שקר?',                          /* TAMAR */
+  body:  '[שלוש שורות — תמר: מה עושים במסך הזה]', /* TAMAR */
+  cta:   'הבנתי',                                 /* TAMAR */
+};
+
+function firstRunIntro(done) {
+  if (seenIntro()) return done();
+  markIntroSeen();
+
+  const o = el('div', 'b1intro');
+  o.innerHTML =
+    '<div class="b1intro__box" role="dialog" aria-modal="true">' +
+      '<h2 class="b1intro__t">' + esc(INTRO_B1.title) + '</h2>' +
+      '<p class="b1intro__b" data-ph>' + ph(INTRO_B1.body) + '</p>' +
+      '<button type="button" class="p-c b1intro__go">' + esc(INTRO_B1.cta) + '</button>' +
+    '</div>';
+  $('#stage').appendChild(o);
+  requestAnimationFrame(() => o.classList.add('is-in'));
+
+  let gone = false;
+  const close = () => {
+    if (gone) return; gone = true;
+    o.classList.remove('is-in'); o.classList.add('is-out');
+    setTimeout(() => { o.remove(); done(); }, T.ovCollapse);
+  };
+  /* the whole surface is the dismiss, the CTA included — pressable() only
+     to give the button the same 10ms tick every other control has */
+  pressable($('.b1intro__go', o));
+  o.addEventListener('click', close);
+  return o;
+}
+
+/* ===== B2-4 · THE ASK STICKER =======================================
+   ONE COMPONENT, TWO COPY STRINGS, and never two components. B2-4 was
+   picked for the MK question and the brief extends it to the claim card,
+   because B1-2 only ever fires once and the cascade sticker is a cascade
+   element — without this, a returning player opens their second issue and
+   the claim card carries no instruction at all.
+
+   IT COSTS THE CARD NOTHING. The sticker is parented to .cardwrap, not to
+   the card: .mf-b carries overflow:hidden and would clip it, and anything
+   inside the card face would push the name/party block toward the stamp's
+   430px band. It overhangs the card's top-right corner, which is the
+   corner diagonally opposite the stamp (top:430 left:-22) — the two can
+   never meet on any card.
+
+   IT IS CHROME-SCALE, NOT CARD-SCALE. .stack is scaled by sizeStage() so
+   a 620px card fits a short phone; left alone the sticker would shrink
+   with it and the instruction would be smallest exactly where the screen
+   is smallest. .ask-st counter-scales by 1/--card-scale so the settled
+   size is the same number of CSS pixels on every phone. See .ask-st. */
+const ASK = {
+  claim: 'אמת או שקר?',              /* TAMAR */
+  mk:    'מה הוא/היא הצביע/ה?',      /* TAMAR — A8's helper line, moved */
+};
+
+/* THE SLAP IS ITS OWN BEAT, which is the whole reason to build a sticker
+   rather than a label. It enters AFTER the card has settled, never with
+   it: two things arriving on the same frame read as one thing arriving.
+   --t-ask-delay is measured from the moment the card is in place. */
+function slapAsk(text) {
+  const wrap = $('.cardwrap'); if (!wrap) return null;
+  const old = $('.ask-st', wrap); if (old) old.remove();
+  const s = el('div', 'ask-st');
+  s.innerHTML = '<span class="ask-st__i">' + esc(text) + '</span>';
+  wrap.appendChild(s);
+  s._t = setTimeout(() => s.classList.add('is-slapped'), T.askDelay);
+  return s;
+}
+/* the claim's sticker retires the moment the claim is answered — it is
+   the claim card's instruction and the claim card is leaving. The MK
+   sticker is NOT retired between cards: it slaps once on the first card
+   of the cascade and stays for the rest of it, which is the difference
+   the brief draws between "animates in with each card" and "stays". */
+function retireAsk() {
+  const s = $('.ask-st'); if (!s) return;
+  clearTimeout(s._t);
+  s.classList.add('is-retired');
+  setTimeout(() => s.remove(), 200);
+}
+
 /* ===================== BEAT 1 · THE CLAIM =========================== */
 /* B1-B developed: the claim card IS the MK card — same .mf-b, same
    340x620, with the issue's own graphic where the portrait goes.      */
@@ -693,12 +814,23 @@ function beat1() {
 
   r.appendChild(b);
   setPile(0);
-  /* NO INSTRUCTION LINE. Two buttons that say אמת and שקר do not need a
-     third element telling the player to choose one of them. */
+  /* NO CHROME INSTRUCTION LINE. The helper slot is empty on every beat
+     now — B2-4 moved both questions onto the card as stickers, so the
+     line under the chyron has nothing left to say. Its box is still
+     reserved, because reserving it is what keeps the card the same size
+     from the claim through the cascade. */
   helper('');
   sizeStage();
 
   wireSwipe(card, $('.b1target', card), $('.b1prev', card));
+
+  /* B1-2 THEN B2-4, IN THAT ORDER. On a player's first ever issue the
+     full-screen overlay comes up over the dealt card and the sticker
+     waits behind it; the slap is the first thing that happens after the
+     overlay is dismissed, so the two instructions are never on screen
+     together. On every round after the first there is no overlay and the
+     sticker slaps on its own. */
+  firstRunIntro(() => slapAsk(ASK.claim));
 
   /* §2.2 THE BUTTON IS THE GESTURE'S TWIN, so it looks like the gesture:
      the tap runs the same preview and the same fling, in the direction
@@ -810,6 +942,11 @@ async function commitClaim(ans, card, dir) {
     award(table.claim, card.querySelector('[data-ans="' + ans + '"]') || card);
   }
 
+  /* the instruction has been obeyed, so it goes before the card does —
+     a sticker still sitting on a card that is flying off screen reads as
+     a question that was never answered */
+  retireAsk();
+
   /* §1.2 the answer sits alone before anything else happens */
   await wait(T.hold);
 
@@ -868,12 +1005,12 @@ async function claimReveal(ans) {
   sc.appendChild(panel);
   requestAnimationFrame(() => panel.classList.add('is-in'));
 
-  /* the glossary opens inline here too, where the term occurs */
+  /* §3.1 the term opens the B3-3 sticker, not an inline panel. The old
+     .gdef opened UNDER the term and reflowed the explanation around it,
+     which moved the sentence the player was reading. */
   panel.addEventListener('click', e => {
     const t = e.target.closest('.gt'); if (!t) return;
-    if (t.nextElementSibling && t.nextElementSibling.classList.contains('gdef'))
-      return t.nextElementSibling.remove();
-    t.after(el('p', 'gdef', '<b>' + esc(t.dataset.gt) + '</b> — ' + esc(DATA.glossary[t.dataset.gt])));
+    glossModal(t.dataset.gt);
   });
 
   await new Promise(res => {
@@ -886,32 +1023,74 @@ async function claimReveal(ans) {
   });
 }
 
-/* A7 · THE LAW MODAL, functional and deliberately unstyled — B3 picks
-   between a bottom sheet, a card flip and a die-cut sticker modal, and
-   styling it now would mean throwing that away. Title is bill_title, body
-   is bill_description (bill_summary), graphic is the police-hat asset as
-   the agreed placeholder for every issue.
-   SPOILER RISK: on s1 and m2 this text names an MK who is in that round's
-   own cascade. Tamar's copy is NOT edited and no MK is dropped; the issues
-   carry `spoiler_risk:true` in data.js and stay on her list. */
-function lawModal() {
-  const m = el('div', 'lawmodal');
+/* ===== B3-3 · THE DIE-CUT STICKER MODAL ==============================
+   ONE COMPONENT, TWO CONTENTS, and that is the whole point of building it
+   this way. B3-3 was picked for the law modal and §3.1 moves the glossary
+   term onto the same treatment; a second modal would be a second set of
+   paddings, a second dismiss and a second way for the two to drift apart.
+   Everything that differs between the two is an ARGUMENT — title, meta,
+   body, optional graphic — and everything that is shared is the sticker.
+
+   IT IS CENTRED, WHICH COSTS SOMETHING AND IS STILL RIGHT. The v17 board
+   recorded the objection: centring covers the tachles question while the
+   law is open, so the player loses the thing they were about to answer.
+   That is true of the glossary term too. The trade is deliberate — the
+   modal is a detour the player asked for, it dismisses three ways, and
+   the question is intact underneath it the instant it closes.
+
+   THREE WAYS OUT, none of them hidden: the ✕, the ground, and Escape.
+
+   SPOILER RISK carries over unchanged: on s1 and m2 the bill text names
+   an MK who is in that round's own cascade. Tamar's copy is not edited
+   and no MK is dropped; both issues carry `spoiler_risk:true` in data.js
+   and stay on her list. The treatment cannot fix that; only her copy can.  */
+function stickerModal(o) {
+  const m = el('div', 'stmodal');
   m.innerHTML =
-    '<div class="lawmodal__box" role="dialog" aria-modal="true">' +
-      '<button type="button" class="lawmodal__x" aria-label="סגירה">✕</button>' +
-      /* the police hat, from the MANIFEST rather than a literal path — it
-         moved to assets/topics/ when the topic icons were framed, and the
-         hard-coded assets/mk/ path 404'd. internal_sec's entry is the hat. */
-      (function(){ const h = M.topics && M.topics.internal_sec && M.topics.internal_sec['128'];
-        return h ? '<img class="lawmodal__art" src="' + ROOT + h + '" alt="">' : ''; })() +
-      '<h2 class="lawmodal__title">' + esc(issue.bill_title || '') + '</h2>' +
-      (issue.bill_date ? '<p class="lawmodal__date">' + esc(issue.bill_date) + '</p>' : '') +
-      '<p class="lawmodal__body">' + esc(issue.bill_summary || '') + '</p>' +
+    '<div class="stmodal__box" role="dialog" aria-modal="true">' +
+      '<button type="button" class="stmodal__x" aria-label="סגירה">✕</button>' +
+      (o.art ? '<img class="stmodal__art" src="' + o.art + '" alt="">' : '') +
+      '<h2 class="stmodal__title">' + esc(o.title || '') + '</h2>' +
+      (o.meta ? '<p class="stmodal__meta">' + esc(o.meta) + '</p>' : '') +
+      '<p class="stmodal__body">' + esc(o.body || '') + '</p>' +
     '</div>';
-  const close = () => m.remove();
-  $('.lawmodal__x', m).addEventListener('click', close);
+  let gone = false;
+  const close = () => {
+    if (gone) return; gone = true;
+    removeEventListener('keydown', onKey);
+    m.classList.remove('is-in'); m.classList.add('is-out');
+    setTimeout(() => m.remove(), T.ovCollapse);
+  };
+  const onKey = e => { if (e.key === 'Escape') close(); };
+  addEventListener('keydown', onKey);
+  pressable($('.stmodal__x', m)).addEventListener('click', close);
   m.addEventListener('click', e => { if (e.target === m) close(); });
   $('#stage').appendChild(m);
+  requestAnimationFrame(() => m.classList.add('is-in'));
+  return m;
+}
+
+/* the law. Title is bill_title, body is bill_summary, graphic is the
+   police hat from the MANIFEST rather than a literal path — it moved to
+   assets/topics/ when the topic icons were framed and the hard-coded
+   assets/mk/ path 404'd. internal_sec's entry is the hat. */
+function lawModal() {
+  const h = M.topics && M.topics.internal_sec && M.topics.internal_sec['128'];
+  return stickerModal({
+    title: issue.bill_title || '',
+    meta:  issue.bill_date || '',
+    body:  issue.bill_summary || '',
+    art:   h ? ROOT + h : '',
+  });
+}
+
+/* §3.1 the glossary term, on the SAME sticker. It replaces the plain
+   white .gdef panel that used to open inline under the term — a second
+   light surface with its own radius and its own padding, sitting inside
+   a paragraph and pushing the explanation around as it opened and shut.
+   The definition is data.js's own; nothing is written here. */
+function glossModal(term) {
+  return stickerModal({ title: term, body: (DATA.glossary || {})[term] || '' });
 }
 
 /* ============= BEATS 2 AND 3 · ONE OVERLAY, TWO CONTENTS ============ */
@@ -969,7 +1148,10 @@ function beat2() {
         '<div class="v-a-row b2votes">' +
           VOTES.map(v => '<button class="v-a" data-vote="' + v + '">' + VLABEL[v] + '</button>').join('') +
         '</div>' +
-        '<p class="b2consent">את התוצאה נגלה בסוף ›</p>' +
+        /* §3.2 "את התוצאה נגלה בסוף ›" IS GONE. It was a promise about a
+           beat five screens away, printed under the question the player
+           is being asked right now, and beat 5 keeps that promise
+           whether or not the line was there. */
       '</div>' +
     '</div>' +
     '<div class="ovpane ovpane--bill is-below">' +
@@ -1069,9 +1251,15 @@ function armPredict(first) {
     '<button class="v-a" data-pred="' + v + '">' + VLABEL[v] + '</button>').join('');
   card.appendChild(foot);
 
-  /* the one surviving helper line, on the FIRST card of the round only.
-     Cards 2..n never carry it: by then the player has done this. */
-  helper(first ? 'מה הוא/היא הצביע/ה?' : '');
+  /* B2-4 · THE MK QUESTION IS A STICKER NOW, not a 17px line under the
+     chyron. It slaps on the FIRST card of the cascade and then STAYS —
+     it is parented to .cardwrap, so resolved cards swipe out from under
+     it and the next one turns over beneath it without the sticker ever
+     re-entering. Re-slapping on every card was the v17 board's own
+     stated risk for this option ("it repeats on every card, which is
+     where it may wear out"); one slap is the version that answers it. */
+  if (first) slapAsk(ASK.mk);
+  helper('');
 
   foot.querySelectorAll('[data-pred]').forEach(btn =>
     pressable(btn).addEventListener('click', () => verdict(btn.dataset.pred, foot, card)));
@@ -1669,9 +1857,32 @@ function showScreen(name) {
    has, so both leave immediately — a confirm there would be asking the
    player to approve throwing away nothing. In between there is real
    progress that is not saved, so it asks.
-   THE SHEET IS UNSTYLED ON PURPOSE. B5 chooses between a minimal sheet
-   and a chip that expands out of the ✕; anything decided here would be
-   thrown away. Copy is ours and is marked. */
+
+   B5-1, BUILT, AND CENTRED IN BOTH AXES. The board drew it as a sheet at
+   the foot; §3.3 centres it horizontally AND vertically instead, which is
+   what a destructive confirm should do — a bottom sheet is the shape of
+   an options menu, and this is not one. It is the same die-cut sticker
+   the law modal is, on the same dimmed ground, so the round has exactly
+   one modal shape rather than one for content and another for confirms.
+
+   THE QUESTION AND THE CONSEQUENCE ARE TWO LINES NOW. They used to be one
+   string doing both jobs — "לצאת מהסוגיה? ההתקדמות בה לא תישמר" — which
+   made the consequence read as part of the question rather than as the
+   thing the player is agreeing to. §3.3 splits them: the question in
+   black at body size, the consequence under it, quieter.
+
+   THREE WAYS TO STAY and one to leave. The ✕, the ground and להישאר all
+   dismiss; only לצאת goes. That asymmetry is deliberate — every ambiguous
+   gesture resolves toward not losing the round.
+
+   COPY IS OURS AND MARKED. */
+const EXIT_COPY = {
+  q:    'בטוח/ה שאת/ה רוצה לצאת?',   /* TAMAR */
+  note: 'ההתקדמות בסוגיה לא תישמר',   /* TAMAR */
+  go:   'לצאת',                       /* TAMAR */
+  stay: 'להישאר',                     /* TAMAR */
+};
+
 function exitRound() {
   const midRound = S && S.beat > 1 && S.beat < 5;
   if (!midRound) return goMap();
@@ -1679,17 +1890,38 @@ function exitRound() {
   const sh = el('div', 'exitsheet');
   sh.innerHTML =
     '<div class="exitsheet__box" role="dialog" aria-modal="true">' +
-      '<p class="exitsheet__q">' + ph('לצאת מהסוגיה? ההתקדמות בה לא תישמר') + '</p>' +
+      '<button type="button" class="exitsheet__x" aria-label="סגירה">✕</button>' +
+      /* esc(), NOT ph(). The .ph marker is for copy that has not been
+         WRITTEN — a bracketed description of what should go there. These
+         two are real Hebrew sentences that we wrote and Tamar has to
+         approve, which is what the /* TAMAR *\/ markers above are for.
+         Struck through ph() they rendered at --fs-meta on a yellow
+         hazard stripe, which is neither the 19px black question §3.3
+         asked for nor legible on a cream sticker. */
+      '<p class="exitsheet__q">' + esc(EXIT_COPY.q) + '</p>' +
+      '<p class="exitsheet__note">' + esc(EXIT_COPY.note) + '</p>' +
       '<div class="exitsheet__row">' +
-        '<button type="button" class="p-c" data-go>' + esc('לצאת') + '</button>' +
-        '<button type="button" class="r-b" data-stay>' + esc('להישאר') + '</button>' +
+        '<button type="button" class="p-c" data-go>' + esc(EXIT_COPY.go) + '</button>' +
+        '<button type="button" class="r-b" data-stay>' + esc(EXIT_COPY.stay) + '</button>' +
       '</div>' +
     '</div>';
-  const close = () => sh.remove();
-  pressable($('[data-go]', sh)).addEventListener('click', () => { close(); goMap(); });
+  let gone = false;
+  const close = () => {
+    if (gone) return; gone = true;
+    removeEventListener('keydown', onKey);
+    sh.classList.remove('is-in'); sh.classList.add('is-out');
+    setTimeout(() => sh.remove(), T.ovCollapse);
+  };
+  const onKey = e => { if (e.key === 'Escape') close(); };
+  addEventListener('keydown', onKey);
+  pressable($('[data-go]', sh)).addEventListener('click', () => {
+    removeEventListener('keydown', onKey); sh.remove(); goMap();
+  });
   pressable($('[data-stay]', sh)).addEventListener('click', close);
+  pressable($('.exitsheet__x', sh)).addEventListener('click', close);
   sh.addEventListener('click', e => { if (e.target === sh) close(); });
   $('#stage').appendChild(sh);
+  requestAnimationFrame(() => sh.classList.add('is-in'));
 }
 
 /* =====================================================================
@@ -1806,11 +2038,11 @@ function renderMap() {
   r.innerHTML =
     '<div class="mapwin scrolls" id="mapwin">' +
       '<div class="path" id="mappath" style="height:' + h + 'px">' +
+        /* §1.1 NO MASK. The ribbon is ONE uncut path from the bottom edge
+           of the scroll area to the top; the discs paint over it. See
+           drawPath(). */
         '<svg class="path-line" id="mapline" aria-hidden="true">' +
-          '<defs><mask id="pathmask" maskUnits="userSpaceOnUse"></mask></defs>' +
-          '<g mask="url(#pathmask)">' +
-            '<path class="pl-under" d=""></path><path class="pl-dots" d=""></path>' +
-          '</g>' +
+          '<path class="pl-under" d=""></path><path class="pl-dots" d=""></path>' +
         '</svg>' +
         TOPICS().map((t, i) => nodeHTML(t, i, h, cur)).join('') +
       '</div>' +
@@ -1884,13 +2116,11 @@ function nodeHTML(t, i, h, cur) {
     const S = parseFloat(CSVAR('--node-ico-avg')) * (T_.node_scale || 1);
     const a = T_.aspect || 1;
     const w = a >= 1 ? S : S * a, hh = a >= 1 ? S / a : S;
-    /* the tile is the icon's box plus a constant pad on every side, and its
-       radius is half its short edge — a stadium. See .node-tile. */
-    const P = parseFloat(CSVAR('--node-tile-pad'));
-    const tw = w + 2 * P, th = hh + 2 * P;
+    /* §1.4 NO TILE. The cream stadium and the overhang are gone; the icon
+       is laid straight on the disc and centred by .node-ico. Its size is
+       still area-normalised, which is the part of the old treatment that
+       was solving a real problem. */
     face =
-      '<span class="node-tile" aria-hidden="true" style="width:' + tw.toFixed(1) +
-        'px;height:' + th.toFixed(1) + 'px;border-radius:' + (Math.min(tw, th) / 2).toFixed(1) + 'px"></span>' +
       '<img class="node-ico" src="' + ROOT + art + '" alt="" style="width:' +
         w.toFixed(1) + 'px;height:' + hh.toFixed(1) + 'px">';
   } else {
@@ -1950,47 +2180,64 @@ function drawPath(h) {
   const pts = TOPICS().map((t, i) => [
     NODE_X(i) * w, nodeY(i, h)
   ]);
-  let d = 'M' + pts[0][0].toFixed(1) + ' ' + pts[0][1].toFixed(1);
+
+  /* §1.5 THE ROAD RUNS OFF BOTH EDGES. The path used to start at the first
+     node and stop at the last, which left a flat round terminus under the
+     HUD and another near the jump button — the map read as a finished
+     object floating in charcoal rather than as a section of a longer road.
+     The two pads were always there and always empty; the ribbon is simply
+     drawn through them now, from BELOW the bottom of the scroll area to
+     ABOVE the top of it, so there is no terminus to see at any scroll
+     position. BLEED is past the path's own box on purpose: the scroll
+     container clips it, and a cap that is clipped cannot read as an end. */
+  const BLEED = 24;
+  const first = pts[0], last = pts[pts.length - 1];
+  let d = 'M' + first[0].toFixed(1) + ' ' + (h + BLEED).toFixed(1) +
+          ' L' + first[0].toFixed(1) + ' ' + first[1].toFixed(1);
   for (let i = 1; i < pts.length; i++) {
     const [x0, y0] = pts[i - 1], [x1, y1] = pts[i], t = (y1 - y0) / 3;
     d += ' C' + x0.toFixed(1) + ' ' + (y0 + t).toFixed(1) +
          ',' + x1.toFixed(1) + ' ' + (y1 - t).toFixed(1) +
          ',' + x1.toFixed(1) + ' ' + y1.toFixed(1);
   }
+  /* straight up out of the top node, which is the tangent the last curve
+     arrives on — the bleed cannot kink */
+  d += ' L' + last[0].toFixed(1) + ' ' + (-BLEED).toFixed(1);
   $('#mapline').querySelectorAll('path').forEach(p => p.setAttribute('d', d));
-
-  /* §4 THE RIBBON IS PUNCHED OUT AT EVERY NODE.
-     The z-order was already right and still is: .node is z-index 2 over
-     .path-line's 1, so the ring's STROKE has always painted on top of the
-     ribbon. What was actually visible was the ribbon showing through the
-     ring's own transparent interior — the 18.5px of open ground between
-     the disc and the ring, which only became a gap worth seeing when the
-     ring was grown to make the icon's overhang possible. Raising a
-     z-index could never have fixed that; there was nothing above anything.
-     So the ribbon is masked instead: a hole of r = the ring's CENTRELINE
-     at each node centre, which ends the ribbon under the middle of the
-     ring stroke. The stroke covers the cut, so the path still reads as
-     arriving at the node rather than stopping short of it, and nothing of
-     it appears inside the ring.
-     IT DOES NOT DISCONNECT THE PATH. Node centres are 199px apart
-     vertically and up to 105px horizontally, so the run between two nodes
-     is 206-225px; two 63px holes leave 80-99px of ribbon visible on every
-     segment. */
-  const mask = $('#pathmask');
-  const rc = parseFloat(CSVAR('--ring-r'));
-  /* the ring sits 3.5px below the face centre — it is centred on the face
-     PLUS its base — and the path threads the FACE centre, so the hole has
-     to be punched at the RING's centre, not at the path's own point. */
-  const ringDrop = parseFloat(CSVAR('--node-box')) / 2
-                 - (parseFloat(CSVAR('--node-face-y')) + parseFloat(CSVAR('--node-face')) / 2);
-  mask.setAttribute('x', 0); mask.setAttribute('y', 0);
-  mask.setAttribute('width', w); mask.setAttribute('height', h);
-  mask.innerHTML =
-    '<rect x="0" y="0" width="' + w + '" height="' + h + '" fill="#fff"></rect>' +
-    pts.map(([x, y]) =>
-      '<circle cx="' + x.toFixed(1) + '" cy="' + (y + ringDrop).toFixed(1) +
-      '" r="' + rc + '" fill="#000"></circle>').join('');
 }
+
+/* §1.1 WHY THERE IS NO LONGER A MASK, and why that is the structural fix
+   rather than the cosmetic one.
+
+   The mask punched a hole of r = --ring-r at every node centre, so the
+   ribbon ended on the ring's CENTRELINE and the ring stroke was supposed
+   to cover the cut. Two things made that fail, and neither is tunable:
+     · the segments have the board's 27.2-degree gaps in them, and for a
+       two-issue topic those gaps land at the TOP and the BOTTOM of the
+       ring — exactly where the ribbon arrives. There is no stroke there
+       to cover anything, at any weight.
+     · inside the ring's inner edge the ground is charcoal, and the mask
+       had removed the ribbon from all of it. So even where the stroke did
+       cover the cut, the annulus between the disc and the ring showed
+       charcoal where the road should have been.
+   Thickening the stroke (the third option in the brief) fixes neither: it
+   narrows the annulus without closing it and does nothing about the gaps.
+   Shrinking the hole to the disc's radius (the first) fixes both, but it
+   leaves a mask whose radius has to be kept in step with --node-face and
+   --node-depth by hand, and a hole that is a few px too large puts the
+   charcoal ring straight back.
+
+   So the mask is gone. The ribbon is one uncut path and the DISC covers
+   it — .node is z-index 2 over .path-line's 1, which was already true and
+   is now the only thing doing the work. The path cannot read as severed
+   because it is not cut, and there is no second radius to drift.
+
+   WHAT IS NOW VISIBLE INSIDE THE RING is the ribbon itself, crossing the
+   7px of open ground between the disc and the ring at the top and bottom
+   of every node. That is the road passing behind the node, which is what
+   it should look like, and it is only legible at all because 1.4 pulled
+   the ring back in — at the 18.5px stand-off the old overhang forced, the
+   same ribbon read as a bar across the gap. */
 
 function wireMap(cur, h) {
   const win = $('#mapwin'), jump = $('#mapjump');

@@ -56,6 +56,19 @@
   /* §4 the chosen vote landing on the chair. Long enough to read as an
      object arriving and settling, short enough that the hold after it is
      still the beat's pause rather than a wait. */
+  /* B2-4 · THE SLAP IS ITS OWN BEAT. --t-ask-delay is measured from the
+     moment the card is in place, and it is the number the brief asked to
+     be tuned. The card turn is --t-card-flip 450ms on --e-settle, which
+     is asymptotic: the card is visually stopped at about 390ms and the
+     last 60ms is sub-pixel. 480ms puts the slap ~90ms after the eye has
+     read the card as arrived — clearly a second event, still inside the
+     window where the eye is on that corner. It is at the low end of the
+     brief's 400-600ms band on purpose: at 600 the pause reads as a
+     hesitation rather than as a beat, and the cascade's per-card tempo is
+     ~850ms end to end. (Lion's 5ms is a third of a frame at 60Hz — the
+     slap and the card would arrive on the same paint.) */
+  --t-ask-delay:   480ms;
+  --t-ask-in:      300ms;
   --t-b2-seat:     520ms;
 
   /* A6 · how long the claim's stamp holds alone before the explanation
@@ -98,31 +111,51 @@
      NODE and PathMap artboards. THE RING IS NOT, any more, and this is the
      one measurement in the file that departs from the board — see the
      block by .node-ico for the arithmetic that forced it. */
-  --node-box:      132px;   /* .ringnode, the whole node incl. the ring   */
-  --node-box-h:    132px;
-  --node-face:     76px;    /* the pressable top face — board             */
-  --node-depth:    7px;     /* its extrusion. 9.2% of the face — the
+/* EVERY RENDERED PART IS 15% LARGER THAN THE BOARD'S. The previous attempt
+     grew --node-box 116 -> 132 and left the disc at 76 and the depth at 7, so
+     the bounding box moved and the node did not. These are the parts that
+     actually draw, and all of them moved together:
+       disc          76   -> 87px      depth        7  -> 8px
+       ring radius   63   -> 59.5px    ring stroke  6  -> 10px   (see 1.3)
+       icon average  44   -> 51px      badges       21 -> 24px
+       label         14   -> 16px      status       11 -> 13px
+     The ring radius went DOWN while everything else went up, and that is
+     1.4 rather than a contradiction: the cream tile and the 14px overhang
+     are gone, so the clearance that forced r=63 is gone with them. The ring
+     is back to hugging the face+base composite by the board's own margin,
+     scaled 15% like everything else — 6px of clearance becomes 7px. */
+  --node-box:      130px;   /* .ringnode, the whole node incl. the ring   */
+  --node-box-h:    130px;
+  --node-face:     87px;    /* the pressable top face — board 76 x 1.15   */
+  --node-depth:    8px;     /* its extrusion. 9.2% of the face — the
                                brief's "~10% of diameter". Board.         */
-  --node-face-x:   28px;    /* (132 - 76) / 2                             */
-  --node-face-y:   24.5px;  /* centres face+base on the ring at cy 66     */
-  --ring-r:        63px;    /* was the board's 50.5 — see .node-ico       */
-  --ring-w:        6px;     /* THINNER than --node-depth, as specified    */
+  --node-face-x:   21.5px;  /* (130 - 87) / 2                             */
+  --node-face-y:   17.5px;  /* centres face+base on the ring at cy 65     */
+  /* THE RING. Inner edge = the composite's half-height (87+8)/2 = 47.5,
+     plus the board's 6px clearance scaled to 7 = 54.5. Half the stroke on
+     top of that is the centreline: 54.5 + 5 = 59.5. */
+  --ring-r:        59.5px;
+  /* §1.3 A DELIBERATE HEAVY ARC, not a hairline. 6px was 7.9% of the
+     board's disc; 15% of it would be 6.9px and would read exactly as thin
+     as before against a 15% larger node. 10px is 11.5% of the 87px disc
+     and is the weight the segments need to hold a 360px screen. It is also
+     what makes the ring read as a track with part of it filled rather than
+     as two arcs near a disc. */
+  --ring-w:        10px;
   /* the icon's larger dimension, AVERAGED over the eight. Each one is
      this times its own manifest node_scale, so retuning the set is one
-     number here — see the node_mass note in tools/make_manifest.py. */
-  --node-ico-avg:  44px;
-  /* THE TILE IS THE THING THAT BREAKS OUT, so the overhang that matters is
-     the tile's: 9 + 5 = 14px, 18.4% of the 76px disc, inside the 15-20%
-     band the treatment was specified at. The icon's own 9px is measured
-     from the same disc edge and sits inside the tile.
-     These two were 54/11/4 for one build and the tile ate the disc — a
-     68px cream capsule on a 76px face left the hue as a crescent, which
-     is the opposite of "the disc carries the topic hue". */
-  --node-ico-over:  9px;    /* how far the ICON stands above the disc     */
-  --node-tile-pad:  5px;    /* cream showing around it on every side      */
+     number here — see the node_mass note in tools/make_manifest.py.
+     51/87 = 58.6% of the disc, the same proportion 44/76 was. */
+  --node-ico-avg:  51px;
   --node-gap:      199px;   /* centre to centre, up the path              */
-  --node-pad-top:  84px;
-  --node-pad-bot:  132px;   /* 84 + the name and status under the last    */
+  /* §1.5 THESE TWO PADS ARE THE BLEED. The ribbon is drawn the full height
+     of the path now, not from the first node to the last, so what used to
+     be empty charcoal above the top node and below the bottom one is where
+     the road runs off the screen. --node-pad-top is 110 rather than 84 so
+     that 45px of ribbon shows clear of the top node's ring before the
+     edge; the bottom already had 132. */
+  --node-pad-top:  110px;
+  --node-pad-bot:  132px;   /* the name and status under the last node    */
 
   /* ---- motion the map and the award add ----------------------------- */
   --t-node-press:  80ms;    /* board: transform+box-shadow, linear        */
@@ -225,21 +258,73 @@ body{
 .hud-right > [hidden]{ display:none; }
 .hud-x{ font-size:17px; line-height:1; }
 
-/* A4 · the exit confirm. UNSTYLED ON PURPOSE — B5 picks between a minimal
-   sheet and a chip expanding out of the ✕. Layout only. */
+/* =====================================================================
+   B5-1 · THE EXIT CONFIRM, BUILT AND CENTRED
+   §3.3. The board drew a sheet at the foot; this is centred in BOTH axes,
+   because a bottom sheet is the shape of an options menu and this is a
+   destructive confirm. It borrows .stmodal's sticker outright — same
+   white die-cut, same keyline, same extrusion, same tilt — so the round
+   has ONE modal shape and not one for content and another for confirms.
+   ===================================================================== */
 .exitsheet{
-  position:absolute; inset:0; z-index:70; display:grid; place-items:end center;
-  padding:var(--sp-4); background:rgba(20,18,15,.72);
+  position:absolute; inset:0; z-index:70; display:grid; place-items:center;
+  padding:var(--sp-4); background:rgba(20,18,15,.74);
+  opacity:0; transition:opacity var(--t-ov-in) linear;
 }
+.exitsheet.is-in{ opacity:1; }
+.exitsheet.is-out{ opacity:0; }
 .exitsheet__box{
-  width:100%; max-width:330px; margin-bottom:calc(12px + env(safe-area-inset-bottom));
+  position:relative; width:100%; max-width:300px;
   background:var(--paper); color:var(--ink);
-  border-radius:var(--r-chip); padding:var(--sp-4);
+  border:5px solid var(--edge); border-radius:18px;
+  box-shadow:0 0 0 2px var(--keyline), 0 8px 0 rgba(0,0,0,.4);
+  padding:var(--sp-4);
   display:flex; flex-direction:column; gap:var(--sp-3);
+  /* the sticker is LAID DOWN, not printed square. 1.2 degrees the other
+     way from .stmodal so the two are not the same object twice. */
+  transform:rotate(1.2deg) scale(.9);
+  transition:transform var(--t-flip) var(--e-land);
 }
-.exitsheet__q{ margin:0; font-size:var(--fs-body); font-weight:700;
-  line-height:1.4; text-align:center; }
+.exitsheet.is-in .exitsheet__box{ transform:rotate(1.2deg) scale(1); }
+/* §3.3 the ✕ — a third way to stay, and the one that costs nothing to
+   reach because it is where the ✕ that opened this already was. Inset so
+   it clears the die-cut border rather than sitting on it. */
+/* PHYSICALLY RIGHT, not inline-end. §3.3 says top-right and the app's own
+   ✕ — the one in the HUD that opened this — is physically top-right too.
+   inset-inline-end resolves to the LEFT under dir=rtl, which would have
+   put the modal's close on the opposite side of the screen from the close
+   the player just pressed. */
+.exitsheet__x{
+  position:absolute; right:4px; left:auto; top:4px; z-index:2;
+  width:40px; height:40px; border:0; background:none; cursor:pointer;
+  font-size:18px; line-height:1; color:var(--ink); opacity:.6;
+}
+.exitsheet__x:active{ opacity:1; }
+/* §3.3 THE QUESTION IS BLACK AND IT IS A QUESTION. It used to be one
+   string carrying the question and the consequence at once, at
+   --ink-faint's weight, which made the thing being agreed to read as
+   part of the thing being asked. Padded on the end so it clears the ✕. */
+.exitsheet__q{
+  margin:0; padding-right:34px;   /* clears the ✕, which is physically right */
+  font-family:var(--font-display); font-weight:900;
+  font-size:19px; line-height:1.18; color:var(--ink); text-align:start;
+}
+.exitsheet__note{
+  margin:-4px 0 0; font-size:var(--fs-meta); font-weight:700;
+  line-height:1.4; color:var(--ink-soft); text-align:start;
+}
 .exitsheet__row{ display:flex; flex-direction:column; gap:8px; }
+/* R-B IS BUILT FOR THE DARK GROUND. hachach.css draws it as
+   `color:var(--paper); background:transparent; box-shadow:inset 0 0 0 2.5px
+   var(--paper)` — cream type in a cream outline, which is correct on the
+   charcoal stage and completely invisible on a cream sticker: להישאר
+   disappeared and the modal read as having one action and a large empty
+   panel under it. Re-inked here rather than in hachach.css, which is the
+   locked handoff sheet and not ours to change. */
+.exitsheet .r-b{
+  color:var(--ink); box-shadow:inset 0 0 0 2.5px rgba(19,19,16,.38);
+}
+.exitsheet .r-b:active{ box-shadow:inset 0 0 0 2.5px rgba(19,19,16,.65); }
 
 /* §C THE ONE HELPER LINE. Not a pill: plain type on the ground, low
    contrast, between the HUD and the chyron. Its box is reserved on every
@@ -620,14 +705,22 @@ body.no-ph [data-ph]{ display:none !important; }
   transition:opacity var(--t-b2-seat) linear, transform var(--t-b2-seat) var(--e-settle);
 }
 .ovpane--vote.is-taken .b2votes .v-a.is-chosen{ opacity:1; transform:none; }
+/* §3.2 THE QUESTION'S LEADING. It had no line-height at all, so it ran
+   at the UA's `normal` — which for SimplerPro 900 resolves to 1.32 — and
+   at 22-29px that is 8px of air between two lines of a two-line question.
+   1.08 is the display face's own set width: the prompt now reads as one
+   block rather than as two sentences. Before 1.32 (normal), after 1.08.
+   text-wrap:balance keeps the two lines near-equal so the tighter leading
+   does not leave a one-word second line hanging under a full first. */
 .b2q{ font-family:var(--font-display); font-weight:900;
-  font-size:clamp(22px, 3.4vh, 29px); color:#EFECE4; text-align:center; margin:0; }
+  font-size:clamp(22px, 3.4vh, 29px); line-height:1.08; text-wrap:balance;
+  color:#EFECE4; text-align:center; margin:0; }
 .b2bill{ font-size:15px; font-weight:700; line-height:1.45; color:#D8D2C4;
   text-align:center; max-width:30ch; margin:0; }
-/* §1.0 the consent line. The hold is explained, so it reads as suspense
-   rather than as a bug. It arrives WITH the pinned answer. */
-.b2consent{ font-size:var(--fs-meta); font-weight:700; color:var(--ink-faint);
-  text-align:center; margin:0; }
+/* §3.2 .b2consent IS GONE from the markup — "את התוצאה נגלה בסוף ›" was
+   a promise about a beat five screens away, printed under the question
+   being asked now. The rule is kept as a tombstone rather than deleted so
+   the next person searching for the class finds out where it went. */
 .ov--out{ animation:ov-out var(--t-ov-in) var(--e-settle) both; }
 @keyframes ov-out{ from{opacity:1} to{opacity:0} }
 
@@ -922,11 +1015,11 @@ body.no-ph [data-ph]{ display:none !important; }
 
 .gt{ background:rgba(55,196,255,.22); border-bottom:2px dotted #9FD9F2;
   color:#EFECE4; padding:0 3px; font-weight:900; cursor:pointer; }
-.gdef{
-  margin:0; background:var(--paper); color:var(--ink); border-radius:12px;
-  padding:9px var(--sp-3); font-size:12.5px; font-weight:700; line-height:1.45;
-  box-shadow:0 0 0 2px rgba(0,0,0,.4);
-}
+/* §3.1 .gdef IS GONE. Tapping a term opened a plain white panel inline,
+   under the term, inside the paragraph — so the sentence the player was
+   reading reflowed around it as it opened and again as it shut. The term
+   now opens .stmodal, the same sticker the law does. Tombstone kept so
+   the next person searching for the class finds out where it went. */
 /* sources: ONE line. Not a block, not a card, not chips. */
 .b5src{ font-size:11.5px; font-weight:700; color:#8E897C; margin:0; }
 .b5src a{ color:#8E897C; }
@@ -1186,9 +1279,14 @@ body.no-ph [data-ph]{ display:none !important; }
 
 .node{ position:absolute; z-index:2; width:var(--node-box);
   display:flex; flex-direction:column; align-items:center; }
-.node-name{ margin-top:2px; font-size:14px; line-height:1.2; text-align:center;
+/* THE GAP UNDER THE NODE IS PART OF THE 15%. It is not the margin — it is
+   the distance from the base of the disc to the label, and the ring box
+   closed up by 2px when the overhang went, so the margin has to make up
+   the difference as well as grow. Board: 132 - (24.5+76+7) + 2 = 26.5px.
+   Now: 130 - (17.5+87+8) + 13 = 30.5px, which is 26.5 x 1.15. */
+.node-name{ margin-top:13px; font-size:16px; line-height:1.2; text-align:center;
   color:#EFECE4; font-family:var(--font-display); font-weight:900; }
-.node-status{ font-size:11px; font-weight:700; color:var(--ink-faint); }
+.node-status{ font-size:13px; font-weight:700; color:var(--ink-faint); }
 
 /* ---- the node itself ----------------------------------------------
    THE RING IS A SEPARATE ELEMENT BEHIND THE NODE and nothing the node
@@ -1240,91 +1338,65 @@ body.no-ph [data-ph]{ display:none !important; }
   box-shadow:0 0 0 0 var(--tc-shade), 0 0 0 1.5px rgba(0,0,0,.42); }
 .node-face:focus-visible{ outline:3px solid var(--edge); outline-offset:3px; }
 
-/* ---- the cream tile the icon stands on -----------------------------
-   THIS IS WHAT SOLVES CORAL-ON-CORAL, and it only solves it by covering
-   the WHOLE icon: a tile behind part of the object would leave the rest of
-   a coral receipt sitting on a coral disc with nothing between them. It is
-   the icon's own box plus --node-tile-pad on every side, so every icon is
-   fully on cream whatever its shape, and the cream shows THROUGH the
-   object as well as around it — the gaps between the scales' beam and
-   pans, the hole in the magnifier — which is where most of the separation
-   actually comes from.
+/* ---- THE ICON SITS DIRECTLY ON THE DISC ---------------------------
+   §1.4 resolves the standing A3 conflict in favour of the newer
+   instruction. The cream stadium tile and the 14px overhang are both
+   gone; the icon lies flat on the hue, optically centred in the face,
+   which is what the earliest node version did.
 
-   IT IS A STADIUM, NOT A RECTANGLE, and that is a fit constraint rather
-   than a style one. A rounded rectangle's top corners are the furthest
-   points from the node centre, and at this overhang they cross the ring on
-   every icon in the set — measured, at every size down to 44px. Rounding
-   the short side completely pulls those corners in far enough to clear it.
-   The tile has NO outer keyline for the same reason: a 2px spread ring
-   would put it back through the ring. It does not need one — cream on a
-   saturated hue is already the strongest edge on the node. */
-.node-tile{
-  position:absolute; left:50%; z-index:2;
-  top:calc(-1 * (var(--node-ico-over) + var(--node-tile-pad)));
-  transform:translateX(-50%);
-  background:var(--paper);
-  box-shadow:0 3px 0 rgba(0,0,0,.28);
-  pointer-events:none;
-}
+   WHAT STILL SEPARATES A CORAL ICON FROM A CORAL DISC is the die-cut —
+   url(#dcw-sm), the 2px white dilate the avatars carry (the cards' own
+   edge, #dcw, is 5px; this is the small one). The earlier
+   instruction was "pick one, do not do both": the tile and the die-cut
+   were the two candidates, the tile won that round, and removing the tile
+   promotes the die-cut rather than leaving the icon unseparated. It
+   follows the object's silhouette instead of boxing it, so the cream
+   still shows through the gaps in the scales and the hole in the
+   magnifier — which is where most of the separation came from anyway.
 
-/* ---- THE ICON BREAKS OUT OF THE DISC ------------------------------
-   The icon stands --node-ico-over above the disc's top edge and its cream
-   tile stands --node-tile-pad beyond that, so the composite breaks out by
-   14px on a 76px disc — 18.4%. It keeps the 2px white die-cut the avatars
-   carry, over the cream, so it reads as a sticker laid on the node rather
-   than as a picture printed inside it. Its own drop shadow is gone: the
-   tile underneath carries the shadow now, and two stacked ones read as
-   dirt at this size.
+   OPTICALLY CENTRED, NOT BOX CENTRED. The face is 87px with an 8px base
+   under it, so the composite's centre of mass sits below the face's; the
+   icon is lifted 1.5px off the geometric centre so it reads as sitting in
+   the middle of the disc rather than slightly low on it. Everything is
+   measured from the FACE, so the icon still inherits the 80ms translateY
+   the disc takes on press — it is a child of the face, not a sibling.
 
-   IT MOVES WITH THE FACE ON PRESS because it is a CHILD of the face, not
-   a sibling: the 80ms translateY the disc takes is inherited rather than
-   duplicated, so the two can never drift apart or be retuned separately.
-
-   WHY THE RING GREW FROM 50.5 TO 63, and it is the only board measurement
-   this file overrides. The ring clears the face+base composite by a
-   constant margin all the way round, so the room above the disc's top edge
-   IS that margin: at the board's r=50.5 it is 6px, and an overhang can
-   therefore never exceed 6px — 7.9% — at the very centre line, and less
-   than that anywhere the icon has width. Measured against the real
-   silhouettes, the largest overhang that keeps every die-cut inside the
-   board's ring is 1.0px, or 1.3% of the disc. There is no icon size that
-   fixes it; 15% is unreachable by construction.
-   The brief says reduce the overhang, never the ring gap. Reducing the
-   overhang to 1.3% deletes the feature, so the ring was moved the other
-   way: r=63 puts its inner edge at 60, which clears the widest icon in the
-   set — the police hat, at 60x39 the binding one every time — with 1.4px
-   to spare at a 12px overhang. THE GAP IS INCREASED, NEVER REDUCED: 6px
-   becomes 18.5px, and nothing whatsoever overlaps the ring. The node box
-   grows 116 -> 132px, which the 199px node spacing absorbs untouched. */
+   IT MUST CLEAR THE RING, and it does with room to spare. The widest icon
+   in the set is the scales at 56.6 x 49.6 (gender, node_scale 1.11), whose
+   half-diagonal is 37.6px from the face centre — 46.0 from the ring
+   centre once the ring's 4px drop is taken in — against the ring's 54.5px
+   inner edge. The tallest, the receipt, is 29.2 x 54.9 and clears by
+   more. Nothing in the set touches the ring at any of the three widths. */
 .node-ico{
-  position:absolute; left:50%; top:calc(-1 * var(--node-ico-over)); z-index:3;
-  transform:translateX(-50%);
+  position:absolute; left:50%; top:calc(50% - 1.5px); z-index:3;
+  transform:translate(-50%, -50%);
   display:block; pointer-events:none;
   filter:url(#dcw-sm);
 }
 /* the emoji fallback has no die-cut to give it — it is a glyph, not art */
-span.node-ico{ font-size:38px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,0,0,.28)); }
+span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,0,0,.28)); }
 
 /* the two badges. The number is always there — nodes are numbered, and a
    number that vanishes on completion stops being an address. */
 .node-num{
-  position:absolute; left:5px; bottom:5px; z-index:3;
-  width:21px; height:21px; border-radius:50%;
+  position:absolute; left:6px; bottom:6px; z-index:3;
+  width:24px; height:24px; border-radius:50%;
   display:grid; place-items:center;
-  direction:ltr; font-family:var(--font-display); font-weight:900; font-size:12px;
+  direction:ltr; font-family:var(--font-display); font-weight:900; font-size:14px;
   background:var(--paper); color:var(--ink);
   box-shadow:0 0 0 1.5px rgba(0,0,0,.45), 0 2px 0 rgba(0,0,0,.3);
 }
-/* THE BADGES CLEAR THE RING, halo included. 21px inset 5px puts a badge's
-   far corner 44.3px from the node centre — 45.8 with its 1.5px casing —
-   against the ring's 47.5px inner edge. At 22px inset 3px the casing
-   crossed it, which is the "nothing may overlap the ring" rule broken by
-   a shadow rather than by a box. */
+/* THE BADGES CLEAR THE RING, halo included, and they still do at 15%.
+   24px inset 6px on an 87px face puts a badge's far corner 50.3px from
+   the RING centre — 51.8 with its 1.5px casing — against the ring's
+   54.5px inner edge. That is 2.7px of clearance where the board's
+   21/5 against r=50.5 had 1.7px, so the rule "nothing may overlap the
+   ring, shadows included" holds by a wider margin than before. */
 .node-check{
-  position:absolute; right:5px; bottom:5px; z-index:3;
-  width:21px; height:21px; border-radius:50%;
+  position:absolute; right:6px; bottom:6px; z-index:3;
+  width:24px; height:24px; border-radius:50%;
   display:grid; place-items:center;
-  font-size:12px; font-weight:900;
+  font-size:14px; font-weight:900;
   background:#2B2926; color:#fff; border:2px solid var(--paper);
   box-shadow:0 2px 0 0 #161413;
 }
@@ -1345,7 +1417,6 @@ span.node-ico{ font-size:38px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
    the tile and art sitting a little back. The disc cannot carry it: the
    disc is the topic's identity now and is the same on every state. */
 .node.is-untouched .node-ico{ opacity:.9; }
-.node.is-untouched .node-tile{ opacity:.9; }
 
 /* §3 THE PINNED SECTION HEADER IS GONE. It named the node nearest the
    middle of the window and swapped as you climbed — Duolingo's move, and
@@ -1492,36 +1563,176 @@ span.node-ico{ font-size:38px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
 /* the secondary way out, under the primary */
 .b5back{ margin-top:8px; }
 
-/* A7 · the law name, small and underlined, under the tachles prompt */
+/* A7 · the law name, small and underlined, under the tachles prompt.
+   §3.2 IT WAS RENDERING GREY, and not by anyone's choice: .b2bill sets
+   #D8D2C4, and this rule — later in the file, same specificity — then
+   overwrote it with `color:inherit`, which resolved to the pane's own
+   muted body colour. It is a tap target under the question and it has to
+   look like one, so it now sets its colour outright at 78% white. The
+   underline and the tap target are unchanged. */
 .b2bill--link{
   appearance:none; border:0; background:none; cursor:pointer;
-  font:inherit; color:inherit; text-decoration:underline;
-  text-underline-offset:3px; padding:0;
+  font:inherit; color:rgba(255,255,255,.78); text-decoration:underline;
+  text-underline-offset:3px; padding:2px 0;
 }
-/* A7 · THE LAW MODAL IS UNSTYLED ON PURPOSE — B3 picks its treatment
-   (bottom sheet / card flip / die-cut sticker) and anything decided here
-   would be thrown away. This is layout only: legible, closable, on top. */
-.lawmodal{
+.b2bill.b2bill--link{ color:rgba(255,255,255,.78); }
+/* =====================================================================
+   B3-3 · THE DIE-CUT STICKER MODAL
+   One component, two contents: the law (title + date + summary + the
+   police-hat placeholder) and a glossary term (term + definition). §3.1
+   moved the glossary onto it; the old inline .gdef panel is gone.
+   ===================================================================== */
+.stmodal{
   position:absolute; inset:0; z-index:60; display:grid; place-items:center;
-  padding:var(--sp-4); background:rgba(20,18,15,.72);
+  padding:var(--sp-4); background:rgba(20,18,15,.76);
+  opacity:0; transition:opacity var(--t-ov-in) linear;
 }
-.lawmodal__box{
-  position:relative; width:100%; max-width:330px; max-height:80%;
-  overflow-y:auto; -webkit-overflow-scrolling:touch;
+.stmodal.is-in{ opacity:1; }
+.stmodal.is-out{ opacity:0; }
+/* THE STICKER. Same construction as every card and every node icon in the
+   system: a white die-cut edge, the keyline outside it, and a flat
+   extrusion straight down with zero blur. The 1.4-degree tilt is what
+   makes it a sticker laid on the screen rather than a dialog box. */
+.stmodal__box{
+  position:relative; width:100%; max-width:312px; max-height:76%;
+  overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain;
   background:var(--paper); color:var(--ink);
-  border-radius:var(--r-chip); padding:var(--sp-4);
+  border:5px solid var(--edge); border-radius:18px;
+  box-shadow:0 0 0 2px var(--keyline), 0 8px 0 rgba(0,0,0,.4);
+  padding:var(--sp-4);
   display:flex; flex-direction:column; align-items:center; gap:var(--sp-2);
+  transform:rotate(-1.4deg) scale(.9);
+  transition:transform var(--t-flip) var(--e-land);
 }
-.lawmodal__x{
-  position:absolute; inset-inline-end:8px; top:8px; width:32px; height:32px;
-  border:0; background:none; cursor:pointer; font-size:18px; line-height:1; color:var(--ink);
+.stmodal.is-in .stmodal__box{ transform:rotate(-1.4deg) scale(1); }
+/* the ✕ sits over the scrolling content, not inside it, so a long
+   bill_summary cannot scroll the way out off the top of the box */
+/* flex-start in an RTL column is the PHYSICAL RIGHT, which is where the
+   app's own ✕ lives — see .exitsheet__x. Sticky so a long bill_summary
+   cannot scroll the way out off the top of the box. */
+.stmodal__x{
+  position:sticky; top:0; align-self:flex-start; z-index:2;
+  width:40px; height:40px; margin:-6px -8px -34px 0;
+  border:0; background:none; cursor:pointer;
+  font-size:18px; line-height:1; color:var(--ink); opacity:.6;
 }
-.lawmodal__art{ width:64px; height:auto; display:block; }
-.lawmodal__title{ margin:0; font-family:var(--font-display); font-weight:900;
-  font-size:var(--fs-body); line-height:1.25; text-align:center; }
-.lawmodal__date{ margin:0; font-size:var(--fs-meta); color:var(--ink-soft); }
-.lawmodal__body{ margin:0; font-size:var(--fs-meta); font-weight:700;
-  line-height:1.55; text-align:start; }
+.stmodal__x:active{ opacity:1; }
+.stmodal__art{ width:64px; height:auto; display:block; filter:url(#dcw-sm); }
+.stmodal__title{
+  margin:0; padding-inline:30px;   /* symmetric, so a centred title clears the ✕ */
+  font-family:var(--font-display); font-weight:900;
+  font-size:var(--fs-body); line-height:1.22; text-align:center;
+}
+.stmodal__meta{ margin:0; font-size:var(--fs-meta); font-weight:700; color:var(--ink-soft); }
+.stmodal__body{
+  margin:2px 0 0; font-size:var(--fs-meta); font-weight:700;
+  line-height:1.55; text-align:start; align-self:stretch;
+}
+/* a glossary term has no graphic and no date, so its sticker is short —
+   the title carries the term and the body carries data.js's definition */
+.stmodal__box:not(:has(.stmodal__art)) .stmodal__title{ font-size:20px; }
+
+/* =====================================================================
+   B2-4 · THE ASK STICKER
+   One component, two copy strings: the claim card asks אמת או שקר? and
+   the first cascade card asks מה הוא/היא הצביע/ה?. Nothing else about it
+   differs between the two.
+   ===================================================================== */
+/* IT COSTS THE CARD NOTHING. It is a child of .cardwrap, which does not
+   clip, and it hangs off the card's TOP-RIGHT corner — the corner
+   diagonally opposite the verdict stamp at top:430 left:-22. The two
+   cannot meet on any card at any scale, which is what makes this the one
+   B2 option with no stamp risk.
+
+   IT IS CHROME-SCALE, NOT CARD-SCALE, and this is the only unusual thing
+   about it. sizeStage() scales .stack so a 620px card fits a short phone;
+   a sticker inside it would inherit that and settle SMALLEST on the
+   smallest screen, which is exactly backwards for an instruction. The
+   counter-scale is 1/--card-scale about the same corner it is pinned to,
+   so the settled sticker is the same number of CSS pixels at 360, 393 and
+   430 — measured, not asserted; the figures are in the report.
+
+   THE TWO TRANSFORMS ARE ON TWO ELEMENTS ON PURPOSE. .ask-st carries the
+   counter-scale, which is static and depends on a custom property;
+   .ask-st__i carries the slap, which is a keyframe animation. Composing
+   them on one element would mean animating a transform whose base value
+   changes on resize. */
+/* IT STRADDLES THE CARD'S TOP EDGE rather than sitting inside the corner,
+   and that is a collision fix, not a preference. .mf-b__id puts the MK's
+   name at top:18px inset-inline:14px with text-align:right — which in RTL
+   is the card's top-RIGHT corner, exactly where a corner sticker wants to
+   go. Drawn there it covered יאיר לפיד outright, and a name long enough
+   would reach a top-LEFT sticker just as surely.
+   bottom:calc(100% - 10px) pins the sticker's FOOT 10px below the card's
+   top edge — 5px of that is the card's own die-cut border — so it reads as
+   stuck onto the card while its body sits above the card entirely. The
+   name block starts 8px below where the sticker ends, at any name length,
+   because the sticker is no longer in the name's band at all. */
+.ask-st{
+  position:absolute; z-index:9; top:auto; bottom:calc(100% - 10px); right:-8px;
+  transform-origin:100% 100%;
+  transform:scale(calc(1 / var(--card-scale, 1)));
+  pointer-events:none;
+  transition:opacity 160ms linear, transform 160ms var(--e-in);
+}
+.ask-st.is-retired{ opacity:0; }
+.ask-st__i{
+  display:block; opacity:0; transform-origin:100% 100%;
+  background:var(--paper); color:var(--ink);
+  font-family:var(--font-display); font-weight:900;
+  font-size:16px; line-height:1.06; white-space:nowrap;
+  padding:8px 13px 9px; border-radius:12px;
+  border:3px solid var(--edge);
+  box-shadow:0 0 0 2px var(--keyline), 0 4px 0 rgba(0,0,0,.34);
+}
+/* THE SLAP. It arrives from above and outside the card, over-shoots small
+   on contact and settles — the same land-and-hit shape the verdict stamp
+   uses, at a fraction of its weight, so it reads as part of the same
+   physical language without ever being mistaken for a verdict. It has no
+   hue: the verdict stamp is the only coloured mark in the round. */
+.ask-st__i.is-ready,
+.ask-st.is-slapped .ask-st__i{
+  animation:ask-slap var(--t-ask-in) var(--e-land) both;
+}
+@keyframes ask-slap{
+  0%   { opacity:0; transform:translate(10px,-30px) rotate(-21deg) scale(1.7) }
+  40%  { opacity:1 }
+  62%  { transform:translate(0,0) rotate(-3.2deg) scale(.94) }
+  82%  { transform:translate(0,0) rotate(-6.6deg) scale(1.03) }
+  100% { opacity:1; transform:translate(0,0) rotate(-5.5deg) scale(1) }
+}
+
+/* =====================================================================
+   B1-2 · THE FIRST-RUN INSTRUCTION OVERLAY
+   Full screen, the player's first ever issue, never again. The card is
+   already dealt underneath it — the overlay explains the thing that is
+   there, rather than standing in front of an empty screen.
+   ===================================================================== */
+.b1intro{
+  position:absolute; inset:0; z-index:80; cursor:pointer;
+  display:grid; place-items:center; padding:var(--sp-5);
+  background:rgba(20,18,15,.88);
+  opacity:0; transition:opacity var(--t-ov-in) linear;
+}
+.b1intro.is-in{ opacity:1; }
+.b1intro.is-out{ opacity:0; }
+.b1intro__box{
+  display:flex; flex-direction:column; align-items:center; gap:var(--sp-4);
+  text-align:center; max-width:300px;
+  transform:translateY(10px); transition:transform var(--t-flip) var(--e-settle);
+}
+.b1intro.is-in .b1intro__box{ transform:none; }
+/* the heading is the SAME string the claim sticker carries — one question
+   asked once big and then kept small on the card for every round after */
+.b1intro__t{
+  margin:0; font-family:var(--font-display); font-weight:900;
+  font-size:34px; line-height:1.05; color:#EFECE4;
+}
+.b1intro__b{
+  margin:0; font-size:var(--fs-body); font-weight:700; line-height:1.5;
+  color:#D8D2C4;
+}
+.b1intro__go{ min-width:170px; }
 
 /* A7 · the avatar inside the pinned own-vote band, at the leading edge */
 .chyron-av{ flex:none; width:28px; height:28px; line-height:0; }
