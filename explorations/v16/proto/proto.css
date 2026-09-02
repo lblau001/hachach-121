@@ -75,6 +75,11 @@
      arrives under it. Long enough to read one word and register the
      colour, short enough that it is a beat and not a wait. */
   --t-claim-hold:  700ms;
+  /* §1.1 step 2 · THE BEAT BETWEEN COMMIT AND STAMP. The answer is
+     registered and nothing moves. It is the pause that lets the commit
+     land as its own event before the verdict arrives on top of it — with
+     no gap the stamp reads as part of the tap. */
+  --t-claim-beat: 400ms;
 
   /* §A the deck. A card is turned over, never swapped: --t-card-flip is
      the turn, --t-card-exit the resolved card being swiped off. */
@@ -213,7 +218,30 @@ body{
   background:#403E3A;
   box-shadow:0 3px 20px rgba(0,0,0,.4);
 }
+/* §3.2 · THE MAP GETS A GROUND OF ITS OWN, warm and energetic. It is on
+   .stage rather than on .sc-map so it covers the whole viewport including
+   the strips under the HUD and below the jump button — see §5.3. The
+   round and the intro are untouched: only [data-screen="map"] matches.
+   THE DOT GRID CARRIES OVER IT. .stage::before is inset:0 above this and
+   is not touched, so the same 4px/7px two-layer grid the round stands on
+   runs across the gradient — which is what keeps the two screens the same
+   product. Its dark layer does most of the work on a light ground. */
+.stage[data-screen="map"]{
+  background:
+    radial-gradient(120% 80% at 50% 108%, #F2B33C 0%, #E4732B 38%, #C4402E 70%, #8E2A2E 100%),
+    #C4402E;
+}
 @supports (height: 100dvh){ .stage{ height:100dvh; } }
+/* §5.3, SECOND CAUSE. max-width:390px is a DESKTOP PREVIEW FRAME — it
+   keeps the prototype phone-shaped in a browser window — but it applies on
+   real phones too, so a 430px device ran the app at 390 with 20px of body
+   grey down each side. That is the same "does not fill the viewport"
+   symptom on the other axis, and it affects every screen, not just the
+   map. On anything phone-sized the cap comes off; above 480px the frame
+   stays, because there it is doing the job it was written for. */
+@media (max-width: 480px){
+  .stage{ max-width:none; }
+}
 
 .stage::before{
   content:""; position:absolute; inset:0; z-index:0; pointer-events:none;
@@ -490,14 +518,60 @@ body.no-ph [data-ph]{ display:none !important; }
 .b1card.is-leaving{ transition:transform var(--t-swipe) var(--e-out),
                                 opacity var(--t-swipe) linear; }
 
-.b1art{ flex:none; display:grid; place-items:center; min-height:210px; }
+/* §1.3 · THE GRAPHIC USES THE ROOM, AND IT IS THE THING THAT YIELDS.
+   The card is 620px and the art had a flat 210px floor with the claim
+   taking whatever was left, so on a short claim (s1, 49 chars) a third of
+   the card was empty. It is now flexible with a generous floor and a cap,
+   so it grows into the space a short claim leaves and shrinks when the
+   claim needs the room — `flex:1 1 auto; min-height:0` on the art and
+   `flex:none` on the claim is what makes the TEXT win the fight. Checked
+   against e3, the longest claim in the active set at 190 characters. */
+/* the BOX grows into whatever the claim leaves, the IMAGE is capped by its
+   own declared size — so the graphic is centred in the space rather than
+   the space collecting as a gap between the claim and the buttons */
+.b1art{
+  flex:1 1 auto; min-height:0;
+  display:grid; place-items:center; align-self:stretch;
+}
+/* THE IMG IS CAPPED, NOT RE-SIZED. claimArt() writes width/height
+   attributes on the <img> — 300x180 for s1's art, 128-scaled for the
+   topic fallback — and those attributes ARE the layout size. Setting
+   `width:auto; height:auto` here (which the first version did) threw them
+   away and the image rendered at its natural 900x539, four times its
+   slot, overflowing the card and being clipped by .mf-b's overflow.
+   max-* only: the attributes still size it, this only ever shrinks it. */
+.b1art img{ max-width:100%; max-height:var(--b1art-cap, 340px); height:auto; }
+/* WHEN THE PANEL RISES THE ART GIVES WAY. The panel covers the card's
+   lower portion, and the one thing that must survive it is the claim the
+   explanation is explaining. The art is capped hard here so the claim
+   floats up clear of the panel's top edge; the answer row is spent and
+   goes entirely, which is where most of the room comes from. */
+/* ON REVEAL THE ART BOX STOPS GROWING. Left at flex:1 it absorbed the room
+   the hidden answer row freed and pushed the claim straight back under the
+   panel — the box grew even though the image inside it could not. */
+.b1card.is-revealing .b1art{ flex:0 0 auto; }
+.b1card.is-revealing{ --b1art-cap:126px; }
+.b1card.is-revealing .b1ans{ display:none; }
+.b1card.is-revealing{ padding-bottom:var(--sp-3); }
+.b1card.is-revealing .b1claim{ flex:none; }
 .b1art img{ display:block; filter:url(#dcw) drop-shadow(0 5px 0 rgba(0,0,0,.30)); }
 
+/* §1.3 · THE TEXT WINS, SO THE TEXT SETS ITS OWN SIZE. The claims in the
+   active set run from 49 characters (s1) to 190 (e3) — nearly 4x — and one
+   font size cannot serve both: 29px is right for s1 and gives e3 eight
+   lines that overflow the card. Three steps, keyed off the string length
+   in beat1(), so the graphic yields to the text rather than the text being
+   clipped. The steps are measured, not guessed: at 393px, e3 at 29px is
+   336px of claim, at 20px it is 232 — which is what lets the panel clear
+   it. See the panel cap in claimReveal(). */
 .b1claim{
-  flex:1; display:grid; place-items:center; margin-top:6px;
-  font-family:var(--font-display); font-weight:900; font-size:var(--fs-claim);
+  flex:none; display:grid; place-items:center; margin-top:10px;
+  font-family:var(--font-display); font-weight:900;
+  font-size:var(--b1claim-fs, var(--fs-claim));
   line-height:1.16; color:var(--ink); text-align:center; text-wrap:balance;
 }
+.b1card--mid  { --b1claim-fs:24px; }
+.b1card--long { --b1claim-fs:20px; }
 
 /* the two answers. IDENTICAL — same class, same size, same weight, same
    ink. אמת and שקר are never told apart by anything but their letters.
@@ -814,9 +888,30 @@ body.no-ph [data-ph]{ display:none !important; }
 /* the fill. It grows FROM the player's stop toward the MK's, anchored on
    the edge the growth starts at — see runAxis() for why that anchor is
    what makes it read right-to-left when it runs that way. */
+/* §3.1 · THE GAP CARRIES THE DISTANCE. It was rgba(34,31,23,.26) — a flat
+   grey that said only "there is a gap here" while the length of it
+   already said that.
+   ONE HUE, THREE STRENGTHS, and that is deliberate: the strengths are the
+   only variable, so the three states cannot be misread as three different
+   kinds of thing. The hue is --verdict-surprise, which is already the
+   system's "you were surprised" colour, so a wide gap says the same word
+   the stamp does rather than introducing a fourth verdict colour.
+   SYMMETRY IS STRUCTURAL. runAxis() keys the class off Math.abs(), so
+   בעד->נגד and נגד->בעד are the same class and there is no branch that
+   could drift. Verified in the report against all 9 guess/vote pairs.
+   DISTANCE 0 NEVER PAINTS A FILL — there is nowhere to travel — so
+   agreement is carried by a lime tint on the TRACK instead, which is the
+   "neutral/positive, no alarm" end of the scale. */
 .gx-fill{
   position:absolute; top:0; bottom:0; width:0; border-radius:19px;
-  background:rgba(34,31,23,.26); pointer-events:none;
+  background:var(--gx-gap, rgba(34,31,23,.26)); pointer-events:none;
+  transition:background var(--t-flip) linear;
+}
+.gx--d1{ --gx-gap:color-mix(in srgb, var(--verdict-surprise) 30%, transparent); }
+.gx--d2{ --gx-gap:color-mix(in srgb, var(--verdict-surprise) 62%, transparent); }
+.gx--d0 .gx-track,
+.gx.is-agreed .gx-track{
+  background:color-mix(in srgb, var(--verdict-correct) 22%, rgba(34,31,23,.26));
 }
 .gx-m{ position:absolute; top:50%; translate:50% -50%; width:38px; height:38px; display:block;
   transition:right var(--t-flip) var(--e-settle); z-index:2; }
@@ -1070,16 +1165,63 @@ body.no-ph [data-ph]{ display:none !important; }
    work, and the type goes light because the band is now dark.
    §3a the hard ink block down the leading edge is gone with the ::before
    that drew it. §3d so is the avatar — the band carries the answer. */
+/* §2 · THE BAND GOES LIGHT, AND THE TYPE GOES DARK WITH IT.
+   It was a 30% dark film with light type. Light type on a low-alpha film
+   only works while the ground stays dark, and §3.2 puts a warm
+   yellow/red gradient behind the map — so the same band would have had to
+   carry light type over a light ground. A LIGHT film with INK type is the
+   combination that survives both, which is why the re-ink goes this
+   direction rather than the other.
+   The blur stays: at 72% the ground still reads through it, and the band
+   is a film over the round rather than a panel on top of it.
+
+   §2 · THE NEON, AND WHY THIS HUE.
+   Every other candidate in the palette is spoken for:
+     lime #B6E521 / magenta #FF3BC0  are the verdict pair. A verdict hue on
+       the player's own vote banner says their vote was graded, which is
+       the exact thing §0 forbids anywhere near the tachles award.
+     yellow #FFD60A  is P-C, "the only yellow in the system", and §3.2
+       turns the map ground warm yellow/red — a yellow glow would compete
+       with the primary button and then disappear against the map.
+     the six live topic hues  name a topic, and this band is the player's.
+   #37C4FF is already in the system twice — it is the glossary accent
+   (.gt's dotted underline) and internal_sec's topic hue — so it
+   introduces no new brand colour. internal_sec has no active issue, so
+   its node never draws, and §3.2 takes topic hues off the nodes anyway;
+   the association is theoretical rather than visible. It is also the only
+   palette hue that stays legible against BOTH the charcoal round chrome
+   and the warm map gradient, being roughly complementary to the latter.
+
+   A LIT SIGN, NOT A BLOOM. One 2px stroke at full strength, then two
+   spreads at 55% and 22% — enough that the edge reads as emitting rather
+   than as drawn, and short enough that it does not haze the type inside
+   it or fight the sticker language around it. No animation: a pulsing
+   chyron would compete with §3.3's next-up node, which is the one thing
+   on screen that IS allowed to pulse. */
 [data-chyron="band"] .chyron{
+  --neon:#37C4FF;
   padding-inline:var(--sp-3);
   border-radius:var(--r-chip);
-  background:rgba(16,14,11,.30);
+  background:rgba(251,247,238,.72);
   -webkit-backdrop-filter:blur(12px) saturate(1.15);
   backdrop-filter:blur(12px) saturate(1.15);
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);
-  color:#EFECE4;
+  box-shadow:
+    0 0 0 2px var(--neon),
+    0 0 9px  0 color-mix(in srgb, var(--neon) 55%, transparent),
+    0 0 20px 0 color-mix(in srgb, var(--neon) 22%, transparent),
+    inset 0 0 0 1px rgba(255,255,255,.55);
+  color:var(--ink);
 }
-[data-chyron="band"] .chyron-line{ color:#EFECE4; }
+[data-chyron="band"] .chyron-line{ color:var(--ink); }
+[data-chyron="band"] .chyron-line .ph{ color:var(--ink); }
+/* THE AVATAR IS RE-INKED BY ITS EDGE, not by repainting AV3. Its ground
+   circle is #C9BFA6 cream, which on a cream band loses its silhouette
+   entirely; a dark keyline restores the boundary without touching the
+   inline SVG's fills — which the map node and the HUD also draw. */
+[data-chyron="band"] .chyron-av{
+  border-radius:50%;
+  box-shadow:0 0 0 2px rgba(19,19,16,.72);
+}
 
 /* ---- note · a scrap left on the table -------------------------------
    Not a band at all: a small square of paper resting at the leading side
@@ -1239,9 +1381,11 @@ body.no-ph [data-ph]{ display:none !important; }
   filter:drop-shadow(0 2px 0 rgba(0,0,0,.30)); }
 .i-ls .g:nth-child(2n){ z-index:2; }
 .i-ls .g:nth-child(3n){ z-index:3; }
+/* --gs is set per glyph by lsGlyph() under ?title=multi and is absent
+   otherwise, so the default stays the shipped white die-cut. */
 .i-ls text{
   font-family:var(--font-display); font-weight:900; font-size:92px;
-  text-anchor:middle; fill:var(--ink); stroke:var(--edge); stroke-width:29px;
+  text-anchor:middle; fill:var(--ink); stroke:var(--gs, var(--edge)); stroke-width:29px;
   stroke-linejoin:round; paint-order:stroke fill;
 }
 
@@ -1258,8 +1402,34 @@ body.no-ph [data-ph]{ display:none !important; }
    gone. What shows through is .stage's own charcoal and its 4px/7px dot
    grid, unbroken from the top of the HUD to the foot of the path, which is
    what every other screen stands on. */
+/* §5.3 · THE MAP SURFACE REACHES ALL FOUR VIEWPORT EDGES.
+   THE CAUSE, measured rather than guessed. .stage carries
+   `padding: 10px+safe-top / 16px / 12px+safe-bottom / 16px`, and .mapwin
+   cancelled the HORIZONTAL half of that with `margin:0 -16px` and nothing
+   at all vertically. So the map's scroll surface has always stopped 10px
+   below the viewport top and 12px above the bottom.
+   IT WAS INVISIBLE BECAUSE THE TWO GROUNDS MATCHED: the map had no ground
+   of its own and what showed in those strips was .stage's charcoal, the
+   same charcoal the map was drawn on. What made it visible was the
+   ribbon — the road ran to .mapwin's edge and stopped 10/12px short of
+   the screen, which is what reads as "the map is sitting in a box".
+   §3.2's gradient would have made it obvious in a different way: a
+   gradient surface with a flat charcoal strip above and below it.
+   So this is NOT the styles/base.css `--vh` bug — .stage measures
+   0->852 at 393x852, full height, and 100dvh does win here because
+   proto.css puts it in an @supports block AFTER the --vh declaration.
+   base.css:25 has the opposite order and that IS broken, but it is the
+   shipped app's file and a different screen; see the report.
+   THE FIX is to give the map back the padding on all four sides, not
+   just two. The HUD floats over it at z-index 12, which it already did. */
 .sc-map{ min-height:0; }
-.mapwin{ position:relative; flex:1; min-height:0; margin:0 -16px; }
+.mapwin{
+  position:relative; flex:1; min-height:0;
+  margin:calc(-10px - env(safe-area-inset-top)) -16px
+         calc(-12px - env(safe-area-inset-bottom));
+}
+/* the HUD and the jump button keep their inset — only the SURFACE bleeds */
+.sc-map .map-jump{ bottom:calc(14px + env(safe-area-inset-bottom)); }
 .path{ position:relative; width:100%; }
 
 /* §2 THE CONNECTOR IS THE BOARD'S RIBBON, not a bead trail. The v7 path
@@ -1273,9 +1443,14 @@ body.no-ph [data-ph]{ display:none !important; }
    and 6px along the bottom — the same lit-top-over-dark-base construction
    the discs, the chips and the cards are all built from. */
 .path-line{ position:absolute; inset:0; width:100%; height:100%; z-index:1; overflow:visible; }
-.pl-under{ fill:none; stroke:#2A2924; stroke-width:23; stroke-linecap:round;
+/* §3.2 the ribbon is re-toned for the warm ground. The old #2A2924/#615D53
+   pair was mixed for charcoal and read as a dead grey road on the
+   gradient. Same construction — dark base offset 6px, lighter top laid
+   over — with both tones pulled toward the ground's own warmth, so the
+   road belongs to the map instead of sitting on it. */
+.pl-under{ fill:none; stroke:#3A2119; stroke-width:23; stroke-linecap:round;
   transform:translateY(6px); }
-.pl-dots{ fill:none; stroke:#615D53; stroke-width:19; stroke-linecap:round; }
+.pl-dots{ fill:none; stroke:#7A5B49; stroke-width:19; stroke-linecap:round; }
 
 .node{ position:absolute; z-index:2; width:var(--node-box);
   display:flex; flex-direction:column; align-items:center; }
@@ -1309,8 +1484,19 @@ body.no-ph [data-ph]{ display:none !important; }
    which is what a progress ring has to look like.
    The unplayed state is still legible without colour: it is a dark inert
    casing against the topic's own saturated hue. */
-.seg-off{ stroke:#6F6C63; }
-.seg-on { stroke:var(--tc); }
+/* §3.2 · ONE NODE COLOUR, AND THE STATES MOVE FROM HUE TO VALUE.
+   The disc used to carry the topic hue and the ring used the same hue for
+   its filled segments, so "which topic" and "how far through it" were the
+   same variable at two saturations. The sticker names the topic now, so
+   the disc goes to one shared ink for all six and the ring carries state
+   alone — CREAM for done, dark translucent for not. That is a value
+   contrast rather than a hue contrast, which is what keeps it legible
+   against a gradient that runs from #F2B33C to #8E2A2E; a hue-coded ring
+   would have had to fight a different background colour at every node.
+   The per-topic hues stay in data.js and are still written onto the node
+   as --tc; nothing reads them here. Presentation only, as briefed. */
+.seg-off{ stroke:rgba(24,20,16,.42); }
+.seg-on { stroke:var(--paper); }
 
 /* §1 THE DISC CARRIES THE HUE, AND THE ICON SITS ON CREAM. This reverses
    the neutral-dark disc: on device that lost the eight-hue topic system
@@ -1325,17 +1511,18 @@ body.no-ph [data-ph]{ display:none !important; }
 
    DUOLINGO EXTRUSION, NOT A DROP SHADOW. Zero blur, zero spread, offset
    straight down by the depth. */
+.node{ --node-fill:#2E2A26; --node-base:#171412; }
 .node-face{
   position:absolute; left:var(--node-face-x); top:var(--node-face-y); z-index:2;
   width:var(--node-face); height:var(--node-face); border-radius:50%;
   border:0; padding:0; cursor:pointer;
-  background:var(--tc-face);
-  box-shadow:0 var(--node-depth) 0 0 var(--tc-shade),
+  background:var(--node-fill);
+  box-shadow:0 var(--node-depth) 0 0 var(--node-base),
              0 0 0 1.5px rgba(0,0,0,.42);
   transition:transform var(--t-node-press) linear, box-shadow var(--t-node-press) linear;
 }
 .node-face:active{ transform:translateY(var(--node-depth));
-  box-shadow:0 0 0 0 var(--tc-shade), 0 0 0 1.5px rgba(0,0,0,.42); }
+  box-shadow:0 0 0 0 var(--node-base), 0 0 0 1.5px rgba(0,0,0,.42); }
 .node-face:focus-visible{ outline:3px solid var(--edge); outline-offset:3px; }
 
 /* ---- THE ICON SITS DIRECTLY ON THE DISC ---------------------------
@@ -1403,14 +1590,44 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
 /* THE SOFT NUDGE, and it is the only one. No lock, no prerequisite, no
    "pick needed" warning: free choice is a SET decision (§3.1) and the
    current node is a suggestion for choice-paralysis, nothing more. */
-.node.is-current .ring{ filter:drop-shadow(0 0 9px rgba(255,214,10,.5)); }
-.node.is-current .seg-off{ stroke:#8E8B81; }
+/* §3.3 · THE SLOW PULSE, and it is a nudge and nothing more.
+   Behind the node, never on it: a soft disc that breathes between 0.94
+   and 1.16 over 3.4s. Slow enough that it reads as ambient rather than as
+   an alert, and it never touches the node's own geometry, so a pulsing
+   node and a still one are the same size and the same shape — nothing
+   about it says "you must play this one". The map stays free choice.
+   NO MOTION UNDER prefers-reduced-motion: the glow holds at its midpoint
+   so the node is still marked, it simply stops moving. The global
+   reduced-motion rule at the foot of this file caps durations at 1ms,
+   which for an infinite alternate loop would strobe — hence the explicit
+   `animation:none` here rather than relying on it. */
+.node.is-current .ringnode::before{
+  content:""; position:absolute; z-index:0;
+  left:50%; top:calc(var(--node-face-y) + var(--node-face) / 2);
+  width:150px; height:150px; margin:-75px 0 0 -75px;
+  border-radius:50%; pointer-events:none;
+  background:radial-gradient(circle,
+    rgba(255,255,255,.34) 0%, rgba(255,255,255,.16) 42%, rgba(255,255,255,0) 70%);
+  animation:node-pulse 3400ms var(--e-settle) infinite alternate;
+}
+@keyframes node-pulse{
+  from{ transform:scale(.94); opacity:.55 }
+  to  { transform:scale(1.16); opacity:1 }
+}
+@media (prefers-reduced-motion: reduce){
+  .node.is-current .ringnode::before{
+    animation:none; transform:scale(1.05); opacity:.8;
+  }
+}
+.node.is-current .seg-off{ stroke:rgba(24,20,16,.55); }
+/* §3.3 · THE NEXT-UP NODE. A white keyline plus the pulse behind it —
+   see .node.is-current .ringnode::before. */
 .node.is-current .node-face{
-  box-shadow:0 var(--node-depth) 0 0 var(--tc-shade),
+  box-shadow:0 var(--node-depth) 0 0 var(--node-base),
              0 0 0 3px var(--edge), 0 0 0 4.6px rgba(0,0,0,.45);
 }
 .node.is-current .node-face:active{
-  box-shadow:0 0 0 0 var(--tc-shade),
+  box-shadow:0 0 0 0 var(--node-base),
              0 0 0 3px var(--edge), 0 0 0 4.6px rgba(0,0,0,.45);
 }
 /* an untouched node is carried by its RING — two unfilled casings — and by
@@ -1485,36 +1702,97 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
    because the claim is the only thing on screen at this moment — the coin
    count and the issue title are not competing with the answer.
    ===================================================================== */
-.creveal{
-  position:absolute; inset:0; z-index:50;
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
-  gap:var(--sp-4);
-  padding:calc(20px + env(safe-area-inset-top)) var(--sp-4)
-          calc(20px + env(safe-area-inset-bottom));
-  background:rgba(20,18,15,.90);
-  -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
-  opacity:0; transition:opacity var(--t-ov-in) var(--e-out);
+/* =====================================================================
+   §1.2 · V18-1 · THE CLAIM REVEAL, ON THE CARD
+   The full-screen scrim is GONE. .creveal used to be an inset:0 overlay
+   at 90% opacity with a 14px backdrop blur, which is what took the HUD,
+   the coins and the issue title off screen and left the stamp with
+   nothing to land on. Everything here now lives inside .cardwrap.
+   ===================================================================== */
+/* THE STAMP OVERLAPS THE CARD'S EDGE. It is centred on the card's upper
+   third and pulled 22px past the leading edge, which is the same
+   relationship the cascade's stamp has — the overlap is what reads as
+   "applied to this card" rather than "drawn on the screen in front of
+   it". .cardwrap does not clip, so the overhang survives. */
+.d2--claim{
+  top:118px; left:-22px; z-index:12;
 }
-.creveal.is-in{ opacity:1; }
-.creveal.is-out{ opacity:0; }
-/* the stamp is the SAME .d2 the cascade uses, so correctness reads the
-   same way in both places. It is placed rather than positioned: .d2 is
-   absolute by default and the claim reveal has no card to hang it off. */
-.creveal__stamp{ position:relative; flex:none; width:190px; height:190px; }
-.creveal__stamp .d2{ position:absolute; inset:0; top:0; left:0; width:190px; height:190px; }
-/* the explanation arrives UNDER the stamp, after the hold */
+/* ACHROMATIC. .d2 normally mixes --d2-ink at --verdict-wash over the
+   card; the claim stamp mixes INK instead, so the disc is a neutral
+   wash and the word is the only thing it says. Correctness is .cmark's
+   job and .cmark's alone — see the note in claimReveal(). */
+/* IT HAS TO BE READABLE, which the first attempt was not: a 26% black
+   wash with black ink put a dark word on a dark disc over dark artwork
+   and שקר disappeared. The disc is PAPER at 88% with ink lettering — the
+   same figure-on-ground the rest of the system uses — so the word is the
+   highest-contrast thing on the card while carrying no hue at all. */
+.d2--neutral{
+  --d2-ink:var(--paper);
+  --d2-on:var(--ink);
+  background:color-mix(in srgb, var(--paper) 88%, transparent);
+  color:var(--ink);
+  box-shadow:0 0 0 1.5px rgba(0,0,0,.5);
+}
+.d2--neutral .d2__art circle{ stroke:var(--ink); }
+.d2--claim.is-leaving{
+  transition:transform var(--t-swipe) var(--e-in), opacity var(--t-swipe) linear;
+}
+
+/* ---- the correctness chip, in the chyron slot ----------------------
+   A DIFFERENT PLANE FROM THE STAMP, deliberately: it sits above the card
+   in the round's chrome, where the player's own vote will be pinned two
+   beats later. It carries correctness by COLOUR and by the word, never
+   by a tick — the map already uses ✓ for a completed topic and a tick
+   here would be the same glyph meaning something else. */
+.cmark{
+  display:inline-flex; align-items:center; gap:7px;
+  padding:6px 14px 7px; border-radius:999px;
+  font-family:var(--font-display); font-weight:900; font-size:15px;
+  color:var(--ink); background:var(--cm);
+  box-shadow:0 0 0 2px rgba(0,0,0,.5), 0 3px 0 rgba(0,0,0,.32);
+  opacity:0; transform:translateY(-6px) scale(.94);
+  transition:opacity var(--t-flip) linear, transform var(--t-flip) var(--e-land);
+}
+.cmark.is-in{ opacity:1; transform:none; }
+.cmark--ok { --cm:var(--verdict-correct); }
+.cmark--sur{ --cm:var(--verdict-surprise); }
+.cmark__dot{ width:11px; height:11px; border-radius:50%; background:var(--ink); flex:none; }
+
+/* ---- the explanation panel ----------------------------------------
+   It rises over the card's LOWER PORTION and is capped against the card,
+   not against its own content. IT SCROLLS, and that is load-bearing:
+   e3's tf_explain is 280 characters — the longest of the eleven active
+   issues — and does not fit at a legible size on a 360px phone. The CTA
+   is a sibling of the scroller, not inside it, so it can never be
+   scrolled out of reach. */
 .creveal__exp{
-  flex:none; width:100%; max-width:330px;
-  display:flex; flex-direction:column; align-items:stretch; gap:var(--sp-3);
-  opacity:0; transform:translateY(10px);
+  position:absolute; left:0; right:0; bottom:0; z-index:14;
+  max-height:62%;
+  display:flex; flex-direction:column; gap:var(--sp-3);
+  padding:var(--sp-3) var(--sp-3) calc(var(--sp-3) + 2px);
+  background:#211F1B;
+  box-shadow:0 -3px 0 rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.06);
+  opacity:0; transform:translateY(18px);
   transition:opacity var(--t-flip) var(--e-out), transform var(--t-flip) var(--e-settle);
 }
 .creveal__exp.is-in{ opacity:1; transform:none; }
-.creveal__text{
-  margin:0; font-size:var(--fs-body); font-weight:700; line-height:1.5;
-  color:#EFECE4; text-align:center; text-wrap:balance;
+.creveal__scroll{
+  min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
 }
-.creveal__go{ width:100%; }
+.creveal__text{
+  margin:0; font-size:15.5px; font-weight:700; line-height:1.5;
+  color:#EFECE4; text-align:start; text-wrap:pretty;
+}
+/* the CTA is SMALLER than a full-width primary and sits at the panel's
+   leading edge. It is a "next" and not the screen's whole purpose; the
+   chevron says which way it goes. */
+.creveal__go{
+  flex:none; align-self:flex-start; width:auto;
+  display:inline-flex; align-items:center; gap:8px;
+  padding:9px 20px 10px; font-size:17px;
+}
+.creveal__go i{ font-style:normal; }
 
 /* =====================================================================
    A9 · THE FINAL REVEAL, rebuilt on Tamar's fields
@@ -1676,11 +1954,24 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
   transition:opacity 160ms linear, transform 160ms var(--e-in);
 }
 .ask-st.is-retired{ opacity:0; }
+/* §5.4 · INVERTED. It was cream with ink type — the same fill, the same
+   ink and nearly the same radius as the .v-a vote buttons directly below
+   it, so an INSTRUCTION looked like a CONTROL and invited a tap that does
+   nothing.
+   THE FILL IS NEUTRAL AND MUST STAY NEUTRAL. #2E2A26 is the same ink the
+   map nodes use — a dark grey with no hue in it. Nothing here may take a
+   verdict colour: lime and magenta code correctness, and a coloured
+   sticker on the card the player is about to answer would read as a hint
+   about the answer.
+   IT STILL READS AS APPLIED, not as chrome: the white die-cut border, the
+   keyline outside it and the 4px extrusion are unchanged, and it still
+   straddles the card's top edge at a slap angle. Only the two colours
+   swapped. Type goes up 0.5px to hold at 360px against the darker fill. */
 .ask-st__i{
   display:block; opacity:0; transform-origin:100% 100%;
-  background:var(--paper); color:var(--ink);
+  background:#2E2A26; color:#F4F1E8;
   font-family:var(--font-display); font-weight:900;
-  font-size:16px; line-height:1.06; white-space:nowrap;
+  font-size:16.5px; line-height:1.06; white-space:nowrap;
   padding:8px 13px 9px; border-radius:12px;
   border:3px solid var(--edge);
   box-shadow:0 0 0 2px var(--keyline), 0 4px 0 rgba(0,0,0,.34);

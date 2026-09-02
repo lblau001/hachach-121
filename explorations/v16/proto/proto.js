@@ -62,6 +62,7 @@ const T = {
   ovSwap:    ms('--t-ov-swap'),
   b2Seat:    ms('--t-b2-seat'),
   claimHold: ms('--t-claim-hold'),
+  claimBeat: ms('--t-claim-beat'),
   cardFlip:  ms('--t-card-flip'),
   cardExit:  ms('--t-card-exit'),
   gxLock:    ms('--t-gx-lock'),
@@ -99,9 +100,37 @@ const T = {
    award cannot fire at beat 1, because paying out would resolve the
    claim four beats early. Under 'sheet' it is deferred to beat 5.
    --------------------------------------------------------------------- */
+/* ===== §0 · THE AWARD TABLE ==========================================
+   WHY IT CHANGED. The old table paid nothing for finishing and nothing
+   for taking a position, so a round's whole value was its cascade: r1
+   (9 MK cards) paid 250 and the five rounds with no MK data at all paid
+   25. A 10:1 spread between rounds that look identical from the player's
+   side — and the short ones are short because of a DATA GAP, not because
+   they are worth less. The table was teaching that long rounds matter
+   more, which is false.
+
+   THE TACHLES AWARD IS FLAT AND UNCONDITIONAL. Identical for בעד, נגד
+   and נמנע, paid the moment a position is taken, never scored and never
+   compared against anything. It is what makes the 121st-MK conceit true
+   mechanically — the player's position counts — and the instant it is
+   conditional on being "right" it becomes an opinion poll with a grade
+   on it. Nothing near it may carry a correctness colour, a tick, or
+   verdict language. See pinVote() and the note at the beat-2 award.
+
+   NOTHING IS ADVERTISED BEFORE A CHOICE. There is no "+25" beside the
+   vote chips or on the claim card anywhere in this file. A price tag
+   before a decision moves attention from the content to the points, and
+   on the tachles beat it would turn taking a position into a
+   transaction. Feedback lands AFTER: the coin flies, the counter ticks.
+
+   `brief` IS THE RECORD OF WHAT THE BRIEF SAID, not a live mode. It is
+   kept so the disagreement stays visible; only `sheet` is reachable
+   without a query string. */
 const COIN_TABLES = {
-  sheet: { claim:25, claimNeedsCorrect:true,  position:0,  perCorrect:25, topic:100 },
-  brief: { claim:25, claimNeedsCorrect:false, position:25, perCorrect:25, topic:0   }
+  sheet: { claim:25, claimNeedsCorrect:true,  position:25, perCorrect:25,
+           topic:100, round:50 },
+  brief: { claim:25, claimNeedsCorrect:false, position:25, perCorrect:25,
+           topic:0,   round:0  }
 };
 
 /* ---------------------------------------------------------------------
@@ -147,7 +176,10 @@ const DEV = {
   /* B1-2 · null means "ask localStorage". on/off force the overlay in
      either direction WITHOUT writing the flag, which is the only way to
      look twice at something that by definition happens once. */
-  intro:  qPick('intro',  { on:true, off:false }, null)
+  intro:  qPick('intro',  { on:true, off:false }, null),
+  /* §5.2 · ?title=multi puts a topic hue on each glyph's sticker stroke;
+     solid is the shipped white. Both live so they can be compared. */
+  title:  qPick('title',  { multi:'multi', solid:'solid' }, 'solid')
 };
 
 let M = null;                       /* manifest.json                     */
@@ -538,7 +570,10 @@ function pinVote(vote) {
   c.removeAttribute('aria-hidden');
   c.innerHTML =
     '<span class="chyron-av as-d" aria-hidden="true">' + AV3 + '</span>' +
-    '<span class="chyron-line">' + ph('הצבעת:') +
+    /* esc(), not ph(): written Hebrew pending Tamar, not a description of
+       copy that does not exist. On the §2 light band the yellow hazard
+       stripe was the loudest thing in the row. */
+    '<span class="chyron-line">' + esc('הצבעת:') +   /* TAMAR */
       '<b>' + esc(VOTE_PIN[vote] || '') + '</b></span>';
   return c;
 }
@@ -662,9 +697,19 @@ function markIntroSeen() {
 /* COPY IS PLACEHOLDER except the heading, which is the same string the
    claim sticker carries — one question, asked once big and then kept
    small on the card. */
+/* §1.4 · THE TITLE ALONE EXPLAINS NOTHING. "אמת או שקר?" names the format
+   and not the task; a player who has never seen this screen still does not
+   know what is about to happen or what happens after they answer. The line
+   below says all three: a claim comes, you decide, then you are told what
+   actually happened.
+   IT MUST NOT READ AS A TEST. "נגלה מה באמת קרה" puts the reveal on the
+   game rather than on the player — nobody is being marked, something is
+   being shown. No "correct", no "score", no second person singular
+   imperative that sounds like an exam instruction.
+   Two lines at 393px, three at 360px. */
 const INTRO_B1 = {
   title: 'אמת או שקר?',                          /* TAMAR */
-  body:  '[שלוש שורות — תמר: מה עושים במסך הזה]', /* TAMAR */
+  body:  'נציג לכם טענה על הכנסת. תחליטו אם היא נכונה או לא — ואז נגלה מה באמת קרה.',  /* TAMAR */
   cta:   'הבנתי',                                 /* TAMAR */
 };
 
@@ -676,7 +721,9 @@ function firstRunIntro(done) {
   o.innerHTML =
     '<div class="b1intro__box" role="dialog" aria-modal="true">' +
       '<h2 class="b1intro__t">' + esc(INTRO_B1.title) + '</h2>' +
-      '<p class="b1intro__b" data-ph>' + ph(INTRO_B1.body) + '</p>' +
+      /* esc(), not ph(): this is a written sentence pending Tamar's
+         approval, not a description of one that has not been written. */
+      '<p class="b1intro__b">' + esc(INTRO_B1.body) + '</p>' +
       '<button type="button" class="p-c b1intro__go">' + esc(INTRO_B1.cta) + '</button>' +
     '</div>';
   $('#stage').appendChild(o);
@@ -761,14 +808,18 @@ function claimArt() {
     a.w + '" height="' + a.h + '"></div>';
   const T_ = M.topics && M.topics[issue.topic];
   if (T_ && T_['128']) {
-    const ar = T_.aspect || 1, S_ = 128;
+    /* §1.3 · 128 -> 190. The card is 308px wide inside its padding and the
+       fallback was using 42% of it, which is what made the claim card read
+       as empty. 190 is 62%; past that it starts competing with the claim
+       text for the eye. Source moves 384 -> 576 to hold DPR 3. */
+    const ar = T_.aspect || 1, S_ = 190;
     const w = ar >= 1 ? S_ : S_ * ar, h = ar >= 1 ? S_ / ar : S_;
     /* THE LAYOUT BOX STAYS 128, THE SOURCE BECOMES 384. This is the single
        worst-served surface the asset audit found: the 128px file was being
        drawn at 128 CSS px, which is 1:1 and therefore a 3x UPSCALE on a 3x
        phone — and it is the fallback for 14 of the 16 issues, so it is what
        most claim cards actually show. width/height stay the CSS size. */
-    return '<div class="b1art b1art--topic"><img src="' + ROOT + (T_['384'] || T_['128']) +
+    return '<div class="b1art b1art--topic"><img src="' + ROOT + (T_['576'] || T_['384'] || T_['128']) +
       '" alt="" width="' + w.toFixed(0) + '" height="' + h.toFixed(0) + '"></div>';
   }
   /* no object either: the slot still holds its box, so the card cannot
@@ -792,7 +843,12 @@ function beat1() {
      ends the round. deckCard(0) read S.dealt[0].id and threw on an empty
      deal, which blanked the whole round screen. */
   const next = S.dealt.length ? deckCard(0) : null;
-  const card = el('article', 'mf-b b1card');
+  /* §1.3 the claim sets its own size — three steps by length, see
+     .b1card--mid / --long. 49 to 190 characters across the active set is
+     too wide a range for one size. */
+  const tfLen = (issue.tf || '').length;
+  const card = el('article', 'mf-b b1card' +
+    (tfLen > 120 ? ' b1card--long' : tfLen > 70 ? ' b1card--mid' : ''));
   card.innerHTML =
     claimArt() +
     '<p class="b1claim">' + esc(issue.tf) + '</p>' +
@@ -938,38 +994,63 @@ function wireSwipe(card, tgt, prev) {
   card.addEventListener('pointerleave', up);
 }
 
+/* §1.1 · THE CARD NO LONGER LEAVES ON ANSWER.
+   The old order was: commit -> card flies off -> verdict arrives on an
+   empty screen. That is exactly why the reveal had nothing to land on,
+   and no amount of styling the reveal could fix it, because by the time
+   the reveal existed the thing it was about was gone.
+
+   The order is now:
+     1  commit (swipe or tap) — THE CARD STAYS
+     2  a beat, ~400ms: the answer is registered and nothing else moves
+     3  the stamp lands ON the card
+     4  the explanation panel rises over the card's lower portion
+     5  הלאה sends the card away and beat 2 begins
+
+   THE SWIPE IS PRESERVED, RELOCATED. Dragging still commits the answer;
+   what it no longer does is throw the card. The throw now happens at
+   step 5, on הלאה, where it means "dismiss something resolved" — which
+   is the gesture's honest meaning once the card has been marked. */
 async function commitClaim(ans, card, dir) {
   if (S.claim) return;
   S.claim = ans;
   card.querySelectorAll('.v-a').forEach(b => b.disabled = true);
 
   const table = COIN_TABLES[DEV.coins];
-  /* under 'sheet' this is deferred to beat 5: paying out on correctness
-     here would resolve the claim four beats early. Under 'brief' it pays
-     now, and the point of the award is the answer that was just given —
-     there is no verdict on screen at beat 1 to leave from. */
+  /* under 'sheet' this is deferred to the stamp: paying out on
+     correctness here would resolve the claim before the stamp does. */
   if (!table.claimNeedsCorrect) {
     award(table.claim, card.querySelector('[data-ans="' + ans + '"]') || card);
   }
 
-  /* the instruction has been obeyed, so it goes before the card does —
-     a sticker still sitting on a card that is flying off screen reads as
-     a question that was never answered */
   retireAsk();
 
-  /* §1.2 the answer sits alone before anything else happens */
-  await wait(T.hold);
+  /* THE CARD SETTLES BACK SQUARE FIRST. A drag leaves an inline
+     transform on it, and a stamp landing on a card still tilted 4deg
+     from the finger reads as landing on a card that is falling over.
+     The snap is the same class the below-threshold snap-back uses, so
+     there is one way a card returns to square in this file. */
+  /* THE DRAG READOUT IS CLEARED EITHER WAY. A TAP calls show(dir*999) to
+     run the same preview the gesture does, and nothing used to clear it
+     because the card left the screen a moment later. Now that the card
+     stays, the leading-edge wash and the preview pill would sit on it for
+     the whole reveal — which is what put a black אמת box on the card's
+     corner the first time this was built. */
+  card._swipe.clear();
+  if (card.style.transform) {
+    card.classList.add('is-snapping');
+    card.style.transform = '';
+    await wait(T.snapback);
+    card.classList.remove('is-snapping');
+  }
+  /* the card gives up room for the panel: the art yields, the claim does
+     not. See .b1card.is-revealing. */
+  card.classList.add('is-revealing');
 
-  /* ONE exit, whether the card was thrown or the button was tapped.
-     Same class, same distance, same duration, same easing. */
-  card.classList.add('is-leaving');
-  card.style.transform = 'translateX(' + (dir * 620) + 'px) rotate(' + (dir * 25) + 'deg)';
-  card.style.opacity = 0;
-  await wait(T.swipe);
-  /* the claim card is GONE, not hidden — what is under it was always
-     under it, and is now simply the top of the deck */
-  card.remove();
-  await claimReveal(ans);
+  /* §1.1 step 2 · the beat. The answer is registered and NOTHING moves:
+     no stamp yet, no panel, no exit. --t-claim-beat is ~400ms. */
+  await wait(T.claimBeat);
+  await claimReveal(ans, card);
   beat2();
 }
 
@@ -985,49 +1066,129 @@ async function commitClaim(ans, card, dir) {
    easiest to break.
    `partial` resolves as correct and prints חלקית — the player cannot be
    wrong about a claim the data calls partly true. */
-async function claimReveal(ans) {
+/* §1.2 · V18-1, BUILT.
+   The stamp lands ON the card; the card stays readable behind it; the
+   correctness mark is a SEPARATE chip in the chyron slot; the coins and
+   the issue title never leave, because nothing covers the HUD any more.
+
+   THE STAMP IS ACHROMATIC, and this is the finding the board was built
+   to surface. One mark cannot both letter the true answer and colour by
+   correctness — that dual role IS the defect, because it makes the
+   claim's truth and the player's rightness the same object. So .d2
+   letters אמת / שקר in neutral ink here (.d2--neutral) and the chip
+   beside the card carries correctness by colour and by nothing else.
+   The cascade's stamp is untouched: there the word IS the verdict, so
+   colouring it is correct.
+
+   `partial` resolves as correct and prints חלקית — the player cannot be
+   wrong about a claim the data calls partly true. Unreachable across all
+   11 active issues; kept because tf_answer is Tamar's field, not ours. */
+const CLAIM_MARK = {                      /* TAMAR */
+  ok:  'צדקתם',
+  bad: 'הופתעתם',
+};
+
+async function claimReveal(ans, card) {
   const truth = issue.tf_answer === 'true' ? 'אמת'
               : issue.tf_answer === 'false' ? 'שקר' : 'חלקית';
   const ok = issue.tf_answer === 'partial' || ans === issue.tf_answer;
   S.claimCorrect = ok;
 
-  const sc = el('div', 'creveal' + (ok ? ' is-correct' : ' is-surprise'));
-  sc.innerHTML = '<div class="creveal__stamp"></div>';
-  $('#stage').appendChild(sc);
+  const wrap = $('.cardwrap');
+
+  /* ---- 3 · THE STAMP LANDS ON THE CARD ---------------------------
+     Parented to .cardwrap rather than to the card, for the same two
+     reasons the cascade's stamp is: .mf-b carries overflow:hidden and
+     would cut the disc at the card's edge, and the card is a 3D flipper
+     whose rotation would mirror anything inside it. It OVERLAPS the
+     card's edge on purpose — that overlap is what makes it read as
+     applied to the card rather than composited into it. */
   const mark = stamp(ok, truth);
-  $('.creveal__stamp', sc).appendChild(mark);
+  mark.classList.add('d2--neutral', 'd2--claim');
+  wrap.appendChild(mark);
+  card.classList.add('is-stamped');
   inkBleed();
   setTimeout(() => buzz(25), T.stampDrop);
-  requestAnimationFrame(() => sc.classList.add('is-in'));
 
-  /* the coin for a correct claim is paid HERE now — the claim is resolved,
-     so there is nothing left to give away by paying for it */
+  /* the correctness chip, in the chyron slot — a different plane from
+     the card, so it cannot be read as part of the stamp */
+  const chip = el('div', 'cmark ' + (ok ? 'cmark--ok' : 'cmark--sur'),
+    '<i class="cmark__dot" aria-hidden="true"></i><span>' +
+    esc(ok ? CLAIM_MARK.ok : CLAIM_MARK.bad) + '</span>');
+  const chy = $('#chyron');
+  chy.classList.remove('is-empty'); chy.removeAttribute('aria-hidden');
+  chy.innerHTML = ''; chy.appendChild(chip);
+  requestAnimationFrame(() => chip.classList.add('is-in'));
+
   const table = COIN_TABLES[DEV.coins];
   if (table.claimNeedsCorrect && ok) setTimeout(() => award(table.claim, mark), T.stamp);
 
-  /* §A6 the stamp holds alone before the explanation arrives under it */
+  /* the stamp holds alone before the panel rises under it */
   await wait(T.claimHold);
 
+  /* ---- 4 · THE EXPLANATION PANEL RISES OVER THE CARD'S LOWER PORTION
+     IT SCROLLS, and that is a requirement rather than a nicety: e3's
+     tf_explain is 280 characters, the longest of the eleven, and it does
+     not fit the panel at 360x640 at a legible size. The panel caps its
+     height against the card and scrolls inside itself; the CTA is
+     pinned below the scroller so it is never scrolled out of reach. */
   const panel = el('div', 'creveal__exp');
   panel.innerHTML =
-    '<p class="creveal__text">' + markGlossary(issue.tf_explain || '') + '</p>' +
-    '<button type="button" class="p-c creveal__go">' + esc('הלאה') + '</button>';
-  sc.appendChild(panel);
+    '<div class="creveal__scroll"><p class="creveal__text">' +
+      markGlossary(issue.tf_explain || '') + '</p></div>' +
+    '<button type="button" class="p-c creveal__go">' +
+      esc('הלאה') + ' <i aria-hidden="true">›</i></button>';
+  wrap.appendChild(panel);
+
+  /* THE PANEL IS CAPPED SO IT CANNOT COVER THE CLAIM. This is V18-1's own
+     recorded risk — "the explanation sheet covers the claim it is
+     explaining" — and it is answered by measurement rather than by a
+     percentage. The cap is the room left under the claim; the floor is
+     170px, below which the panel would be a slot rather than a panel and
+     the right answer would be to shorten the claim, not the panel.
+     Everything past the cap scrolls inside .creveal__scroll. */
+  const claimEl = $('.b1claim', card);
+  if (claimEl) {
+    const gap = 10;
+    const room = wrap.getBoundingClientRect().bottom
+               - claimEl.getBoundingClientRect().bottom - gap;
+    const scale = parseFloat(CS.getPropertyValue('--card-scale')) || 1;
+    panel.style.maxHeight = Math.max(170, room / scale) + 'px';
+  }
   requestAnimationFrame(() => panel.classList.add('is-in'));
 
-  /* §3.1 the term opens the B3-3 sticker, not an inline panel. The old
-     .gdef opened UNDER the term and reflowed the explanation around it,
-     which moved the sentence the player was reading. */
   panel.addEventListener('click', e => {
     const t = e.target.closest('.gt'); if (!t) return;
     glossModal(t.dataset.gt);
   });
 
+  /* ---- 5 · הלאה SENDS THE CARD AWAY -------------------------------
+     The throw the answer used to trigger happens here instead, and it
+     carries the stamp and the panel with it — they are the card's, not
+     the screen's. Direction is the drag's own: dirFor() so a player who
+     swiped right sees it leave right. */
   await new Promise(res => {
     pressable($('.creveal__go', panel)).addEventListener('click', async () => {
-      sc.classList.add('is-out');
-      await wait(T.ovCollapse);
-      sc.remove();
+      const dir = card._swipe ? card._swipe.dirFor(S.claim) : 1;
+      panel.classList.remove('is-in');
+      /* .mf-b.is-stamped runs d2-jolt with fill:both, which HOLDS
+         transform:translateY(0) forever — and a held animation beats an
+         inline style, so the card would not move. Clear it first. */
+      card.classList.remove('is-stamped');
+      card.style.animation = 'none';
+      card.classList.add('is-leaving');
+      card.style.transform = 'translateX(' + (dir * 620) + 'px) rotate(' + (dir * 25) + 'deg)';
+      card.style.opacity = 0;
+      mark.style.animation = 'none';
+      mark.classList.add('is-leaving');
+      mark.style.transform = 'translateX(' + (dir * 620) + 'px) rotate(' + (dir * 25) + 'deg)';
+      mark.style.opacity = 0;
+      await wait(T.swipe);
+      card.remove(); mark.remove(); panel.remove();
+      /* the chip hands the chyron back — beat 2 pins the player's own
+         vote into the same slot and the two must never share it */
+      chip.remove();
+      chy.classList.add('is-empty'); chy.setAttribute('aria-hidden', 'true');
       res();
     }, { once:true });
   });
@@ -1182,6 +1343,7 @@ function beat2() {
   const law = $('[data-law]', ov);
   if (law) pressable(law).addEventListener('click', e => { e.stopPropagation(); lawModal(); });
 
+  const table = COIN_TABLES[DEV.coins];
   ov.querySelectorAll('[data-vote]').forEach(btn =>
     btn.addEventListener('click', async () => {
       if (S.position) return;
@@ -1191,15 +1353,18 @@ function beat2() {
       S.ownVote = btn.dataset.vote;
       pinVote(S.ownVote);
       ov.querySelectorAll('.v-a').forEach(x => x.disabled = true);
-      /* BEAT 2 EARNS NOTHING, IN EVERY MODE. It used to pay
-         COIN_TABLES[mode].position, which is 0 under 'sheet' but 25 under
-         'brief' because that is what app.js does. The rule is now
-         categorical — §1.4d, and restated in this pass's brief — so the
-         award is gone rather than made conditional, and there is no path
-         through the switch that pays for an opinion.
-         `brief.position: 25` STAYS IN THE TABLE. The table is the record
-         of what each source says, not a list of things that fire; leaving
-         the row is how the disagreement stays visible. Nothing reads it. */
+      /* §0 · BEAT 2 NOW PAYS, FLAT AND UNCONDITIONALLY. This reverses the
+         earlier categorical "beat 2 earns nothing": the reason that rule
+         existed was that paying for an opinion looked like grading one,
+         and the answer to that is that the award must not DEPEND on the
+         opinion — not that there must be no award.
+         It is the same 25 for בעד, נגד and נמנע. `btn.dataset.vote` is
+         not read here and must never be: the moment this branches on the
+         position it becomes a score. There is no correctness argument to
+         award(), no verdict colour on the chip, and the coin flies from
+         the chosen chip to the counter exactly as it does everywhere
+         else — the feedback is "counted", not "correct". */
+      award(table.position, btn);
 
       /* §4 THE PLAYER TAKES THE SEAT. The chosen vote leaves the row and
          lands on the chair as one large object; the other two recede but
@@ -1401,7 +1566,14 @@ async function runAxis(g, guess, vote) {
          token with it. DISTANCE-PROPORTIONAL on one easing, so two slots
          of disagreement feel like twice one slot rather than like the
          same event with a different endpoint. */
+  /* §3.1 · THE GAP IS COLOURED BY DISTANCE, and `dist` is already
+     Math.abs() — which is what makes it symmetric BY CONSTRUCTION rather
+     than by two branches that have to be kept in step. Guessed בעד /
+     voted נגד and guessed נגד / voted בעד both give 2 and therefore the
+     same class; there is no code path where the direction is read.
+     It codes HOW FAR OFF, never WHICH WAY, so the locked rule holds. */
   const dist = Math.abs(VOTES.indexOf(vote) - VOTES.indexOf(guess));
+  g.classList.add('gx--d' + dist);
   const from = stopPct(guess), to = stopPct(vote);
   if (!dist) {
     /* agreement: there is nowhere to travel. A zero-length fill reads as
@@ -1665,6 +1837,32 @@ async function beat5() {
   const topicsWas = topicsDone();
   PROGRESS[issue.id] = true;
   assertProgress(issue, segsWas, topicsWas);
+
+  /* §0 · THE TWO AWARDS THAT ARE ABOUT FINISHING, NOT ABOUT BEING RIGHT.
+     Both are paid HERE, after the issue is recorded, because both are
+     consequences of the record rather than of anything the player just
+     did on screen.
+
+     ROUND COMPLETION (+50) IS WHY THIS TABLE CHANGED. It pays on reaching
+     beat 5, cascade or no cascade, which is what closes the 10:1 gap
+     between r1 and the five rounds that have no MK data. A player cannot
+     tell from inside a round that its issue arrived from the sheet
+     without vote records, and the award must not tell them either.
+
+     TOPIC COMPLETION (+100) WAS IN THE TABLE AND WAS NEVER PAID. Nothing
+     read `table.topic` anywhere in this file before now — the row was
+     declared with the rest and no call site was ever written for it, so
+     completing a topic has been silently worth nothing. Found while
+     wiring the round award; it is a real defect, not a decision.
+
+     They are staggered so two flights do not overlap into one blur, and
+     both come from the panel — the round is what earned them, and there
+     is no single control on screen that either can be said to leave. */
+  const finish = COIN_TABLES[DEV.coins];
+  setTimeout(() => award(finish.round, panel), T.resolve);
+  if (topicsDone() > topicsWas) {
+    setTimeout(() => award(finish.topic, panel), T.resolve + T.coinFly + 2 * T.coinStagger);
+  }
 
   fitBeat();
   /* ---- 8. THE WAY OUT. §A9: if the topic has another unplayed issue the
@@ -1967,17 +2165,48 @@ const INTRO_COPY = {
    reads the same backwards. Each run of digits becomes its own LTR flex
    item, so the run sits where RTL puts it and reads left-to-right inside
    itself — which is what §7's Western numerals in an RTL flow means. */
-const lsGlyph = ch =>
-  '<svg class="g" viewBox="0 0 100 116" aria-hidden="true">' +
+/* §5.2 · PER-GLYPH STROKE COLOURS, BEHIND A FLAG (?title=multi).
+   The die-cut stroke is what makes each letter a sticker; giving each one
+   its own colour is the difference between one object and a sheet of
+   nine. Solid white is still the default and both are live so they can be
+   compared on a device.
+
+   THE COLOURS ARE THE SIX LIVE TOPIC HUES, from data.js, in a
+   deliberately NON-SPECTRAL order. Cycling them in hue order would draw a
+   rainbow across the title, which is the thing that was rejected on the
+   chyron for the same reason: in Israel a rainbow reads as a pride
+   symbol, one of the six topics is מגדר ושוויון, and the app's own
+   wordmark is the last place to put an unintended political statement.
+   So adjacent glyphs are far apart in hue and the run never sweeps.
+   environment and internal_sec are excluded — they are the two topics
+   with no active issue, so their hues appear nowhere else in the build. */
+const TITLE_HUES = [
+  '#ff5240',  /* economy        */
+  '#2b4cff',  /* branches       */
+  '#ffd23f',  /* religion       */
+  '#b06bff',  /* accountability */
+  '#8a9663',  /* military       */
+  '#ff6b9d',  /* gender         */
+];
+const lsGlyph = (ch, i) =>
+  '<svg class="g" viewBox="0 0 100 116" aria-hidden="true"' +
+    (DEV.title === 'multi'
+      ? ' style="--gs:' + TITLE_HUES[i % TITLE_HUES.length] + '"' : '') + '>' +
     '<text x="50" y="92">' + esc(ch) + '</text></svg>';
 
-const lsRow = str => '<span class="i-ls" aria-label="' + esc(str) + '">' +
-  str.split(/(\d+)/).filter(Boolean).map(part =>
-    /^\d+$/.test(part)
-      ? '<span class="i-run">' + [...part].map(lsGlyph).join('') + '</span>'
-      : [...part].map(lsGlyph).join('')
-  ).join('') +
-  '</span>';
+/* THE INDEX RUNS ACROSS BOTH ROWS. lsRow is called twice — הח״כ then
+   ה-121 — and a per-row counter would restart the palette on the second
+   line, putting the same colour under the two ה glyphs that sit directly
+   above each other. `from` threads one sequence through all nine. */
+const lsRow = (str, from) => {
+  let i = from || 0;
+  const glyphs = t => [...t].map(ch => lsGlyph(ch, i++)).join('');
+  return '<span class="i-ls" aria-label="' + esc(str) + '">' +
+    str.split(/(\d+)/).filter(Boolean).map(part =>
+      /^\d+$/.test(part) ? '<span class="i-run">' + glyphs(part) + '</span>'
+                          : glyphs(part)
+    ).join('') + '</span>';
+};
 
 function renderIntro() {
   const r = $('#scIntro');
@@ -1993,7 +2222,8 @@ function renderIntro() {
      file, only from the screen, so putting either back is one line. */
   r.innerHTML =
     '<div class="i-comp">' +
-      '<div class="i-title">' + lsRow(INTRO_COPY.t1) + lsRow(INTRO_COPY.t2) + '</div>' +
+      '<div class="i-title">' + lsRow(INTRO_COPY.t1, 0) +
+        lsRow(INTRO_COPY.t2, [...INTRO_COPY.t1].length) + '</div>' +
       /* SIZED IN CSS, NOT HERE. An inline width/height beats the
          stylesheet, so the vh clamp that keeps the composite inside a
          667px phone was being overridden by the board's own 278x324 and
@@ -2195,28 +2425,21 @@ function drawPath(h) {
     NODE_X(i) * w, nodeY(i, h)
   ]);
 
-  /* §1.5 THE ROAD RUNS OFF BOTH EDGES. The path used to start at the first
-     node and stop at the last, which left a flat round terminus under the
-     HUD and another near the jump button — the map read as a finished
-     object floating in charcoal rather than as a section of a longer road.
-     The two pads were always there and always empty; the ribbon is simply
-     drawn through them now, from BELOW the bottom of the scroll area to
-     ABOVE the top of it, so there is no terminus to see at any scroll
-     position. BLEED is past the path's own box on purpose: the scroll
-     container clips it, and a cap that is clipped cannot read as an end. */
-  const BLEED = 24;
-  const first = pts[0], last = pts[pts.length - 1];
-  let d = 'M' + first[0].toFixed(1) + ' ' + (h + BLEED).toFixed(1) +
-          ' L' + first[0].toFixed(1) + ' ' + first[1].toFixed(1);
+  /* §5.3b · THE RIBBON EXISTS BETWEEN NODES ONLY. It used to be drawn
+     from h+24 to -24 so it ran off both ends of the scroll area — that
+     was §1.5 of the previous brief, written to answer "the map doesn't
+     reach the edges". It answered the wrong question: the SURFACE was
+     what stopped short of the viewport (see §5.3 in proto.css), not the
+     road. The surface reaches the edges now, and the stubs past the first
+     and last nodes are gone with this — the path starts at node 1 and
+     ends at node N. */
+  let d = 'M' + pts[0][0].toFixed(1) + ' ' + pts[0][1].toFixed(1);
   for (let i = 1; i < pts.length; i++) {
     const [x0, y0] = pts[i - 1], [x1, y1] = pts[i], t = (y1 - y0) / 3;
     d += ' C' + x0.toFixed(1) + ' ' + (y0 + t).toFixed(1) +
          ',' + x1.toFixed(1) + ' ' + (y1 - t).toFixed(1) +
          ',' + x1.toFixed(1) + ' ' + y1.toFixed(1);
   }
-  /* straight up out of the top node, which is the tangent the last curve
-     arrives on — the bleed cannot kink */
-  d += ' L' + last[0].toFixed(1) + ' ' + (-BLEED).toFixed(1);
   $('#mapline').querySelectorAll('path').forEach(p => p.setAttribute('d', d));
 }
 

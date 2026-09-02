@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>v20 — the finale</title>
+<link rel="stylesheet" href="../v16/prototype/hachach.css">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#8E8C86;font-family:system-ui,"Segoe UI",Arial,sans-serif;
+       -webkit-font-smoothing:antialiased;color:#131310}
+  .page{max-width:1720px;margin:0 auto;padding:28px 20px 90px}
+  h1{font-family:var(--font-display);font-size:26px;margin:0 0 6px}
+  .lede{max-width:78ch;font-size:14px;line-height:1.6;margin:0 0 24px;color:#2A2823}
+  h2{font-family:var(--font-display);font-size:19px;margin:38px 0 4px;
+     border-top:2px solid rgba(0,0,0,.35);padding-top:14px}
+  .ask{max-width:78ch;font-size:13px;line-height:1.6;margin:0 0 16px;color:#332F29}
+  h1,h2,.lede,.ask,.note,.cost,.tag,.risk,.must li,.must h3,.sub{direction:ltr;text-align:left}
+  .row{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start;direction:ltr}
+  .fr{direction:rtl}
+  .opt{width:360px}
+  .tag{direction:ltr;display:inline-block;font-family:var(--font-display);font-size:11px;
+       letter-spacing:.06em;background:#FBF7EE;border-radius:5px;padding:2px 8px 3px;
+       box-shadow:0 0 0 1.5px rgba(0,0,0,.45);margin-bottom:6px}
+  .sub{display:inline-block;font-size:11px;font-weight:700;background:rgba(255,255,255,.5);
+       border-radius:4px;padding:2px 7px;margin:0 0 6px 6px}
+  .note{font-size:12px;line-height:1.55;margin:8px 0 0;color:#2A2823}
+  .note b{font-family:var(--font-display)}
+  .cost{font-size:11.5px;line-height:1.5;margin:6px 0 0;color:#4A4436;
+        background:rgba(255,255,255,.42);border-radius:6px;padding:6px 8px}
+  .risk{font-size:11.5px;line-height:1.5;margin:6px 0 0;color:#3A1418;
+        background:rgba(255,80,110,.20);border-radius:6px;padding:6px 8px;
+        box-shadow:inset 0 0 0 1px rgba(120,20,40,.30)}
+  .risk b{font-family:var(--font-display)}
+  .must{max-width:78ch;background:rgba(255,255,255,.40);border-radius:8px;padding:12px 16px;margin:0 0 22px}
+  .must h3{font-family:var(--font-display);font-size:13px;margin:0 0 6px}
+  .must ul{margin:0;padding-inline-start:18px}
+  .must li{font-size:12.5px;line-height:1.6}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.94em;
+       background:rgba(255,255,255,.5);padding:0 4px;border-radius:3px}
+
+  /* ---- the phone frame ------------------------------------------------ */
+  .fr{width:360px;height:640px;position:relative;overflow:hidden;isolation:isolate;
+      background:#403E3A;color:#EFECE4;display:flex;flex-direction:column;
+      padding:10px 16px 12px;box-shadow:0 3px 14px rgba(0,0,0,.3)}
+  .fr::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+    background-image:radial-gradient(rgba(255,255,255,.07) .5px,transparent .6px),
+                     radial-gradient(rgba(0,0,0,.34) .5px,transparent .6px);
+    background-size:4px 4px,7px 7px;background-position:0 0,2px 3px}
+  .fr > *{position:relative;z-index:1}
+  .hud{display:flex;align-items:center;gap:8px;flex:none;z-index:6}
+  .hud-mid{flex:1;min-width:0;display:flex;justify-content:center}
+  .hud-mid span{font-family:var(--font-display);font-weight:900;font-size:14px;
+                white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hud-right{flex:none;width:40px;height:40px;display:grid;place-items:center}
+  .hud-coins{direction:ltr;border-radius:999px}
+
+  /* ---- the vote board -------------------------------------------------
+     A generic tally display. NOT the Knesset's own board: no emblem, no
+     menorah, no colonnade, no seat plan — those are protected insignia and
+     were excluded for trademark reasons before this brief. What is drawn
+     is the GENERIC IDEA of a plenum display: two counters climbing, a bar
+     between them, an outcome line. */
+  .board{background:#15130F;border-radius:14px;padding:12px 12px 11px;
+         box-shadow:inset 0 0 0 2px rgba(255,255,255,.10),0 4px 0 rgba(0,0,0,.4);
+         position:relative;overflow:hidden}
+  .board::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(to bottom,rgba(255,255,255,.045) 0 1px,transparent 1px 3px)}
+  .bd-row{display:flex;align-items:flex-end;gap:10px;direction:rtl}
+  .bd-cell{flex:1;text-align:center}
+  .bd-lab{font-size:11px;font-weight:700;color:#8E897C;margin:0 0 2px}
+  .bd-n{direction:ltr;font-family:var(--font-display);font-weight:900;line-height:.92;
+        font-variant-numeric:tabular-nums}
+  .bd-for{color:#B6E521}
+  .bd-ag{color:#FF7A6B}
+  .bd-ab{color:#C9C4B4}
+  .bd-bar{height:12px;border-radius:99px;overflow:hidden;display:flex;margin-top:9px;
+          box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}
+  .bd-bar i{display:block;height:100%}
+  .bd-out{margin:9px 0 0;text-align:center;font-family:var(--font-display);
+          font-weight:900;font-size:15px;color:#EFECE4}
+  .bd-121{margin:7px 0 0;display:flex;align-items:center;gap:7px;justify-content:center;
+          font-size:12px;font-weight:700;color:#D8D2C4;direction:rtl}
+  .bd-121 .av{width:22px;height:22px;border-radius:50%;background:#C9BFA6;flex:none;
+              box-shadow:0 0 0 2px #fff}
+  .bd-121 b{font-family:var(--font-display);color:#FFD60A}
+
+  .shape{margin:8px 0 0;font-size:12px;font-weight:700;color:#D8D2C4;text-align:center}
+  .exp{font-size:12.5px;line-height:1.55;color:#E6E2D8;margin:0}
+  .exp .gt{background:rgba(55,196,255,.22);border-bottom:2px dotted #9FD9F2;padding:0 3px;font-weight:900}
+  .chips{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin:7px 0 0}
+  .chip{padding:3px 9px 4px;border-radius:12px;background:rgba(255,255,255,.10);
+        color:#EFECE4;font-family:var(--font-display);font-weight:900;font-size:11.5px;
+        box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}
+  .links{display:flex;flex-direction:column;gap:4px;margin:8px 0 0}
+  .links a{font-size:11.5px;font-weight:700;color:#D8D2C4;text-decoration:underline;
+           text-underline-offset:3px;display:flex;gap:6px;align-items:center}
+
+  /* ---- the two buttons, which are the thing to solve ------------------ */
+  .acts{display:flex;flex-direction:column;gap:8px;margin-top:auto;flex:none}
+  .acts--split{flex-direction:row;align-items:stretch}
+  .b-pri{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+         background:var(--primary);color:var(--ink);border-radius:14px;padding:12px 0 13px;
+         font-family:var(--font-display);font-weight:900;font-size:18px;
+         box-shadow:0 0 0 2.5px #fff,0 0 0 4px rgba(0,0,0,.5),0 4px 0 var(--primary-base)}
+  .b-sec{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;
+         background:transparent;color:#D8D2C4;border-radius:14px;padding:11px 16px 12px;
+         font-family:var(--font-display);font-weight:900;font-size:15px;
+         box-shadow:inset 0 0 0 2px rgba(216,210,196,.45)}
+  .b-pri i,.b-sec i{font-style:normal}
+  .ph{display:inline-block;background:repeating-linear-gradient(45deg,#FFE03D 0 8px,#FFD60A 8px 16px);
+      color:#131310;border:2px dashed #131310;border-radius:4px;padding:0 6px 1px;
+      font-size:inherit;font-weight:900;font-family:var(--font-display)}
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>v20 &mdash; the finale</h1>
+<p class="lede">
+Four options for beat 5. Every frame is 360&times;640, RTL, on the prototype's own ground;
+components from <code>explorations/v16/prototype/hachach.css</code>. Hebrew only inside the
+frames, annotations in English, striped yellow is unwritten copy. <b>Nothing here is
+implemented.</b> Pick one and I build it.
+</p>
+
+<div class="must">
+  <h3>What is wrong with the one that ships</h3>
+  <ul>
+    <li>It reads as a <b>document</b> &mdash; a result paragraph, a chip row, a link list, two
+        buttons &mdash; not as a payoff. The count-up is one line of type in the middle of it.</li>
+    <li>The two buttons work and look poor. That is the thing to solve, not to preserve.</li>
+  </ul>
+  <h3 style="margin-top:12px">What every option carries</h3>
+  <ul>
+    <li>The tally <b>counting up</b>, as the visual centre.</li>
+    <li>The player's vote counted as the 121st:
+        &#1492;&#1492;&#1510;&#1506;&#1492; &#1506;&#1489;&#1512;&#1492; 63&mdash;57.
+        &#1506;&#1501; &#1492;&#1511;&#1493;&#1500; &#1513;&#1500;&#1499;&#1501;: 64&mdash;57</li>
+    <li>The shape-of-the-guess line, the explanation with glossary chips, and the links.</li>
+    <li><b>Two buttons</b>: primary &#1500;&#1505;&#1493;&#1490;&#1497;&#1492; &#1492;&#1489;&#1488;&#1492; &rsaquo;
+        and secondary &#1495;&#1494;&#1512;&#1492; &#1500;&#1502;&#1508;&#1492; when the topic has a
+        second issue; primary &#1495;&#1494;&#1512;&#1492; &#1500;&#1502;&#1508;&#1492; alone when it does not.</li>
+  </ul>
+  <h3 style="margin-top:12px">A vote board, not <i>the</i> vote board</h3>
+  <ul>
+    <li>No Knesset emblem, no menorah, no colonnade, no seat plan. Those are protected insignia
+        and were already excluded for trademark reasons. What is drawn is the generic idea of a
+        plenum display: two counters climbing, a bar, an outcome line.</li>
+  </ul>
+  <h3 style="margin-top:12px">Degradation is drawn, not described</h3>
+  <ul>
+    <li><b>7 of the 11 active issues have no <code>_tally</code></b> &mdash; e3, e4, b3, g1, g3,
+        a2, m3. There is nothing to count. Every option below is drawn twice: with numbers and
+        without.</li>
+    <li><b>5 of 11 have no cascade</b> &mdash; e3, e4, b3, g3, m3 &mdash; so the
+        shape-of-the-guess line has nothing to say either. The no-tally frames drop both.</li>
+    <li>What all 11 <i>do</i> have is <code>vote_result</code>: Tamar's own prose, which on the
+        no-tally issues is the only account of the outcome that exists.</li>
+  </ul>
+</div>
+
+<h2>V20-1 &middot; the board is the screen</h2>
+<p class="ask">
+The count-up takes the whole upper half at full size; everything else is a column under it.
+Closest to a plenum display and the loudest of the four.
+</p>
+<div class="row">
+  <div class="opt"><span class="tag">V20-1</span><span class="sub">r1 &mdash; has a tally</span>
+    <div class="fr">
+      <header class="hud"><span class="hud-right"><button class="ib-b">&#10005;</button></span>
+        <span class="hud-mid"><span>&#1490;&#1497;&#1493;&#1505; &#1495;&#1512;&#1491;&#1497;&#1501;</span></span>
+        <span class="h-a hud-coins"><span style="color:var(--primary)">&#9679;</span>175</span></header>
+      <div class="board" style="margin-top:12px;padding:18px 14px 15px">
+        <div class="bd-row">
+          <div class="bd-cell"><p class="bd-lab">&#1489;&#1506;&#1491;</p><div class="bd-n bd-for" style="font-size:62px">63</div></div>
+          <div class="bd-cell" style="flex:0 0 26px;padding-bottom:14px;color:#5A554A;font-size:20px">&mdash;</div>
+          <div class="bd-cell"><p class="bd-lab">&#1504;&#1490;&#1491;</p><div class="bd-n bd-ag" style="font-size:62px">57</div></div>
+        </div>
+        <div class="bd-bar"><i style="flex:63;background:#B6E521"></i><i style="flex:57;background:#FF7A6B"></i></div>
+        <p class="bd-out">&#1492;&#1492;&#1510;&#1506;&#1492; &#1506;&#1489;&#1512;&#1492;</p>
+        <div class="bd-121"><span class="av"></span><span>&#1506;&#1501; &#1492;&#1511;&#1493;&#1500; &#1513;&#1500;&#1499;&#1501;: <b>64&mdash;57</b></span></div>
+      </div>
+      <p class="shape">&#1504;&#1497;&#1495;&#1513;&#1514;&#1501; &#1504;&#1499;&#1493;&#1503; &#1506;&#1500; <b style="font-family:var(--font-display)">4</b> &#1502;&#1514;&#1493;&#1498; <b style="font-family:var(--font-display)">5</b></p>
+      <p class="exp" style="margin-top:8px">&#1489;&#1502;&#1512;&#1509; 2024 <span class="gt">&#1489;&#1490;&#8221;&#1509;</span> &#1511;&#1489;&#1506; &#1499;&#1497; &#1492;&#1508;&#1496;&#1493;&#1512; &#1492;&#1490;&#1493;&#1512;&#1507; &#1488;&#1497;&#1504;&#1493; &#1495;&#1493;&#1511;&#1497;.</p>
+      <div class="chips"><span class="chip">&#1489;&#1490;&#8221;&#1509;</span><span class="chip">&#1495;&#1493;&#1511; &#1492;&#1490;&#1497;&#1493;&#1505;</span></div>
+      <div class="links"><a>&#9654; &#1492;&#1491;&#1497;&#1493;&#1503; &#1489;&#1493;&#1493;&#1497;&#1491;&#1488;&#1493;</a><a>&#128279; &#1492;&#1492;&#1510;&#1489;&#1506;&#1492; &#1489;&#1488;&#1514;&#1512; &#1492;&#1499;&#1504;&#1505;&#1514;</a></div>
+      <div class="acts acts--split">
+        <span class="b-pri">&#1500;&#1505;&#1493;&#1490;&#1497;&#1492; &#1492;&#1489;&#1488;&#1492; <i>&rsaquo;</i></span>
+        <span class="b-sec">&#1500;&#1502;&#1508;&#1492;</span>
+      </div>
+    </div>
+    <p class="note"><b>Board:</b> upper half, 62px numerals. <b>Explanation:</b> below it, in the
+    flow. <b>Buttons:</b> side by side, primary wide, secondary a narrow outline.</p>
+    <p class="cost">The count-up is unmistakably the centre and the 121st line sits inside the
+    board, where it reads as the board updating rather than as a caption about it.</p>
+    <p class="risk"><b>Risk:</b> the loudest option and the least room for anything else. At 360px
+    the explanation, chips and links are compressed into the lower third; a longer
+    <code>vote_result</code> than r1's would have to scroll or shrink. The two-up button row also
+    gives the secondary a real target size, which for &#1495;&#1494;&#1512;&#1492; &#1500;&#1502;&#1508;&#1492;
+    beside a primary is arguably too much weight.</p>
+  </div>
+
+  <div class="opt"><span class="tag">V20-1</span><span class="sub">e3 &mdash; no tally, no cascade</span>
+    <div class="fr">
+      <header class="hud"><span class="hud-right"><button class="ib-b">&#10005;</button></span>
+        <span class="hud-mid"><span>&#1506;&#1500;&#1493;&#1497;&#1493;&#1514; &#1492;&#1502;&#1500;&#1495;&#1502;&#1492;</span></span>
+        <span class="h-a hud-coins"><span style="color:var(--primary)">&#9679;</span>100</span></header>
+      <div class="board" style="margin-top:12px;padding:18px 14px 15px">
+        <p class="bd-lab" style="text-align:center;margin-bottom:6px">&#1492;&#1514;&#1493;&#1510;&#1488;&#1492;</p>
+        <p class="bd-out" style="font-size:17px;line-height:1.35;margin:0">&#1492;&#1495;&#1493;&#1511; &#1506;&#1489;&#1512;: 62 &#1495;&#1489;&#1512;&#1497; &#1499;&#1504;&#1505;&#1514; &#1514;&#1502;&#1499;&#1493; &#1489;&#1511;&#1512;&#1497;&#1488;&#1492; &#1513;&#1504;&#1497;&#1497;&#1492; &#1493;&#1513;&#1500;&#1497;&#1513;&#1497;&#1514;.</p>
+        <div class="bd-121" style="margin-top:10px"><span class="av"></span><span>&#1492;&#1511;&#1493;&#1500; &#1513;&#1500;&#1499;&#1501; &#1504;&#1512;&#1513;&#1501;: <b>&#1489;&#1506;&#1491;</b></span></div>
+      </div>
+      <p class="exp" style="margin-top:10px">&#1494;&#1492; &#1500;&#1488; &#1504;&#1499;&#1493;&#1503;. &#1492;&#1502;&#1502;&#1513;&#1500;&#1492; &#1511;&#1497;&#1510;&#1510;&#1492; &#1493;&#1513;&#1497;&#1504;&#1514;&#1492; &#1495;&#1500;&#1511; &#1502;&#1492;&#1499;&#1505;&#1508;&#1497;&#1501; &#1492;&#1511;&#1493;&#1488;&#1500;&#1497;&#1510;&#1497;&#1493;&#1504;&#1497;&#1497;&#1501;, &#1488;&#1498; &#1500;&#1488; &#1489;&#1497;&#1496;&#1500;&#1492; &#1488;&#1493;&#1514;&#1501; &#1500;&#1495;&#1500;&#1493;&#1496;&#1497;&#1503;.</p>
+      <div class="chips"><span class="chip">&#1499;&#1505;&#1508;&#1497;&#1501; &#1511;&#1493;&#1488;&#1500;&#1497;&#1510;&#1497;&#1493;&#1504;&#1497;&#1497;&#1501;</span></div>
+      <div class="acts acts--split">
+        <span class="b-pri">&#1500;&#1505;&#1493;&#1490;&#1497;&#1492; &#1492;&#1489;&#1488;&#1492; <i>&rsaquo;</i></span>
+        <span class="b-sec">&#1500;&#1502;&#1508;&#1492;</span>
+      </div>
+    </div>
+    <p class="note"><b>Degraded:</b> the board keeps its frame and its 121st line but holds
+    Tamar's <code>vote_result</code> prose instead of numerals. No bar, no counters, no
+    shape-of-the-guess line &mdash; e3 has no cascade either.</p>
+    <p class="risk"><b>Risk of the degraded state:</b> the board becomes a dark box with a
+    paragraph in it, which is the "reads as a document" problem this brief is trying to fix,
+    on 7 of 11 issues. The frame alone is not enough to carry the beat.</p>
+  </div>
+</div>
+
+<h2>V20-2 &middot; the board is a panel, the explanation sits beside it</h2>
+<p class="ask">
+The board is a compact strip at the top rather than the whole upper half, and the explanation
+gets equal weight below it. The count-up is still the first thing that moves, but it does not
+own the screen.
+</p>
+<div class="row">
+  <div class="opt"><span class="tag">V20-2</span><span class="sub">r1 &mdash; has a tally</span>
+    <div class="fr">
+      <header class="hud"><span class="hud-right"><button class="ib-b">&#10005;</button></span>
+        <span class="hud-mid"><span>&#1490;&#1497;&#1493;&#1505; &#1495;&#1512;&#1491;&#1497;&#1501;</span></span>
+        <span class="h-a hud-coins"><span style="color:var(--primary)">&#9679;</span>175</span></header>
+      <div class="board" style="margin-top:12px">
+        <div class="bd-row" style="align-items:center">
+          <div class="bd-cell" style="flex:0 0 auto"><p class="bd-lab">&#1489;&#1506;&#1491;</p><div class="bd-n bd-for" style="font-size:34px">63</div></div>
+          <div class="bd-cell" style="flex:1"><div class="bd-bar" style="margin:0"><i style="flex:63;background:#B6E521"></i><i style="flex:57;background:#FF7A6B"></i></div>
+            <p class="bd-out" style="font-size:12px;margin-top:5px">&#1492;&#1492;&#1510;&#1506;&#1492; &#1506;&#1489;&#1512;&#1492;</p></div>
+          <div class="bd-cell" style="flex:0 0 auto"><p class="bd-lab">&#1504;&#1490;&#1491;</p><div class="bd-n bd-ag" style="font-size:34px">57</div></div>
+        </div>
+      </div>
+      <div class="bd-121" style="margin-top:9px"><span class="av"></span><span>&#1506;&#1501; &#1492;&#1511;&#1493;&#1500; &#1513;&#1500;&#1499;&#1501;: <b>64&mdash;57</b></span></div>
+      <p class="shape" style="margin-top:8px">&#1504;&#1497;&#1495;&#1513;&#1514;&#1501; &#1504;&#1499;&#1493;&#1503; &#1506;&#1500; <b style="font-family:var(--font-display)">4</b> &#1502;&#1514;&#1493;&#1498; <b style="font-family:var(--font-display)">5</b></p>
+      <p class="exp" style="margin-top:10px">&#1489;&#1502;&#1512;&#1509; 2024 <span class="gt">&#1489;&#1490;&#8221;&#1509;</span> &#1511;&#1489;&#1506; &#1499;&#1497; &#1492;&#1508;&#1496;&#1493;&#1512; &#1492;&#1490;&#1493;&#1512;&#1507; &#1488;&#1497;&#1504;&#1493; &#1495;&#1493;&#1511;&#1497;, &#1493;&#1492;&#1495;&#1493;&#1511; &#1492;&#1493;&#1495;&#1494;&#1512; &#1500;&#1493;&#1493;&#1506;&#1491;&#1492; &#1500;&#1504;&#1497;&#1505;&#1493;&#1495; &#1502;&#1495;&#1491;&#1513;.</p>
+      <div class="chips"><span class="chip">&#1489;&#1490;&#8221;&#1509;</span><span class="chip">&#1495;&#1493;&#1511; &#1492;&#1490;&#1497;&#1493;&#1505;</span><span class="chip">&#1491;&#1497;&#1503; &#1512;&#1510;&#1497;&#1508;&#1493;&#1514;</span></div>
+      <div class="links"><a>&#9654; &#1492;&#1491;&#1497;&#1493;&#1503; &#1489;&#1493;&#1493;&#1497;&#1491;&#1488;&#1493;</a><a>&#128279; &#1492;&#1492;&#1510;&#1489;&#1506;&#1492; &#1489;&#1488;&#1514;&#1512; &#1492;&#1499;&#1504;&#1505;&#1514;</a></div>
+      <div class="acts">
+        <span class="b-pri">&#1500;&#1505;&#1493;&#1490;&#1497;&#1492; &#1492;&#1489;&#1488;&#1492; <i>&rsaquo;</i></span>
+        <span class="b-sec" style="align-self:center;padding:8px 18px 9px;box-shadow:none;text-decoration:underline;text-underline-offset:3px">&#1495;&#1494;&#1512;&#1492; &#1500;&#1502;&#1508;&#1492;</span>
+      </div>
+    </div>
+    <p class="note"><b>Board:</b> a 76px strip &mdash; numerals flanking the bar, outcome under
+    it. <b>121st line:</b> outside the board, on the ground. <b>Buttons:</b> stacked, primary full
+    width, secondary demoted to a centred underlined link.</p>
+    <p class="cost">The most room of the four for the explanation, the chips and the links &mdash;
+    which is what the beat is actually FOR once the number has landed. The button pair is the
+    clearest hierarchy in the set: one thing to press, one thing to leave by.</p>
+    <p class="risk"><b>Risk:</b> the count-up at 34px is a readout rather than a payoff. Shrinking
+    the numbers is what buys the room, and it is exactly the thing the brief says should be the
+    visual centre &mdash; this option trades the peak for the content.</p>
+  </div>
+
+  <div class="opt"><span class="tag">V20-2</span><span class="sub">e4 &mdash; no tally</span>
+    <div class="fr">
+      <header class="hud"><span class="hud-right"><button class="ib-b">&#10005;</button></span>
+        <span class="hud-mid"><span>&#1497;&#1493;&#1511;&#1512; &#1492;&#1502;&#1495;&#1497;&#1492;</span></span>
+        <span class="h-a hud-coins"><span style="color:var(--primary)">&#9679;</span>100</span></header>
+      <div class="board" style="margin-top:12px">
+        <p class="bd-lab" style="text-align:center;margin-bottom:5px">&#1492;&#1514;&#1493;&#1510;&#1488;&#1492;</p>
+        <p class="bd-out" style="font-size:15px;line-height:1.35;margin:0">&#1492;&#1492;&#1510;&#1506;&#1492; &#1500;&#1488; &#1506;&#1489;&#1512;&#1492; &mdash; 27 &#1495;&#8221;&#1499; &#1489;&#1506;&#1491;, 43 &#1504;&#1490;&#1491;.</p>
+        <div class="bd-bar" style="margin-top:9px"><i style="flex:27;background:#B6E521"></i><i style="flex:43;background:#FF7A6B"></i></div>
+      </div>
+      <div class="bd-121" style="margin-top:9px"><span class="av"></span><span>&#1492;&#1511;&#1493;&#1500; &#1513;&#1500;&#1499;&#1501; &#1504;&#1512;&#1513;&#1501;: <b>&#1504;&#1490;&#1491;</b></span></div>
+      <p class="exp" style="margin-top:10px">&#1497;&#1513;&#1512;&#1488;&#1500; &#1497;&#1511;&#1512;&#1492; &#1489;&#1502;&#1494;&#1493;&#1503; &#1493;&#1489;&#1491;&#1497;&#1493;&#1512;, &#1488;&#1489;&#1500; &#1494;&#1493;&#1500;&#1492; &#1497;&#1493;&#1514;&#1512; &#1489;&#1495;&#1513;&#1502;&#1500; &#1493;&#1489;&#1514;&#1495;&#1489;&#1493;&#1512;&#1492; &#1510;&#1497;&#1489;&#1493;&#1512;&#1497;&#1514; &#1502;&#1502;&#1493;&#1510;&#1506; &#1492;-OECD.</p>
+      <div class="links"><a>&#128279; &#1492;&#1510;&#1506;&#1514; &#1492;&#1495;&#1493;&#1511;</a></div>
+      <div class="acts">
+        <span class="b-pri">&#1495;&#1494;&#1512;&#1492; &#1500;&#1502;&#1508;&#1492; <i>&rsaquo;</i></span>
+      </div>
+    </div>
+    <p class="note"><b>Degraded, and this is the best-behaved of the four:</b> where
+    <code>vote_result</code> names numbers in prose, the BAR can still be drawn from them even
+    with no <code>_tally</code> &mdash; the strip keeps its shape and only the numerals go.
+    <b>Also drawn:</b> the single-button case, for a topic with no second issue.</p>
+    <p class="risk"><b>Risk:</b> drawing the bar from prose means parsing Tamar's sentence for
+    digits, which is fragile and is not what <code>vote_result</code> is for. If you want this,
+    the honest route is a <code>_tally</code> for those 7 issues in <code>data.js</code> &mdash;
+    a content task, not a build one.</p>
+  </div>
+</div>
+
+<h2>V20-3 &middot; count-up first, full screen, then it steps aside</h2>
+<p class="ask">
+Two states in one beat. The board arrives alone at full screen and counts; when it settles it
+shrinks to a header strip and the rest of the content arrives under it. The peak gets the whole
+screen for about two seconds and costs nothing afterwards.
+</p>
+<div class="row">
+  <div class="opt"><span class="tag">V20-3a</span><span class="sub">r1 &mdash; the count, mid-flight</span>
+    <div class="fr" style="justify-content:center">
+      <header class="hud" style="position:absolute;left:16px;right:16px;top:10px">
+        <span class="hud-right"><button class="ib-b">&#10005;</button></span>
+        <span class="hud-mid"><span>&#1490;&#1497;&#1493;&#1505; &#1495;&#1512;&#1491;&#1497;&#1501;</span></span>
+        <span class="h-a hud-coins"><span style="color:var(--primary)">&#9679;</span>175</span></header>
+      <div class="board" style="padding:26px 16px 22px">
+        <div class="bd-row">
+          <div class="bd-cell"><p class="bd-lab" style="font-size:13px">&#1489;&#1506;&#1491;</p><div class="bd-n bd-for" style="font-size:86px">41</div></div>
+          <div class="bd-cell" style="flex:0 0 22px;padding-bottom:22px;color:#5A554A;font-size:26px">&mdash;</div>
+          <div class="bd-cell"><p class="bd-lab" style="font-size:13px">&#1504;&#1490;&#1491;</p><div class="bd-n bd-ag" style="font-size:86px">37</div></div>
+        </div>
+        <div class="bd-bar" style="height:16px;margin-top:14px"><i style="flex:41;background:#B6E521"></i><i style="flex:37;background:#FF7A6B"></i><i style="flex:43;background:#2A2822"></i></div>
+      </div>
+      <p class="shape" style="margin-top:14px;opacity:.5">&#1502;&#1493;&#1504;&#1492;&#8230;</p>
+    </div>
+    <p class="note">State A, ~1.8s. Nothing else is on screen. The bar has a dark remainder so the
+    two counters are visibly filling a fixed 120.</p>
+  </div>
+
+  <div class="opt"><span class="tag">V20-3b</span><span class="sub">r1 &mdash; settled</span>
+    <div class="fr">
+      <header class="hud"><span class="hud-right"><button class="ib-b">&#10005;</button></span>
+        <span class="hud-mid"><span>&#1490;&#1497;&#1493;&#1505; &#1495;&#1512;&#1491;&#1497;&#1501;</span></span>
+        <span class="h-a hud-coins"><span style="color:var(--primary)">&#9679;</span>175</span></header>
+      <div class="board" style="margin-top:12px;padding:10px 12px 9px">
+        <div class="bd-row" style="align-items:center">
+          <div class="bd-cell" style="flex:0 0 auto"><div class="bd-n bd-for" style="font-size:30px">63</div></div>
+          <div class="bd-cell" style="flex:1"><div class="bd-bar" style="margin:0;height:10px"><i style="flex:63;background:#B6E521"></i><i style="flex:57;background:#FF7A6B"></i></div></div>
+          <div class="bd-cell" style="flex:0 0 auto"><div class="bd-n bd-ag" style="font-size:30px">57</div></div>
+        </div>
+        <div class="bd-121" style="margin-top:8px"><span class="av"></span><span>&#1492;&#1492;&#1510;&#1506;&#1492; &#1506;&#1489;&#1512;&#1492;. &#1506;&#1501; &#1492;&#1511;&#1493;&#1500; &#1513;&#1500;&#1499;&#1501;: <b>64&mdash;57</b></span></div>
+      </div>
+      <p class="shape" style="margin-top:9px">&#1504;&#1497;&#1495;&#1513;&#1514;&#1501; &#1504;&#1499;&#1493;&#1503; &#1506;&#1500; <b style="font-family:var(--font-display)">4</b> &#1502;&#1514;&#1493;&#1498; <b style="font-family:var(--font-display)">5</b></p>
+      <p class="exp" style="margin-top:9px">&#1489;&#1502;&#1512;&#1509; 2024 <span class="gt">&#1489;&#1490;&#8221;&#1509;</span> &#1511;&#1489;&#1506; &#1499;&#1497; &#1492;&#1508;&#1496;&#1493;&#1512; &#1492;&#1490;&#1493;&#1512;&#1507; &#1488;&#1497;&#1504;&#1493; &#1495;&#1493;&#1511;&#1497;, &#1493;&#1492;&#1495;&#1493;&#1511; &#1492;&#1493;&#1495;&#1494;&#1512; &#1500;&#1493;&#1493;&#1506;&#1491;&#1492;.</p>
+      <div class="chips"><span class="chip">&#1489;&#1490;&#8221;&#1509;</span><span class="chip">&#1495;&#1493;&#1511; &#1492;&#1490;&#1497;&#1493;&#1505;</span></div>
+      <div class="links"><a>&#9654; &#1492;&#1491;&#1497;&#1493;&#1503; &#1489;&#1493;&#1493;&#1497;&#1491;&#1488;&#1493;</a><a>&#128279; &#1492;&#1492;&#1510;&#1489;&#1506;&#1492; &#1489;&#1488;&#1514;&#1512; &#1492;&#1499;&#1504;&#1505;&#1514;</a></div>
+      <div class="acts">
+        <span class="b-pri">&#1500;&#1505;&#1493;&#1490;&#1497;&#1492; &#1492;&#1489;&#1488;&#1492; <i>&rsaquo;</i></span>
+        <span class="b-sec" style="align-self:center;padding:8px 18px 9px;box-shadow:none;text-decoration:underline;text-underline-offset:3px">&#1495;&#1494;&#1512;&#1492; &#1500;&#1502;&#1508;&#1492;</span>
+      </div>
+    </div>
+    <p class="note">State B. The board is 62px, the 121st line is inside it, and everything else
+    has room. <b>Buttons:</b> as V20-2.</p>
+    <p class="cost">The only option that gives the count-up the whole screen AND leaves the
+    content its room, because the two never coexist. It also has somewhere for the coin awards
+    to land: §0's +50 round bonus and the topic +100 arrive during state A.</p>
+    <p class="risk"><b>Risk:</b> a two-state beat is two layouts to build and one transition to
+    get right, and a player who taps during state A must not lose the count. It also adds ~1.8s
+    before anything readable is on screen &mdash; on the 7 no-tally issues that time buys nothing,
+    so state A has to be skipped entirely there, which means the beat has two shapes depending on
+    the data.</p>
+  </div>
+
+  <div class="opt"><span class="tag">V20-3</span><span class="sub">b3 &mdash; no tally: state A never happens</span>
+    <div class="fr">
+      <header class="hud"><span class="hud-right"><button class="ib-b">&#10005;</button></span>
+        <span class="hud-mid"><span>&#1497;&#1506;&#1493;&#1509; &#1502;&#1513;&#1508;&#1496;&#1497;</span></span>
+        <span class="h-a hud-coins"><span style="color:var(--primary)">&#9679;</span>100</span></header>
+      <div class="board" style="margin-top:12px;padding:10px 12px 9px">
+        <p class="bd-out" style="font-size:14px;line-height:1.4;margin:0;text-align:start">&#1492;&#1495;&#1493;&#1511; &#1506;&#1489;&#1512; &#1489;&#1512;&#1493;&#1489; &#1513;&#1500; 65 &#1495;&#1489;&#1512;&#1497; &#1499;&#1504;&#1505;&#1514;.</p>
+        <div class="bd-121" style="margin-top:8px;justify-content:flex-start"><span class="av"></span><span>&#1492;&#1511;&#1493;&#1500; &#1513;&#1500;&#1499;&#1501; &#1504;&#1512;&#1513;&#1501;: <b>&#1504;&#1502;&#1504;&#1506;/&#1514;</b></span></div>
+      </div>
+      <p class="exp" style="margin-top:10px">&#1492;&#1502;&#1502;&#1513;&#1500;&#1492; &#1502;&#1504;&#1492;&#1500;&#1514; &#1488;&#1514; &#1492;&#1502;&#1491;&#1497;&#1504;&#1492;, &#1493;&#1500;&#1499;&#1503; &#1488;&#1501; &#1492;&#1497;&#1488; &#1505;&#1489;&#1493;&#1512;&#1492; &#1513;&#1502;&#1491;&#1497;&#1504;&#1497;&#1493;&#1514; &#1502;&#1505;&#1493;&#1497;&#1502;&#1514; &#1495;&#1497;&#1493;&#1504;&#1497;&#1514; &mdash; &#1492;&#1497;&#1497;&#1506;&#1493;&#1509; &#1492;&#1502;&#1513;&#1508;&#1496;&#1497; &#1488;&#1502;&#1493;&#1512; &#1500;&#1497;&#1497;&#1506;&#1509;, &#1500;&#1488; &#1500;&#1495;&#1505;&#1493;&#1501;.</p>
+      <div class="chips"><span class="chip">&#1497;&#1493;&#1506;&#1509; &#1502;&#1513;&#1508;&#1496;&#1497; &#1500;&#1502;&#1502;&#1513;&#1500;&#1492;</span></div>
+      <div class="links"><a>&#128279; &#1492;&#1510;&#1506;&#1514; &#1492;&#1495;&#1493;&#1511;</a></div>
+      <div class="acts">
+        <span class="b-pri">&#1500;&#1505;&#1493;&#1490;&#1497;&#1492; &#1492;&#1489;&#1488;&#1492; <i>&rsaquo;</i></span>
+        <span class="b-sec" style="align-self:center;padding:8px 18px 9px;box-shadow:none;text-decoration:underline;text-underline-offset:3px">&#1495;&#1494;&#1512;&#1492; &#1500;&#1502;&#1508;&#1492;</span>
+      </div>
+    </div>
+    <p class="note"><b>Degraded:</b> no state A at all &mdash; the beat opens directly in state B
+    with the board holding Tamar's prose and the 121st line. Left-aligned rather than centred,
+    because a one-line prose result centred in a wide box reads as a caption.</p>
+    <p class="risk"><b>Risk:</b> 7 of 11 issues never see the option's whole point. Whether this
+    matters depends on whether the missing tallies are permanent or a content gap.</p>
+  </div>
+</div>
+
+<h2>V20-4 &middot; the 121st seat is the board</h2>
+<p class="ask">
+The tally is drawn as <b>121 seats</b> rather than as two numerals — a grid that fills as the
+count runs, with one seat left dark until the end and then lit as the player's. The number is
+still there and still counts, but the thing that climbs is the grid.
+</p>
+<div class="row">
+  <div class="opt"><span class="tag">V20-4</span><span class="sub">r1 &mdash; has a tally</span>
+    <div class="fr">
+      <header class="hud"><span class="hud-right"><button class="ib-b">&#10005;</button></span>
+        <span class="hud-mid"><span>&#1490;&#1497;&#1493;&#1505; &#1495;&#1512;&#1491;&#1497;&#1501;</span></span>
+        <span class="h-a hud-coins"><span style="color:var(--primary)">&#9679;</span>175</span></header>
+      <div class="board" style="margin-top:12px;padding:14px 12px 12px">
+        <div style="display:grid;grid-template-columns:repeat(22,1fr);gap:3px;direction:rtl">
+          <!-- 63 for, 57 against, 1 player -->
+          <script></script>
+          <span style="grid-column:span 22;height:0"></span>
+        </div>
+        <div id="seats" style="display:grid;grid-template-columns:repeat(22,1fr);gap:3px;direction:rtl"></div>
+        <div class="bd-row" style="margin-top:11px;align-items:baseline">
+          <div class="bd-cell" style="flex:0 0 auto"><div class="bd-n bd-for" style="font-size:30px">63</div></div>
+          <div class="bd-cell" style="flex:1"><p class="bd-out" style="font-size:13px;margin:0">&#1492;&#1492;&#1510;&#1506;&#1492; &#1506;&#1489;&#1512;&#1492;</p></div>
+          <div class="bd-cell" style="flex:0 0 auto"><div class="bd-n bd-ag" style="font-size:30px">57</div></div>
+        </div>
+        <div class="bd-121" style="margin-top:7px"><span class="av"></span><span>&#1492;&#1502;&#1493;&#1513;&#1489; &#1492;-121 &#1513;&#1500;&#1499;&#1501;: <b>64&mdash;57</b></span></div>
+      </div>
+      <p class="shape" style="margin-top:8px">&#1504;&#1497;&#1495;&#1513;&#1514;&#1501; &#1504;&#1499;&#1493;&#1503; &#1506;&#1500; <b style="font-family:var(--font-display)">4</b> &#1502;&#1514;&#1493;&#1498; <b style="font-family:var(--font-display)">5</b></p>
+      <p class="exp" style="margin-top:8px">&#1489;&#1502;&#1512;&#1509; 2024 <span class="gt">&#1489;&#1490;&#8221;&#1509;</span> &#1511;&#1489;&#1506; &#1499;&#1497; &#1492;&#1508;&#1496;&#1493;&#1512; &#1492;&#1490;&#1493;&#1512;&#1507; &#1488;&#1497;&#1504;&#1493; &#1495;&#1493;&#1511;&#1497;.</p>
+      <div class="links"><a>&#9654; &#1492;&#1491;&#1497;&#1493;&#1503; &#1489;&#1493;&#1493;&#1497;&#1491;&#1488;&#1493;</a><a>&#128279; &#1492;&#1492;&#1510;&#1489;&#1506;&#1492; &#1489;&#1488;&#1514;&#1512; &#1492;&#1499;&#1504;&#1505;&#1514;</a></div>
+      <div class="acts">
+        <span class="b-pri">&#1500;&#1505;&#1493;&#1490;&#1497;&#1492; &#1492;&#1489;&#1488;&#1492; <i>&rsaquo;</i></span>
+        <span class="b-sec" style="align-self:center;padding:8px 18px 9px;box-shadow:none;text-decoration:underline;text-underline-offset:3px">&#1495;&#1494;&#1512;&#1492; &#1500;&#1502;&#1508;&#1492;</span>
+      </div>
+    </div>
+    <p class="note"><b>Board:</b> a 121-cell grid, 6 rows of 22 minus one. Lime fills for
+    &#1489;&#1506;&#1491;, coral for &#1504;&#1490;&#1491;, dark for absent; the player's seat is the last
+    one and lights yellow after the count settles. Numerals underneath, still counting.</p>
+    <p class="cost">The only option where the "121st MK" idea is the MECHANIC of the display
+    rather than a sentence under it &mdash; the player's seat is visibly the one that was empty.
+    It is also the most distinctive and the least like a document.</p>
+    <p class="risk"><b>Risk, and it is a data risk:</b> a 121-seat grid asserts that 121 votes
+    were cast. They were not &mdash; r1 is 63+57 = 120 of 120 present, and a real plenum has
+    absentees, so the grid needs an "absent" state that <code>_tally</code> does not carry.
+    Drawn here as dark cells, which is an INVENTION unless <code>data.js</code> gains a total.
+    Also the smallest cells in the set: 13px at 360px, near the floor for a coloured square to
+    read.</p>
+  </div>
+
+  <div class="opt"><span class="tag">V20-4</span><span class="sub">g3 &mdash; no tally, no cascade</span>
+    <div class="fr">
+      <header class="hud"><span class="hud-right"><button class="ib-b">&#10005;</button></span>
+        <span class="hud-mid"><span>&#1488;&#1497;&#1494;&#1493;&#1511; &#1488;&#1500;&#1511;&#1496;&#1512;&#1493;&#1504;&#1497;</span></span>
+        <span class="h-a hud-coins"><span style="color:var(--primary)">&#9679;</span>100</span></header>
+      <div class="board" style="margin-top:12px;padding:14px 12px 12px">
+        <div id="seats2" style="display:grid;grid-template-columns:repeat(22,1fr);gap:3px;direction:rtl"></div>
+        <p class="bd-out" style="font-size:14px;line-height:1.4;margin:11px 0 0">&#1492;&#1511;&#1493;&#1488;&#1500;&#1497;&#1510;&#1497;&#1492; &#1492;&#1508;&#1497;&#1500;&#1492; &#1489;&#1502;&#1500;&#1497;&#1488;&#1514; &#1488;&#1514; &#1492;&#1492;&#1510;&#1506;&#1492;.</p>
+        <div class="bd-121" style="margin-top:7px"><span class="av"></span><span>&#1492;&#1511;&#1493;&#1500; &#1513;&#1500;&#1499;&#1501; &#1504;&#1512;&#1513;&#1501;: <b>&#1489;&#1506;&#1491;</b></span></div>
+      </div>
+      <p class="exp" style="margin-top:10px">&#1489;&#1513;&#1504;&#1497;&#1501; 2024&ndash;2025, &#1502;&#1506;&#1500; 50% &#1502;&#1492;&#1504;&#1513;&#1497;&#1501; &#1513;&#1504;&#1512;&#1510;&#1495;&#1493; &#1506;&#1500; &#1512;&#1511;&#1506; &#1502;&#1490;&#1491;&#1512;&#1497; &#1492;&#1497;&#1493; &#1502;&#1493;&#1499;&#1512;&#1493;&#1514; &#1500;&#1512;&#1513;&#1493;&#1497;&#1493;&#1514; &#1492;&#1512;&#1493;&#1493;&#1495;&#1492;.</p>
+      <div class="links"><a>&#128279; &#1492;&#1510;&#1506;&#1514; &#1492;&#1495;&#1493;&#1511;</a></div>
+      <div class="acts">
+        <span class="b-pri">&#1500;&#1505;&#1493;&#1490;&#1497;&#1492; &#1492;&#1489;&#1488;&#1492; <i>&rsaquo;</i></span>
+        <span class="b-sec" style="align-self:center;padding:8px 18px 9px;box-shadow:none;text-decoration:underline;text-underline-offset:3px">&#1495;&#1494;&#1512;&#1492; &#1500;&#1502;&#1508;&#1492;</span>
+      </div>
+    </div>
+    <p class="note"><b>Degraded:</b> the grid stays and every seat is dark except the player's.
+    &quot;120 seats we cannot account for, and yours&quot; is at least an honest picture, and it
+    keeps the option's shape across all 11 issues.</p>
+    <p class="risk"><b>Risk:</b> a board of 120 dark squares under a sentence saying the vote was
+    blocked could read as &quot;nobody voted&quot;, which is wrong &mdash; the vote was pulled,
+    not lost. This is the degraded state most likely to say something untrue.</p>
+  </div>
+</div>
+
+<h2>Where this leaves things</h2>
+<p class="ask">
+The four sit on how much the count-up costs the rest of the beat.
+<b>V20-1</b> gives it the most and the content the least; <b>V20-2</b> the reverse;
+<b>V20-3</b> refuses the trade by splitting the beat in two; <b>V20-4</b> changes what the
+count-up IS.
+</p>
+<div class="must">
+  <ul>
+    <li><b>The buttons.</b> Three of the four use the same pair — a full-width primary and the
+        secondary demoted to a centred underlined link. That is the fix for "they look poor":
+        the old pair was a primary and an outlined <code>.r-b</code> of equal width, which read
+        as two choices of equal weight when one of them is just the way out. V20-1 draws the
+        alternative (side by side) so the pair can be judged.</li>
+    <li><b>The missing tallies are the real decision.</b> 7 of 11 issues have no
+        <code>_tally</code>, so on 7 of 11 rounds none of these options can count anything. Every
+        frame above is drawn twice for that reason. If those 7 can gain a
+        <code>_tally</code> in <code>data.js</code>, all four options get much stronger; if they
+        cannot, V20-2 is the only one whose degraded state is not a compromise.</li>
+    <li><b>Nothing here reproduces the Knesset's display board</b>, emblem or colonnade.</li>
+  </ul>
+</div>
+<p class="lede" style="margin-top:20px"><b>Nothing here is implemented.</b> Pick one and I build it.</p>
+
+<script>
+// the seat grids are drawn here rather than typed out 121 times
+function seats(el, forN, agN, absent, playerLit){
+  const cells=[];
+  for(let i=0;i<121;i++){
+    let bg='#2A2822';
+    if(i<forN) bg='#B6E521'; else if(i<forN+agN) bg='#FF7A6B';
+    if(i===120) bg = playerLit ? '#FFD60A' : '#2A2822';
+    cells.push('<i style="display:block;aspect-ratio:1;border-radius:2px;background:'+bg+
+      (i===120?';box-shadow:0 0 0 1.5px #fff':'')+'"></i>');
+  }
+  el.innerHTML=cells.join('');
+}
+seats(document.getElementById('seats'),63,57,0,true);
+seats(document.getElementById('seats2'),0,0,120,true);
+</script>
+</div>
+</body>
+</html>
