@@ -8,17 +8,17 @@
     "note": "Top-anchored in the card at --mk-port-top. The bottom is the variable edge: a long figure clips at the jacket, never at the head."
   },
   "politicians": {
+    "abbas": {
+      "name": "מנסור עבאס",
+      "party": "רע\"ם",
+      "400": "assets/mk/mk_abbas_400.webp",
+      "128": "assets/mk/mk_abbas_128.webp"
+    },
     "ben_gvir": {
       "name": "איתמר בן-גביר",
       "party": "עוצמה יהודית",
       "400": "assets/mk/mk_ben_gvir_400.webp",
       "128": "assets/mk/mk_ben_gvir_128.webp"
-    },
-    "netanyahu": {
-      "name": "בנימין נתניהו",
-      "party": "הליכוד",
-      "400": "assets/mk/mk_netanyahu_400.webp",
-      "128": "assets/mk/mk_netanyahu_128.webp"
     },
     "deri": {
       "name": "אריה דרעי",
@@ -26,11 +26,35 @@
       "400": "assets/mk/mk_deri_400.webp",
       "128": "assets/mk/mk_deri_128.webp"
     },
-    "lapid": {
-      "name": "יאיר לפיד",
-      "party": "יש עתיד",
-      "400": "assets/mk/mk_lapid_400.webp",
-      "128": "assets/mk/mk_lapid_128.webp"
+    "edelstein": {
+      "name": "יולי אדלשטיין",
+      "party": "הליכוד",
+      "400": "assets/mk/mk_edelstein_400.webp",
+      "128": "assets/mk/mk_edelstein_128.webp"
+    },
+    "eisenkot": {
+      "name": "גדי איזנקוט",
+      "party": "המחנה הממלכתי",
+      "400": "assets/mk/mk_eisenkot_400.webp",
+      "128": "assets/mk/mk_eisenkot_128.webp"
+    },
+    "elkin": {
+      "name": "זאב אלקין",
+      "party": "הימין הממלכתי",
+      "400": "assets/mk/mk_elkin_400.webp",
+      "128": "assets/mk/mk_elkin_128.webp"
+    },
+    "gafni": {
+      "name": "משה גפני",
+      "party": "יהדות התורה",
+      "400": "assets/mk/mk_gafni_400.webp",
+      "128": "assets/mk/mk_gafni_128.webp"
+    },
+    "galant": {
+      "name": "יואב גלנט",
+      "party": "הליכוד",
+      "400": "assets/mk/mk_galant_400.webp",
+      "128": "assets/mk/mk_galant_128.webp"
     },
     "gantz": {
       "name": "בני גנץ",
@@ -38,11 +62,77 @@
       "400": "assets/mk/mk_gantz_400.webp",
       "128": "assets/mk/mk_gantz_128.webp"
     },
+    "gotliv": {
+      "name": "טלי גוטליב",
+      "party": "הליכוד",
+      "400": "assets/mk/mk_gotliv_400.webp",
+      "128": "assets/mk/mk_gotliv_128.webp"
+    },
+    "lahav": {
+      "name": "יוראי להב-הרצנו",
+      "party": "יש עתיד",
+      "400": "assets/mk/mk_lahav_400.webp",
+      "128": "assets/mk/mk_lahav_128.webp"
+    },
+    "lapid": {
+      "name": "יאיר לפיד",
+      "party": "יש עתיד",
+      "400": "assets/mk/mk_lapid_400.webp",
+      "128": "assets/mk/mk_lapid_128.webp"
+    },
+    "levin": {
+      "name": "יריב לוין",
+      "party": "הליכוד",
+      "400": "assets/mk/mk_levin_400.webp",
+      "128": "assets/mk/mk_levin_128.webp"
+    },
+    "liberman": {
+      "name": "אביגדור ליברמן",
+      "party": "ישראל ביתנו",
+      "400": "assets/mk/mk_liberman_400.webp",
+      "128": "assets/mk/mk_liberman_128.webp"
+    },
     "michaeli": {
       "name": "מרב מיכאלי",
       "party": "העבודה",
       "400": "assets/mk/mk_michaeli_400.webp",
       "128": "assets/mk/mk_michaeli_128.webp"
+    },
+    "netanyahu": {
+      "name": "בנימין נתניהו",
+      "party": "הליכוד",
+      "400": "assets/mk/mk_netanyahu_400.webp",
+      "128": "assets/mk/mk_netanyahu_128.webp"
+    },
+    "odeh": {
+      "name": "איימן עודה",
+      "party": "חד\"ש-תע\"ל",
+      "400": "assets/mk/mk_odeh_400.webp",
+      "128": "assets/mk/mk_odeh_128.webp"
+    },
+    "saar": {
+      "name": "גדעון סער",
+      "party": "הימין הממלכתי",
+      "400": "assets/mk/mk_saar_400.webp",
+      "128": "assets/mk/mk_saar_128.webp"
+    },
+    "silman": {
+      "name": "עידית סילמן",
+      "party": "הליכוד",
+      "400": "assets/mk/mk_silman_400.webp",
+      "128": "assets/mk/mk_silman_128.webp"
+    },
+    "smotrich": {
+      "name": "בצלאל סמוטריץ'",
+      "party": "הציונות הדתית",
+      "400": "assets/mk/mk_smotrich_400.webp",
+      "128": "assets/mk/mk_smotrich_128.webp"
+    },
+    "son_harmelech": {
+      "name": "לימור סון הר-מלך",
+      "party": "עוצמה יהודית",
+      "400": "assets/mk/mk_son_harmelech_400.webp",
+      "128": "assets/mk/mk_son_harmelech_128.webp"
     }
   },
   "topics": {
@@ -96,25 +186,12 @@
     },
     "building": {
       "390": "assets/mk/knesset_building_390.webp"
+    },
+    "card_back": {
+      "file": "assets/card_background.webp"
     }
   },
-  "politicians_without_art": [
-    "abbas",
-    "edelstein",
-    "eisenkot",
-    "elkin",
-    "gafni",
-    "galant",
-    "gotliv",
-    "lahav",
-    "levin",
-    "liberman",
-    "odeh",
-    "saar",
-    "silman",
-    "smotrich",
-    "son_harmelech"
-  ],
+  "politicians_without_art": [],
   "fallback": {
     "kind": "initials-badge",
     "rule": "First letter of each part of the shipped name, joined with a gershayim, set on the set's own eyeline at 37.7% of the box. NEVER substitute another politician's portrait."

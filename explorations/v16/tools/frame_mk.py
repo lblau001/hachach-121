@@ -22,6 +22,20 @@ MK = pathlib.Path(__file__).resolve().parents[3] / "assets" / "mk"
 AR = 3 / 4                       # the set's aspect, from Ben Gvir's master
 REF = "bengvir_styleB"           # the framing every other portrait is matched to
 
+# MANUAL EYELINES, in SOURCE pixel rows, consulted BEFORE the detector.
+# The detector is not touched — it was retuned once before and traded two
+# failures for two different ones. These two are simply told the answer:
+#   edelstein  heavy brow ink and a bright ear highlight sit close enough to
+#              the eyes that the enclosed-dark count picks the brow band.
+#   silman     a black-and-white houndstooth headscarf is the largest mass of
+#              enclosed dark ink in the frame and it is above the eyes.
+# Read off the sources by eye against a 10px ruler; see the note in the
+# commit. Anything not listed here goes through the detector unchanged.
+EYELINE_OVERRIDE = {
+    "edelstein": 470,
+    "silman":    500,
+}
+
 def ink_mask(im):
     """Ink is anything that is neither transparent nor the flat paper ground."""
     a = np.array(im.convert("RGBA")).astype(int)
@@ -39,7 +53,7 @@ def skin_mask(im):
     r, g, b = a[..., 0], a[..., 1], a[..., 2]
     return (r > 95) & (r > g + 12) & (g > b) & (r - b > 18)
 
-def features(im):
+def features(im, name=None):
     m = ink_mask(im)
     rows = m.sum(axis=1)
     on = np.where(rows > 0)[0]
@@ -74,13 +88,18 @@ def features(im):
         for d in range(lo, hi):
             acc |= np.roll(sk, d, axis=0)
         return acc
-    enclosed = dark & near_skin(8, 26) & near_skin(-26, -8)
-    prof = enclosed[y0:y1, x0:x1].sum(axis=1)
-    # the upper 45% of the face box, not 60%: at 60% a full beard's dark ink
-    # reaches the mouth and Deri's "eyeline" landed on his moustache. Eyes are
-    # never in the lower half of a face; mouths are never in the upper.
-    top = prof[: max(1, int(len(prof) * 0.45))]
-    eyeline = int(y0 + int(np.argmax(top)))
+    if name in EYELINE_OVERRIDE:
+        # told, not detected. Everything downstream — the face-width band, the
+        # crop, the scale — reads this exactly as it would read a detection.
+        eyeline = int(EYELINE_OVERRIDE[name])
+    else:
+        enclosed = dark & near_skin(8, 26) & near_skin(-26, -8)
+        prof = enclosed[y0:y1, x0:x1].sum(axis=1)
+        # the upper 45% of the face box, not 60%: at 60% a full beard's dark ink
+        # reaches the mouth and Deri's "eyeline" landed on his moustache. Eyes are
+        # never in the lower half of a face; mouths are never in the upper.
+        top = prof[: max(1, int(len(prof) * 0.45))]
+        eyeline = int(y0 + int(np.argmax(top)))
 
     # FACE WIDTH AT THE EYELINE is the scale reference, and it is the only one
     # of the three that survives all six faces: it is temple-to-temple skin, so
@@ -140,14 +159,19 @@ ap.add_argument("--out", default=str(MK))
 A = ap.parse_args()
 
 names = A.names or [REF, "netanyahu", "deri", "lapid", "gantz", "michaeli"]
+# REF calibrates CROWN_AT and FACE_AT, so it is always loaded — but it is only
+# FRAMED if it was asked for. ben_gvir has had his own normalised source since
+# the set was replaced, and framing styleB would overwrite that export with a
+# crop of an old style-comparison file.
+load = list(dict.fromkeys(list(names) + [REF]))
 srcs, feats, ink_mask_cache = {}, {}, {}
-for n in names:
+for n in load:
     p = MK / (n + ".webp")
     if not p.exists(): p = MK / (" " + n + ".webp")     # the set has one stray space
     im = Image.open(p).convert("RGBA")
     srcs[n] = im
     ink_mask_cache[n] = ink_mask(im)
-    f = features(im); f["key"] = n; feats[n] = f
+    f = features(im, n); f["key"] = n; feats[n] = f
 
 # calibrate the two constants off Ben Gvir's shipped crop, so "the same prep"
 # means the same numbers he was framed with rather than a fresh guess.
