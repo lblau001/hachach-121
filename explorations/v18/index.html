@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>v18 — claim reveal options</title>
+<link rel="stylesheet" href="../v16/prototype/hachach.css">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#8E8C86;font-family:system-ui,"Segoe UI",Arial,sans-serif;
+       -webkit-font-smoothing:antialiased;color:#131310}
+  .page{max-width:1560px;margin:0 auto;padding:28px 20px 90px}
+  h1{font-family:var(--font-display);font-size:26px;margin:0 0 6px}
+  .lede{max-width:76ch;font-size:14px;line-height:1.6;margin:0 0 26px;color:#2A2823}
+  h2{font-family:var(--font-display);font-size:19px;margin:36px 0 4px;
+     border-top:2px solid rgba(0,0,0,.35);padding-top:14px}
+  .ask{max-width:76ch;font-size:13px;line-height:1.6;margin:0 0 16px;color:#332F29}
+  /* THE PAGE IS RTL BECAUSE THE FRAMES ARE. Every annotation is English, so
+     the annotation layer is forced back to LTR — otherwise the trailing full
+     stops land on the wrong side and the numbered options read 5-4-3-2-1
+     across the row. The frames themselves stay RTL, which is the point. */
+  h1,h2,.lede,.ask,.note,.cost,.tag,.risk,.must li,.must h3{direction:ltr;text-align:left}
+  .row{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start;direction:ltr}
+  .fr{direction:rtl}
+  .opt{width:360px}
+  .tag{direction:ltr;display:inline-block;font-family:var(--font-display);font-size:11px;
+       letter-spacing:.06em;background:#FBF7EE;border-radius:5px;padding:2px 8px 3px;
+       box-shadow:0 0 0 1.5px rgba(0,0,0,.45);margin-bottom:6px}
+  .note{font-size:12px;line-height:1.55;margin:8px 0 0;color:#2A2823}
+  .note b{font-family:var(--font-display)}
+  .cost{font-size:11.5px;line-height:1.5;margin:6px 0 0;color:#4A4436;
+        background:rgba(255,255,255,.42);border-radius:6px;padding:6px 8px}
+  .risk{font-size:11.5px;line-height:1.5;margin:6px 0 0;color:#3A1418;
+        background:rgba(255,80,110,.20);border-radius:6px;padding:6px 8px;
+        box-shadow:inset 0 0 0 1px rgba(120,20,40,.30)}
+  .risk b{font-family:var(--font-display)}
+  .must{max-width:76ch;background:rgba(255,255,255,.40);border-radius:8px;
+        padding:12px 16px;margin:0 0 22px}
+  .must h3{font-family:var(--font-display);font-size:13px;margin:0 0 6px}
+  .must ul{margin:0;padding-inline-start:18px}
+  .must li{font-size:12.5px;line-height:1.6}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.94em;
+       background:rgba(255,255,255,.5);padding:0 4px;border-radius:3px}
+
+  /* ---- the phone frame, identical to v17's ---------------------------- */
+  .fr{width:360px;height:640px;position:relative;overflow:hidden;isolation:isolate;
+      background:#403E3A;color:#EFECE4;display:flex;flex-direction:column;
+      padding:10px 16px 12px;box-shadow:0 3px 14px rgba(0,0,0,.3)}
+  .fr::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+    background-image:radial-gradient(rgba(255,255,255,.07) .5px,transparent .6px),
+                     radial-gradient(rgba(0,0,0,.34) .5px,transparent .6px);
+    background-size:4px 4px,7px 7px;background-position:0 0,2px 3px}
+  .fr > *{position:relative;z-index:1}
+  .hud{display:flex;align-items:center;gap:8px;flex:none;z-index:6}
+  .hud-mid{flex:1;min-width:0;display:flex;justify-content:center}
+  .hud-mid span{font-family:var(--font-display);font-weight:900;font-size:14px;
+                white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hud-coins{direction:ltr;border-radius:999px}
+  .hud-right{flex:none;width:40px;height:40px;display:grid;place-items:center}
+  .hud-coins{direction:ltr;border-radius:999px}
+
+  /* the claim card, drawn small enough to sit in a 640 frame */
+  .card{position:relative;background:var(--card-surface);color:var(--ink);
+        box-shadow:0 0 0 5px #fff,0 0 0 6.5px rgba(0,0,0,.5),var(--shadow-card);
+        width:270px;height:430px;margin:0 auto;padding:14px 14px 12px;
+        display:flex;flex-direction:column}
+  .card .art{flex:1;min-height:0;display:grid;place-items:center;
+             color:var(--ink-soft);font-size:11px}
+  .card .art i{display:block;width:120px;height:110px;border-radius:10px;
+               background:var(--kraft-deep);box-shadow:0 0 0 4px #fff}
+  .claimtx{font-family:var(--font-display);font-weight:900;font-size:19px;
+           line-height:1.14;text-align:center;margin:0 0 10px}
+  .vrow{display:flex;gap:8px}
+  .vrow b{flex:1;text-align:center;background:#FBF7EE;border-radius:12px;
+          padding:8px 0 9px;font-family:var(--font-display);font-size:17px;
+          box-shadow:0 0 0 2px rgba(0,0,0,.45),0 3px 0 rgba(0,0,0,.3)}
+
+  /* the stamp. Achromatic or coloured depending on the option — every frame
+     says which, because that is the decision being put. */
+  .stamp{border-radius:50%;display:grid;place-items:center;
+         font-family:var(--font-display);font-weight:900;line-height:1;
+         transform:rotate(-8deg)}
+  .stamp--big{width:168px;height:168px;font-size:46px}
+  .stamp--mid{width:126px;height:126px;font-size:34px}
+  .stamp--tok{width:46px;height:46px;font-size:15px;transform:rotate(-6deg)}
+  .st-ok  {background:#B6E521;color:#22300A;box-shadow:inset 0 0 0 7px #22300A,0 6px 0 rgba(0,0,0,.4)}
+  .st-sur {background:#FF3BC0;color:#33061F;box-shadow:inset 0 0 0 7px #33061F,0 6px 0 rgba(0,0,0,.4)}
+  .st-ink {background:#FBF7EE;color:#131310;box-shadow:inset 0 0 0 7px #131310,0 6px 0 rgba(0,0,0,.4)}
+  .stamp--tok.st-ink{box-shadow:inset 0 0 0 3.5px #131310,0 3px 0 rgba(0,0,0,.4)}
+
+  /* the correctness mark, in every option a SEPARATE object from the stamp */
+  .cmark{display:inline-flex;align-items:center;gap:6px;border-radius:999px;
+         padding:5px 12px 6px;font-family:var(--font-display);font-weight:900;
+         font-size:14px;color:#131310;box-shadow:0 0 0 2px rgba(0,0,0,.5),0 3px 0 rgba(0,0,0,.32)}
+  .cm-ok{background:#B6E521}
+  .cm-sur{background:#FF3BC0}
+  .cmark .dot{width:12px;height:12px;border-radius:50%;background:#131310;flex:none}
+
+  .exp{font-size:12.5px;line-height:1.55;color:#E6E2D8;margin:0}
+  .exp .gt{background:rgba(55,196,255,.22);border-bottom:2px dotted #9FD9F2;
+           padding:0 3px;font-weight:900}
+  .scrim{position:absolute;inset:0;background:rgba(18,16,13,.62);z-index:3}
+  .scrim--soft{background:rgba(18,16,13,.42)}
+  .scrim--hard{background:rgba(18,16,13,.86)}
+  .over{position:absolute;inset:0;z-index:4;display:flex;flex-direction:column;
+        padding:10px 16px 12px}
+
+  .cta{display:inline-flex;align-items:center;justify-content:center;gap:8px;
+       background:var(--primary);color:var(--ink);border-radius:14px;
+       font-family:var(--font-display);font-weight:900;
+       box-shadow:0 0 0 2.5px #fff,0 0 0 4px rgba(0,0,0,.5),0 4px 0 var(--primary-base)}
+  .cta--wide{width:100%;padding:11px 0 12px;font-size:19px}
+  .cta--mid {padding:9px 20px 10px;font-size:17px}
+  .cta--txt {background:none;box-shadow:none;color:#FFD60A;padding:0;font-size:15px}
+  .cta i{font-style:normal}
+
+  .ph{display:inline-block;background:repeating-linear-gradient(45deg,#FFE03D 0 8px,#FFD60A 8px 16px);
+      color:#131310;border:2px dashed #131310;border-radius:4px;padding:0 6px 1px;
+      font-size:inherit;font-weight:900;font-family:var(--font-display)}
+  .coinfly{position:absolute;z-index:7;font-family:var(--font-display);font-weight:900;
+           font-size:12px;color:#131310;background:var(--primary);border-radius:999px;
+           padding:2px 8px 3px;box-shadow:0 0 0 2px rgba(0,0,0,.5)}
+  .arc{position:absolute;z-index:6;border:2px dashed rgba(255,214,10,.7);
+       border-radius:50%;border-bottom-color:transparent;border-left-color:transparent}
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>v18 — the claim reveal</h1>
+<p class="lede">
+Five options for the beat-1 reveal. Every frame is 360&times;640, RTL, on the prototype's own
+ground; components come from <code>explorations/v16/prototype/hachach.css</code>, the locked
+handoff sheet. Hebrew appears only inside the frames, every annotation is English, and striped
+yellow is unwritten copy pending Tamar. <b>Nothing here is implemented.</b> Pick one and I build it.
+</p>
+
+<div class="must">
+  <h3>What is wrong with the one that ships today</h3>
+  <ul>
+    <li>Too little visible behind the stamp — it reads as a modal takeover with no context.</li>
+    <li>The player's own correctness is never shown; only the true answer is.</li>
+    <li>The coin count disappears. So does the issue title. The whole HUD goes.</li>
+    <li>The CTA is too large, sits too high, and has no chevron.</li>
+  </ul>
+  <h3 style="margin-top:12px">What every option below therefore carries</h3>
+  <ul>
+    <li>The <b>true answer</b> &mdash; &#1488;&#1502;&#1514; / &#1513;&#1511;&#1512;.</li>
+    <li>A <b>separate mark</b> of whether the player was right. Never the same object as the answer.</li>
+    <li>The <b>coin chip</b> and the <b>issue title</b>, both still on screen.</li>
+    <li>The explanation, with inline glossary terms live.</li>
+    <li>A CTA with a chevron.</li>
+  </ul>
+  <h3 style="margin-top:12px">The locked rule these are designed against</h3>
+  <ul>
+    <li>Correctness is coded by <b>colour only</b> &mdash; lime <code>#B6E521</code> for right,
+        magenta <code>#FF3BC0</code> for surprised. Never by vote direction, never by which word
+        is shown, never by a tick.</li>
+    <li>So the two marks must not be confusable. A player must never read
+        &ldquo;you were right&rdquo; as &ldquo;the claim was true&rdquo;. Each option below states
+        how it separates them; that is the thing to judge.</li>
+  </ul>
+</div>
+
+<p class="ask">
+Every frame shows the same case: the claim on <code>s1</code> is <b>false</b>, and the player
+answered <b>true</b> &mdash; so the true answer is &#1513;&#1511;&#1512; and the player was wrong.
+That is the harder of the two states to draw, because it is the one where the two marks disagree
+and can be misread for each other.
+</p>
+
+<h2>V18-1 &middot; the stamp lands on the card</h2>
+<p class="ask">
+Nothing is covered. The claim card stays where it is at full size, the stamp lands
+<b>on the card</b> exactly as the verdict stamp does at beat 4, and the explanation rises as a
+sheet over the card's lower half. The correctness mark lives in the chyron slot, which is a
+different plane from the card entirely.
+</p>
+<div class="row">
+  <div class="opt">
+    <span class="tag">V18-1</span>
+    <div class="fr">
+      <header class="hud">
+        <span class="hud-right"><button class="ib-b" aria-label="&#1497;&#1510;&#1497;&#1488;&#1492;">&#10005;</button></span>
+        <span class="hud-mid"><span>&#1495;&#1493;&#1511; &#1492;&#1502;&#1513;&#1496;&#1512;&#1492; &#1513;&#1500; &#1489;&#1503;-&#1490;&#1489;&#1497;&#1512;</span></span>
+        <span class="h-a hud-coins"><span style="color:var(--primary)">&#9679;</span>25</span>
+      </header>
+      <div style="display:flex;justify-content:center;margin-top:10px;flex:none">
+        <span class="cmark cm-sur"><i class="dot"></i><span class="ph">&#1492;&#1493;&#1508;&#1514;&#1506;&#1514;</span></span>
+      </div>
+      <div style="position:relative;flex:1;min-height:0;margin-top:10px">
+        <div class="card" style="height:100%">
+          <p class="claimtx">&#1492;&#1513;&#1512; &#1500;&#1489;&#1497;&#1496;&#1495;&#1493;&#1503; &#1500;&#1488;&#1493;&#1502;&#1497; &#1512;&#1513;&#1488;&#1497; &#1500;&#1492;&#1493;&#1512;&#1493;&#1514; &#1500;&#1502;&#1513;&#1496;&#1512;&#1492; &#1488;&#1514; &#1502;&#1497; &#1500;&#1495;&#1511;&#1493;&#1512;.</p>
+          <div class="art"><i></i></div>
+        </div>
+        <span class="stamp stamp--mid st-ink" style="position:absolute;top:118px;left:-16px;z-index:5">&#1513;&#1511;&#1512;</span>
+        <div style="position:absolute;left:0;right:0;bottom:0;z-index:6;
+                    background:#211F1B;box-shadow:0 -3px 0 rgba(0,0,0,.5);
+                    padding:12px 13px 12px;display:flex;flex-direction:column;gap:10px">
+          <p class="exp">&#1494;&#1492; &#1500;&#1488; &#1504;&#1499;&#1493;&#1503;. &#1489;-2024 <span class="gt">&#1489;&#1490;&#8221;&#1509;</span> &#1508;&#1505;&#1500; &#1488;&#1514; &#1505;&#1506;&#1497;&#1507; &#1492;&#1495;&#1511;&#1497;&#1512;&#1493;&#1514; &#1493;&#1511;&#1489;&#1506;: &#1492;&#1513;&#1512; &#1511;&#1493;&#1489;&#1506; &#1502;&#1491;&#1497;&#1504;&#1497;&#1493;&#1514; &#1499;&#1500;&#1500;&#1497;&#1514; &#1493;&#1488;&#1505;&#1493;&#1512; &#1500;&#1493; &#1500;&#1492;&#1514;&#1506;&#1512;&#1489; &#1489;&#1495;&#1511;&#1497;&#1512;&#1493;&#1514; &#1505;&#1508;&#1510;&#1497;&#1508;&#1497;&#1493;&#1514;.</p>
+          <span class="cta cta--mid" style="align-self:flex-start">&#1492;&#1500;&#1488;&#1492; <i>&#8250;</i></span>
+        </div>
+      </div>
+    </div>
+    <p class="note"><b>Card:</b> stays, full size, undimmed. <b>Stamp:</b> on the card, achromatic
+    ink &mdash; it carries the WORD only. <b>Correctness:</b> a coloured chip in the chyron slot,
+    above the card. <b>Coin:</b> the chip just increments; nothing flies. <b>CTA:</b> small, bottom,
+    on the explanation sheet, leading edge.</p>
+    <p class="cost">The only option where the HUD, the chyron slot and the card are all exactly
+    where the player last saw them, so nothing has to be re-found. Cheapest to build: the stamp
+    machinery already lands on a card at beat 4 and the chyron slot already exists.</p>
+    <p class="risk"><b>Risk:</b> the explanation sheet covers the claim it is explaining. The
+    player can no longer re-read the sentence they just answered, which is the one thing they are
+    most likely to want at this exact moment. Sheet height is driven by <code>tf_explain</code>,
+    and <code>s1</code>'s is the long one &mdash; on a shorter phone it climbs over the artwork too.</p>
+  </div>
+</div>
+
+<h2>V18-2 &middot; achromatic stamp, coloured ribbon</h2>
+<p class="ask">
+Closest to what ships, and the option that fixes it by <b>splitting the one object into two</b>.
+Today's stamp is coloured by correctness and lettered with the true answer, so a single mark is
+doing both jobs. Here the stamp face goes achromatic ink and carries the answer alone; a ribbon
+under it carries the player's outcome and is the only coloured thing on the screen.
+</p>
+<div class="row">
+  <div class="opt">
+    <span class="tag">V18-2</span>
+    <div class="fr">
+      <header class="hud">
+        <span class="hud-right"><button class="ib-b" aria-label="&#1497;&#1510;&#1497;&#1488;&#1492;">&#10005;</button></span>
+        <span class="hud-mid"><span>&#1495;&#1493;&#1511; &#1492;&#1502;&#1513;&#1496;&#1512;&#1492; &#1513;&#1500; &#1489;&#1503;-&#1490;&#1489;&#1497;&#1512;</span></span>
+        <span class="h-a hud-coins"><span style="color:var(--primary)">&#9679;</span>25</span>
+      </header>
+      <div style="flex:1;min-height:0;margin-top:10px;position:relative">
+        <div class="card" style="height:100%;opacity:.30">
+          <p class="claimtx">&#1492;&#1513;&#1512; &#1500;&#1489;&#1497;&#1496;&#1495;&#1493;&#1503; &#1500;&#1488;&#1493;&#1502;&#1497; &#1512;&#1513;&#1488;&#1497; &#1500;&#1492;&#1493;&#1512;&#1493;&#1514; &#1500;&#1502;&#1513;&#1496;&#1512;&#1492; &#1488;&#1514; &#1502;&#1497; &#1500;&#1495;&#1511;&#1493;&#1512;.</p>
+          <div class="art"><i></i></div>
+        </div>
+      </div>
+      <div class="over" style="justify-content:center;align-items:center;gap:14px;padding-top:70px">
+        <span class="stamp stamp--big st-ink">&#1513;&#1511;&#1512;</span>
+        <span class="cmark cm-sur" style="font-size:16px;padding:7px 16px 8px;margin-top:-6px">
+          <i class="dot"></i><span class="ph">&#1492;&#1493;&#1508;&#1514;&#1506;&#1514;</span></span>
+        <p class="exp" style="text-align:center;max-width:270px">&#1494;&#1492; &#1500;&#1488; &#1504;&#1499;&#1493;&#1503;. &#1489;-2024 <span class="gt">&#1489;&#1490;&#8221;&#1509;</span> &#1508;&#1505;&#1500; &#1488;&#1514; &#1505;&#1506;&#1497;&#1507; &#1492;&#1495;&#1511;&#1497;&#1512;&#1493;&#1514; &#1493;&#1511;&#1489;&#1506;: &#1492;&#1513;&#1512; &#1511;&#1493;&#1489;&#1506; &#1502;&#1491;&#1497;&#1504;&#1497;&#1493;&#1514; &#1499;&#1500;&#1500;&#1497;&#1514; &#1489;&#1500;&#1489;&#1491;.</p>
+        <span style="flex:1"></span>
+        <span class="cta cta--mid">&#1492;&#1500;&#1488;&#1492; <i>&#8250;</i></span>
+      </div>
+      <span class="arc" style="top:56px;left:30px;width:80px;height:198px"></span>
+      <span class="coinfly" style="top:96px;left:34px">+10</span>
+    </div>
+    <p class="note"><b>Card:</b> visible at 30%, undimmed by a scrim &mdash; the card itself is
+    faded, so the ground stays the ground. <b>Stamp:</b> over the whole screen, achromatic.
+    <b>Correctness:</b> a coloured ribbon directly under the stamp. <b>Coin:</b> animates out of
+    the ribbon into the chip, which is why the chip has to still be there. <b>CTA:</b> bottom,
+    medium weight, not full-bleed.</p>
+    <p class="cost">The smallest change from what is built: same stamp, same position, same
+    timing. Everything that is new is additive.</p>
+    <p class="risk"><b>Risk, and it is the one to weigh:</b> the two marks are 6px apart and
+    vertically stacked, which is exactly the arrangement that invites reading them as one object.
+    The colour is on the lower half of a two-part badge; a player who reads the pair as a single
+    stamp reads the magenta as belonging to &#1513;&#1511;&#1512;. Mitigated only by the stamp being
+    genuinely achromatic &mdash; if the ink ever picks up a tint this option fails outright.</p>
+  </div>
+</div>
+
+<h2>V18-3 &middot; two bands: the claim, and you</h2>
+<p class="ask">
+The two marks are put in two different <b>places</b> rather than two different treatments. The top
+band is about the claim and is achromatic. The bottom band is about the player, carries their
+avatar and their own answer, and is the only place colour appears. Nothing in the top band can be
+misread as being about the player, because the player is not in it.
+</p>
+<div class="row">
+  <div class="opt">
+    <span class="tag">V18-3</span>
+    <div class="fr">
+      <header class="hud">
+        <span class="hud-right"><button class="ib-b" aria-label="&#1497;&#1510;&#1497;&#1488;&#1492;">&#10005;</button></span>
+        <span class="hud-mid"><span>&#1495;&#1493;&#1511; &#1492;&#1502;&#1513;&#1496;&#1512;&#1492; &#1513;&#1500; &#1489;&#1503;-&#1490;&#1489;&#1497;&#1512;</span></span>
+        <span class="h-a hud-coins"><span style="color:var(--primary)">&#9679;</span>25</span>
+      </header>
+      <div style="flex:1;min-height:0;margin-top:12px;display:flex;flex-direction:column;gap:12px">
+
+        <div style="background:#FBF7EE;color:#131310;border-radius:14px;padding:12px 14px 13px;
+                    box-shadow:0 0 0 2px rgba(0,0,0,.5),0 4px 0 rgba(0,0,0,.34);flex:none;
+                    display:flex;align-items:center;gap:12px">
+          <span class="stamp stamp--tok st-ink" style="flex:none">&#1513;&#1511;&#1512;</span>
+          <div style="min-width:0">
+            <p style="margin:0;font-size:11px;font-weight:700;color:var(--ink-soft)">
+              <span class="ph" style="font-size:11px">&#1492;&#1496;&#1506;&#1504;&#1492;</span></p>
+            <p style="margin:2px 0 0;font-family:var(--font-display);font-weight:900;font-size:16px;line-height:1.15">
+              &#1492;&#1513;&#1512; &#1512;&#1513;&#1488;&#1497; &#1500;&#1492;&#1493;&#1512;&#1493;&#1514; &#1500;&#1502;&#1513;&#1496;&#1512;&#1492; &#1488;&#1514; &#1502;&#1497; &#1500;&#1495;&#1511;&#1493;&#1512;</p>
+          </div>
+        </div>
+
+        <p class="exp" style="flex:1;min-height:0;margin:0">&#1494;&#1492; &#1500;&#1488; &#1504;&#1499;&#1493;&#1503;, &#8221;&#1495;&#1493;&#1511; &#1489;&#1503;-&#1490;&#1489;&#1497;&#1512;&#8221; &#1502;-2022 &#1489;&#1497;&#1511;&#1513; &#1500;&#1514;&#1514; &#1500;&#1513;&#1512; &#1500;&#1489;&#1497;&#1496;&#1495;&#1493;&#1503; &#1500;&#1488;&#1493;&#1502;&#1497; &#1500;&#1492;&#1514;&#1493;&#1493;&#1514; &#1502;&#1491;&#1497;&#1504;&#1497;&#1493;&#1514; &#1499;&#1500;&#1500;&#1497;&#1514; &#1500;&#1502;&#1513;&#1496;&#1512;&#1492;. &#1488;&#1489;&#1500; &#1489;-2024 <span class="gt">&#1489;&#1490;&#8221;&#1509;</span> &#1508;&#1505;&#1500; &#1488;&#1514; &#1505;&#1506;&#1497;&#1507; &#1492;&#1495;&#1511;&#1497;&#1512;&#1493;&#1514; &#1493;&#1511;&#1489;&#1506;: &#1492;&#1513;&#1512; &#1511;&#1493;&#1489;&#1506; &#1502;&#1491;&#1497;&#1504;&#1497;&#1493;&#1514; &#1499;&#1500;&#1500;&#1497;&#1514; &#1493;&#1488;&#1505;&#1493;&#1512; &#1500;&#1493; &#1500;&#1492;&#1514;&#1506;&#1512;&#1489; &#1489;&#1495;&#1511;&#1497;&#1512;&#1493;&#1514; &#1493;&#1489;&#1508;&#1506;&#1493;&#1500;&#1493;&#1514; &#1505;&#1508;&#1510;&#1497;&#1508;&#1497;&#1493;&#1514;.</p>
+
+        <div style="flex:none;border-radius:14px;padding:11px 13px 12px;
+                    background:rgba(255,59,192,.16);box-shadow:inset 0 0 0 2px #FF3BC0;
+                    display:flex;align-items:center;gap:10px">
+          <span style="width:34px;height:34px;border-radius:50%;background:#C9BFA6;flex:none;
+                       box-shadow:0 0 0 2px #fff"></span>
+          <div style="flex:1;min-width:0">
+            <p style="margin:0;font-size:11px;font-weight:700;color:#D8D2C4">
+              <span class="ph" style="font-size:11px">&#1506;&#1504;&#1497;&#1514;</span>
+              <b style="font-family:var(--font-display);font-size:15px;color:#EFECE4">&#1488;&#1502;&#1514;</b></p>
+            <p style="margin:2px 0 0;font-family:var(--font-display);font-weight:900;font-size:15px;color:#FF3BC0">
+              <span class="ph" style="font-size:15px">&#1492;&#1493;&#1508;&#1514;&#1506;&#1514;</span></p>
+          </div>
+          <span class="coinfly" style="position:static">+10</span>
+        </div>
+
+        <span class="cta cta--wide" style="flex:none">&#1492;&#1500;&#1488;&#1492; <i>&#8250;</i></span>
+      </div>
+    </div>
+    <p class="note"><b>Card:</b> gone &mdash; it has been answered and the claim text is restated
+    at the top in its own strip. <b>Stamp:</b> a 46px token inside that strip, achromatic.
+    <b>Correctness:</b> its own band at the foot, with the avatar and the player's own answer.
+    <b>Coin:</b> flies out of the player band into the chip. <b>CTA:</b> full width, bottom, below
+    everything.</p>
+    <p class="cost">The only option that shows the player <b>what they answered</b> next to what
+    was true, which is the comparison the beat is actually about &mdash; and the same
+    guess-vs-reality shape the cascade already uses at beat 4, so it is not a new idea, only a new
+    place for one.</p>
+    <p class="risk"><b>Risk:</b> the card is gone. It is the object the player just answered on,
+    and the screen they land on shares nothing with the screen they came from &mdash; so the claim
+    has to be restated in the top strip, which puts the same sentence on screen twice across two
+    beats in two typefaces. The player band is also the largest area of verdict colour anywhere in
+    the app, larger than the stamp, on a beat that is not the round's strongest moment.
+    Room is not the problem: at <code>s1</code>'s 216 characters the middle band has half its
+    height spare, and <code>e3</code>'s 280 &mdash; the longest of the eleven &mdash; still fits.
+    It is the most built-from-nothing of the five.</p>
+  </div>
+</div>
+
+<h2>V18-4 &middot; the card turns over to its answer face</h2>
+<p class="ask">
+No overlay anywhere. The claim card is a flipper already &mdash; the deck turns cards in 3D at
+beat 4 &mdash; so the reveal is the card turning to its own back: the true answer as its headline,
+the explanation as its body, a verdict-coloured sticker on the corner. Nothing is covered, so
+nothing has to be given back.
+</p>
+<div class="row">
+  <div class="opt">
+    <span class="tag">V18-4</span>
+    <div class="fr">
+      <header class="hud">
+        <span class="hud-right"><button class="ib-b" aria-label="&#1497;&#1510;&#1497;&#1488;&#1492;">&#10005;</button></span>
+        <span class="hud-mid"><span>&#1495;&#1493;&#1511; &#1492;&#1502;&#1513;&#1496;&#1512;&#1492; &#1513;&#1500; &#1489;&#1503;-&#1490;&#1489;&#1497;&#1512;</span></span>
+        <span class="h-a hud-coins"><span style="color:var(--primary)">&#9679;</span>25</span>
+      </header>
+      <div style="flex:1;min-height:0;margin-top:14px;position:relative;display:flex;
+                  flex-direction:column;align-items:center;gap:14px">
+        <div class="card" style="height:392px;justify-content:flex-start;gap:10px">
+          <span class="cmark cm-sur" style="position:absolute;top:-14px;left:-10px;
+                transform:rotate(-7deg);z-index:4"><i class="dot"></i><span class="ph">&#1492;&#1493;&#1508;&#1514;&#1506;&#1514;</span></span>
+          <p style="margin:0;font-size:11px;font-weight:700;color:var(--ink-soft);text-align:center">
+            <span class="ph" style="font-size:11px">&#1492;&#1496;&#1506;&#1504;&#1492; &#1492;&#1497;&#1497;&#1514;&#1492;</span></p>
+          <div style="display:flex;justify-content:center">
+            <span class="stamp stamp--mid st-ink">&#1513;&#1511;&#1512;</span>
+          </div>
+          <p class="exp" style="color:var(--ink);font-size:12.5px;margin-top:4px">&#1494;&#1492; &#1500;&#1488; &#1504;&#1499;&#1493;&#1503;, &#8221;&#1495;&#1493;&#1511; &#1489;&#1503;-&#1490;&#1489;&#1497;&#1512;&#8221; &#1502;-2022 &#1489;&#1497;&#1511;&#1513; &#1500;&#1514;&#1514; &#1500;&#1513;&#1512; &#1500;&#1489;&#1497;&#1496;&#1495;&#1493;&#1503; &#1500;&#1488;&#1493;&#1502;&#1497; &#1500;&#1492;&#1514;&#1493;&#1493;&#1514; &#1502;&#1491;&#1497;&#1504;&#1497;&#1493;&#1514; &#1499;&#1500;&#1500;&#1497;&#1514; &#1500;&#1502;&#1513;&#1496;&#1512;&#1492;, &#1499;&#1493;&#1500;&#1500; &#1489;&#1514;&#1495;&#1493;&#1501; &#1492;&#1495;&#1511;&#1497;&#1512;&#1493;&#1514;. &#1488;&#1489;&#1500; &#1489;-2024 <span class="gt" style="color:#1B4457;background:rgba(55,140,196,.20)">&#1489;&#1490;&#8221;&#1509;</span> &#1508;&#1505;&#1500; &#1488;&#1514; &#1505;&#1506;&#1497;&#1507; &#1492;&#1495;&#1511;&#1497;&#1512;&#1493;&#1514; &#1493;&#1511;&#1489;&#1506;: &#1492;&#1513;&#1512; &#1511;&#1493;&#1489;&#1506; &#1502;&#1491;&#1497;&#1504;&#1497;&#1493;&#1514; &#1499;&#1500;&#1500;&#1497;&#1514; &#1493;&#1488;&#1505;&#1493;&#1512; &#1500;&#1493; &#1500;&#1492;&#1514;&#1506;&#1512;&#1489; &#1489;&#1495;&#1511;&#1497;&#1512;&#1493;&#1514; &#1493;&#1489;&#1508;&#1506;&#1493;&#1500;&#1493;&#1514; &#1505;&#1508;&#1510;&#1497;&#1508;&#1497;&#1493;&#1514;.</p>
+        </div>
+        <span class="cta cta--mid">&#1492;&#1500;&#1488;&#1492; <i>&#8250;</i></span>
+      </div>
+    </div>
+    <p class="note"><b>Card:</b> is the reveal &mdash; it turns in place, same size, same spot.
+    <b>Stamp:</b> on the card face, achromatic. <b>Correctness:</b> a coloured sticker slapped on
+    the card's corner, breaking its edge. <b>Coin:</b> flies out of the corner sticker.
+    <b>CTA:</b> under the card, where the &#1488;&#1502;&#1514;/&#1513;&#1511;&#1512; buttons were, so
+    the thumb does not move.</p>
+    <p class="cost">The most on-system of the five and the only one that adds no new surface at
+    all: it reuses the 3D flipper, the corner-sticker language the B2-4 ask sticker now
+    establishes, and the card's own box. The HUD is untouched because nothing ever covered it.</p>
+    <p class="risk"><b>Risk:</b> it makes the reveal quiet. The claim resolving is the round's
+    first payoff and turning a card over is the same gesture the cascade uses nine more times in
+    the same round, so the beat stops being distinct. And the card face is a fixed box that does
+    not scroll: the frame carries <code>s1</code>'s full 216 characters and fits, but
+    <code>e3</code> is 280 and <code>g3</code> 263, so the stamp's size becomes a function of the
+    explanation's length and has to be measured against all eleven before it ships. The flipper
+    cannot scroll and the card cannot grow.</p>
+  </div>
+</div>
+
+<h2>V18-5 &middot; the reveal is a strip, the card never moves</h2>
+<p class="ask">
+The maximum-context end of the range, drawn so the set has one. The card stays fully lit and
+uncovered; the stamp lands as a token in the chyron slot next to the player's own answer, and the
+explanation opens as a panel over the card's lower third only. The claim sentence is legible the
+whole time.
+</p>
+<div class="row">
+  <div class="opt">
+    <span class="tag">V18-5</span>
+    <div class="fr">
+      <header class="hud">
+        <span class="hud-right"><button class="ib-b" aria-label="&#1497;&#1510;&#1497;&#1488;&#1492;">&#10005;</button></span>
+        <span class="hud-mid"><span>&#1495;&#1493;&#1511; &#1492;&#1502;&#1513;&#1496;&#1512;&#1492; &#1513;&#1500; &#1489;&#1503;-&#1490;&#1489;&#1497;&#1512;</span></span>
+        <span class="h-a hud-coins"><span style="color:var(--primary)">&#9679;</span>25</span>
+      </header>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:11px;flex:none;
+                  padding:6px 12px 7px;border-radius:var(--r-chip);
+                  background:rgba(16,14,11,.40);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)">
+        <span class="stamp stamp--tok st-ink" style="flex:none">&#1513;&#1511;&#1512;</span>
+        <div style="flex:1;min-width:0">
+          <p style="margin:0;font-size:11px;font-weight:700;color:#BEB9AC">
+            <span class="ph" style="font-size:11px">&#1506;&#1504;&#1497;&#1514;</span>
+            <b style="font-family:var(--font-display);font-size:14px;color:#EFECE4;
+                      border-bottom:3px solid #FF3BC0;padding-bottom:1px">&#1488;&#1502;&#1514;</b></p>
+        </div>
+        <span class="cmark cm-sur" style="font-size:12px;padding:3px 9px 4px">
+          <i class="dot" style="width:9px;height:9px"></i><span class="ph" style="font-size:12px">&#1492;&#1493;&#1508;&#1514;&#1506;&#1514;</span></span>
+      </div>
+      <div style="flex:1;min-height:0;margin-top:10px;position:relative">
+        <div class="card" style="height:100%">
+          <p class="claimtx">&#1492;&#1513;&#1512; &#1500;&#1489;&#1497;&#1496;&#1495;&#1493;&#1503; &#1500;&#1488;&#1493;&#1502;&#1497; &#1512;&#1513;&#1488;&#1497; &#1500;&#1492;&#1493;&#1512;&#1493;&#1514; &#1500;&#1502;&#1513;&#1496;&#1512;&#1492; &#1488;&#1514; &#1502;&#1497; &#1500;&#1495;&#1511;&#1493;&#1512;.</p>
+          <div class="art"><i></i></div>
+        </div>
+        <div style="position:absolute;left:0;right:0;bottom:0;z-index:6;height:146px;
+                    background:#211F1B;box-shadow:0 -3px 0 rgba(0,0,0,.5);
+                    padding:11px 13px;display:flex;flex-direction:column;justify-content:space-between">
+          <p class="exp">&#1494;&#1492; &#1500;&#1488; &#1504;&#1499;&#1493;&#1503;. &#1489;-2024 <span class="gt">&#1489;&#1490;&#8221;&#1509;</span> &#1508;&#1505;&#1500; &#1488;&#1514; &#1505;&#1506;&#1497;&#1507; &#1492;&#1495;&#1511;&#1497;&#1512;&#1493;&#1514; &#1493;&#1511;&#1489;&#1506;: &#1492;&#1513;&#1512; &#1511;&#1493;&#1489;&#1506; &#1502;&#1491;&#1497;&#1504;&#1497;&#1493;&#1514; &#1499;&#1500;&#1500;&#1497;&#1514; &#1493;&#1488;&#1505;&#1493;&#1512; &#1500;&#1493; &#1500;&#1492;&#1514;&#1506;&#1512;&#1489; &#1489;&#1495;&#1511;&#1497;&#1512;&#1493;&#1514;.</p>
+          <span class="cta cta--txt" style="align-self:flex-start">&#1492;&#1500;&#1488;&#1492; <i>&#8250;</i></span>
+        </div>
+      </div>
+    </div>
+    <p class="note"><b>Card:</b> fully lit, uncovered above the panel &mdash; the claim stays
+    readable while the explanation is read. <b>Stamp:</b> a 46px token in the chyron strip,
+    achromatic. <b>Correctness:</b> two carriers in that strip, both away from the stamp &mdash; a
+    magenta rule under the player's own answer, and a chip at the far end. <b>Coin:</b> the chip
+    increments; nothing flies. <b>CTA:</b> lightest of the five &mdash; type and a chevron, no
+    button.</p>
+    <p class="cost">Keeps the most context of the five and costs the least screen. It also puts
+    the answer token in the same slot the chyron will later hold the player's own vote, so the
+    strip has one job across the round.</p>
+    <p class="risk"><b>Risk, and it is the obvious one:</b> this is the quietest option and the
+    beat is the round's first payoff. A 46px token is a caption, not a verdict, and the whole
+    reveal can be missed by a player looking at the card. Two separate correctness carriers in one
+    strip is also one more than the rule needs, and the magenta rule under
+    &#1488;&#1502;&#1514; sits directly under a word that means &ldquo;true&rdquo; &mdash; the one
+    adjacency the brief says must never be readable as a verdict on the claim.</p>
+  </div>
+</div>
+
+<h2>Where this leaves things</h2>
+<p class="ask">
+The five sit on one axis &mdash; how much of the beat is a takeover.
+<b>V18-5</b> keeps everything and says the least; <b>V18-2</b> is closest to today and covers the
+most; <b>V18-1</b> and <b>V18-4</b> keep the card and differ on whether the reveal lands on it or
+turns it; <b>V18-3</b> throws the card away and shows you against the truth instead.
+Two build notes that apply whichever is picked:
+</p>
+<div class="must">
+  <ul>
+    <li>The correctness word is <b>unwritten</b> in all five &mdash; every frame stripes it.
+        &#1510;&#1491;&#1511;&#1514; / &#1492;&#1493;&#1508;&#1514;&#1506;&#1514; are placeholders and
+        the pair has to come from Tamar together, because they are read as a pair.</li>
+    <li>The stamp goes <b>achromatic</b> in all five, which is a change to a shipped component:
+        today <code>stamp(ok, override)</code> colours the disc by correctness and letters it with
+        the true answer. Splitting those is the fix in every option, so it is not a tie-breaker
+        between them &mdash; it happens either way.</li>
+    <li><code>partial</code> (&#1495;&#1500;&#1511;&#1497;&#1514;) is unreachable across all 11
+        active issues, so no frame draws it. If Tamar's copy ever introduces one, V18-3 is the
+        only layout with room for a third word without re-flowing.</li>
+  </ul>
+</div>
+<p class="lede" style="margin-top:22px"><b>Nothing here is implemented.</b> Pick one and I build it.</p>
+
+</div>
+</body>
+</html>
