@@ -13,6 +13,9 @@
    placeholder rather than as a guess.
    ===================================================================== */
 
+/* the issue the round opens on when nothing chose one — a ?screen=round
+   deep link with no map behind it. Every OTHER entry into the round comes
+   from a map node and names its own issue. */
 const ISSUE_ID = 's1';
 const ROOT     = '../../../';                 /* manifest paths are app-root relative */
 
@@ -237,6 +240,9 @@ function fitBeat() {
   }
 }
 addEventListener('resize', sizeStage);
+/* the map's connector is drawn in device pixels, so it has to be redrawn
+   when the window changes size. Cheap, and a no-op on the other screens. */
+addEventListener('resize', () => { if ($('#mapline')) redrawPath(); });
 addEventListener('orientationchange', () => setTimeout(sizeStage, 250));
 if (window.visualViewport) visualViewport.addEventListener('resize', sizeStage);
 /* belt and braces against rubber-band: the body never pans. The two
@@ -296,8 +302,8 @@ function initials(name) {
 }
 
 /* ===================== state ======================================== */
-function newRound() {
-  issue = DATA.issues.find(i => i.id === ISSUE_ID);
+function newRound(issueId) {
+  issue = DATA.issues.find(i => i.id === (issueId || ISSUE_ID));
   topic = DATA.topics.find(t => t.id === issue.topic);
 
   /* the deal, mirroring app.js:370-376 — key MKs always in, then a
@@ -609,9 +615,32 @@ function leaveCard() {
 /* ===================== BEAT 1 · THE CLAIM =========================== */
 /* B1-B developed: the claim card IS the MK card — same .mf-b, same
    340x620, with the issue's own graphic where the portrait goes.      */
+/* THE CLAIM CARD'S GRAPHIC, and what stands in when there is not one.
+   manifest.json carries issue art for s1 and s2 only — the other fourteen
+   have no drawn source, and inventing one is not this file's job. The
+   fallback is the TOPIC'S own object, the same illustration the map node
+   carries, set smaller and centred in the same slot with the same die-cut.
+   It says which topic the claim belongs to and claims nothing about the
+   issue, which is the honest thing a stand-in can do. It is marked with a
+   class so it is greppable and so it cannot be mistaken for issue art. */
+function claimArt() {
+  const a = M.issues[issue.id];
+  if (a) return '<div class="b1art"><img src="' + ROOT + a.file + '" alt="" width="' +
+    a.w + '" height="' + a.h + '"></div>';
+  const T_ = M.topics && M.topics[issue.topic];
+  if (T_ && T_['128']) {
+    const ar = T_.aspect || 1, S_ = 128;
+    const w = ar >= 1 ? S_ : S_ * ar, h = ar >= 1 ? S_ / ar : S_;
+    return '<div class="b1art b1art--topic"><img src="' + ROOT + T_['128'] +
+      '" alt="" width="' + w.toFixed(0) + '" height="' + h.toFixed(0) + '"></div>';
+  }
+  /* no object either: the slot still holds its box, so the card cannot
+     change size between one issue and the next */
+  return '<div class="b1art b1art--none"></div>';
+}
+
 function beat1() {
   S.beat = 1; S.t0 = performance.now();
-  const art = M.issues[issue.id];
   const r = $('#round');
   r.innerHTML = '';
   const b = el('div', 'beat b1');
@@ -624,7 +653,7 @@ function beat1() {
   const next = deckCard(0);
   const card = el('article', 'mf-b b1card');
   card.innerHTML =
-    '<div class="b1art"><img src="' + ROOT + art.file + '" alt="" width="' + art.w + '" height="' + art.h + '"></div>' +
+    claimArt() +
     '<p class="b1claim">' + esc(issue.tf) + '</p>' +
     /* data-label is the fill layer's copy — see .b1ans .v-a::after. It is
        the SAME string as the button's own text and must stay that way. */
@@ -1478,33 +1507,43 @@ const nodeY = (i, h) => h - PADB() - i * GAP();
 
 function renderMap() {
   const r = $('#scMap');
-  const n = DATA.topics.length;
-  const h = parseFloat(CSVAR('--node-pad-top')) + PADB() + (n - 1) * GAP();
+  const h = pathHeight();
   const cur = currentIdx();
 
+  /* NO viewBox HERE. It is set by drawPath() from the window's MEASURED
+     width, because the ribbon is a 23px stroke and the old
+     preserveAspectRatio="none" fit stretched x independently of y — which
+     turned a round cap into an ellipse and made the path 9% wider than it
+     is at 393px. A bead trail hid that; a ribbon cannot. */
   r.innerHTML =
     '<div class="mapwin scrolls" id="mapwin">' +
       '<div class="path" id="mappath" style="height:' + h + 'px">' +
-        '<div class="path-glow" aria-hidden="true"></div>' +
-        '<svg class="path-line" id="mapline" viewBox="0 0 358 ' + h + '" ' +
-          'preserveAspectRatio="none" aria-hidden="true">' +
+        '<svg class="path-line" id="mapline" aria-hidden="true">' +
           '<path class="pl-under" d=""></path><path class="pl-dots" d=""></path>' +
         '</svg>' +
         DATA.topics.map((t, i) => nodeHTML(t, i, h, cur)).join('') +
       '</div>' +
     '</div>' +
-    '<p class="map-head" id="maphead"><b></b></p>' +
     '<button type="button" class="map-jump" id="mapjump">' +
       '<i aria-hidden="true">↓</i>חזרה לנושא הנוכחי</button>';
 
-  drawPath(h);
   paintHud();
-  /* SHOW IT BEFORE WIRING IT. A hidden element has no clientHeight and
+  /* SHOW IT BEFORE MEASURING IT. A hidden element has no clientHeight and
      will not take a scrollTop, so parking the window on the current node
-     silently did nothing and the map opened at the top of the path. */
+     silently did nothing and the map opened at the top of the path — and
+     for the same reason drawPath() would have read a width of 0 and fallen
+     back to the board's 358 on every viewport. */
   showScreen('map');
+  drawPath(h);
   wireMap(cur, h);
 }
+
+/* the path height is a pure function of the topic count and the two pads,
+   so a redraw does not need anything the first draw was given */
+function pathHeight() {
+  return parseFloat(CSVAR('--node-pad-top')) + PADB() + (DATA.topics.length - 1) * GAP();
+}
+function redrawPath() { drawPath(pathHeight()); }
 
 /* THE RING, in the node box's own units. Everything here is derived from
    --ring-r so the SVG cannot fall out of step with the CSS that sizes the
@@ -1589,9 +1628,15 @@ function statusLine(id) {
 }
 
 /* one smooth serpentine through the node centres, vertical tangents at
-   every node so the dashes arrive square to the face */
+   every node so the ribbon arrives square to the face.
+   IT IS DRAWN IN REAL PIXELS. The node positions are percentages, so the
+   only way the stroke stays circular and the ribbon stays centred on the
+   discs at 375, 393 and 430 is to measure the window and give the SVG a
+   1:1 viewBox. Called again on resize for the same reason. */
 function drawPath(h) {
-  const w = 358;
+  const path = $('#mappath'); if (!path) return;
+  const w = path.clientWidth || 358;
+  $('#mapline').setAttribute('viewBox', '0 0 ' + w + ' ' + h);
   const pts = DATA.topics.map((t, i) => [
     NODE_X[i] * w, nodeY(i, h)
   ]);
@@ -1606,7 +1651,7 @@ function drawPath(h) {
 }
 
 function wireMap(cur, h) {
-  const win = $('#mapwin'), head = $('#maphead b'), jump = $('#mapjump');
+  const win = $('#mapwin'), jump = $('#mapjump');
   const curY = nodeY(cur, h);
 
   /* PARK THE FIRST INCOMPLETE NODE IN THE LOWER THIRD. Two thirds down the
@@ -1616,14 +1661,6 @@ function wireMap(cur, h) {
   park();
 
   const onScroll = () => {
-    /* THE PINNED HEADER NAMES THE NODE NEAREST THE MIDDLE of the window
-       and swaps as you climb, which is the whole reason it is pinned. */
-    const mid = win.scrollTop + win.clientHeight / 2;
-    let best = 0, bd = Infinity;
-    DATA.topics.forEach((t, i) => {
-      const d = Math.abs(nodeY(i, h) - mid); if (d < bd) { bd = d; best = i; }
-    });
-    head.textContent = DATA.topics[best].label;
     /* THE JUMP BUTTON EXISTS ONLY WHILE THE CURRENT NODE IS OFF SCREEN.
        It is a way back, not a nag, and it awards nothing. */
     const vis = curY > win.scrollTop + 40 && curY < win.scrollTop + win.clientHeight - 40;
@@ -1642,7 +1679,7 @@ function wireMap(cur, h) {
      are a visible state and say so rather than opening a faked round. */
   $$('.node-face', $('#scMap')).forEach(btn => {
     const node = btn.closest('.node');
-    pressable(btn).addEventListener('click', () => openTopic(node.dataset.topic, btn));
+    pressable(btn).addEventListener('click', () => openTopic(node.dataset.topic));
   });
 }
 
@@ -1660,26 +1697,32 @@ function goMap() {
 }
 
 /* MAP -> ROUND. One transition, cheap, under the 350ms cap: the map drops
-   back and fades while the round comes up over it. Only s1 has a round. */
-function openTopic(topicId, btn) {
+   back and fades while the round comes up over it.
+
+   ALL SIXTEEN ISSUES OPEN NOW. The round builder never knew anything about
+   s1 — it reads data.js by id and always did — so the only thing that made
+   s1 special was this function refusing to hand it anything else. Every
+   node opens its topic's first UNPLAYED issue, which is the core one until
+   it is done and the second one after that.
+
+   THREE THINGS DEGRADE rather than block, and every one of them is a
+   CONTENT gap in data.js, not a broken beat:
+     · no _tally (e2 b2 g1 g2 a2 v2 s2 m1) — beat 5 already drops the
+       count and the "with your vote" line and marks the missing figure;
+       see the tally guard there.
+     · tf_answer "partial" (v1) — already treated as correct, so the claim
+       cannot be scored against the player.
+     · no issue artwork (14 of 16) — beat 1 falls back to the topic's own
+       object; see the art fallback there.
+   Nothing is fabricated for any of them. */
+function openTopic(topicId) {
   const first = topicIssues(topicId).find(i => !issueDone(i.id)) || topicIssues(topicId)[0];
-  if (!first || first.id !== ISSUE_ID) {
-    /* NOT A FAKED ROUND. The node is a real state and nothing more, and
-       saying so beats opening an empty one. The words are MARKED AS A
-       PLACEHOLDER rather than written: what an unbuilt topic says to a
-       player is Tamar's line, not this file's, and a build-state label
-       dressed as product copy is how unwritten strings get shipped. */
-    const st = btn.closest('.node').querySelector('.node-status');
-    const was = st.innerHTML;
-    st.innerHTML = ph('טקסט — תמר: נושא שעוד לא נבנה');
-    setTimeout(() => { st.innerHTML = was; }, 1600);
-    return;
-  }
+  if (!first) return;
   const m = $('#scMap');
   m.classList.add('is-leaving');
   setTimeout(() => {
     m.classList.remove('is-leaving');
-    startRound();
+    startRound(first.id);
     const rd = $('#scRound');
     rd.classList.remove('is-entering'); void rd.offsetWidth; rd.classList.add('is-entering');
   }, T.screen);
@@ -1689,14 +1732,14 @@ function openTopic(topicId, btn) {
 /* THE ROUND, which is now one screen of three rather than the whole app.
    It no longer resets the coin count: the wallet belongs to the session
    and the map is the thing you come back to with it. */
-function startRound() {
+function startRound(issueId) {
   applyDev();
   helper('');
   /* the chyron is emptied, never removed: it holds its box on beat 1 so
      the card is the same size before and after the answer is given */
   const c = $('#chyron');
   c.innerHTML = ''; c.classList.add('is-empty'); c.setAttribute('aria-hidden', 'true');
-  newRound();
+  newRound(issueId);
   /* §B the topic the issue belongs to, from data.js, centred in the HUD
      and present on every beat — the round is one issue inside one topic
      and the HUD is the only thing on screen that can say which.

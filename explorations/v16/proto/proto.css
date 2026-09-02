@@ -971,6 +971,23 @@ body.no-ph [data-ph]{ display:none !important; }
 .screen[hidden]{ display:none; }
 /* the intro has nothing to count and nobody to be yet */
 .stage[data-screen="intro"] .hud{ display:none; }
+
+/* §5 ON THE MAP THE HUD IS OUT OF FLOW, and that is what makes the map
+   pass BEHIND it rather than start below it. It is the same row, the same
+   three chips, with no band and no background of its own — the stage's
+   charcoal and dot grid run under the chips unbroken, and the path scrolls
+   through that gap. Taking it out of flow is also what hands .sc-map the
+   whole stage: the screen is the only flex child left, so it fills the
+   column without a negative margin anywhere.
+   In the round it stays IN FLOW: the card is measured against the height
+   the HUD leaves, and floating it there would put the card under it. */
+.stage[data-screen="map"] .hud{
+  position:absolute; z-index:30;
+  top:calc(10px + env(safe-area-inset-top));
+  left:calc(16px + env(safe-area-inset-left));
+  right:calc(16px + env(safe-area-inset-right));
+  background:none;
+}
 /* the HUD's centre slot. Exactly one of the two children is ever in it,
    and the slot holds the same box either way so the row never jumps. */
 .hud-mid{ flex:1; min-width:0; display:flex; justify-content:center; align-items:center; }
@@ -1077,25 +1094,31 @@ body.no-ph [data-ph]{ display:none !important; }
    exists. Bottom to top: node 1 is at the FOOT of the path, which is why
    the window opens parked near the bottom and climbs.
    ===================================================================== */
+/* §4 THE MAP HAS NO GROUND OF ITS OWN. It used to carry the board's
+   .path-glow — two radial washes over a warm-to-blue vertical ramp — which
+   is the only place in the app where the ground changed under a screen,
+   and it made the map look like a different product from the round. It is
+   gone. What shows through is .stage's own charcoal and its 4px/7px dot
+   grid, unbroken from the top of the HUD to the foot of the path, which is
+   what every other screen stands on. */
 .sc-map{ min-height:0; }
 .mapwin{ position:relative; flex:1; min-height:0; margin:0 -16px; }
 .path{ position:relative; width:100%; }
-.path-glow{
-  position:absolute; left:0; right:0; top:-40px; bottom:-40px; z-index:0;
-  pointer-events:none;
-  background:
-    radial-gradient(120% 42% at 50% 0%,rgba(255,214,10,.16),transparent 70%),
-    radial-gradient(120% 34% at 50% 100%,rgba(61,91,255,.20),transparent 72%),
-    linear-gradient(180deg,#4A463E 0%,#43423E 38%,#3C3D40 68%,#353844 100%);
-}
-/* THE CONNECTOR IS DASHED, per §3.3 — the board's PathDots, not its
-   PathRoad. Two strokes: a dark one offset down, so the dashes are
-   extruded off the ground like everything else in the system. */
+
+/* §2 THE CONNECTOR IS THE BOARD'S RIBBON, not a bead trail. The v7 path
+   study picked it outright — "a ribbon with a lit top and a shadowed
+   under-edge, so the path carries the same thickness the nodes do" —
+   and the archive note records it as already applied to the v8 map. The
+   dotted variant it replaces was the treatment the study was run to
+   REPLACE. Both strokes and both colours are PathRoad's own.
+   The taper is the two strokes, not a width ramp: 23px of dark offset 6px
+   down, 19px of lighter laid on top, so 2px of shadow shows on each side
+   and 6px along the bottom — the same lit-top-over-dark-base construction
+   the discs, the chips and the cards are all built from. */
 .path-line{ position:absolute; inset:0; width:100%; height:100%; z-index:1; overflow:visible; }
-.pl-under{ fill:none; stroke:rgba(0,0,0,.34); stroke-width:11; stroke-linecap:round;
-  stroke-dasharray:2 17; transform:translateY(4px); }
-.pl-dots{ fill:none; stroke:rgba(255,255,255,.30); stroke-width:9; stroke-linecap:round;
-  stroke-dasharray:2 17; }
+.pl-under{ fill:none; stroke:#2A2924; stroke-width:23; stroke-linecap:round;
+  transform:translateY(6px); }
+.pl-dots{ fill:none; stroke:#615D53; stroke-width:19; stroke-linecap:round; }
 
 .node{ position:absolute; z-index:2; width:var(--node-box);
   display:flex; flex-direction:column; align-items:center; }
@@ -1249,20 +1272,12 @@ span.node-ico{ font-size:38px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
    the same neutral now, which is the point of §5. */
 .node.is-untouched .node-ico{ opacity:.82; }
 
-/* ---- the pinned section header --------------------------------------
-   Names the node nearest the middle of the window, and swaps as you
-   climb. It is the map's only fixed chrome. */
-.map-head{
-  position:absolute; z-index:20; top:0; left:0; right:0;
-  display:flex; justify-content:center; pointer-events:none;
-  padding:6px 16px 10px;
-  background:linear-gradient(to bottom,#403E3A 62%,rgba(64,62,58,0));
-}
-.map-head b{
-  font-family:var(--font-display); font-weight:900; font-size:14px;
-  color:#D8D2C4; line-height:1;
-  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-}
+/* §3 THE PINNED SECTION HEADER IS GONE. It named the node nearest the
+   middle of the window and swapped as you climbed — Duolingo's move, and
+   the right one on a list of lessons that have no labels of their own.
+   Every node here already carries its topic's name under it, so the header
+   was saying the same word twice, and it needed an opaque band across the
+   top of the map to stay legible. Removing it also removes the band. */
 
 /* ---- jump back to the current node ---------------------------------
    Only ever visible when the current node is off screen; it is a way back,
