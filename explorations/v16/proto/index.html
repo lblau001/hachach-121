@@ -145,7 +145,11 @@
          It is filled at beat 2 and emptied at restart; it is never created
          or destroyed, because it has to hold its box on beat 1 for the
          card to be the same size on every beat. -->
-    <div class="chyron is-empty" id="chyron" aria-hidden="true"></div>
+    <!-- THE SLOT, and only the slot. It reserves the banner's box in the
+         round's flow so the card is the same size on every beat, exactly
+         as the chyron itself used to; it never holds content. The banner
+         is #chyron and now lives at STAGE level — see the note there. -->
+    <div class="chyron-slot" id="chyronSlot" aria-hidden="true"></div>
     <!-- A8 · THE ROUND'S ONE INSTRUCTION LINE, and it sits UNDER the
          chyron now rather than above it. During the cascade it carries
          "מה הוא/היא הצביע/ה?" at 1.5x its old size, because at 11px on a
@@ -158,6 +162,19 @@
     <p class="helper is-empty" id="helper"></p>
     <main class="round" id="round"></main>
   </section>
+
+  <!-- THE PINNED BANNER, PROMOTED OUT OF #scRound.
+       It has to outrank every layer for the whole tachles transition: the
+       beat-2 surface is .ov--stage at z-index 9 and is a child of .stage,
+       so while the banner lived inside #scRound (a .screen at z-index 1)
+       its own z-index:12 was scoped to a stacking context that the
+       overlay sat on top of — the banner would have flown UNDER the blur
+       it is supposed to land in front of.
+       It is absolutely positioned over #chyronSlot, which still reserves
+       the box in the round's flow, so nothing downstream moved: the round
+       still begins where the band ends and the card is unchanged. Every
+       existing caller still finds it at #chyron. -->
+  <div class="chyron is-empty" id="chyron" aria-hidden="true"></div>
 
   <!-- the coins fly here, over everything, out of every layout -->
   <div class="coinfly" id="coinfly" aria-hidden="true"></div>

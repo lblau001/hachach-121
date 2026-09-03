@@ -66,6 +66,13 @@ const T = {
   loadBarIn: ms('--t-load-barin'),
   loadFill:  ms('--t-load-fill'),
   loadHold:  ms('--t-load-hold'),
+  tcLetters:  ms('--t-tc-letters'),
+  tcAvAt:     ms('--t-tc-av-at'),
+  tcResolveAt:ms('--t-tc-resolve-at'),
+  tcTravelAt: ms('--t-tc-travel-at'),
+  tcTravel:   ms('--t-tc-travel'),
+  tcNextAt:   ms('--t-tc-next-at'),
+  tcTapAt:    ms('--t-tc-tap-at'),
   f5Count:   ms('--t-f5-count'),
   f5Flare:   ms('--t-f5-flare'),
   f5Prose:   ms('--t-f5-prose'),
@@ -299,6 +306,7 @@ function fitBeat() {
   }
 }
 addEventListener('resize', sizeStage);
+addEventListener('resize', placeChyron);
 /* the map's connector is drawn in device pixels, so it has to be redrawn
    when the window changes size. Cheap, and a no-op on the other screens. */
 addEventListener('resize', () => { if ($('#mapline')) redrawPath(); });
@@ -736,8 +744,24 @@ function helper(text) {
    COPY IS OURS, NOT TAMAR'S — marked, including the gendered נמנע/ת which
    needs checking against the player's gender setting. */
 const VOTE_PIN = { for: 'בעד', against: 'נגד', abstain: 'נמנע/ת' };  /* TAMAR */
+/* the banner is absolute at stage level now, so its box comes from the
+   slot that stayed behind in the round's flow. Cheap, and it has to run
+   whenever the slot could have moved: on every pin, on the beat-1 chip,
+   and on resize. */
+function placeChyron() {
+  const c = $('#chyron'), slot = $('#chyronSlot'), st = $('#stage');
+  if (!c || !slot || !st) return;
+  const r = slot.getBoundingClientRect(), s = st.getBoundingClientRect();
+  if (!r.width) return;
+  c.style.left  = (r.left - s.left) + 'px';
+  c.style.top   = (r.top  - s.top)  + 'px';
+  c.style.width = r.width + 'px';
+  c.style.minHeight = r.height + 'px';
+}
+
 function pinVote(vote) {
   const c = $('#chyron');
+  placeChyron();
   c.classList.remove('is-empty');
   c.removeAttribute('aria-hidden');
   /* B-5 · THE BANNER IS A STICKER, SIZED TO ITS CONTENTS. It is no longer
@@ -1398,6 +1422,7 @@ async function claimReveal(ans, card) {
     '<span class="cmark__av as-d" aria-hidden="true">' + AV3 + '</span>' +
     '<span>' + esc(ok ? CLAIM_MARK.ok : CLAIM_MARK.bad) + '</span>');
   const chy = $('#chyron');
+  placeChyron();
   chy.classList.remove('is-empty'); chy.classList.add('is-mark');
   chy.removeAttribute('aria-hidden');
   chy.innerHTML = ''; chy.appendChild(chip);
@@ -1616,7 +1641,10 @@ function beat2() {
            object, not an illustration with a caption under it. */
         '<div class="b2seat">' +
           '<img class="b2chair" src="' + ROOT + (M.props.chair['900'] || M.props.chair['300']) + '" alt="">' +
-          '<p class="b2taken" aria-live="polite"></p>' +
+          /* .b2taken is gone: the confirmation is no longer a chip that
+             APPEARS on the chair, it is the callout that ARRIVES there
+             and then leaves for the pin. .b2seat is still the anchor the
+             callout is positioned from — see tachlesTransition(). */
         '</div>' +
         /* §2 · THE FRAMING LINE, and it is the first and only place the
            121st-MK conceit is stated in words. Until now the bill arrived
@@ -1648,7 +1676,11 @@ function beat2() {
         '<button type="button" class="b2bill b2bill--link" data-law>' +
           esc(issue.bill_title || '') + '</button>' +
         '<div class="v-a-row b2votes">' +
-          VOTES.map(v => '<button class="v-a" data-vote="' + v + '">' + VLABEL[v] + '</button>').join('') +
+          /* the label is its own span so the transition can hide THIS
+             copy of the word the instant the flying one leaves — two of
+             it on screen would break the illusion that it travelled. */
+          VOTES.map(v => '<button class="v-a" data-vote="' + v + '">' +
+            '<span class="v-a__lab">' + VLABEL[v] + '</span></button>').join('') +
         '</div>' +
         /* §3.2 "את התוצאה נגלה בסוף ›" IS GONE. It was a promise about a
            beat five screens away, printed under the question the player
@@ -1678,7 +1710,10 @@ function beat2() {
       /* A7 · the choice pins into the band and stays there for the rest of
          the round — through the cascade and into the reveal */
       S.ownVote = btn.dataset.vote;
-      pinVote(S.ownVote);
+      /* NOT pinned here any more. The banner is not placed into the slot,
+         it TRAVELS there — tachlesTransition() calls pinVote() on the
+         frame the flight lands, and pinning it now would put a second
+         copy in the slot for the whole 1.1s the first one is in the air. */
       ov.querySelectorAll('.v-a').forEach(x => x.disabled = true);
       /* §0 · BEAT 2 NOW PAYS, FLAT AND UNCONDITIONALLY. This reverses the
          earlier categorical "beat 2 earns nothing": the reason that rule
@@ -1693,21 +1728,132 @@ function beat2() {
          else — the feedback is "counted", not "correct". */
       award(table.position, btn);
 
-      /* §4 THE PLAYER TAKES THE SEAT. The chosen vote leaves the row and
-         lands on the chair as one large object; the other two recede but
-         stay on screen, because the round never hides the options it
-         offered. PLACEHOLDER COPY — "בחרת:" is ours, pending the client's
-         sign-off, so it carries the marker. */
-      $('.b2taken', ov).innerHTML =
-        ph('בחרת:') + '<b>' + esc(VLABEL[btn.dataset.vote]) + '</b>';
+      /* §4 THE PLAYER TAKES THE SEAT — and the vote does not appear on
+         the chair, it TRAVELS there and then keeps going. See
+         tachlesTransition(). The other two chips recede but stay on
+         screen, because the round never hides the options it offered. */
       btn.classList.add('is-chosen');
       $('.ovpane--vote', ov).classList.add('is-taken');
-      await wait(T.b2Seat);
-
-      /* §1.2 the choice sits alone before the surface moves */
-      await wait(T.hold);
-      beat3(ov);
+      tachlesTransition(btn, ov);
     }));
+}
+
+/* ===================== §T · TACHLES -> CASCADE ======================
+   The move that was designed in the banners pass and could not be built,
+   because the banner could not survive the layer it had to cross. It can
+   now — see the note in index.html.
+
+   ONE OBJECT, FOUR PHASES, NOTHING SWAPPED. The word leaves the button,
+   the avatar joins it in flight, the pair resolves into the sticker, and
+   the sticker flies to the pin. It is the same element throughout: at no
+   point is one thing removed and another faded in where it was, which is
+   what would make this read as six animations instead of one move.
+
+   THE SCHEDULE IS ABSOLUTE, NOT CHAINED. Every phase is a setTimeout off
+   a single t0 rather than a chain of awaits, so a slow frame in one step
+   cannot push the five behind it — the steps OVERLAP by design and a
+   chain cannot express that at all.
+
+   prefers-reduced-motion: the banner is simply pinned, the bill enters,
+   the affordance appears. No flight, no callout, no assembly. */
+function tachlesTransition(btn, ov) {
+  const vote = btn.dataset.vote;
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const armNext = () => {
+    beat3(ov);
+    setTimeout(() => tapAffordance(ov), Math.max(0, T.tcTapAt - T.tcNextAt));
+  };
+
+  if (reduced) { pinVote(vote); armNext(); return; }
+
+  const stage = $('#stage'), seat = $('.b2seat', ov), lab = $('.v-a__lab', btn);
+  const slot = $('#chyronSlot');
+  if (!stage || !seat || !lab || !slot) { pinVote(vote); armNext(); return; }
+
+  const sr = stage.getBoundingClientRect();
+  /* the callout sits over the LOWER PART OF THE CHAIR — the same 62%
+     anchor .b2taken used, so the object lands where the confirmation has
+     always landed. */
+  const seatR = seat.getBoundingClientRect();
+  const cx = seatR.left + seatR.width / 2 - sr.left;
+  const cy = seatR.top  + seatR.height * 0.62 - sr.top;
+
+  const cal = el('div', 'tcal',
+    '<span class="tcal__av as-d" aria-hidden="true">' + AV3 + '</span>' +
+    '<span class="tcal__w">' + esc(VOTE_PIN[vote] || VLABEL[vote] || '') + '</span>');
+  cal.style.left = cx + 'px';
+  cal.style.top  = cy + 'px';
+  cal.style.transform = 'translate(-50%,-50%)';
+  stage.appendChild(cal);
+
+  /* FLIP 1 · measure the callout where it will rest, then throw it back
+     onto the button and let it come home. The scale is taken off the type
+     rather than the box, because the box is about to grow by an avatar
+     and a border and the letters must not appear to shrink. */
+  const rest = cal.getBoundingClientRect();
+  const lr = lab.getBoundingClientRect();
+  const k0 = Math.max(.35, lr.height / Math.max(1, rest.height));
+  const dx0 = (lr.left + lr.width / 2) - (rest.left + rest.width / 2);
+  const dy0 = (lr.top + lr.height / 2) - (rest.top + rest.height / 2);
+  cal.style.transition = 'none';
+  cal.style.transform =
+    'translate(-50%,-50%) translate(' + dx0.toFixed(1) + 'px,' + dy0.toFixed(1) + 'px)' +
+    ' scale(' + k0.toFixed(3) + ')';
+
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    cal.style.transition = '';                       /* back to the sheet's */
+    lab.style.opacity = '0';                         /* the button's copy goes */
+    /* 0 -> 340 · the letters fly home, settling at the callout's angle */
+    cal.style.transform = 'translate(-50%,-50%) rotate(-2.4deg)';
+  }));
+
+  /* 180 -> 480 · the avatar joins them */
+  setTimeout(() => cal.classList.add('is-paired'), T.tcAvAt);
+  /* 480 -> 740 · the construction resolves */
+  setTimeout(() => cal.classList.add('is-sticker'), T.tcResolveAt);
+
+  /* 740 -> 1120 · FLIP 2, the travel. Re-measured HERE and not earlier:
+     the box has gained the avatar and the border since phase 1, and a
+     target computed before that growth lands the banner off its pin. */
+  setTimeout(() => {
+    placeChyron();
+    const now = cal.getBoundingClientRect();
+    const sl  = slot.getBoundingClientRect();
+    /* the banner's own resting place inside the slot: leading edge under
+       RTL is the RIGHT, which is where .chyron puts it. */
+    const tx = (sl.right - now.width / 2) - (now.left + now.width / 2);
+    const ty = (sl.top + sl.height / 2)   - (now.top + now.height / 2);
+    cal.classList.add('is-pinning');
+    cal.style.transform = 'translate(-50%,-50%) translate(' +
+      tx.toFixed(1) + 'px,' + ty.toFixed(1) + 'px) rotate(1.2deg)';
+  }, T.tcTravelAt);
+
+  /* 900 -> 1300 · the next screen enters BEHIND the still-moving banner */
+  setTimeout(armNext, T.tcNextAt);
+
+  /* the hand-off. The real banner appears in the same place on the same
+     frame the flying one is removed, so there is no gap and no fade. */
+  setTimeout(() => {
+    pinVote(vote);
+    cal.remove();
+    buzz(18);
+  }, T.tcTravelAt + T.tcTravel);
+}
+
+/* THE AFFORDANCE, AND IT IS NOT SMALL PRINT. The whole surface is the
+   target, so the cue is a sticker-family pill with a chevron that
+   breathes — at this beat the screen has stopped moving and must not
+   read as finished. The blur behind it holds at 3px for the same
+   reason. */
+function tapAffordance(ov) {
+  if (!ov.isConnected || $('.tctap', ov)) return;
+  ov.classList.add('is-held');
+  const t = el('div', 'tctap',
+    '<span>' + esc('הקישו להמשך') + '</span>' +                      /* TAMAR */
+    '<span class="tctap__c" aria-hidden="true">›</span>');
+  ov.appendChild(t);
+  requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('is-in')));
 }
 
 /* ===================== BEAT 3 · THE BILL ============================ */
@@ -2746,6 +2892,11 @@ function showScreen(name) {
   const av = $('#hudAvatar'), x = $('#hudX');
   if (av) av.hidden = (name === 'round');
   if (x)  x.hidden  = (name !== 'round');
+  /* the banner is no longer inside #scRound, so hiding the round no
+     longer hides it — that is the whole point of the promotion, and it
+     is also the one thing the promotion has to pay for. */
+  const chy = $('#chyron');
+  if (chy) { chy.hidden = (name !== 'round'); if (name === 'round') placeChyron(); }
 }
 
 /* ===== A4 · THE WAY OUT OF A ROUND ==================================

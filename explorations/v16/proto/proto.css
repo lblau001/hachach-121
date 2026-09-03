@@ -100,6 +100,30 @@
   --t-f5-coin-out:  300ms;
   --t-f5-in:        300ms;   /* a block arriving                       */
 
+  /* §T · THE TACHLES -> CASCADE TRANSITION. One continuous move made of
+     six overlapping steps; the offsets are when each STARTS, measured
+     from the tap, and the durations are how long each takes. They
+     overlap on purpose — the pair assembles while the letters are still
+     travelling — so the whole thing reads as one gesture and not as six.
+       0    -> 340   letters leave the button
+       180  -> 480   the avatar joins them
+       480  -> 740   the callout resolves into the banner
+       740  -> 1120  the banner travels to its pin   <- the one to follow
+       900  -> 1300  the next screen enters behind
+       1300          the tap affordance appears
+     Total 1720ms. */
+  --t-tc-letters:    340ms;
+  --t-tc-av-at:      180ms;
+  --t-tc-av:         300ms;
+  --t-tc-resolve-at: 480ms;
+  --t-tc-resolve:    260ms;
+  --t-tc-travel-at:  740ms;
+  --t-tc-travel:     380ms;
+  --t-tc-next-at:    900ms;
+  --t-tc-next:       400ms;
+  --t-tc-tap-at:    1300ms;
+  --t-tc-end:       1720ms;
+
   /* A6 · how long the claim's stamp holds alone before the explanation
      arrives under it. Long enough to read one word and register the
      colour, short enough that it is a beat and not a wait. */
@@ -1307,15 +1331,26 @@ body.no-ph [data-ph]{ display:none !important; }
    would make .round 52px taller on beat 1 than on beats 2-5, and
    sizeStage() would hand the card a different scale on either side of the
    answer. visibility, not display, for exactly that reason.             */
+/* THE SLOT KEEPS THE FLOW; THE BANNER LEFT IT. .chyron-slot carries the
+   exact box .chyron used to occupy inside #scRound — same min-height,
+   same margins — so the round still begins where the band ends and the
+   card is the same size on every beat. It holds nothing and paints
+   nothing. See the note in index.html for why the banner had to go. */
+.chyron-slot{ flex:none; min-height:44px; margin-top:8px; margin-bottom:var(--sp-2); }
+
+/* z-index 11: ABOVE .ov--stage's 9, so the banner flies over the beat-2
+   blur rather than under it, and BELOW .hud's 12, so it still passes
+   beneath the coin counter it has always sat under. Positioned from
+   #chyronSlot's measured box by placeChyron(). */
 .chyron{
-  position:relative; z-index:12; flex:none;
+  position:absolute; z-index:11; pointer-events:none;
   display:flex; align-items:center; gap:var(--sp-2);
   /* §2 · AT LEAST 8px OFF THE HUD, at every width. The band was flush
      against the HUD row — .hud has its own bottom padding but the chyron
      had no top margin, so on the beats where the band is filled the two
      read as one stacked object. margin-top, not a gap on the parent,
      because .sc-round's other children must not gain the same space. */
-  min-height:44px; margin-top:8px; margin-bottom:var(--sp-2);
+  min-height:44px;
   color:var(--ink);
 }
 /* THE BOX IS RESERVED IN ALL THREE STATES. Only the contents change,
@@ -3011,4 +3046,138 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
 
 @media (prefers-reduced-motion: reduce){
   .f5board, .f5coin, .f5sheet, .f5scrim, .f5maj{ transition:none; }
+}
+
+/* =====================================================================
+   §T · THE TACHLES → CASCADE TRANSITION
+   The player's vote leaves the button, assembles into a callout over the
+   chair, becomes the banner, and flies to its pin — while the bill slides
+   in behind it. One object the whole way; nothing is created, swapped or
+   faded into anything else mid-flight.
+   ===================================================================== */
+
+/* THE CALLOUT IS A SIBLING OF THE BANNER, not a relative of it: same B-5
+   construction, sized to its contents, skewed — but set down at the
+   opposite angle so the two read as the same kind of object caught at
+   two moments rather than as one object that slid. It carries NO cyan
+   halo. Only the pinned banner does; the callout is a way-station. */
+.tcal{
+  position:absolute; z-index:11; pointer-events:none;
+  display:inline-flex; align-items:center; gap:8px;
+  padding:6px 6px 7px 6px;
+  padding-inline-start:11px; padding-inline-end:12px;
+  font-family:var(--font-display); font-weight:900; font-size:22px;
+  color:var(--ink);
+  border:3px solid transparent; border-radius:13px;
+  transform-origin:50% 50%;
+  will-change:transform;
+}
+/* PHASE 1 · the letters travel. The sticker is not there yet — no fill,
+   no edge, no extrusion — so what leaves the button is the WORD, which is
+   the thing the player just chose. */
+.tcal__w{ display:block; line-height:1; white-space:nowrap; }
+.tcal:not(.is-sticker) .tcal__w{ color:var(--paper); text-shadow:0 2px 6px rgba(0,0,0,.6); }
+
+/* PHASE 2 · the avatar joins. It scales up from nothing at the point the
+   letters are passing through, so the pair assembles in flight. */
+.tcal__av{
+  display:block; width:30px; height:30px; flex:none;
+  opacity:0; transform:scale(.4);
+  transition:opacity var(--t-tc-av) linear, transform var(--t-tc-av) var(--e-land);
+}
+.tcal__av svg{ display:block; width:100%; height:100%; }
+.tcal.is-paired .tcal__av{ opacity:1; transform:none; }
+
+/* PHASE 3 · the construction resolves. The fill, the white die-cut, the
+   keyline and the extrusion arrive together on one transition, which is
+   what makes it read as the sticker being CUT rather than as a panel
+   fading up behind the words. */
+.tcal{
+  background:transparent;
+  box-shadow:0 0 0 0 var(--keyline), 0 0 0 rgba(0,0,0,0);
+  transition:transform var(--t-tc-letters) var(--e-settle),
+             background var(--t-tc-resolve) linear,
+             border-color var(--t-tc-resolve) linear,
+             box-shadow var(--t-tc-resolve) linear;
+}
+.tcal.is-sticker{
+  background:var(--paper);
+  border-color:var(--edge);
+  box-shadow:0 0 0 2px var(--keyline), 0 3px 0 rgba(0,0,0,.34);
+}
+.tcal.is-sticker .tcal__w{ color:var(--ink); text-shadow:none; }
+
+/* PHASE 4 · the travel. The longest step and the one the eye follows, so
+   it gets --e-land: it arrives and sets down rather than easing to a
+   stop. */
+.tcal.is-pinning{
+  transition:transform var(--t-tc-travel) var(--e-land),
+             background var(--t-tc-travel) linear,
+             box-shadow var(--t-tc-travel) linear;
+}
+
+/* the chosen chip's own label goes invisible the moment the letters
+   leave it — the word is now the flying object, and two of it on screen
+   would break the illusion that it travelled. */
+.v-a.is-chosen .v-a__lab{ opacity:0; transition:opacity 60ms linear; }
+
+/* ---- the surface behind, once the sequence has landed ----------------
+   THE BLUR HOLDS AT 3px RATHER THAN CLEARING. A fully-cleared blur with
+   nothing moving looks finished, and this beat is not finished — it is
+   waiting for a tap. The residual keeps the surface reading as a surface,
+   and the slow breath on it plus the affordance below are what say the
+   screen is alive rather than dead. */
+.ov--stage.is-held{
+  -webkit-backdrop-filter:blur(3px) saturate(.94);
+  backdrop-filter:blur(3px) saturate(.94);
+  transition:backdrop-filter var(--t-tc-next) linear,
+             -webkit-backdrop-filter var(--t-tc-next) linear;
+  animation:tc-breathe 2800ms ease-in-out 400ms infinite;
+}
+@keyframes tc-breathe{
+  0%,100%{ background:rgba(28,26,23,.52) }
+  50%    { background:rgba(28,26,23,.44) }
+}
+
+/* ---- THE TAP AFFORDANCE. It must be obvious: this beat must never look
+   like a dead screen. A pill on the sticker family with a moving chevron,
+   not a whispered line of small print — the whole surface is the target,
+   so the cue has to be as loud as the action is large. */
+.tctap{
+  position:absolute; z-index:10; left:50%; translate:-50% 0;
+  bottom:calc(26px + env(safe-area-inset-bottom));
+  display:inline-flex; align-items:center; gap:9px;
+  padding:9px 18px 10px; border-radius:999px;
+  background:var(--paper); color:var(--ink);
+  border:3px solid var(--edge);
+  box-shadow:0 0 0 2px var(--keyline), 0 3px 0 rgba(0,0,0,.34);
+  font-family:var(--font-display); font-weight:900; font-size:15px;
+  white-space:nowrap; pointer-events:none;
+  opacity:0; transform:translateY(10px);
+  transition:opacity var(--t-tc-next) linear, transform var(--t-tc-next) var(--e-land);
+}
+.tctap.is-in{ opacity:1; transform:none; animation:tc-tap 2000ms ease-in-out 600ms infinite; }
+.tctap__c{ display:block; font-size:17px; line-height:1; }
+@keyframes tc-tap{
+  0%,100%{ transform:translateY(0)   }
+  50%    { transform:translateY(-4px) }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .tcal, .tcal__av{ transition:none; }
+  .tctap.is-in{ animation:none; }
+  .ov--stage.is-held{ animation:none; }
+}
+
+/* THE CHIP THE WORD CAME OUT OF. With its label gone it was a blank white
+   pill sitting there for the rest of the beat, which reads as a rendering
+   fault rather than as a choice that has been made. It becomes the SOCKET
+   instead — the die-cut sheet with the sticker peeled off it: the keyline
+   and the shape stay, the fill and the extrusion go. The option is not
+   hidden (the round never hides what it offered); it is visibly spent,
+   and the thing that was in it is now on its way to the banner. */
+.ovpane--vote.is-taken .b2votes .v-a.is-chosen{
+  background:transparent;
+  box-shadow:0 0 0 3px rgba(255,255,255,.34), 0 0 0 var(--ring-chip) rgba(0,0,0,.34);
+  transition:background var(--t-tc-letters) linear, box-shadow var(--t-tc-letters) linear;
 }
