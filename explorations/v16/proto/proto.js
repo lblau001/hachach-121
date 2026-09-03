@@ -707,10 +707,17 @@ function markIntroSeen() {
    being shown. No "correct", no "score", no second person singular
    imperative that sounds like an exam instruction.
    Two lines at 393px, three at 360px. */
+/* §1 · THE OLD FRAMING WAS FACTUALLY WRONG and Tamar caught it. It said
+   "נציג לכם טענה על הכנסת" — a claim ABOUT THE KNESSET — and the claims
+   are not that. r1's is a demographic statistic about haredi conscription
+   rates; e4's compares Israeli prices to the OECD. They are claims about
+   Israeli society and politics, and the Knesset is where the response to
+   them gets voted on. The replacement drops the false object entirely
+   rather than swapping one noun for another. */
 const INTRO_B1 = {
-  title: 'אמת או שקר?',                          /* TAMAR */
-  body:  'נציג לכם טענה על הכנסת. תחליטו אם היא נכונה או לא — ואז נגלה מה באמת קרה.',  /* TAMAR */
-  cta:   'הבנתי',                                 /* TAMAR */
+  title: 'טענה — אמת או שקר?',                                   /* TAMAR */
+  body:  'נחשו אם הטענה נכונה. אחר כך נגלה מה באמת קרה.',        /* TAMAR */
+  cta:   'הבנתי',                                                 /* TAMAR */
 };
 
 function firstRunIntro(done) {
@@ -761,9 +768,12 @@ function firstRunIntro(done) {
    with it and the instruction would be smallest exactly where the screen
    is smallest. .ask-st counter-scales by 1/--card-scale so the settled
    size is the same number of CSS pixels on every phone. See .ask-st. */
+/* ASK.claim is UNCHANGED — it was already accurate and Tamar kept it.
+   ASK.mk gains the instruction verb: the old line was a bare question and
+   read as a caption on the card rather than as something to do. */
 const ASK = {
-  claim: 'אמת או שקר?',              /* TAMAR */
-  mk:    'מה הוא/היא הצביע/ה?',      /* TAMAR — A8's helper line, moved */
+  claim: 'אמת או שקר?',                    /* TAMAR */
+  mk:    'נחשו מה הוא/היא הצביע/ה',        /* TAMAR */
 };
 
 /* THE SLAP IS ITS OWN BEAT, which is the whole reason to build a sticker
@@ -1307,6 +1317,22 @@ function beat2() {
           '<img class="b2chair" src="' + ROOT + (M.props.chair['900'] || M.props.chair['300']) + '" alt="">' +
           '<p class="b2taken" aria-live="polite"></p>' +
         '</div>' +
+        /* §2 · THE FRAMING LINE, and it is the first and only place the
+           121st-MK conceit is stated in words. Until now the bill arrived
+           with no introduction at all: the player was asked בעד או נגד on
+           legislation they had never been shown. This is the Zeigarnik
+           consent line the research asked for and that was never built —
+           it says what the thing is (a real bill), who the player is in
+           the room (the 121st member), and what they get for answering
+           (they find out how the others voted).
+           IT IS CHROME, NOT CARD CONTENT. It sits above the prompt inside
+           the beat's own pane, at the chyron's weight rather than a
+           footnote's — see .b2frame. The law modal is untouched and still
+           carries bill_summary on a tap; this is the default-visible
+           framing, that is the detail on request. */
+        '<p class="b2frame">' +
+          esc('זו הצעת חוק אמיתית. כח״כ ה-121, אתם מצביעים במליאה — ואז נראה איך הצביעו האחרים.') +
+        '</p>' +                                          /* TAMAR */
         /* A7 · THE PROMPT IS TAMAR'S, from the sheet's תכלס- בגדול column.
            It replaces our generic "איך הייתם מצביעים?" with the issue's
            own framing — "פטור משירות עבור החרדים - בעד או נגד?" — so the

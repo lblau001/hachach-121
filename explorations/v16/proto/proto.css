@@ -786,6 +786,27 @@ body.no-ph [data-ph]{ display:none !important; }
    block rather than as two sentences. Before 1.32 (normal), after 1.08.
    text-wrap:balance keeps the two lines near-equal so the tighter leading
    does not leave a one-word second line hanging under a full first. */
+/* §2 · THE FRAMING LINE. Chrome, not card content, and deliberately NOT
+   the chyron's own treatment — the chyron is the player's pinned VOTE and
+   a second light-and-neon band would say the same thing twice. This is the
+   inverse construction: a dark plate with a bright rule down its leading
+   edge, so it reads as framing that belongs to the beat rather than as a
+   caption on the question below it.
+   WEIGHT SITS BETWEEN ITS NEIGHBOURS on purpose — larger and brighter than
+   the bill link (15px at 78% white) and clearly under the prompt
+   (22-29px display), because it introduces the question rather than being
+   it. Two lines at 360px; measured, not assumed. */
+.b2frame{
+  margin:0; align-self:stretch;
+  padding:9px 12px 10px;
+  border-radius:var(--r-chip);
+  border-inline-start:3px solid #37C4FF;
+  background:rgba(16,14,11,.42);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.09);
+  font-size:14.5px; font-weight:700; line-height:1.4;
+  color:#EFECE4; text-align:start; text-wrap:pretty;
+}
+
 .b2q{ font-family:var(--font-display); font-weight:900;
   font-size:clamp(22px, 3.4vh, 29px); line-height:1.08; text-wrap:balance;
   color:#EFECE4; text-align:center; margin:0; }
@@ -2112,15 +2133,20 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
 .b1intro.is-out{ opacity:0; }
 .b1intro__box{
   display:flex; flex-direction:column; align-items:center; gap:var(--sp-4);
-  text-align:center; max-width:300px;
+  text-align:center; max-width:320px;
   transform:translateY(10px); transition:transform var(--t-flip) var(--e-settle);
 }
 .b1intro.is-in .b1intro__box{ transform:none; }
 /* the heading is the SAME string the claim sticker carries — one question
    asked once big and then kept small on the card for every round after */
+/* §1 · the heading is longer than the one it replaced — "טענה — אמת או
+   שקר?" against "אמת או שקר?" — and at 34px in a 300px box it broke with
+   "שקר?" alone on the second line. balance splits it evenly instead, and
+   the box gains 20px so the two halves have room. Type size untouched:
+   this is a wrap fix, not a shrink. */
 .b1intro__t{
   margin:0; font-family:var(--font-display); font-weight:900;
-  font-size:34px; line-height:1.05; color:#EFECE4;
+  font-size:34px; line-height:1.05; color:#EFECE4; text-wrap:balance;
 }
 .b1intro__b{
   margin:0; font-size:var(--fs-body); font-weight:700; line-height:1.5;
