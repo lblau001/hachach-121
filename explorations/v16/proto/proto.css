@@ -86,16 +86,28 @@
      destination is already underneath when it dissolves.
        0   -> 150   the bar fades
        150 -> 350   the chair holds alone
-       350 -> 770   the chair launches, 1x -> 10x, ease-IN
-       602 -> 770   ... of which the last 40% is the chair fading out
-       350 -> 710   the destination fades up from scale 1.04
-     770ms bar-full to settled. Runs once per load. */
+       350 -> 700   the chair launches, 1x -> 10x, ease-IN
+       525 -> 700   ... its second half, over which it fades to nothing
+       350 -> 530   the destination fades up from scale 1.04
+     700ms bar-full to settled. Runs once per load.
+
+     THE FADE STARTS AT THE HALFWAY POINT AND ENDS WITH THE SCALE, and
+     that is the correction. At 60% the chair had already filled the
+     viewport at full opacity and sat there ~35ms before anything
+     happened to it: a flat opaque frame, then a dissolve, which reads
+     as two events rather than one. The cover and the fade now begin on
+     the same frame — 50% of an ease-in zoom is where the chair passes
+     full-screen — so there is never a moment of solid chair holding
+     still. 350ms rather than 420 for the same reason: the halves have
+     to feel like one gesture.
+     The destination's fade drops to 180ms so it is fully up long before
+     the chair goes translucent. That ordering is the assertion now. */
   --t-lx-bar:       150ms;
   --t-lx-hold:      200ms;
-  --t-lx-zoom:      420ms;
-  --t-lx-fade-at:   252ms;   /* 60% of the zoom */
-  --t-lx-fade:      168ms;   /* the remaining 40% */
-  --t-lx-dest:      360ms;
+  --t-lx-zoom:      350ms;
+  --t-lx-fade-at:   175ms;   /* 50% of the zoom */
+  --t-lx-fade:      175ms;   /* and it ends when the zoom does */
+  --t-lx-dest:      180ms;
 
   /* §S-1 · THE FINALE'S CHRONOLOGY. The whole beat is these eight
      numbers, and the order they compose is the design:
@@ -3377,9 +3389,11 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
    EASE-IN, and that is the point of it: a symmetrical ease reads as the
    chair politely growing, and this has to read as the chair rushing the
    camera. It accelerates all the way out.
-   THE FADE IS THE HANDOFF, not a cut. It starts at 60% of the zoom, by
-   which time the chair is ~6x and the screen is a field of its white
-   die-cut border; cutting at max scale instead would be a hard frame. */
+   THE FADE IS THE HANDOFF, not a cut, AND IT BELONGS TO THE SAME EVENT
+   as the zoom rather than being something that happens to the chair
+   afterwards. It begins on the frame the chair reaches full-screen and
+   reaches zero on the frame the scale does, so the object is dissolving
+   the whole time it is still visibly rushing at the camera. */
 /* the parent is in the selector because it has to be: the loading beat's
    own rule is `.sc-intro.is-loading .i-chair` at (0,3,1) and this was
    (0,2,1), so it lost — the chair got no opacity transition at all and
@@ -3387,7 +3401,7 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
    the last 40% of it. */
 .sc-intro.is-loading .i-chair.is-launching{
   transition:transform var(--t-lx-zoom) cubic-bezier(.55,0,1,.45),
-             opacity var(--t-lx-fade) linear var(--t-lx-fade-at);
+             opacity var(--t-lx-fade) cubic-bezier(0,0,.58,1) var(--t-lx-fade-at);
   opacity:0;
 }
 
