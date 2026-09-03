@@ -66,6 +66,14 @@ const T = {
   loadBarIn: ms('--t-load-barin'),
   loadFill:  ms('--t-load-fill'),
   loadHold:  ms('--t-load-hold'),
+  f5Count:   ms('--t-f5-count'),
+  f5Flare:   ms('--t-f5-flare'),
+  f5Prose:   ms('--t-f5-prose'),
+  f5Gap:     ms('--t-f5-gap'),
+  f5Flight:  ms('--t-f5-flight'),
+  f5CoinHold:ms('--t-f5-coin-hold'),
+  f5CoinOut: ms('--t-f5-coin-out'),
+  f5In:      ms('--t-f5-in'),
   claimHold: ms('--t-claim-hold'),
   claimBeat: ms('--t-claim-beat'),
   seatFill:  ms('--t-seat-fill'),
@@ -195,7 +203,10 @@ const DEV = {
   title:  qPick('title', { solid:'solid', 'keyline-multi':'keyline-multi',
                            'keyline-one':'keyline-one' }, 'solid'),
   /* the banner's accent halo. on ships; off is for the side-by-side. */
-  neon:   qPick('neon', { on:'on', off:'off' }, 'on')
+  neon:   qPick('neon', { on:'on', off:'off' }, 'on'),
+  /* §S-1 the finale bar's two fills. `spec` is the approved pair and
+     ships; `neutral` is the valence-free pair, for the comparison. */
+  f5bar:  qPick('f5bar', { spec:'spec', neutral:'neutral' }, 'spec')
 };
 
 let M = null;                       /* manifest.json                     */
@@ -2187,154 +2198,53 @@ function inkBleed() {
    the four issues that have a tally — a1 is 53+48 = 101 — and the other
    19 are simply not in the record. They stay dark. Nothing here invents an
    abstention or an absence it was not given. */
-const SEATS = 120, SEAT_COLS = 11, SEAT_ME = 60;   /* 11 x 11 = 121, you in the middle */
+/* ===================== §S-1 · THE FINALE ============================
+   THE 11x11 SEAT GRID IS REJECTED AND GONE — seatPlan(), seatBoard() and
+   runTally() with it. On the record: the interleaved fill was a
+   constraint set to avoid implying factional seating, and it worked, but
+   it produced a checkerboard nobody can read a majority off. Honest and
+   illegible. What replaces it is V20-2's family — two numbers, left and
+   right, a bar between, counting up — plus the move the grid could never
+   make: the player's own token flying to the side they voted for. The
+   121st-MK conceit is delivered by an ACTION rather than by a dot in a
+   grid.
 
-/* §6a · THE 121st SEAT IS IN THE GRID. It was a yellow chip in a legend
-   row UNDER the grid, next to a label — which is the one thing this
-   option was chosen over the number panels to avoid. The whole argument
-   was that the player sees themselves as one square among 120; a chip in
-   a caption is not that.
-   IT IS THE CENTRE CELL. 11 x 11 is 121 exactly — the game's own number —
-   so there is a true middle, and putting the player there makes the
-   picture say "one of 121, in the middle of it" rather than "120, plus
-   you, over here". It stays visually distinct: round where every other
-   cell is square, the only one with a keyline, and it never takes a side
-   colour. The legend line survives underneath as a LABEL, which is what
-   the brief allows, but it is no longer where the seat lives.
-   §6d · AND IT IS SQUARER. 15 x 8 was wide and squat, which is what made
-   the blocks small; 11 x 11 is square and the cells are half again as
-   big at every width — the figures are in the report. */
+   THE BEAT IS A SEQUENCE, NOT A SCREEN, and that is the whole design.
+   It had been drawn three times as a static layout and each read as
+   chaotic, because everything arrived at once with no order of
+   importance. Four rules govern the order:
+     - the TALLY is the peak, and NOTHING else may land while it counts
+     - the FLIGHT is a second beat, watchable, never simultaneous
+     - the COINS get a moment of their own
+     - the BUTTONS arrive last and nothing lands after them
+   ==================================================================== */
 
-/* §6b · THE FILL ORDER IS A FIXED PSEUDO-RANDOM PERMUTATION.
-   The old fill ran straight through the array, so בעד flooded from the
-   top and נגד from the bottom and they met in a line: two solid
-   contiguous blocks, which reads as a stacked bar made of squares rather
-   than as a vote happening — and, worse, contiguous blocks imply the
-   chamber is SEATED BY FACTION, which is exactly the claim we excluded
-   because we cannot source a real layout.
-   OF THE THREE OPTIONS THE BRIEF OFFERED I took the fixed pseudo-random
-   sequence over live randomness or clusters. Clusters re-introduce the
-   contiguity problem at a smaller scale — a cluster of blue IS a bloc.
-   Live randomness makes the screen different every run, which cannot be
-   screenshotted, cannot be QA'd, and would let a genuinely ugly
-   distribution ship one time in fifty. A seeded permutation is a DESIGNED
-   order: identical every run, verifiably interleaved, and reproducible in
-   a bug report.
-   TWO permutations, not one. `where` decides which seat holds which vote,
-   `when` decides the order they arrive in. With a single permutation
-   every בעד would light before every נגד — scattered in space but sorted
-   in time, which reads as one side voting and then the other. */
-function lcg(seed) {
-  let x = seed >>> 0;
-  return () => (x = (x * 1664525 + 1013904223) >>> 0) / 4294967296;
-}
-function shuffled(n, seed) {
-  const a = Array.from({ length: n }, (_, i) => i), r = lcg(seed);
-  for (let i = n - 1; i > 0; i--) { const j = (r() * (i + 1)) | 0; [a[i], a[j]] = [a[j], a[i]]; }
-  return a;
-}
-function seatPlan(tally) {
-  const cells = Array.from({ length: SEATS + 1 }, (_, i) => i)      /* 121 */
-                     .filter(i => i !== SEAT_ME);                   /* 120 votable */
-  const where = shuffled(SEATS, 0x5EA7).map(k => cells[k]);
-  const when  = shuffled(SEATS, 0xB0A2D);
-  const kind  = new Array(SEATS + 1).fill('off');
-  where.forEach((cell, i) => {
-    kind[cell] = i < tally.for ? 'for'
-               : i < tally.for + tally.against ? 'ag' : 'off';
-  });
-  /* the arrival sequence, and the index within it that crosses 61 */
-  const order = when.map(k => where[k]);
-  let f = 0, cross = -1;
-  order.forEach((cell, i) => {
-    if (kind[cell] === 'for' && ++f === 61 && cross < 0) cross = i;
-  });
-  return { kind, order, cross };
-}
+/* the majority line. 61 of 120 seats, drawn at 61/121 of the bar so it
+   sits where the 61st vote actually falls. */
+const MAJORITY = 61, PLENUM = 120;
 
-function seatBoard(tally) {
-  const cells = [];
-  for (let i = 0; i <= SEATS; i++) {
-    cells.push(i === SEAT_ME
-      ? '<i class="seat seat--me" data-i="' + i + '"></i>'
-      : '<i class="seat" data-i="' + i + '"></i>');
-  }
-  return '<div class="b5board' + (tally ? '' : ' b5board--empty') + '">' +
-      '<div class="b5seats" aria-hidden="true">' + cells.join('') + '</div>' +
-      '<p class="b5me__lab">' + esc('המושב שלכם') + '</p>' +      /* TAMAR */
-      (tally
-        ? '<div class="b5tal" aria-hidden="true">' +
-            '<span class="b5tal__s b5tal__s--for"><b class="num" id="b5for">0</b>' +
-              esc(VLABEL.for) + '</span>' +
-            '<span class="b5tal__s b5tal__s--ag"><b class="num" id="b5ag">0</b>' +
-              esc(VLABEL.against) + '</span>' +
-          '</div>'
-        : '') +
-    '</div>';
-}
-
-/* §6c · THE TIMING IS INVERTED, and this is the substantive fix.
-   Measured off the recording, the old fill put the bulk of 120 seats down
-   in ~0.6s and then spent ~2s changing one or two squares at the edge:
-   the dramatic part was over before the eye could follow it and the
-   player waited through the dull part. That came from running the count
-   through the same cubic ease-out the numerals used — an ease that is
-   right for a number settling and wrong for a queue arriving.
-   NOW: ~2.15s total, near-linear with a gentle ease-out only at the very
-   end, so the pace is legible the whole way and the last seats land
-   rather than trickle. And the seat that crosses 61 gets a beat of its
-   own — everything stops for 340ms while it lands, because a bill passing
-   is the single most meaningful instant on this screen and until now
-   nothing marked it at all. */
-function runTally(panel, tally) {
-  const seats = $$('.b5seats .seat', panel);
-  const nf = $('#b5for', panel), na = $('#b5ag', panel);
-  const plan = seatPlan(tally);
-  let marked = -1;
-  const paint = n => {
-    let f = 0, a = 0;
-    for (let i = 0; i < SEATS; i++) {
-      const cell = plan.order[i], k = plan.kind[cell];
-      const on = i < n;
-      if (on) { if (k === 'for') f++; else if (k === 'ag') a++; }
-      /* the crossing mark is part of the class string, not something set
-         beside it — paint() rewrites className every frame and would
-         otherwise wipe the ring off the majority seat the frame after it
-         was added. */
-      const cls = 'seat' + (on && k !== 'off' ? ' is-' + k : '')
-                + (marked === cell ? ' is-cross' : '');
-      if (seats[cell].className !== cls) seats[cell].className = cls;
-    }
-    if (nf) nf.textContent = f;
-    if (na) na.textContent = a;
-  };
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    paint(SEATS); return Promise.resolve();
-  }
-  /* near-linear, easing out only over the last stretch */
-  const curve = p => 1 - Math.pow(1 - p, 1.35);
-  return new Promise(res => {
-    const RUN = T.seatFill, t0 = performance.now();
-    let held = false, holdUntil = 0;
-    (function tick(now) {
-      if (held && now < holdUntil) return requestAnimationFrame(tick);
-      const k = Math.min(1, (now - t0 - (held ? T.seatCross : 0)) / RUN);
-      let n = Math.round(SEATS * curve(k));
-      /* §6c the majority beat: stop ON the crossing seat, mark it, hold */
-      if (!held && plan.cross >= 0 && n > plan.cross) {
-        n = plan.cross + 1;
-        held = true; holdUntil = now + T.seatCross;
-        marked = plan.order[plan.cross];
-        paint(n);
-        $('.b5board', panel).classList.add('is-crossed');
-        buzz(18);
-        return requestAnimationFrame(tick);
-      }
-      paint(n);
-      if (k < 1) requestAnimationFrame(tick);
-      else { paint(SEATS); res(); }
-    })(t0);
-  });
+/* THE EXPLANATION'S FIRST SENTENCE, AND THE VERDICT CLAUSE IT HAS TO
+   SKIP. tf_explain opens with 'זה נכון' / 'זה לא נכון' on every issue,
+   because it is the CLAIM's explanation and beat 1 is where it belongs.
+   Splitting naively on the first full stop therefore puts 'זה נכון!' on
+   screen at beat 5 — two words that say nothing, and that re-answer a
+   question resolved four beats earlier. Measured across the eleven
+   active issues, six of them open with exactly that.
+   So the verdict clause is stripped first and the sentence is taken from
+   what is left; a remainder under 40 characters is joined to the next
+   one rather than shown alone, which is what rescues g1's dangling
+   'וזה מפתיע הרבה אנשים.' */
+const VERDICT_OPENER = /^\s*זה\s+(?:לא\s+)?נכון\s*[!.,–—-]*\s*/;   /* TAMAR */
+function explainSplit(text) {
+  const t = (text || '').trim();
+  if (!t) return { first:'', rest:'' };
+  const body = t.replace(VERDICT_OPENER, '') || t;
+  const parts = body.split(/(?<=[.!?])\s+/).filter(p => p.trim());
+  if (!parts.length) return { first:'', rest:'' };
+  let first = parts[0], rest;
+  if (first.length < 40 && parts.length > 1) { first += ' ' + parts[1]; rest = parts.slice(2).join(' '); }
+  else rest = parts.slice(1).join(' ');
+  return { first: first.trim(), rest: rest.trim() };
 }
 
 /* ===================== BEAT 5 · THE REVEAL ========================== */
@@ -2344,232 +2254,347 @@ function runTally(panel, tally) {
 async function beat5() {
   S.beat = 5;
   const r = $('#round'); r.innerHTML = '';
-  const outer = el('div', 'beat b5 b5-' + DEV.b5.toLowerCase());
+  const outer = el('div', 'beat b5 f5');
   const b = el('div', 'b5fit');
   outer.appendChild(b);
   r.appendChild(outer);
   repin();
 
-  /* ---- 1. the chyron HOLDS — it carries the player's own vote now, and
-             that is the one thing the reveal must not contradict. ---- */
-  repin();
-  await wait(T.resolve);
+  const tally  = issue._tally || null;
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const step = ms => wait(reduced ? 0 : ms);
 
-  /* ---- 2. THE RESULT, IN TAMAR'S OWN WORDS. §A9: the result line is the
-             sheet's תוצאות ההצבעה, verbatim prose — "עבר 63 מול 57." or
-             three lines about a committee — so it is a paragraph that
-             wraps, never a truncated string and never a number we derived.
-             THE CLAIM'S TRUTH WORD IS GONE FROM HERE. It used to headline
-             this panel; A6 resolves the claim four beats earlier, so
-             printing אמת/שקר again would be answering a question the
-             player has already been told the answer to.
-             The count-up stays where it is when the round has a _tally —
-             it is the animated peak — with the prose underneath it. */
-  const tally = issue._tally || null;
-  const panel = el('div', 'b5panel b5stage' + (tally ? '' : ' b5-nocount'));
-  panel.innerHTML =
-    seatBoard(tally) +
-    (issue.vote_result
-      ? '<p class="b5result">' + esc(issue.vote_result) + '</p>'
-      : '<p class="b5result">' + ph('[טקסט — תמר: תוצאות ההצבעה]') + '</p>');
-  b.appendChild(panel);
-  requestAnimationFrame(() => { panel.classList.add('is-in'); fitBeat(); });
+  /* =================================================================
+     BEAT 1 · THE PEAK.
+     With a tally it is the count. Without one it is the outcome prose,
+     because that is then the only account of the outcome that exists —
+     the beat does not get quieter for the seven issues that have no
+     numbers, it just changes what its loudest object is.
+     NOTHING ELSE IS ON SCREEN. The board is built and appended alone;
+     every other block below is appended only after the count has
+     settled. That ordering IS the rule, not a comment about it.
+     ================================================================= */
+  const board = el('div', 'f5board b5stage' + (tally ? ' f5board--num' : ' f5board--prose'));
+  board.innerHTML = tally
+    ? '<div class="f5row">' +
+        '<div class="f5cell">' +
+          '<p class="f5lab">' + esc(VLABEL.for) + '</p>' +
+          '<div class="f5n f5n--for"><b id="f5for">0</b>' +
+            '<span class="f5slot" id="f5slot"></span></div>' +
+        '</div>' +
+        '<div class="f5dash" aria-hidden="true">—</div>' +
+        '<div class="f5cell">' +
+          '<p class="f5lab">' + esc(VLABEL.against) + '</p>' +
+          '<div class="f5n f5n--ag"><b id="f5ag">0</b></div>' +
+        '</div>' +
+      '</div>' +
+      /* THE THIRD SEGMENT IS THE UNFILLED REMAINDER, and it is what makes
+         the bar readable: without it 63 and 57 fill a bar that merely
+         happens to end, and with it they are visibly filling a fixed
+         120. The 61 line sits at 61/121 of the width — where the 61st
+         vote actually falls, not at the halfway mark. */
+      '<div class="f5bar"><i class="f5bar__f"></i><i class="f5bar__a"></i>' +
+        '<i class="f5bar__r"></i>' +
+        '<span class="f5maj"></span>' +
+        '<span class="f5majlab">' + N(MAJORITY) + '</span></div>'
+    : '<p class="f5prose">' +
+        (issue.vote_result ? esc(issue.vote_result)
+                           : ph('[טקסט — תמר: תוצאות ההצבעה]')) + '</p>';
+  b.appendChild(board);
+  requestAnimationFrame(() => { board.classList.add('is-in'); fitBeat(); });
 
-  if (tally) { await runTally(panel, tally); await wait(T.hold); }
-  else await wait(T.flip);
+  if (tally) await runCount(board, tally);
+  else await step(T.f5Prose);
 
-  /* ---- 3. §1.4c THE 121st VOTE. Compared to the OUTCOME only. ----- */
+  /* =================================================================
+     BEAT 2 · THE FLIGHT, and it happens in BOTH versions.
+     THE DEGRADED TWIN KEEPS IT. With no tally there is no side to land
+     beside, so the token lands on a plate of its own — it moves, and it
+     does not claim a number that is not there. Dropping the flight as
+     "no tally, nothing to show" is the failure this twin exists to
+     prevent: it is the beat most likely to be cut and it is the one
+     that carries the 121st-MK idea.
+     ================================================================= */
+  let plate = null;
+  if (!tally) {
+    plate = el('div', 'f5plate b5stage');
+    plate.innerHTML =
+      '<span class="f5plate__slot" id="f5slot"></span>' +
+      '<span class="f5plate__t">' + esc('הקול שלכם נרשם:') +        /* TAMAR */
+        '<b>' + esc(VOTE_PIN[S.position] || ph('[—]')) + '</b></span>';
+    b.appendChild(plate);
+    requestAnimationFrame(() => { plate.classList.add('is-in'); fitBeat(); });
+  }
+  await step(T.f5Gap);
+  await flyToken($('#f5slot', b));
+
+  /* the resolution line writes beneath the landing. Only the version
+     with numbers can state a with-you total; the twin has already said
+     what it can say, on the plate. */
   if (tally) {
     const mine = { for: tally.for, against: tally.against };
     if (S.position === 'for') mine.for++;
     if (S.position === 'against') mine.against++;
-    const you = el('div', 'b5you b5stage');
-    you.innerHTML =
-      '<span class="as-d">' + AV3 + '</span>' +
-      '<span>ההצעה עברה ' + N(tally.for + '–' + tally.against) +
-      '. עם הקול שלכם: ' + N(mine.for + '–' + mine.against) + '.</span>';
-    b.appendChild(you);
-    requestAnimationFrame(() => { you.classList.add('is-in'); fitBeat(); });
-    await wait(T.flip);
+    const res = el('p', 'f5res b5stage');
+    res.innerHTML =
+      esc('ההצעה עברה ') + N(tally.for + '—' + tally.against) + '.' +   /* TAMAR */
+      '<span class="f5res__you">' + esc('עם הקול שלכם: ') +             /* TAMAR */
+        '<b>' + N(mine.for + '—' + mine.against) + '</b></span>';
+    b.appendChild(res);
+    requestAnimationFrame(() => { res.classList.add('is-in'); fitBeat(); });
   }
 
-  /* ---- 4. §1.8 the SHAPE of the guess, narrated before the score.
-             Describes the pattern; never characterises the guesser.
-     SKIPPED ENTIRELY WITHOUT A CASCADE. There is no shape to narrate and
-     no anchor MK to complete the sentence on, so both blocks are omitted
-     rather than rendered empty — a cascade-less round ends on the result
-     and the explanation. */
-  if (S.dealt.length) {
-  const n = S.dealt.length;
-  const hits = S.dealt.filter(d => S.guesses[d.id] === d.vote).length;
-  const counts = {}; VOTES.forEach(v => counts[v] = 0);
-  S.dealt.forEach(d => counts[S.guesses[d.id]]++);
-  const spread = VOTES.filter(v => counts[v]).map(v => VLABEL[v] + ' ב-' + counts[v]);
-  const shape = el('p', 'b5shape b5stage');
-  shape.innerHTML =
-    (spread.length === 1
-      ? 'ניחשתם ' + spread[0] + ' — אותה הצבעה בכל ' + N(n) + ' הכרטיסים.'
-      : 'ניחשתם ' + spread.join(', ') + '.') +
-    ' ב-' + N(hits + ' מתוך ' + n) + ' זה היה נכון.';
-  b.appendChild(shape);
-  requestAnimationFrame(() => { shape.classList.add('is-in'); fitBeat(); });
-  await wait(T.flip);
-
-  /* ---- 5. §1.1 the unfinished sentence, completed. Verb + count.
-             Never editorialise the completion. --------------------- */
-  /* the sentence completes on the round's ANCHOR — the MK data.js flags
-     key:true — not on whichever card the shuffle dealt first. On s1 that is
-     Ben-Gvir, whose own law it is. Verb + count, and nothing added: §1.1
-     forbids editorialising the completion. */
-  const anchor = S.dealt.find(d => d.key) || S.dealt[0];
-  const withMk = S.dealt.filter(d => d.vote === anchor.vote).length;
-  const sent = el('p', 'b5sentence b5stage');
-  sent.innerHTML = 'בהצבעה על ' + esc(issue.bill_title) + ', ' +
-    esc(DATA.politicians[anchor.id].name) + ' הצביע/ה ' +
-    VLABEL[anchor.vote] + ' — יחד עם ' + N(withMk - 1) + ' מתוך ' + N(n - 1) +
-    ' האחרים שראיתם.';
-  b.appendChild(sent);
-  requestAnimationFrame(() => { sent.classList.add('is-in'); fitBeat(); });
-  }
-
-  /* ---- 6. GLOSSARY CHIPS. §A9: "מילות הרחבה" is a LIST OF TERMS, not
-             body text, so it renders as tappable chips under the result
-             rather than as a paragraph. Only terms that resolve against
-             data.js's own definitions are in `glossary_terms` — the import
-             filters the rest — so a chip can never open an empty sheet.
-             Six of the eleven active issues have at least one. */
-  const terms = issue.glossary_terms || [];
-  if (terms.length) {
-    const gl = el('div', 'b5gloss b5stage');
-    gl.innerHTML = terms.map(t =>
-      '<button type="button" class="b5chip" data-term="' + esc(t) + '">' +
-        esc(t) + '</button>').join('');
-    b.appendChild(gl);
-    requestAnimationFrame(() => { gl.classList.add('is-in'); fitBeat(); });
-  }
-
-  /* ---- 7. LINKS. further_links is always an array of {label,url}; a link
-             whose URL the HTML export did not carry renders DISABLED and
-             marked, rather than as a dead anchor that looks live. Video
-             labels get a play glyph, everything else a link glyph — the
-             label is Tamar's and is never rewritten to fit the glyph.
-             The Knesset link joins the same row when there is one. */
-  const links = (issue.further_links || []).slice();
-  if (issue.knesset_url) links.push({ label: 'ההצבעה באתר הכנסת', url: issue.knesset_url }); /* TAMAR */
-  if (links.length) {
-    const lk = el('div', 'b5links b5stage');
-    lk.innerHTML = links.map(l => {
-      const vid  = /^\s*סרטון/.test(l.label || '');
-      const icon = vid ? '▶' : '🔗';
-      if (!l.url) {
-        return '<span class="b5link is-missing" data-missing-url>' +
-          '<i aria-hidden="true">' + icon + '</i>' + esc(l.label) + '</span>';
-      }
-      return '<a class="b5link" href="' + esc(l.url) + '" target="_blank" rel="noopener">' +
-        '<i aria-hidden="true">' + icon + '</i>' + esc(l.label) + '</a>';
-    }).join('');
-    b.appendChild(lk);
-    requestAnimationFrame(() => { lk.classList.add('is-in'); fitBeat(); });
-  }
-
-  /* a chip opens its definition inline, under the row, one at a time */
-  b.addEventListener('click', e => {
-    const c = e.target.closest('.b5chip'); if (!c) return;
-    const open = $('.b5def', b);
-    const same = open && open.dataset.term === c.dataset.term;
-    if (open) open.remove();
-    if (same) { fitBeat(); return; }
-    const d = el('p', 'b5def b5stage is-in',
-      '<b>' + esc(c.dataset.term) + '</b> — ' + esc(DATA.glossary[c.dataset.term] || ''));
-    d.dataset.term = c.dataset.term;
-    c.parentElement.after(d);
-    fitBeat();
-  });
-
-  /* THE ISSUE IS RECORDED, and it is one issue and not a topic. This fills
-     ONE segment of the topic's ring; the topic completes only when every
-     active issue in it is done, so a two-issue topic still reads 1/2 here
-     and דת ומדינה — which has one — completes outright.
-     It must run BEFORE the buttons below, because they ask which issues
-     are still unplayed. */
+  /* the record is written before the coins, because both finishing
+     awards are consequences of the record rather than of anything the
+     player just did on screen. */
   const segsWas   = segsDone(issue.topic);
   const topicsWas = topicsDone();
   PROGRESS[issue.id] = true;
   assertProgress(issue, segsWas, topicsWas);
 
-  /* §0 · THE TWO AWARDS THAT ARE ABOUT FINISHING, NOT ABOUT BEING RIGHT.
-     Both are paid HERE, after the issue is recorded, because both are
-     consequences of the record rather than of anything the player just
-     did on screen.
+  /* =================================================================
+     BEAT 3 · THE COINS GET A MOMENT.
+     Until now they flew to the counter with nothing on screen saying
+     what the round was worth. See coinMoment() for why there are two
+     numbers here rather than the mock's one.
+     ================================================================= */
+  await step(T.f5Gap);
+  await coinMoment(b, topicsWas);
 
-     ROUND COMPLETION (+50) IS WHY THIS TABLE CHANGED. It pays on reaching
-     beat 5, cascade or no cascade, which is what closes the 10:1 gap
-     between r1 and the five rounds that have no MK data. A player cannot
-     tell from inside a round that its issue arrived from the sheet
-     without vote records, and the award must not tell them either.
-
-     TOPIC COMPLETION (+100) WAS IN THE TABLE AND WAS NEVER PAID. Nothing
-     read `table.topic` anywhere in this file before now — the row was
-     declared with the rest and no call site was ever written for it, so
-     completing a topic has been silently worth nothing. Found while
-     wiring the round award; it is a real defect, not a decision.
-
-     They are staggered so two flights do not overlap into one blur, and
-     both come from the panel — the round is what earned them, and there
-     is no single control on screen that either can be said to leave. */
-  const finish = COIN_TABLES[DEV.coins];
-  setTimeout(() => award(finish.round, panel), T.resolve);
-  if (topicsDone() > topicsWas) {
-    setTimeout(() => award(finish.topic, panel), T.resolve + T.coinFly + 2 * T.coinStagger);
-  }
-
+  /* =================================================================
+     BEAT 4 · THE READING AND THE BUTTONS. The board shrinks to a strip
+     and everything that is left arrives together. Nothing lands after
+     the buttons.
+     ================================================================= */
+  board.classList.add('is-strip');
+  b.classList.add('is-settled');     /* the group stops centring and anchors */
   fitBeat();
-  /* ---- 8. THE WAY OUT. §A9: if the topic has another unplayed issue the
-             PRIMARY action opens it directly — the player is already in
-             this topic and going back to the map to come straight back is
-             a step that buys nothing. When the topic is finished the only
-             action is the map, and it becomes primary.
-             A one-issue topic (דת ומדינה) has no next issue and therefore
-             takes the second branch, which is the same code path as a
-             finished two-issue topic. */
-  const rest = topicIssues(issue.topic).filter(x => !issueDone(x.id));
-  const next = rest[0];
-  if (next) {
-    const go = el('button', 'p-c b5go b5stage', 'לסוגיה הבאה ›');   /* TAMAR */
-    pressable(go).addEventListener('click', () => startRound(next.id));
-    b.appendChild(go);
-    requestAnimationFrame(() => { go.classList.add('is-in'); fitBeat(); });
-    const back = el('button', 'r-b b5back b5stage', 'חזרה למפה');   /* TAMAR */
-    pressable(back).addEventListener('click', () => goMap());
-    b.appendChild(back);
-    requestAnimationFrame(() => { back.classList.add('is-in'); fitBeat(); });
-  } else {
-    const go = el('button', 'p-c b5go b5stage', 'חזרה למפה ›');
-    pressable(go).addEventListener('click', () => goMap());
-    b.appendChild(go);
-    requestAnimationFrame(() => { go.classList.add('is-in'); fitBeat(); });
+
+  /* §1.8 the SHAPE of the guess. Skipped without a cascade — there is
+     nothing to have guessed, which is why the twin has no such line. */
+  if (S.dealt.length && !S.inv) {
+    const n = S.dealt.length;
+    const hits = S.dealt.filter(d => S.guesses[d.id] === d.vote).length;
+    const shape = el('p', 'f5shape b5stage');
+    shape.innerHTML = esc('ניחשתם נכון ב-') + '<b>' + N(hits) + '</b>' +
+      esc(' מתוך ') + '<b>' + N(n) + '</b>';                          /* TAMAR */
+    b.appendChild(shape);
+    requestAnimationFrame(() => { shape.classList.add('is-in'); fitBeat(); });
   }
 
-  /* the 60s budget, still measured — it just has nowhere on screen to go
-     now that the spike bar is off the stage */
-  S.machineS = +(machineMs / 1000).toFixed(1);
-  S.wallS    = +((performance.now() - S.t0) / 1000).toFixed(1);
+  /* THE FIRST SENTENCE ONLY, and the rest goes behind one tap. That is
+     what fixes the old lower section: seven items competed in the bottom
+     third and the part players skip was the part taking the room. The
+     beat still explains itself with no tap; the tap is for the rest. */
+  const ex = explainSplit(issue.tf_explain);
+  const terms = issue.glossary_terms || [];
+  const links = (issue.further_links || []).slice();
+  if (issue.knesset_url) links.push({ label:'ההצבעה באתר הכנסת', url:issue.knesset_url }); /* TAMAR */
+  const hasMore = !!(ex.rest || terms.length || links.length);
+
+  if (ex.first || hasMore) {
+    const read = el('div', 'f5read b5stage');
+    read.innerHTML =
+      (ex.first ? '<p class="f5exp">' + markGlossary(ex.first) + '</p>' : '') +
+      (hasMore ? '<button type="button" class="f5more">' +
+                   esc('עוד על ההצבעה ›') + '</button>' : '');       /* TAMAR */
+    b.appendChild(read);
+    requestAnimationFrame(() => { read.classList.add('is-in'); fitBeat(); });
+    const more = $('.f5more', read);
+    if (more) pressable(more).addEventListener('click',
+      () => moreSheet(outer, ex.rest, terms, links));
+  }
+
+  /* ---- the way out. Unchanged: if the topic has another unplayed
+     issue the PRIMARY action opens it directly, because going back to
+     the map to come straight back buys nothing. */
+  const acts = el('div', 'f5acts b5stage');
+  const restIss = topicIssues(issue.topic).filter(x => !issueDone(x.id));
+  const next = restIss[0];
+  if (next) {
+    const go = el('button', 'p-c f5go', 'לסוגיה הבאה ›');            /* TAMAR */
+    pressable(go).addEventListener('click', () => startRound(next.id));
+    const back = el('button', 'f5back', 'חזרה למפה');                /* TAMAR */
+    pressable(back).addEventListener('click', () => goMap());
+    acts.append(go, back);
+  } else {
+    const go = el('button', 'p-c f5go', 'חזרה למפה ›');              /* TAMAR */
+    pressable(go).addEventListener('click', () => goMap());
+    acts.appendChild(go);
+  }
+  b.appendChild(acts);
+  requestAnimationFrame(() => { acts.classList.add('is-in'); fitBeat(); });
 }
 
-/* ===== SELF-TEST · the round actually counted =======================
-   A rewrite of beat 5 once deleted `PROGRESS[issue.id] = true` and nothing
-   said so: the reveal still rendered, the buttons still worked, and the
-   only symptom was a map that never filled and a "next issue" that handed
-   back the issue just played. This asserts the two things that regression
-   broke, at the moment they are supposed to become true, and says so
-   loudly rather than leaving it to be noticed on the map.
+/* ---- the count. Near-linear to ~2.4s, with EVERYTHING STOPPING for
+   400ms on the frame 61 is crossed. That hold is the point of the beat:
+   a bill passing is the single most meaningful instant on this screen,
+   and the seat grid marked it with one square changing colour.
+   The numerals and the bar are driven off ONE clock, so they can never
+   disagree about how far the count has got. */
+function runCount(board, tally) {
+  const nf = $('#f5for', board), na = $('#f5ag', board);
+  const bf = $('.f5bar__f', board), ba = $('.f5bar__a', board), br = $('.f5bar__r', board);
+  const maj = $('.f5maj', board);
+  const total = tally.for + tally.against;
+  /* PLAIN textContent, NOT N(). N() returns markup — an LTR-isolating
+     span — and assigning markup to textContent paints the tags on
+     screen as literal text. The numerals do not need it here: .f5n is
+     already direction:ltr with tabular figures, which is the whole job
+     N() would have done, and this runs on every frame of the count. */
+  const paint = (f, a) => {
+    nf.textContent = f; na.textContent = a;
+    bf.style.flexGrow = f; ba.style.flexGrow = a;
+    br.style.flexGrow = Math.max(0, PLENUM - f - a);
+  };
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    paint(tally.for, tally.against); return Promise.resolve();
+  }
+  /* the crossing is expressed in the count's own units — the step at
+     which the FOR side reaches 61 — so a tally that never gets there
+     simply never flares, with no branch anywhere else. */
+  const crossAt = tally.for >= MAJORITY ? MAJORITY / tally.for : -1;
+  const curve = p => 1 - Math.pow(1 - p, 1.22);      /* near-linear */
+  return new Promise(res => {
+    const RUN = T.f5Count - T.f5Flare, t0 = performance.now();
+    let held = false, holdUntil = 0;
+    (function tick(now) {
+      if (held && now < holdUntil) return requestAnimationFrame(tick);
+      const k = Math.min(1, (now - t0 - (held ? T.f5Flare : 0)) / RUN);
+      let p = curve(k);
+      if (!held && crossAt > 0 && p > crossAt) {
+        p = crossAt;
+        held = true; holdUntil = now + T.f5Flare;
+        paint(Math.round(tally.for * p), Math.round(tally.against * p));
+        maj.classList.add('is-flare');
+        buzz(18);
+        return requestAnimationFrame(tick);
+      }
+      paint(Math.round(tally.for * p), Math.round(tally.against * p));
+      if (k < 1) requestAnimationFrame(tick);
+      else { paint(tally.for, tally.against); maj.classList.remove('is-flare'); res(); }
+    })(t0);
+  });
+}
 
-   It checks CONSEQUENCES, not the assignment: that the issue reads as done
-   through the same accessor the map uses, that the topic's filled-segment
-   count went up by exactly one, and that the x/N headline moved if and
-   only if that was the topic's last unplayed issue. Asserting
-   `PROGRESS[id] === true` would have passed on a build where segsDone()
-   was reading the wrong list. */
+/* ---- THE FLIGHT. A FLIP: the token is measured where it sits in the
+   pinned banner, a clone is flown from there to the slot, and only then
+   does the real one appear in the slot. Nothing is re-parented mid-
+   animation, so the flight cannot be clipped by anything it passes over
+   — it is fixed-position, above everything.
+   The pinned banner dims and keeps an EMPTY SOCKET rather than closing
+   up: the player's vote is still pinned there, the token has just left
+   it, and a banner that reflowed would say the vote was withdrawn. */
+function flyToken(slot) {
+  const src = $('.chyron-av');
+  if (!slot) return Promise.resolve();
+  const land = () => {
+    slot.innerHTML = '<span class="f5av">' + AV3 + '</span>';
+    const bnr = $('.chyron .bnr'); if (bnr) bnr.classList.add('is-spent');
+  };
+  if (!src || matchMedia('(prefers-reduced-motion: reduce)').matches) { land(); return Promise.resolve(); }
+  const a = src.getBoundingClientRect(), z = slot.getBoundingClientRect();
+  if (!z.width || !z.height) { land(); return Promise.resolve(); }
+  const fly = el('span', 'f5fly', AV3);
+  fly.style.cssText = 'left:' + a.left + 'px; top:' + a.top + 'px;' +
+    'width:' + a.width + 'px; height:' + a.height + 'px;';
+  document.body.appendChild(fly);
+  const bnr = $('.chyron .bnr'); if (bnr) bnr.classList.add('is-spent');
+  const dx = (z.left + z.width / 2) - (a.left + a.width / 2);
+  const dy = (z.top + z.height / 2) - (a.top + a.height / 2);
+  const k  = z.height / a.height;
+  return new Promise(done => {
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      fly.style.transition = 'transform ' + T.f5Flight + 'ms var(--e-land)';
+      fly.style.transform = 'translate(' + dx.toFixed(1) + 'px,' + dy.toFixed(1) +
+                            'px) scale(' + k.toFixed(3) + ')';
+      setTimeout(() => { land(); fly.remove(); buzz(18); done(); }, T.f5Flight);
+    }));
+  });
+}
+
+/* ---- THE COIN MOMENT, and there are TWO numbers on it rather than the
+   mock's one, deliberately.
+   The mock draws a single `+125` captioned '4 ח״כים + הסבב + הנושא'.
+   Those components do not add to 125 under the coin table it cites —
+   4x25 + 50 + 100 is 250 — and more importantly the MK and claim coins
+   WERE ALREADY PAID during the round, each with its own flight from its
+   own stamp. A single sticker showing the round's total and then flying
+   into the counter would either double-pay or visibly disagree with the
+   counter it lands in, and a player watching a +125 raise a wallet by 50
+   has caught the game lying about arithmetic.
+   So: the big number is WHAT IS BEING PAID NOW and it is the number that
+   flies; the caption names its components; and a quieter line under it
+   gives what the whole issue was worth, which is the thing the brief
+   actually asked for and the first place in the game that says it.
+   Every number on screen is true and the counter's arithmetic is
+   visible. The values themselves come from COIN_TABLES, not from here —
+   the spec calls them a proposal, so nothing is hardcoded. */
+async function coinMoment(b, topicsWas) {
+  const t = COIN_TABLES[DEV.coins];
+  const gotTopic = topicsDone() > topicsWas;
+  const now = t.round + (gotTopic ? t.topic : 0);
+  const parts = [esc('הסבב')];                                       /* TAMAR */
+  if (gotTopic) parts.push(esc('הנושא'));                            /* TAMAR */
+  const total = (S.coins || 0) + now;
+
+  const coin = el('div', 'f5coin');
+  coin.innerHTML =
+    '<span class="f5coin__n">+' + N(now) + '</span>' +
+    '<p class="f5coin__sub">' + parts.join(' + ') + '</p>' +
+    '<p class="f5coin__tot">' + esc('הסוגיה הזו: ') + N(total) + ' ●</p>'; /* TAMAR */
+  b.appendChild(coin);
+  requestAnimationFrame(() => { coin.classList.add('is-in'); fitBeat(); });
+  await wait(T.f5CoinHold);
+  award(now, coin);              /* the flight leaves FROM the sticker */
+  coin.classList.add('is-out');
+  await wait(T.f5CoinOut);
+  coin.remove();
+  fitBeat();
+}
+
+/* ---- everything the player skips, behind one tap. The tally strip and
+   the resolution line stay visible above the sheet — the disclosure
+   covers the prose, not the outcome. */
+function moreSheet(outer, rest, terms, links) {
+  if ($('.f5sheet', outer)) return;
+  const scrim = el('div', 'f5scrim');
+  const sheet = el('div', 'f5sheet');
+  sheet.innerHTML =
+    '<span class="f5grab" aria-hidden="true"></span>' +
+    '<div class="f5sheet__body">' +
+      (rest ? '<p class="f5exp">' + markGlossary(rest) + '</p>' : '') +
+      (terms.length ? '<div class="f5chips">' + terms.map(x =>
+        '<button type="button" class="f5chip" data-term="' + esc(x) + '">' +
+          esc(x) + '</button>').join('') + '</div>' : '') +
+      (links.length ? '<div class="f5links">' + links.map(l => {
+        const icon = /^\s*סרטון/.test(l.label || '') ? '▶' : '🔗';
+        return l.url
+          ? '<a class="f5link" href="' + esc(l.url) + '" target="_blank" rel="noopener">' +
+              '<i aria-hidden="true">' + icon + '</i>' + esc(l.label) + '</a>'
+          : '<span class="f5link is-missing" data-missing-url>' +
+              '<i aria-hidden="true">' + icon + '</i>' + esc(l.label) + '</span>';
+      }).join('') + '</div>' : '') +
+    '</div>' +
+    '<button type="button" class="f5close">' + esc('סגור') + '</button>';   /* TAMAR */
+  outer.append(scrim, sheet);
+  requestAnimationFrame(() => { scrim.classList.add('is-in'); sheet.classList.add('is-in'); });
+  const shut = () => { scrim.remove(); sheet.remove(); };
+  scrim.addEventListener('click', shut);
+  pressable($('.f5close', sheet)).addEventListener('click', shut);
+  sheet.addEventListener('click', e => {
+    const c = e.target.closest('.f5chip'); if (!c) return;
+    const open = $('.f5def', sheet);
+    const same = open && open.dataset.term === c.dataset.term;
+    if (open) open.remove();
+    if (same) return;
+    const d = el('p', 'f5def', '<b>' + esc(c.dataset.term) + '</b> — ' +
+      esc(DATA.glossary[c.dataset.term] || ''));
+    d.dataset.term = c.dataset.term;
+    c.parentElement.after(d);
+  });
+}
+
 function assertProgress(iss, segsWas, topicsWas) {
   const fail = [];
   if (!issueDone(iss.id))
@@ -3394,6 +3419,7 @@ function applyDev() {
   /* ?neon=off strips the banner's glow and leaves the sticker otherwise
      identical, so the two can be compared on a device */
   document.documentElement.dataset.neon = DEV.neon;
+  document.documentElement.dataset.f5bar = DEV.f5bar;
   document.body.classList.toggle('no-ph', !DEV.ph);
 }
 

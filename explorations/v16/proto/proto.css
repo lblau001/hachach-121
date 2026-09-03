@@ -82,6 +82,24 @@
   --t-load-fill:  1600ms;
   --t-load-hold:   180ms;
 
+  /* §S-1 · THE FINALE'S CHRONOLOGY. The whole beat is these eight
+     numbers, and the order they compose is the design:
+       r1  0.0 count -> 2.4 settled -> 2.8 flight -> 3.5 landed
+           -> 3.9 coins -> 4.7 reading + buttons
+       e3  0.0 outcome -> 1.2 flight -> 1.9 landed -> 2.3 coins
+           -> 3.1 reading + buttons
+     --t-f5-flare is INSIDE --t-f5-count, not added to it: the count
+     stops dead for 400ms on the frame 61 is crossed and the run is
+     shortened to match, so the settle still lands at 2.4s. */
+  --t-f5-count:    2400ms;
+  --t-f5-flare:     400ms;
+  --t-f5-prose:     800ms;   /* the twin's peak, before the flight     */
+  --t-f5-gap:       400ms;   /* between two beats of the sequence      */
+  --t-f5-flight:    700ms;
+  --t-f5-coin-hold: 500ms;   /* the sticker alone before it flies      */
+  --t-f5-coin-out:  300ms;
+  --t-f5-in:        300ms;   /* a block arriving                       */
+
   /* A6 · how long the claim's stamp holds alone before the explanation
      arrives under it. Long enough to read one word and register the
      colour, short enough that it is a beat and not a wait. */
@@ -1185,127 +1203,40 @@ body.no-ph [data-ph]{ display:none !important; }
 /* =====================================================================
    THE SEAT GRID · v20 option 4
    ===================================================================== */
-/* §0 · THE TWO SIDES ARE BLUE AND ECRU, and green/red are gone.
-   The old pair coded VOTE DIRECTION with the culturally loaded approval
-   colours — a 17-year-old reads green as good, so the finale was quietly
-   saying that voting for a bill is the right answer, on a product whose
-   whole promise is not to say that.
+/* §S-1 · THE BAR'S TWO FILLS, AND A CONFLICT ON THE RECORD.
+   The spec sets בעד to #B6E521 and נגד to #FF7A6B and says they "carry no
+   correctness meaning — they are a quantity, not a verdict."
 
-   WHY THESE TWO, and everything else is ruled out rather than passed over:
-     lime #B6E521 and magenta #FF3BC0 are CORRECTNESS. They carry the claim
-       chip, the cascade stamp and the cascade gap. Nothing else may borrow
-       either. That also rules out religion #ffd23f (dE 20.2 from lime),
-       --primary #FFD60A (18.9), gender #ff6b9d (11.9 from magenta),
-       accountability #b06bff (18.4) and environment #22c98e (24.8) — all
-       measured, all too close to one of the two.
-     economy #ff5240 is clear of both but it is RED, which is the valence
-       being removed.
-     internal_sec #37c4ff is clear of both and carries no valence, but it
-       is the chyron's neon and the chyron IS on screen at this beat.
-   That leaves branches #2b4cff, lightened to #4E6BFF so a 17px block
-   clears WCAG 1.4.11 against the board (4.30:1, was 3.16), and the warm
-   neutral of the paper/kraft family at #E8DCC0.
+   #B6E521 IS --verdict-correct. It is the claim chip, the cascade stamp
+   and the cascade gap, and the rule written at the top of this file and
+   in the handoff stylesheet is that colour codes correctness and NEVER
+   vote direction — "nothing else may borrow either." The previous finale
+   pass removed a green/red pair from exactly this bar for exactly this
+   reason: a 17-year-old reads green as good, so the beat was quietly
+   saying that voting for a bill is the right answer. By beat 5 the
+   player has spent a whole round learning lime = you were right.
 
-   THE COLOURBLIND CHECK IS PASSED ON LUMINANCE, not on hue. Relative
-   luminance 0.194 against 0.721 — a channel no dichromacy touches — so
-   the pair stays separated whatever the cones do: dE2000 53.0 normal,
-   58.3 deuteranopia, 56.3 protanopia, 43.2 tritanopia. All far above the
-   25 needed for two squares sitting adjacent in a grid. Simulated, the
-   two read #6262FF / #E0E0BF under deuteranopia and #6666FF / #DEDEBF
-   under protanopia.
-
-   NEITHER CARRIES VALENCE, and the assignment is arbitrary: swapping
-   --seat-for and --seat-ag is one line and nothing else changes. */
-.b5board{
-  --seat-for:#4E6BFF;      /* branches, lightened for block legibility */
-  --seat-ag:#E8DCC0;       /* the paper/kraft warm neutral             */
-  --seat-off:#34302A;      /* not in the record — never "abstained"    */
-  --seat-gap:3px;
-  background:#15130F; border-radius:14px; padding:12px 12px 10px;
-  box-shadow:inset 0 0 0 2px rgba(255,255,255,.10), 0 4px 0 rgba(0,0,0,.4);
+   BUILT AS SPECIFIED, because it is a design call and it is Lion's, but
+   both palettes are here and the switch is ?f5bar=spec|neutral so the
+   two can be compared on a device. `neutral` is the pair the seat grid
+   derived and verified: #4E6BFF and #E8DCC0, separated on LUMINANCE
+   (0.194 vs 0.721 — a channel no dichromacy touches), dE2000 53.0
+   normal / 58.3 deuteranopia / 56.3 protanopia / 43.2 tritanopia, and
+   neither carries valence. */
+:root{
+  --f5-for: #B6E521;
+  --f5-ag:  #FF7A6B;
+  --f5-rem: #2A2822;          /* the unfilled remainder of 120          */
 }
-/* §6d · 11 x 11 = 121, SQUARE. The old 15 x 8 was wide and squat, which is
-   what made the blocks small — a square grid at the same width gives cells
-   half again as big. It is still an ARBITRARY arrangement and not a
-   seating chart: no grouping by party, no hemicycle, no claim about where
-   anyone sits. What 11 x 11 does carry is the number itself. */
-.b5seats{
-  display:grid; grid-template-columns:repeat(11, 1fr); gap:var(--seat-gap);
-}
-.seat{
-  display:block; aspect-ratio:1; border-radius:2.5px;
-  background:var(--seat-off);
-  transition:background 90ms linear;
-}
-.seat.is-for{ background:var(--seat-for); }
-.seat.is-ag { background:var(--seat-ag); }
-
-/* §6a · THE 121st SEAT, IN THE GRID, AT ITS CENTRE. Round where every
-   other cell is square, the only one with a keyline, and the only one
-   that never takes a side colour — three signals, so it holds in the
-   empty state too, where colour says nothing at all. It occupies a real
-   cell of the 121, which is the entire point of the option. */
-.seat--me{
-  border-radius:50%;
-  background:var(--primary);
-  box-shadow:0 0 0 2px var(--edge), 0 0 0 3.4px rgba(0,0,0,.55);
-  transition:none; z-index:2;
-}
-.b5me__lab{
-  margin:9px 0 0; text-align:center;
-  font-size:11.5px; font-weight:700; color:#8E897C;
-}
-/* the label points at the seat rather than replacing it */
-.b5me__lab::before{
-  content:""; display:inline-block; vertical-align:-1px;
-  width:9px; height:9px; margin-inline-end:6px; border-radius:50%;
-  background:var(--primary); box-shadow:0 0 0 1.5px var(--edge);
+[data-f5bar="neutral"]{
+  --f5-for: #4E6BFF;
+  --f5-ag:  #E8DCC0;
 }
 
-/* §6c · THE MAJORITY LINE. The seat that takes the count past 61 is the
-   one instant on this screen that means "the bill passed", and nothing
-   marked it before. It gets a ring, a short pulse, and the whole fill
-   stops for 340ms while it lands. */
-.seat.is-cross{
-  box-shadow:0 0 0 2px var(--edge), 0 0 0 4px rgba(0,0,0,.5),
-             0 0 12px 2px rgba(255,214,10,.55);
-  animation:seat-cross 340ms var(--e-land) both; z-index:3;
-}
-@keyframes seat-cross{
-  0%  { transform:scale(1) }
-  38% { transform:scale(1.55) }
-  100%{ transform:scale(1) }
-}
+/* the seat grid's stylesheet went with seatBoard() — .b5board, .b5seats,
+   .seat, .seat--me, .seat.is-cross, .b5me__lab, .b5tal and the
+   --seat-* tokens. See the note at §S-1 in proto.js for why. */
 
-/* the numerals stay, and they are SECONDARY — the grid is the payload, so
-   they sit under it at a size that reads as a caption on the picture
-   rather than as the headline it used to be at 66px. */
-.b5tal{
-  display:flex; justify-content:center; gap:18px; margin-top:9px;
-}
-.b5tal__s{ display:inline-flex; align-items:baseline; gap:5px;
-  font-size:12px; font-weight:700; color:#8E897C; }
-.b5tal__s b{ font-family:var(--font-display); font-weight:900; font-size:26px; line-height:1; }
-.b5tal__s--for b{ color:var(--seat-for); }
-.b5tal__s--ag  b{ color:var(--seat-ag); }
-
-/* THE EMPTY STATE IS A STATE, NOT A FAILURE. 7 of the 11 active issues
-   have no _tally, so this is the MAJORITY case. Every block stays at
-   --seat-off, the player's seat stays lit, and there is no spinner, no
-   zeroed numerals and no greyed-out anything — the numerals are simply not
-   rendered. What is left says "no numbers were recorded, but you were
-   there", which is true, and the picture the screen exists to make is
-   unchanged: 120 and you. */
-/* NOT dimmed. The first build put opacity:.85 here, which is backwards:
-   in this state the grid is the ENTIRE picture, so it has to be MORE
-   present than when two thirds of it are coloured, not less. The blocks
-   keep their full --seat-off and gain a hairline so all 120 are countable
-   against the board — which is what makes it read as "no numbers were
-   recorded, but you were there" rather than as an empty box. */
-.b5board--empty .seat{ box-shadow:inset 0 0 0 1px rgba(255,255,255,.055); }
-
-.b5lead{ display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; }
-.b5count{ font-size:66px; color:#EFECE4; line-height:.95; }
 .b5-a2 .b5count{ font-size:22px; color:var(--ink-faint); }
 .b5res{
   font-family:var(--font-display); font-weight:900; font-size:44px; line-height:1;
@@ -2843,4 +2774,241 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
   /* the beat does not run at all — loadingBeat() goes straight to the
      destination — so there is nothing here to soften. */
   .i-load, .sc-intro.is-loading .i-chair{ transition:none; }
+}
+
+/* =====================================================================
+   §S-1 · THE FINALE AS A SEQUENCE
+   Two numbers, a bar between, counting up; then the player's own token
+   flies to the side they voted for. Type sizes are the spec's, and the
+   spec is explicit about why: the old lower section PASSED WCAG AA at
+   every element — worst item 5.32:1 — so contrast was never the problem
+   and darkening grounds or brightening text would have fixed nothing.
+   It was SIZE and DENSITY. Everything below is bigger, and three things
+   went behind a tap.
+   ===================================================================== */
+
+.f5{ align-items:stretch; }
+/* THE GROUP IS CENTRED WHILE THE BEAT IS STILL ARRIVING, and anchors to
+   the top the moment the reading lands. During the count the board is
+   genuinely the only thing on screen, and pinning it to the top would
+   put the peak of the beat in the upper quarter with two thirds of the
+   phone empty under it; in the twin the outcome and the plate centre as
+   one group. This is justify-content rather than auto margins because
+   two auto-margined siblings fight — the board centred and shoved the
+   plate to the floor. */
+.f5 .b5fit{ display:flex; flex-direction:column; gap:11px; height:100%;
+  justify-content:center; }
+.f5 .b5fit.is-settled{ justify-content:flex-start; }
+
+/* ---- the board -------------------------------------------------------
+   A GENERIC plenum display and deliberately not the Knesset's own: no
+   emblem, no menorah, no colonnade, no seat plan. Those are protected
+   insignia and were excluded before this brief. */
+.f5board{
+  background:#15130F; border-radius:14px; padding:24px 16px 20px;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.10), 0 4px 0 rgba(0,0,0,.4);
+  position:relative; overflow:hidden; flex:none;
+  transition:padding var(--t-f5-in) var(--e-settle);
+}
+/* the scanline. It is what makes it read as a lit board rather than as a
+   dark panel, and it is 1px in 3 so it never muddies the numerals. */
+.f5board::after{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background:repeating-linear-gradient(to bottom,rgba(255,255,255,.045) 0 1px,transparent 1px 3px);
+}
+.f5row{ display:flex; align-items:flex-end; gap:10px; }
+.f5cell{ flex:1; text-align:center; }
+.f5lab{ font-size:13px; font-weight:700; color:#8E897C; margin:0 0 2px; }
+.f5dash{ flex:0 0 22px; padding-bottom:20px; color:#5A554A; font-size:24px; text-align:center; }
+/* 74px, and tabular so the numerals do not jitter as they climb — a
+   proportional 1 is narrower than a 0 and the whole block would twitch
+   on every frame of the count. */
+.f5n{
+  direction:ltr; font-family:var(--font-display); font-weight:900;
+  font-size:74px; line-height:.92; font-variant-numeric:tabular-nums;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+}
+.f5n--for{ color:var(--f5-for); }
+.f5n--ag { color:var(--f5-ag); }
+/* the slot the token lands in. It holds its size from the start so the
+   numerals do not shift sideways when the avatar arrives — a landing
+   that moves the thing it lands next to reads as a collision. */
+.f5slot{ flex:none; width:34px; height:34px; display:block; }
+.f5av{ display:block; width:100%; height:100%; border-radius:50%; overflow:hidden;
+  background:#C9BFA6; box-shadow:var(--f5-token); }
+.f5av svg{ display:block; width:100%; height:100%; }
+
+.f5bar{
+  position:relative; height:14px; border-radius:99px; overflow:visible;
+  display:flex; margin-top:9px;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);
+}
+.f5bar > i{ display:block; height:100%; min-width:0; }
+.f5bar > i:first-child{ border-radius:99px 0 0 99px; }
+.f5bar > i:last-child { border-radius:0 99px 99px 0; }
+.f5bar__f{ background:var(--f5-for); }
+.f5bar__a{ background:var(--f5-ag); }
+.f5bar__r{ background:var(--f5-rem); }
+/* THE MAJORITY LINE SITS AT 61/121, not at the midpoint. 50.4% is where
+   the 61st vote of a 121-seat house actually falls, and the half-point
+   would put it a whole seat out. */
+.f5maj{
+  position:absolute; top:-5px; bottom:-5px; inset-inline-start:50.4%; width:3px;
+  background:#FBF7EE; box-shadow:0 0 0 1px rgba(0,0,0,.5);
+  transition:box-shadow 120ms linear;
+}
+.f5maj.is-flare{ box-shadow:0 0 0 1px rgba(0,0,0,.5), 0 0 16px 5px rgba(251,247,238,.9); }
+.f5majlab{
+  position:absolute; top:-20px; inset-inline-start:50.4%; transform:translateX(50%);
+  font-family:var(--font-display); font-weight:900; font-size:11px; color:#FBF7EE;
+}
+
+/* the degraded twin's peak: with no count, the outcome prose IS the
+   loudest object, at 19px. It is the only account of the outcome that
+   exists on those seven issues. */
+.f5board--prose{ padding:22px 16px 20px; }
+.f5prose{
+  margin:0; font-family:var(--font-display); font-weight:900;
+  font-size:19px; line-height:1.35; color:#EFECE4; text-align:start;
+}
+
+/* ---- the strip. THE BOARD DOES NOT LEAVE, IT DEMOTES — same element,
+   same numbers, same bar, re-laid onto one line so the outcome stays
+   readable above the sheet while the reading takes the room.
+   `display:contents` on the row is what lets the bar move BETWEEN the
+   two numerals without the markup changing: the cells become direct
+   children of the board and `order` puts the bar in the middle. Under
+   RTL order 1 is the rightmost, which is the side בעד is on. */
+.f5board.is-strip{ padding:11px 12px 10px; }
+.f5board--num.is-strip{ display:flex; align-items:center; gap:10px; }
+.f5board--num.is-strip .f5row{ display:contents; }
+.f5board.is-strip .f5lab, .f5board.is-strip .f5dash{ display:none; }
+.f5board--num.is-strip .f5cell{ flex:0 0 auto; }
+.f5board--num.is-strip .f5cell:first-child{ order:1; }
+.f5board--num.is-strip .f5bar{ order:2; flex:1; margin-top:0; }
+.f5board--num.is-strip .f5cell:last-child{ order:3; }
+.f5board.is-strip .f5n{ font-size:32px; }
+.f5board.is-strip .f5slot{ width:26px; height:26px; }
+.f5board.is-strip .f5prose{ font-size:19px; }
+
+/* ---- the token, and it is the ONLY object on this beat carrying both a
+   yellow keyline and a cyan glow. That pairing is what keeps it from
+   ever being read as a verdict mark: lime and magenta are correctness,
+   and this is neither. */
+:root{ --f5-token:
+  0 0 0 3px #FFD60A, 0 0 0 4.6px rgba(0,0,0,.5), 0 0 18px 5px rgba(55,196,255,.72); }
+.f5board.is-strip .f5av, .f5plate.is-small .f5av{ box-shadow:
+  0 0 0 2.5px #FFD60A, 0 0 0 4px rgba(0,0,0,.5), 0 0 14px 4px rgba(55,196,255,.72); }
+/* the clone that actually travels. Fixed, above everything, so nothing
+   it passes over can clip it. */
+.f5fly{
+  position:fixed; z-index:120; display:block; border-radius:50%; overflow:hidden;
+  background:#C9BFA6; box-shadow:var(--f5-token); pointer-events:none;
+}
+.f5fly svg{ display:block; width:100%; height:100%; }
+/* the banner the token LEFT. It dims and keeps an empty socket rather
+   than closing up: the vote is still pinned there, the token has just
+   gone. A banner that reflowed would read as the vote being withdrawn. */
+.chyron .bnr.is-spent{ opacity:.42; transition:opacity var(--t-f5-in) linear; }
+.chyron .bnr.is-spent .chyron-av{ visibility:hidden; }
+
+/* ---- the plate the twin's token lands on. It moves, and it does not
+   claim a number that is not there. */
+.f5plate{
+  display:flex; align-items:center; gap:11px; flex:none;
+  background:#15130F; border-radius:14px; padding:14px 14px 13px;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.10), 0 4px 0 rgba(0,0,0,.4);
+  font-size:15px; color:#EFECE4;
+}
+.f5plate__slot{ flex:none; width:34px; height:34px; display:block; }
+.f5plate__t b{ font-family:var(--font-display); font-size:19px; color:#FBF7EE; margin-inline-start:6px; }
+
+/* ---- the resolution line ---- */
+.f5res{
+  margin:0; text-align:center; font-family:var(--font-display); font-weight:900;
+  font-size:16px; line-height:1.35; color:#EFECE4;
+}
+.f5res__you{ display:block; font-size:14px; font-weight:700; color:#E6E2D8; }
+.f5res__you b{ color:#FBF7EE; }
+
+.f5shape{ margin:0; font-size:14px; font-weight:700; color:#E6E2D8; text-align:center; }
+
+/* ---- the reading. 15px, up from 12.5px. ---- */
+.f5read{ margin:0; }
+.f5exp{ margin:0; font-size:15px; line-height:1.55; color:#F2EFE7; }
+.f5more{
+  display:inline-flex; align-items:center; gap:5px; margin-top:9px;
+  border:0; cursor:pointer; font-family:var(--font-display); font-weight:900;
+  font-size:14px; color:#131310; background:#D8D2C4; border-radius:999px;
+  padding:5px 13px 6px; box-shadow:0 2px 0 rgba(0,0,0,.4);
+}
+
+/* ---- the coin moment ---- */
+.f5coin{
+  align-self:center; display:flex; flex-direction:column; align-items:center;
+  opacity:0; transform:scale(.9) rotate(-3deg);
+  transition:opacity var(--t-f5-in) linear, transform var(--t-f5-in) var(--e-land);
+}
+.f5coin.is-in{ opacity:1; transform:scale(1) rotate(-3deg); }
+.f5coin.is-out{ opacity:0; transform:scale(.94) rotate(-3deg);
+  transition:opacity var(--t-f5-coin-out) linear, transform var(--t-f5-coin-out) var(--e-in); }
+.f5coin__n{
+  font-family:var(--font-display); font-weight:900; font-size:34px; direction:ltr;
+  color:#131310; background:var(--primary); padding:10px 20px 12px; border-radius:16px;
+  box-shadow:0 0 0 3px #fff, 0 0 0 4.6px rgba(0,0,0,.55), 0 5px 0 rgba(0,0,0,.34);
+}
+.f5coin__sub{ margin:9px 0 0; font-size:13px; color:#D8D2C4; text-align:center; }
+.f5coin__tot{ margin:3px 0 0; font-size:12px; font-weight:700; color:#8E897C; text-align:center; }
+
+/* ---- the buttons. Last, and nothing lands after them. ---- */
+.f5acts{ margin-top:auto; padding-top:12px; display:flex; flex-direction:column;
+  align-items:stretch; gap:8px; flex:none; }
+.f5go{ font-size:18px; min-height:0; padding:12px 0 13px; }
+.f5back{
+  align-self:center; border:0; background:none; cursor:pointer;
+  font-family:var(--font-display); font-weight:900; font-size:15px; color:#D8D2C4;
+  padding:9px 18px 10px; text-decoration:underline; text-underline-offset:3px;
+}
+
+/* ---- everything the player skips, behind one tap ---- */
+.f5scrim{
+  position:absolute; inset:0; z-index:8; background:rgba(16,14,11,.62);
+  opacity:0; transition:opacity var(--t-f5-in) linear;
+}
+.f5scrim.is-in{ opacity:1; }
+.f5sheet{
+  position:absolute; z-index:9; inset-inline:0; bottom:0; top:132px;
+  background:#211F1B; border-radius:18px 18px 0 0; padding:10px 16px 16px;
+  box-shadow:0 -6px 0 rgba(0,0,0,.34), inset 0 0 0 1.5px rgba(255,255,255,.10);
+  display:flex; flex-direction:column; gap:10px;
+  transform:translateY(100%); transition:transform var(--t-f5-in) var(--e-settle);
+}
+.f5sheet.is-in{ transform:none; }
+.f5grab{ width:44px; height:5px; border-radius:3px; background:rgba(255,255,255,.28); align-self:center; }
+/* THE SCROLL IS ON THE BODY, not the sheet — the close button has to
+   stay reachable on a long explanation. */
+.f5sheet__body{ flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; gap:10px; }
+.f5chips{ display:flex; flex-wrap:wrap; gap:6px; }
+.f5chip{
+  border:0; cursor:pointer; padding:4px 11px 5px; border-radius:12px;
+  background:rgba(255,255,255,.16); color:#EFECE4;
+  font-family:var(--font-display); font-weight:900; font-size:13px;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);
+}
+.f5def{ margin:0; font-size:14px; line-height:1.5; color:#E6E2D8; }
+.f5links{ display:flex; flex-direction:column; gap:4px; }
+.f5link{
+  font-size:14px; font-weight:700; color:#EFECE4; text-decoration:underline;
+  text-underline-offset:3px; display:flex; gap:7px; align-items:center; padding:3px 0;
+}
+.f5link.is-missing{ opacity:.5; text-decoration:none; }
+.f5close{
+  align-self:center; flex:none; border:0; cursor:pointer;
+  font-family:var(--font-display); font-weight:900; font-size:14px;
+  color:#131310; background:#D8D2C4; border-radius:999px; padding:6px 18px 7px;
+  box-shadow:0 2px 0 rgba(0,0,0,.4);
+}
+
+@media (prefers-reduced-motion: reduce){
+  .f5board, .f5coin, .f5sheet, .f5scrim, .f5maj{ transition:none; }
 }
