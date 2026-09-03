@@ -100,6 +100,7 @@
   --t-f5-coin-out:  300ms;
   --t-f5-in:        300ms;   /* a block arriving                       */
   --t-f5-bnr-out:   250ms;   /* the emptied banner leaving              */
+  --t-f5-recentre:  400ms;   /* the settled stack's one move            */
 
   /* §T · THE TACHLES -> CASCADE TRANSITION. One continuous move made of
      six overlapping steps; the offsets are when each STARTS, measured
@@ -3296,4 +3297,22 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
                0 0 16px 2px rgba(var(--f5-glow),.30),
                0 0 38px 7px rgba(var(--f5-glow),.13); }
   .chyron.is-exiting{ transition:none; }
+}
+
+/* ---- PART A · THE SETTLED STACK RE-CENTRES, ONCE ---------------------
+   Holding the board at its centred position while the reading filled in
+   below it left 327px of bare ground above the stack at 390 and 6px
+   under it — correct to the letter of the last brief and wrong to look
+   at. After the buttons land, and only then, the whole stack centres in
+   the content box in ONE eased move.
+   .f5acts loses its auto margin for it: pinned to the floor, only the
+   top of the stack could move and the result would be a stretch rather
+   than a re-centre. It is the last motion on the beat — nothing is
+   appended after the buttons, so nothing follows it. */
+.f5 .b5fit.is-recentring{
+  transition:padding-top var(--t-f5-recentre) cubic-bezier(0,0,.35,1);
+}
+.f5 .b5fit.is-recentring .f5acts{ margin-top:0; }
+@media (prefers-reduced-motion: reduce){
+  .f5 .b5fit.is-recentring{ transition:none; }
 }

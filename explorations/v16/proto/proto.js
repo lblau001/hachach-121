@@ -81,6 +81,7 @@ const T = {
   f5CoinHold:ms('--t-f5-coin-hold'),
   f5CoinOut: ms('--t-f5-coin-out'),
   f5In:      ms('--t-f5-in'),
+  f5Recentre:ms('--t-f5-recentre'),
   f5BnrOut:  ms('--t-f5-bnr-out'),
   claimHold: ms('--t-claim-hold'),
   claimBeat: ms('--t-claim-beat'),
@@ -2540,8 +2541,17 @@ async function beat5() {
      and everything that is left arrives together. Nothing lands after
      the buttons.
      ================================================================= */
+  /* THE STRIP LEAVES THE PADDING ALONE. Recomputing an offset here moved
+     the board 40px (the board halves, 153 to 73), and PINNING its centre
+     across the change cost more than it bought: holding the centre needs
+     40px more padding than the content can afford at 360, and fitBeat()
+     answered that by scaling the whole beat to 85% — a 15% shrink of the
+     type sizes the spec raised on purpose.
+     Untouched, the board's top holds and its centre rises 40px. That
+     happens inside the same ~30ms as the guess line, the reading and the
+     buttons, and the one eased re-centre starts immediately after it, so
+     it is absorbed into the move rather than read as one. */
   board.classList.add('is-strip');
-  f5Place(b, board);
   fitBeat();
 
   /* §1.8 the SHAPE of the guess. Skipped without a cascade — there is
@@ -2555,11 +2565,14 @@ async function beat5() {
     /* it joins the outcome surface if there is one — a round with a
        tally — and takes a surface of its own if there is not, so it can
        never end up the one block sitting on the bare ground. */
-    if (outcome) { outcome.appendChild(shape); f5Place(b, board); fitBeat(); }
+    /* no f5Place from here on: the board HOLDS and the single re-centre
+       after the buttons owns all the movement. A holding call here put a
+       39px instant step in front of the eased move, which is two moves. */
+    if (outcome) { outcome.appendChild(shape); fitBeat(); }
     else {
       const w = el('div', 'f5outcome f5surf b5stage');
       w.appendChild(shape); b.appendChild(w);
-      requestAnimationFrame(() => { w.classList.add('is-in'); f5Place(b, board); fitBeat(); });
+      requestAnimationFrame(() => { w.classList.add('is-in'); fitBeat(); });
     }
   }
 
@@ -2580,7 +2593,7 @@ async function beat5() {
       (hasMore ? '<button type="button" class="f5more">' +
                    esc('עוד על ההצבעה ›') + '</button>' : '');       /* TAMAR */
     b.appendChild(read);
-    requestAnimationFrame(() => { read.classList.add('is-in'); f5Place(b, board); fitBeat(); });
+    requestAnimationFrame(() => { read.classList.add('is-in'); fitBeat(); });
     const more = $('.f5more', read);
     if (more) pressable(more).addEventListener('click',
       () => moreModal(ex.rest, terms, links));
@@ -2606,12 +2619,39 @@ async function beat5() {
   b.appendChild(acts);
   requestAnimationFrame(() => {
     acts.classList.add('is-in');
-    f5Place(b, board);
     /* PART 4 · the pulse has done its job. It ran while the board was the
        only thing on screen and while the flight landed on it; once there
        is somewhere else to go it settles to a static, quieter glow. */
     board.classList.add('is-glow-calm');
     fitBeat();
+
+    /* THE LAST MOTION ON THE BEAT, and it waits a frame for the beat to
+       stop moving first. The buttons are the final block — nothing is
+       appended after them — so this is the only moment the whole thing
+       can be centred without a second move following it. It is deferred
+       one frame because the block that triggers it is still arriving
+       when this handler runs and fitBeat() has yet to decide on a scale;
+       measuring inside the same frame read a layout that then changed
+       under it, which is what left 29px more space below the stack than
+       above however many correction passes ran.
+       .is-recentring also drops .f5acts's auto margin, or the buttons
+       stay pinned to the floor and only the top of the stack moves —
+       a stretch rather than a re-centre. */
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      b.classList.add('is-recentring');
+      void b.offsetHeight;
+      f5Place(b, board, true);
+      fitBeat();
+      /* AND AGAIN WHEN THE MOVE HAS LANDED. fitBeat() measures
+         scrollHeight, which includes padding-top — and padding-top is
+         mid-transition at this point, still holding the pre-centre value.
+         It therefore measured an overflow that only existed for the first
+         frame of the move, applied scale(0.90) at 360, and nothing ever
+         re-evaluated it: the beat settled 10% small for the rest of its
+         life. One more call after the transition, and the scale reflects
+         the layout that actually ended up on screen. */
+      setTimeout(fitBeat, T.f5Recentre + 40);
+    }));
   });
 }
 
@@ -2626,7 +2666,13 @@ async function beat5() {
    enough the beat is genuinely taller than the phone, and fitBeat()'s
    scale is what catches it; f5Place() returns the numbers so that case
    can be measured rather than guessed at. */
-function f5Place(b, board) {
+/* `final` is the ONE move at the end. Until then the board holds its
+   centred position and pad is min(centred, room); once the buttons have
+   landed — and nothing lands after them — the whole stack centres in the
+   content box instead, in a single eased step. The per-block climbing
+   this replaced (442 -> 320 -> 211) stays dead: every call before the
+   last still returns the same held value it always did. */
+function f5Place(b, board, final) {
   const par = b.parentElement; if (!par || !board) return null;
   const pcs = getComputedStyle(par);
   const avail = par.clientHeight
@@ -2649,19 +2695,88 @@ function f5Place(b, board) {
   b.style.flex = 'none';
   const content = b.scrollHeight;
   b.style.flex = '';
-  b.style.paddingTop = pad0 + 'px';
-  void b.offsetHeight;                 /* commit the restore before easing */
-  b.style.transition = '';
+  /* stay at zero padding while `final` measures the stack below, then
+     restore; the holding path needs the old value back immediately. */
+  if (!final) {
+    b.style.paddingTop = pad0 + 'px';
+    void b.offsetHeight;               /* commit the restore before easing */
+    b.style.transition = '';
+  }
 
   const boardH  = board.offsetHeight;
   const centred = Math.max(0, Math.round((avail - boardH) / 2));
   const room    = Math.max(0, avail - content);
-  const pad     = Math.min(centred, room);
+  /* holding: centre the BOARD, but never past what the content leaves.
+     final: centre the STACK. It is measured off the children's own boxes
+     rather than off scrollHeight — scrollHeight ran 29px longer than the
+     ink does (trailing gap and the button block's inner padding), which
+     put 165px above the stack and 194px below it and read as bottom-
+     heavy rather than centred. First visible pixel to last, halved. */
+  /* MEASURED, THEN CORRECTED, rather than derived. Every figure that
+     ought to predict the stack's height — scrollHeight, the children's
+     summed boxes, their outer bounds — was off by 15-29px in one
+     direction or the other depending on the width, because the gap, the
+     button block's inner padding and fitBeat()'s scale all land in
+     different places. So the final pass sets a padding, reads the gap it
+     actually produced above and below the ink, and moves by half the
+     difference. Two synchronous reads, no transition running, one value
+     ever animated to. */
+  let pad;
+  if (final) {
+    /* fitBeat()'s scale has to come OFF for this. getBoundingClientRect()
+       returns scaled coordinates while `avail` is unscaled, so measuring
+       the stack against the box with a 0.99 scale live compared two
+       different coordinate systems — that is what pinned 360 at 126px
+       above and 29px below however many correction passes ran. fitBeat()
+       is called again straight after and re-applies it if it is still
+       needed. */
+    b.style.transform = '';
+    void b.offsetHeight;
+    const par2 = b.parentElement.getBoundingClientRect();
+    const boxTop = par2.top + (parseFloat(pcs.paddingTop) || 0);
+    const boxBot = par2.bottom - (parseFloat(pcs.paddingBottom) || 0);
+    const ink = () => {
+      const k = [...b.children];
+      return { t: Math.min(...k.map(n => n.getBoundingClientRect().top)),
+               b: Math.max(...k.map(n => n.getBoundingClientRect().bottom)) };
+    };
+    let guess = Math.max(0, Math.round((avail - (ink().b - boxTop)) / 2));
+    /* ITERATED, because one correction was not enough at 360: the blocks
+       are still settling between the two reads and a single pass landed
+       123px above / 32px below. Each pass moves by half the error and it
+       converges in two or three; the loop is capped so a layout that
+       cannot settle cannot hang the beat. */
+    for (let i = 0; i < 5; i++) {
+      b.style.paddingTop = guess + 'px';
+      void b.offsetHeight;
+      const r = ink();
+      const err = Math.round(((boxBot - r.b) - (r.t - boxTop)) / 2);
+      if (Math.abs(err) <= 1) break;
+      guess = Math.max(0, guess + err);
+    }
+    /* CLAMPED SO THE RE-CENTRE CANNOT COST A SCALE. Centring is a
+       nicety; the type sizes are not. If the stack plus the offset would
+       overflow the box, fitBeat() answers by shrinking the whole beat —
+       at 360 that was 0.84, a 16% cut to sizes the spec raised on
+       purpose. The offset gives way first: the stack sits as high as it
+       must and stays at full size. */
+    const kk = [...b.children];
+    const stackH = Math.round(Math.max(...kk.map(n => n.getBoundingClientRect().bottom))
+                            - Math.min(...kk.map(n => n.getBoundingClientRect().top)));
+    pad = Math.max(0, Math.min(guess, avail - stackH));
+  } else {
+    pad = Math.min(centred, room);
+  }
   /* THE FIRST PLACEMENT IS NOT A MOVE. Easing from 0 made the board
      drift 425 -> 440 over the first 90ms of the beat, which is a fourth
      animation on a screen whose whole rule is one move. It is simply
      where the board starts. */
-  if (b.dataset.placed !== '1') {
+  if (final) {
+    b.style.paddingTop = pad0 + 'px';
+    void b.offsetHeight;
+    b.style.transition = '';
+    b.style.paddingTop = pad + 'px';
+  } else if (b.dataset.placed !== '1') {
     b.dataset.placed = '1';
     b.style.transition = 'none';
     b.style.paddingTop = pad + 'px';
