@@ -61,6 +61,11 @@ const T = {
   ovCollapse:ms('--t-ov-collapse'),
   ovSwap:    ms('--t-ov-swap'),
   b2Seat:    ms('--t-b2-seat'),
+  loadFade:  ms('--t-load-fade'),
+  loadRise:  ms('--t-load-rise'),
+  loadBarIn: ms('--t-load-barin'),
+  loadFill:  ms('--t-load-fill'),
+  loadHold:  ms('--t-load-hold'),
   claimHold: ms('--t-claim-hold'),
   claimBeat: ms('--t-claim-beat'),
   seatFill:  ms('--t-seat-fill'),
@@ -368,7 +373,14 @@ const INVERTED_ISSUE = 'a2';
    step that deforms a face, because every step is a Gaussian blur and a
    Gaussian blur cannot deform — it only removes. That is the whole
    reason the mechanic is blur and not pixelation, mosaic or warp. */
-const INV_BLUR    = [13, 7, 3, 1];
+/* 13 -> 9 -> 5.5 -> 3, not 13 -> 7 -> 3 -> 1. On the first ramp nearly
+   all the information arrived between 13 and 7 and the last step was
+   almost free — 3px and 1px are both plainly readable, so the final
+   1.4s cost 5 coins for a face the player already had. This spaces the
+   steps by how much they REVEAL rather than by how much blur they
+   remove, and it ends at 3px rather than 1px, which keeps the last step
+   a real decision and keeps the settled state short of a clean photo. */
+const INV_BLUR    = [13, 9, 5.5, 3];
 const INV_STEP_MS = 1400;
 const INV_SETTLE  = INV_BLUR.length * INV_STEP_MS;          /* 5600 */
 
@@ -1763,14 +1775,16 @@ async function verdict(guess, foot, card) {
   await wait(T.hold);
   foot.remove();
 
-  /* the basis marker — provenance, not commentary. bloc has no label in
-     data.js, so it renders as a placeholder rather than an invention. */
-  const idBox = $('.mf-b__id', card);
-  const basis = el('p', 'mf-b__basis');
-  basis.style.cssText = 'margin:4px 0 0;font-size:11px;font-weight:700;color:#3E3627;' +
-    'width:fit-content;background:rgba(216,201,168,.86);padding:1px 8px 2px';
-  basis.innerHTML = p.basis === 'bloc' ? ph('[תווית — תמר: basis=bloc]') : 'הצבעה מתועדת';
-  idBox.appendChild(basis);
+  /* THE BASIS LINE IS GONE. It rendered 'הצבעה מתועדת' on basis:doc cards
+     and a placeholder on basis:bloc ones, which meant the label's ABSENCE
+     was doing the talking on every bloc card — a gap that reads as an
+     omission rather than as a different kind of evidence. Removed
+     everywhere rather than twinned, because a twin would have to assert
+     something about bloc-inferred votes that nobody has written yet.
+     THIS DEFERS THE QUESTION, IT DOES NOT CLOSE IT: doc vs bloc is still
+     an open credibility problem for Roman, and data.js still carries the
+     distinction on every politician entry. Nothing was deleted but the
+     label. See the report. */
 
   /* THE AXIS IS INSIDE THE CARD, at its foot. Absolutely positioned, so
      it adds nothing to the card's box and cannot re-scale it. */
@@ -2908,8 +2922,109 @@ function renderIntro() {
      the HUD, and customisation moves to the map corner. The project
      flowmap still shows Intro -> Character -> Map; it is superseded, and a
      stub in between would be a screen we know is wrong. */
-  pressable($('.i-cta', r)).addEventListener('click', () => goMap());
+  pressable($('.i-cta', r)).addEventListener('click', () => loadingBeat(goMap));
   showScreen('intro');
+}
+
+/* ===================== §1 · THE LOADING BEAT ========================
+   The intro empties, the chair grows into the middle, a bar fills under
+   it, and then the destination.
+
+   THE DESTINATION IS AN ARGUMENT. Today the only caller passes goMap;
+   when character creation lands between them it passes that instead, and
+   nothing in here changes. The beat deliberately knows nothing about
+   where it is going — it is a transition, not a router.
+
+   THE BAR IS FAKE AND THE CODE SHOULD NOT PRETEND OTHERWISE. Nothing is
+   being fetched, decoded or waited on: the fill runs on --t-load-fill and
+   that is the entire mechanism. When there IS something to load, that
+   clock is what gets replaced with the real signal; the shape of the
+   beat, the copy and the geometry all survive it.
+
+   NO LABEL UNDER THE BAR, and it was a real choice between 'טוען את
+   הכנסת…' and nothing:
+     - the bar is fake, and a label naming the work asserts something that
+       is not happening. When it becomes true it will be true for a
+       different reason, which is a bad thing for shipped copy to be
+       waiting on.
+     - the beat exists to go from four objects on screen to ONE. Adding a
+       third element back — chair, bar, line — undoes the reduction that
+       is the entire point of it.
+     - it is on screen for 2.2 seconds. Nobody reads it, and a Hebrew line
+       nobody reads is still a Hebrew line somebody has to write, review
+       and translate.
+   The chair and a cyan bar already say wait. What a label WOULD have
+   carried is the accessible name, so that goes on the element itself as
+   role=progressbar + aria-label: announced, never drawn.
+
+   prefers-reduced-motion SKIPS THE WHOLE BEAT rather than shortening it.
+   A 2.2s wait with no motion is just a delay, and a delay is the one
+   thing this is not allowed to be. */
+const LOAD_A11Y = 'טוען…';                                   /* TAMAR */
+
+function loadingBeat(done) {
+  const sc = $('#scIntro'), chair = $('.i-chair', sc), stage = $('#stage');
+  if (!sc || !chair || sc.dataset.loading) return done();
+  sc.dataset.loading = '1';                 /* a second tap cannot re-arm */
+
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return done();
+
+  /* THE GROWTH IS A MEASURED TRANSFORM, NOT A CLASS WITH A HARD-CODED
+     SIZE. The chair's resting height is a vh clamp, so its start size
+     differs on every device; the target is expressed as a share of the
+     stage, and the scale is whatever gets from one to the other. The
+     chair therefore ends up occupying the same portion of every screen
+     rather than the same number of pixels on none of them. */
+  const sr = stage.getBoundingClientRect(), cr = chair.getBoundingClientRect();
+  const h  = Math.min(sr.height * 0.52, 380);
+  const k  = h / cr.height;
+  const cy = sr.top + sr.height * 0.44;     /* a little above centre, so the
+                                               bar below it is not crowding
+                                               the bottom of the stage */
+  const dx = (sr.left + sr.width / 2) - (cr.left + cr.width / 2);
+  const dy = cy - (cr.top + cr.height / 2);
+
+  const bar = el('div', 'i-load');
+  bar.setAttribute('role', 'progressbar');
+  bar.setAttribute('aria-label', LOAD_A11Y);
+  bar.setAttribute('aria-valuemin', '0');
+  bar.setAttribute('aria-valuemax', '100');
+  bar.setAttribute('aria-valuenow', '0');
+  bar.innerHTML = '<i class="i-load__fill"></i>';
+  /* under the chair's FINAL position, measured from the stage's own top
+     so it does not depend on where the chair started */
+  bar.style.top = Math.round((cy - sr.top) + h / 2 + 30) + 'px';
+  sc.appendChild(bar);
+
+  (async () => {
+    /* 1 · the screen empties and the chair grows, on the same tick.
+           THE REFLOW BETWEEN THEM IS LOAD-BEARING. .i-chair carries no
+           transition until .is-loading lands, so setting the class and
+           the transform in one frame gave the browser a transform change
+           on an element that had no transition when the frame started —
+           it jumped. Measured: 331 of a 333px target at 150ms of a 520ms
+           rise. Reading offsetWidth flushes the class first, so the
+           transform then has something to animate. */
+    sc.classList.add('is-loading');
+    void chair.offsetWidth;
+    chair.style.transform = 'translate(' + dx.toFixed(1) + 'px,' +
+                            dy.toFixed(1) + 'px) scale(' + k.toFixed(4) + ')';
+    await wait(T.loadFade);
+
+    /* 2 · the bar arrives after the screen is clear, never with it */
+    bar.classList.add('is-in');
+    await wait(T.loadBarIn);
+
+    /* 3 · and fills, decelerating. Same flush as the chair — .i-load__fill
+           gets its transition from .is-filling, which is the class that
+           also changes the width. */
+    void bar.offsetWidth;
+    bar.classList.add('is-filling');
+    bar.setAttribute('aria-valuenow', '100');
+    await wait(T.loadFill + T.loadHold);
+
+    done();
+  })();
 }
 
 /* =====================================================================

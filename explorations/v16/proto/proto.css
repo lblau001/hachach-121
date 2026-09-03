@@ -71,6 +71,17 @@
   --t-ask-in:      300ms;
   --t-b2-seat:     520ms;
 
+  /* §1 · THE LOADING BEAT, and the whole thing is budgeted to land under
+     2.5s door to door: 260 fade + 200 bar-in + 1600 fill + 180 hold =
+     2240ms from the tap to the destination. The chair's travel runs
+     inside the fade rather than after it — the screen empties and the
+     object grows as one movement, not two. */
+  --t-load-fade:   260ms;
+  --t-load-rise:   520ms;
+  --t-load-barin:  200ms;
+  --t-load-fill:  1600ms;
+  --t-load-hold:   180ms;
+
   /* A6 · how long the claim's stamp holds alone before the explanation
      arrives under it. Long enough to read one word and register the
      colour, short enough that it is a beat and not a wait. */
@@ -593,7 +604,21 @@ body.no-ph [data-ph]{ display:none !important; }
    away and the image rendered at its natural 900x539, four times its
    slot, overflowing the card and being clipped by .mf-b's overflow.
    max-* only: the attributes still size it, this only ever shrinks it. */
-.b1art img{ max-width:100%; max-height:var(--b1art-cap, 340px); height:auto; }
+/* THE RATIO IS NOT NEGOTIABLE, AND max-height ALONE BREAKS IT. The
+   attributes set the used WIDTH; max-height then clamped the HEIGHT
+   without the width following, so the reveal state stretched the
+   graphic horizontally on ALL ELEVEN active issues — 1.32x on g1/g3 to
+   1.52x on r1. It was not a rounding artefact, it was every card.
+   `width:auto` is NOT the fix and was tried once already: on a replaced
+   element it discards the attributes and falls back to the INTRINSIC
+   size, which rendered s1 at 900x539 and overflowed the card.
+   object-fit:contain is. The box may still be constrained by a cap, but
+   the pixels inside it letterbox instead of distorting, so no future
+   asset or cap can reintroduce the squish. */
+.b1art img{
+  max-width:100%; max-height:var(--b1art-cap, 340px); height:auto;
+  object-fit:contain;
+}
 /* WHEN THE PANEL RISES THE ART GIVES WAY. The panel covers the card's
    lower portion, and the one thing that must survive it is the claim the
    explanation is explaining. The art is capped hard here so the claim
@@ -603,7 +628,14 @@ body.no-ph [data-ph]{ display:none !important; }
    the hidden answer row freed and pushed the claim straight back under the
    panel — the box grew even though the image inside it could not. */
 .b1card.is-revealing .b1art{ flex:0 0 auto; }
-.b1card.is-revealing{ --b1art-cap:126px; }
+/* THE 126px REVEAL CAP IS GONE. Capping the art was what forced the
+   choice between distorting it and shrinking it, and the artwork is
+   never the thing that gives. Every active issue's graphic is 126-191px
+   tall and 101-298px wide, all inside the 340px default cap and the
+   container's width, so with this removed NO max-* binds and the art
+   renders at exactly its declared size — identical before the answer and
+   in the reveal. The room comes out of the claim's leading instead; see
+   .b1card.is-revealing .b1claim. */
 .b1card.is-revealing .b1ans{ display:none; }
 .b1card.is-revealing{ padding-bottom:var(--sp-3); }
 .b1card.is-revealing .b1claim{ flex:none; }
@@ -913,9 +945,8 @@ body.no-ph [data-ph]{ display:none !important; }
    17-year-old as noise, and the fix for a boring round is curation. */
 .mf-b__id h2{ display:block; }
 .mf-b__id p { display:inline-block; margin-top:4px; }
-/* .mf-b__id p is (0,1,1), so the basis line needs the parent in the
-   selector to win and drop onto its own row under the party. */
-.mf-b__id .mf-b__basis{ display:block; }
+/* the .mf-b__basis rule went with the line itself — see the note at the
+   verdict. Nothing else in the sheet targeted it. */
 
 /* the initials badge. Never another politician's face. Set on the set's
    own eyeline — 37.7% down the box — so it occupies the card as a
@@ -2496,7 +2527,30 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
    for.
    ===================================================================== */
 .pty{ position:relative; }
-.pty__val{ display:inline-block; }
+
+/* THE RESIDUE — the ghost of where the tape was stuck.
+   IT IS THE TAPE'S OWN FOOTPRINT, NOT AN APPROXIMATION OF IT: inset and
+   radius are copied from .pcov / .pcov__face, so the patch and the sheet
+   are the same rectangle. That is the whole trick — the residue is
+   already there, exactly covered, BEFORE the peel, so nothing appears,
+   grows or shifts when the sheet lifts. The peel's clip-path uncovers it
+   at the same rate it uncovers the party name, which is what makes it
+   read as "this was covered and now isn't" rather than as a new object
+   arriving to announce that something happened.
+   FLAT BLACK AT 5.5%, hard-edged, no blur — it darkens the kraft AND the
+   grid ruling printed on it by the same amount, which is what an
+   adhesive actually does to a printed card. On #D8C9A8 that lands on
+   #CCBE9F: about 5% down in luminance, enough to find and too little to
+   read as a filled shape. */
+.pty::before{
+  content:""; position:absolute; inset:-2px -4px; z-index:1;
+  border-radius:4px; background:rgba(0,0,0,.055);
+  pointer-events:none;
+}
+/* the name has to sit ON the residue, not under it. .pcov is z-index 3
+   and stays above both, so the stacking is card -> residue -> party ->
+   tape. */
+.pty__val{ display:inline-block; position:relative; z-index:2; }
 /* the settle. The line is already visible by the time this runs — the
    peel uncovered it progressively — so this is a small landing, not an
    entrance: a 4% overshoot that resolves, nothing that fades in. */
@@ -2706,3 +2760,87 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
   font-size:16px; line-height:1.18; padding:8px 14px 9px;
 }
 .inv-hint-st.is-retired{ opacity:0; transition:opacity 160ms linear; }
+
+
+/* =====================================================================
+   §1 · THE LOADING BEAT
+   Between the intro and wherever the game goes next. Everything on the
+   intro leaves except the chair; the chair grows and centres; a bar
+   fills beneath it; then the destination.
+
+   IT IS HONESTLY FAKE AND THE CODE SAYS SO. There is nothing to load —
+   no fetch, no decode, no wait. The bar runs on a fixed clock. When
+   there IS something to load the clock is the thing to replace, and
+   loadingBeat() takes the destination as an argument so the beat does
+   not have to know what it is waiting for.
+   ===================================================================== */
+
+/* everything but the chair goes. The plaza gradient is part of the
+   building scene, so it leaves with it. */
+.sc-intro.is-loading .i-title,
+.sc-intro.is-loading .i-sub,
+.sc-intro.is-loading .i-para,
+.sc-intro.is-loading .i-stage,
+.sc-intro.is-loading .i-cta,
+.sc-intro.is-loading::before{
+  opacity:0; pointer-events:none;
+  transition:opacity var(--t-load-fade) linear;
+}
+
+/* THE CHAIR KEEPS ITS DIE-CUT, AND THAT IS THE DECISION. filter runs
+   BEFORE transform, so a scaled chair carries a scaled white edge — at
+   the sizes used here 5px becomes 6.2-7.3px, which is heavier but still
+   plainly the same cut. Dropping it at the larger scale was the
+   alternative and it is wrong: the chair becomes the only object on
+   screen at exactly the moment it would stop belonging to the sticker
+   language everything else in the game is drawn in, so it would read as
+   a different object rather than as the same one, bigger. The edge is
+   the object's identity, not its decoration.
+   Transform only — no width, height or margin is touched — so the growth
+   cannot reflow the composite it is leaving. */
+.sc-intro.is-loading .i-chair{
+  transition:transform var(--t-load-rise) var(--e-settle);
+  will-change:transform;
+}
+
+/* THE BAR. Sticker construction, same as everything else that matters:
+   3px white die-cut, a hard keyline outside it, a flat extrusion. The
+   cyan is the chyron's own #37C4FF, which is the accent this app already
+   uses for "this is the live thing on screen".
+   NO LABEL — see loadingBeat(). It carries a progressbar role and an
+   accessible name instead, so it is announced without being drawn. */
+.i-load{
+  position:absolute; left:50%; translate:-50% 0; z-index:6;
+  width:min(196px, 54%); height:18px;
+  border:3px solid var(--edge); border-radius:999px;
+  background:rgba(24,22,20,.55);
+  box-shadow:0 0 0 2px var(--keyline), 0 3px 0 rgba(0,0,0,.34);
+  overflow:hidden;
+  opacity:0; transition:opacity var(--t-load-barin) linear;
+}
+.i-load.is-in{ opacity:1; }
+.i-load__fill{
+  display:block; height:100%; width:0;
+  border-radius:999px;
+  background:linear-gradient(180deg,#7FDCFF 0%,#37C4FF 46%,#12A9E8 100%);
+}
+/* DECELERATING INTO THE END, which is the one thing a fake bar has to get
+   right — a linear fill reads as a timer, and a timer invites the player
+   to notice it is exactly the same length every time.
+   THE FIRST CURVE HERE WAS cubic-bezier(.12,.72,.24,1) AND IT WAS WRONG:
+   measured on the running page it was 42% full at 9% of the duration and
+   93% at the halfway point, so the bar sprinted and then crawled — the
+   opposite of the brief, and the shape that makes a progress bar feel
+   like it is lying. This one is near-linear through the first half and
+   eases only into the last third: 9/38/79/96/99% at 9/25/50/75/90% of
+   the clock. */
+.i-load.is-filling .i-load__fill{
+  width:100%;
+  transition:width var(--t-load-fill) cubic-bezier(.30,.22,.30,1);
+}
+
+@media (prefers-reduced-motion: reduce){
+  /* the beat does not run at all — loadingBeat() goes straight to the
+     destination — so there is nothing here to soften. */
+  .i-load, .sc-intro.is-loading .i-chair{ transition:none; }
+}
