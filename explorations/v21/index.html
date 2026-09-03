@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>v21 — the inverted round</title>
+<link rel="stylesheet" href="../v16/prototype/hachach.css">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#8E8C86;font-family:system-ui,"Segoe UI",Arial,sans-serif;
+       -webkit-font-smoothing:antialiased;color:#131310}
+  .page{max-width:1560px;margin:0 auto;padding:28px 20px 90px}
+  h1{font-family:var(--font-display);font-size:26px;margin:0 0 6px}
+  .lede{max-width:78ch;font-size:14px;line-height:1.6;margin:0 0 22px;color:#2A2823}
+  h2{font-family:var(--font-display);font-size:19px;margin:38px 0 4px;
+     border-top:2px solid rgba(0,0,0,.35);padding-top:14px}
+  .ask{max-width:78ch;font-size:13px;line-height:1.6;margin:0 0 16px;color:#332F29}
+  h1,h2,.lede,.ask,.note,.cost,.tag,.risk,.must li,.must h3,.sub,.open{direction:ltr;text-align:left}
+  .row{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start;direction:ltr}
+  .fr{direction:rtl}
+  .opt{width:360px}
+  .tag{direction:ltr;display:inline-block;font-family:var(--font-display);font-size:11px;
+       letter-spacing:.06em;background:#FBF7EE;border-radius:5px;padding:2px 8px 3px;
+       box-shadow:0 0 0 1.5px rgba(0,0,0,.45);margin-bottom:6px}
+  .open{display:inline-block;font-family:var(--font-display);font-size:11px;letter-spacing:.06em;
+        background:#FFD60A;border-radius:5px;padding:2px 8px 3px;
+        box-shadow:0 0 0 1.5px rgba(0,0,0,.5);margin:0 0 6px 6px}
+  .sub{display:inline-block;font-size:11px;font-weight:700;background:rgba(255,255,255,.5);
+       border-radius:4px;padding:2px 7px;margin:0 0 6px 6px}
+  .note{font-size:12px;line-height:1.55;margin:8px 0 0;color:#2A2823}
+  .note b{font-family:var(--font-display)}
+  .cost{font-size:11.5px;line-height:1.5;margin:6px 0 0;color:#4A4436;
+        background:rgba(255,255,255,.42);border-radius:6px;padding:6px 8px}
+  .risk{font-size:11.5px;line-height:1.5;margin:6px 0 0;color:#3A1418;
+        background:rgba(255,80,110,.20);border-radius:6px;padding:6px 8px;
+        box-shadow:inset 0 0 0 1px rgba(120,20,40,.30)}
+  .risk b{font-family:var(--font-display)}
+  .must{max-width:78ch;background:rgba(255,255,255,.40);border-radius:8px;padding:12px 16px;margin:0 0 22px}
+  .must h3{font-family:var(--font-display);font-size:13px;margin:0 0 6px}
+  .must ul{margin:0;padding-inline-start:18px}
+  .must li{font-size:12.5px;line-height:1.6}
+  .flaw{background:rgba(255,80,110,.18);box-shadow:inset 0 0 0 1px rgba(120,20,40,.30)}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.94em;
+       background:rgba(255,255,255,.5);padding:0 4px;border-radius:3px}
+
+  /* ---- the phone frame ------------------------------------------------ */
+  .fr{width:360px;height:640px;position:relative;overflow:hidden;isolation:isolate;
+      background:#403E3A;color:#EFECE4;display:flex;flex-direction:column;
+      padding:10px 16px 12px;box-shadow:0 3px 14px rgba(0,0,0,.3)}
+  .fr::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+    background-image:radial-gradient(rgba(255,255,255,.07) .5px,transparent .6px),
+                     radial-gradient(rgba(0,0,0,.34) .5px,transparent .6px);
+    background-size:4px 4px,7px 7px;background-position:0 0,2px 3px}
+  .fr > *{position:relative;z-index:1}
+  .hud{display:flex;align-items:center;gap:8px;flex:none;z-index:6}
+  .hud-mid{flex:1;min-width:0;display:flex;justify-content:center}
+  .hud-mid span{font-family:var(--font-display);font-weight:900;font-size:14px;white-space:nowrap}
+  .hud-right{flex:none;width:40px;height:40px;display:grid;place-items:center}
+  .hud-coins{direction:ltr;border-radius:999px}
+
+  /* ---- the inverted card ---------------------------------------------- */
+  .icard{position:relative;background:var(--card-surface);color:var(--ink);
+         box-shadow:0 0 0 5px #fff,0 0 0 6.5px rgba(0,0,0,.5),var(--shadow-card);
+         margin:10px auto 0;width:300px;flex:none;padding:12px 12px 14px;
+         display:flex;flex-direction:column;align-items:center}
+  .iq{font-family:var(--font-display);font-weight:900;font-size:16px;line-height:1.22;
+      text-align:center;margin:0 0 9px}
+  .iq b{color:#7A2E22}
+  .port{width:168px;height:186px;overflow:hidden;position:relative;flex:none;
+        background:var(--kraft-deep);box-shadow:0 0 0 3px #fff,0 0 0 4.4px rgba(0,0,0,.45)}
+  .port img{width:118%;position:absolute;left:50%;translate:-50% 0;top:-6px;display:block}
+  .b13 img{filter:blur(13px)} .b7 img{filter:blur(7px)}
+  .b3 img{filter:blur(3px)}   .b1 img{filter:blur(1px)}
+  /* the blur is clipped INSIDE the frame so it never bleeds a soft halo
+     onto the card — the frame stays hard, only the face is soft */
+  .port::after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+  .noport{display:grid;place-items:center;color:#6B6350;font-family:var(--font-display);
+          font-weight:900;font-size:46px;background:var(--kraft-deep)}
+
+  .steps{display:flex;gap:4px;margin-top:9px;direction:ltr}
+  .steps i{display:block;width:26px;height:5px;border-radius:99px;background:rgba(19,19,16,.18)}
+  .steps i.on{background:#7A2E22}
+  .bar{width:168px;height:5px;border-radius:99px;background:rgba(19,19,16,.18);margin-top:9px;overflow:hidden}
+  .bar i{display:block;height:100%;background:#7A2E22}
+
+  .names{display:flex;flex-direction:column;gap:7px;width:100%;margin-top:11px}
+  .nm{display:block;width:100%;text-align:center;background:#FBF7EE;color:var(--ink);
+      border-radius:12px;padding:9px 0 10px;font-family:var(--font-display);
+      font-weight:900;font-size:16px;box-shadow:0 0 0 2px rgba(0,0,0,.45),0 3px 0 rgba(0,0,0,.3)}
+  .nm.sm{font-size:14px;padding:7px 0 8px}
+  .nm .pty{display:block;font-size:11px;font-weight:700;color:#6B6350;margin-top:2px;
+           font-family:var(--font-ui)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:7px;width:100%;margin-top:11px}
+  .grid2 .nm:last-child{grid-column:1 / -1}
+
+  .hint{margin-top:10px;display:inline-flex;align-items:center;gap:7px;
+        background:transparent;color:#D8D2C4;border-radius:12px;padding:7px 14px 8px;
+        font-family:var(--font-display);font-weight:900;font-size:13px;
+        box-shadow:inset 0 0 0 2px rgba(216,210,196,.45)}
+  .hint.done{background:rgba(55,196,255,.16);box-shadow:inset 0 0 0 2px #37C4FF;color:#EFECE4}
+  .pill{display:inline-block;font-family:var(--font-display);font-weight:900;font-size:12px;
+        background:#37C4FF;color:#0A2733;border-radius:99px;padding:2px 9px 3px}
+  .pay{margin-top:9px;font-size:12px;font-weight:700;color:#D8D2C4;text-align:center}
+  .pay b{font-family:var(--font-display);color:#FFD60A;font-size:15px;
+         direction:ltr;unicode-bidi:isolate;display:inline-block}
+  .ph{display:inline-block;background:repeating-linear-gradient(45deg,#FFE03D 0 8px,#FFD60A 8px 16px);
+      color:#131310;border:2px dashed #131310;border-radius:4px;padding:0 6px 1px;
+      font-size:inherit;font-weight:900;font-family:var(--font-display)}
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>v21 &mdash; the inverted round</h1>
+<p class="lede">
+Three options, 360&times;640, RTL, on the prototype's own ground; components from
+<code>explorations/v16/prototype/hachach.css</code>. Hebrew only inside the frames, annotations in
+English, striped yellow is unwritten copy. <b>Nothing here is implemented. All three are OPEN.</b>
+</p>
+
+<div class="must flaw">
+  <h3>The flaw in the previous draw &mdash; and yes, I agree it was the flaw</h3>
+  <ul>
+    <li>B-1, B-2 and B-3 printed the MK's <b>name under each blurred face</b>
+        (&#1489;&#1504;&#1497; &#1490;&#1504;&#1509;, &#1497;&#1488;&#1497;&#1512; &#1500;&#1508;&#1497;&#1491;,
+        &#1488;&#1497;&#1514;&#1502;&#1512; &#1489;&#1503;-&#1490;&#1489;&#1497;&#1512;), and B-1 step 3 added the
+        parties. <b>The blur then concealed nothing the player did not already have.</b> They read
+        the names and pick. The un-blur was decorative and the mechanic had no tension left in it.
+        That is not a detail — it removes the reason for the round to exist.</li>
+    <li>The second problem was the question itself. What was drawn asked
+        <i>&quot;which of these three voted &#1489;&#1506;&#1491;?&quot;</i> &mdash; which is the
+        round the game already has, with a blur on it. Tamar's spec is the inverse: <b>one</b>
+        blurred MK whose vote is <b>stated</b>, and the player guesses <b>who it is</b>.</li>
+  </ul>
+  <h3 style="margin-top:12px">Why hers is the stronger mechanic</h3>
+  <ul>
+    <li>It is genuinely a different game: the standard round asks <i>how did this person vote</i>,
+        this asks <i>who is this person</i>. Recognition, which the research already identified as
+        civic learning in its own right.</li>
+    <li>It makes the un-blur <b>load-bearing</b> &mdash; the player waits because recognition
+        <i>is</i> the task, not because a timer is running.</li>
+    <li>It makes the party hint a real clue rather than a spoiler: a party narrows three names to
+        one or two, it does not hand over the answer. Except in option 3 &mdash; see there.</li>
+  </ul>
+</div>
+
+<div class="must">
+  <h3>The shape, in all three</h3>
+  <ul>
+    <li>One portrait, blurred. The vote is <b>stated</b> above it.
+        <b>No name appears on or under the portrait</b> &mdash; the names live only in the answer
+        options. That is the fix for the flaw and it is not negotiable in any of the three.</li>
+    <li>Three <b>name</b> options below. Blur decreases over time. A party-hint control is available.</li>
+  </ul>
+  <h3 style="margin-top:12px">Carried forward from the last pass &mdash; still binding</h3>
+  <ul>
+    <li>Blur steps <b>13 &rarr; 7 &rarr; 3 &rarr; 1px, never reaching zero.</b> The residual keeps
+        it deliberate rather than looking like a load that finished.</li>
+    <li><b>~1.4s per step, ~5.6s total</b>, which is why this <b>replaces</b> a cascade rather than
+        sitting inside one. <b>One inverted round per issue.</b></li>
+    <li><b>The reward floors at the ordinary card's payout</b> (+25), so waiting can never pay less
+        than a normal guess.</li>
+    <li>The round may only deal MKs that <b>have an illustration</b>. Binding on every cascade still
+        to be written.</li>
+    <li><b>Never blur to the point of distortion.</b> Softening a real politician's face is fine;
+        deforming one is not. 13px on a 168px portrait is soft, not warped.</li>
+  </ul>
+  <h3 style="margin-top:12px">Correcting the record: the portrait shortfall is closed</h3>
+  <ul>
+    <li>An earlier board said <b>11 of 14 MKs had no illustration</b>. <b>That figure is stale.</b>
+        It came from a v16-era count; v19's asset pass closed it. As of now
+        <code>manifest.json</code> reports <b>21 of 21 <code>data.js</code> politicians with art</b>
+        and <code>politicians_without_art: []</code>. The constraint above is therefore satisfied
+        by every MK currently in the data &mdash; it binds on the <b>new</b> MKs the 3 Sep voting
+        sheet introduces, of whom <b>11 of 14 have no portrait</b>. Same ratio, different set;
+        recording it here so the old number does not resurface.</li>
+  </ul>
+</div>
+
+<h2>V21-1 &middot; stepped blur, hint names the pictured MK's party</h2>
+<p class="ask">
+The blur drops in four visible steps and the step track says so. The hint reveals the party of the
+MK <b>in the picture</b> &mdash; one fact, which narrows three names to whichever of them belong to
+that party. Picking early pays more and the amount is shown before the choice, not after.
+</p>
+<div class="row">
+  <div class="opt"><span class="tag">V21-1</span><span class="open">OPEN</span><span class="sub">step 2 of 4</span>
+    <div class="fr">
+      <header class="hud"><span class="hud-right"><button class="ib-b">&#10005;</button></span>
+        <span class="hud-mid"><span>&#1495;&#1493;&#1511; &#1492;&#1490;&#1497;&#1493;&#1505;</span></span>
+        <span class="h-a hud-coins"><span style="color:var(--primary)">&#9679;</span>75</span></header>
+      <div class="icard">
+        <p class="iq">&#1492;&#1495;&#8221;&#1499; &#1492;&#1494;&#1492; &#1492;&#1510;&#1489;&#1497;&#1506; <b>&#1504;&#1490;&#1491;</b> &mdash; &#1502;&#1497; &#1494;&#1492;?</p>
+        <div class="port b7"><img src="../../assets/mk/mk_lapid_609.webp" alt=""></div>
+        <div class="steps"><i class="on"></i><i class="on"></i><i></i><i></i></div>
+        <div class="names">
+          <button class="nm">&#1497;&#1488;&#1497;&#1512; &#1500;&#1508;&#1497;&#1491;</button>
+          <button class="nm">&#1489;&#1504;&#1497; &#1490;&#1504;&#1509;</button>
+          <button class="nm">&#1490;&#1491;&#1506;&#1493;&#1503; &#1505;&#1506;&#1512;</button>
+        </div>
+        <p class="pay">&#1506;&#1499;&#1513;&#1497;&#1493;: <b>+40</b></p>
+      </div>
+      <div style="display:flex;justify-content:center"><span class="hint">&#1512;&#1502;&#1494; &#1500;&#1502;&#1508;&#1500;&#1490;&#1492;</span></div>
+    </div>
+    <p class="note"><b>Blur:</b> 4 discrete steps, 13/7/3/1px, track under the portrait.
+    <b>Hint:</b> the pictured MK's party &mdash; one fact.
+    <b>Names:</b> full-width stack, name only.
+    <b>Early pick:</b> paid, and the current value is on screen before the choice.</p>
+    <p class="cost">The steps are legible as steps, so a player understands they are trading a
+    known amount for a clearer face rather than watching an opaque timer. The hint narrows without
+    resolving: &quot;&#1497;&#1513; &#1506;&#1514;&#1497;&#1491;&quot; leaves one of these three, but on a
+    board with two Likud names it would leave two.</p>
+    <p class="risk"><b>Risk:</b> showing the live payout before the choice is the one thing the
+    game does nowhere else &mdash; &sect;0 of the previous brief forbids advertising an award before
+    a decision, precisely because it moves attention from the content to the points. This option
+    breaks that rule deliberately, because here the amount <i>is</i> the decision. If that
+    exception is not wanted, this becomes V21-2's treatment and the two options collapse.</p>
+  </div>
+
+  <div class="opt"><span class="tag">V21-1</span><span class="sub">hint taken, step 3</span>
+    <div class="fr">
+      <header class="hud"><span class="hud-right"><button class="ib-b">&#10005;</button></span>
+        <span class="hud-mid"><span>&#1495;&#1493;&#1511; &#1492;&#1490;&#1497;&#1493;&#1505;</span></span>
+        <span class="h-a hud-coins"><span style="color:var(--primary)">&#9679;</span>75</span></header>
+      <div class="icard">
+        <p class="iq">&#1492;&#1495;&#8221;&#1499; &#1492;&#1494;&#1492; &#1492;&#1510;&#1489;&#1497;&#1506; <b>&#1504;&#1490;&#1491;</b> &mdash; &#1502;&#1497; &#1494;&#1492;?</p>
+        <div class="port b3"><img src="../../assets/mk/mk_lapid_609.webp" alt=""></div>
+        <div class="steps"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div>
+        <div class="names">
+          <button class="nm">&#1497;&#1488;&#1497;&#1512; &#1500;&#1508;&#1497;&#1491;</button>
+          <button class="nm">&#1489;&#1504;&#1497; &#1490;&#1504;&#1509;</button>
+          <button class="nm">&#1490;&#1491;&#1506;&#1493;&#1503; &#1505;&#1506;&#1512;</button>
+        </div>
+        <p class="pay">&#1506;&#1499;&#1513;&#1497;&#1493;: <b>+32</b></p>
+      </div>
+      <div style="display:flex;justify-content:center">
+        <span class="hint done">&#1502;&#1492;&#1502;&#1508;&#1500;&#1490;&#1492; <span class="pill">&#1497;&#1513; &#1506;&#1514;&#1497;&#1491;</span></span></div>
+    </div>
+    <p class="note">The hint spent. It states the party of the face, not of the options, so the
+    player still has to know which of the three names belongs to it. The payout has stepped down
+    with the blur.</p>
+  </div>
+</div>
+
+<h2>V21-2 &middot; continuous blur, hint tags all three options</h2>
+<p class="ask">
+The blur eases continuously rather than stepping, and the bar is a plain progress track with no
+numbers on it. The hint puts a party <b>on each of the three name buttons</b>. <b>This is a very
+different hint and the difference matters</b> &mdash; see the risk.
+</p>
+<div class="row">
+  <div class="opt"><span class="tag">V21-2</span><span class="open">OPEN</span><span class="sub">mid-blur, hint unused</span>
+    <div class="fr">
+      <header class="hud"><span class="hud-right"><button class="ib-b">&#10005;</button></span>
+        <span class="hud-mid"><span>&#1495;&#1493;&#1511; &#1492;&#1490;&#1497;&#1493;&#1505;</span></span>
+        <span class="h-a hud-coins"><span style="color:var(--primary)">&#9679;</span>75</span></header>
+      <div class="icard">
+        <p class="iq">&#1492;&#1495;&#8221;&#1499; &#1492;&#1494;&#1492; &#1492;&#1510;&#1489;&#1497;&#1506; <b>&#1504;&#1490;&#1491;</b> &mdash; &#1502;&#1497; &#1494;&#1492;?</p>
+        <div class="port b7"><img src="../../assets/mk/mk_lapid_609.webp" alt=""></div>
+        <div class="bar"><i style="width:52%"></i></div>
+        <div class="names">
+          <button class="nm">&#1497;&#1488;&#1497;&#1512; &#1500;&#1508;&#1497;&#1491;</button>
+          <button class="nm">&#1489;&#1504;&#1497; &#1490;&#1504;&#1509;</button>
+          <button class="nm">&#1490;&#1491;&#1506;&#1493;&#1503; &#1505;&#1506;&#1512;</button>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:center"><span class="hint">&#1512;&#1502;&#1494; &#1500;&#1502;&#1508;&#1500;&#1490;&#1492;</span></div>
+    </div>
+    <p class="note"><b>Blur:</b> continuous ease, plain bar, no step marks and no number.
+    <b>Hint:</b> tags every option with its party. <b>Names:</b> full-width stack.
+    <b>Early pick:</b> paid, but never advertised &mdash; the coin simply flies at the end.</p>
+    <p class="cost">The only option that keeps &sect;0's rule intact: nothing about the award is on
+    screen before the choice. It is also the quietest &mdash; a face slowly resolving with no
+    counter on it is closest to the sticker language and furthest from a quiz show.</p>
+    <p class="risk"><b>Risk, and it is the reason to draw this hint separately:</b> tagging all
+    three options can <b>hand over the answer</b>. If the three names are from three different
+    parties and the player recognises the face's party from the picture &mdash; a Haredi MK, a
+    keffiyeh, a knitted kippah &mdash; the tags map straight onto it and the round is over. V21-1's
+    hint cannot do that, because it names a party without saying which button holds it.
+    <b>It also risks teaching a stereotype</b>, which is a content problem, not a UI one.</p>
+  </div>
+
+  <div class="opt"><span class="tag">V21-2</span><span class="sub">hint taken</span>
+    <div class="fr">
+      <header class="hud"><span class="hud-right"><button class="ib-b">&#10005;</button></span>
+        <span class="hud-mid"><span>&#1495;&#1493;&#1511; &#1492;&#1490;&#1497;&#1493;&#1505;</span></span>
+        <span class="h-a hud-coins"><span style="color:var(--primary)">&#9679;</span>75</span></header>
+      <div class="icard">
+        <p class="iq">&#1492;&#1495;&#8221;&#1499; &#1492;&#1494;&#1492; &#1492;&#1510;&#1489;&#1497;&#1506; <b>&#1504;&#1490;&#1491;</b> &mdash; &#1502;&#1497; &#1494;&#1492;?</p>
+        <div class="port b3"><img src="../../assets/mk/mk_lapid_609.webp" alt=""></div>
+        <div class="bar"><i style="width:76%"></i></div>
+        <div class="names">
+          <button class="nm sm">&#1497;&#1488;&#1497;&#1512; &#1500;&#1508;&#1497;&#1491;<span class="pty">&#1497;&#1513; &#1506;&#1514;&#1497;&#1491;</span></button>
+          <button class="nm sm">&#1489;&#1504;&#1497; &#1490;&#1504;&#1509;<span class="pty">&#1492;&#1502;&#1495;&#1504;&#1492; &#1492;&#1502;&#1502;&#1500;&#1499;&#1514;&#1497;</span></button>
+          <button class="nm sm">&#1490;&#1491;&#1506;&#1493;&#1503; &#1505;&#1506;&#1512;<span class="pty">&#1492;&#1497;&#1502;&#1497;&#1503; &#1492;&#1502;&#1502;&#1500;&#1499;&#1514;&#1497;</span></button>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:center">
+        <span class="hint done">&#1502;&#1492;&#1502;&#1508;&#1500;&#1490;&#1493;&#1514; &#1502;&#1493;&#1510;&#1490;&#1493;&#1514;</span></div>
+    </div>
+    <p class="note">Three parties on three buttons. Compare with V21-1's hint above: that one adds a
+    fact about the <i>face</i>, this one adds facts about the <i>answers</i>. Only the second can
+    collapse the round in one tap.</p>
+  </div>
+</div>
+
+<h2>V21-3 &middot; stepped blur, no hint button &mdash; the party is the fourth step</h2>
+<p class="ask">
+The hint stops being a control the player spends and becomes the last thing the wait gives them.
+Steps 1&ndash;3 are blur alone; if the player is still there at step 4 the party appears beside the
+portrait on its own. Nothing is bought, nothing is advertised, and waiting has exactly one currency
+&mdash; time.
+</p>
+<div class="row">
+  <div class="opt"><span class="tag">V21-3</span><span class="open">OPEN</span><span class="sub">step 2 &mdash; no party yet</span>
+    <div class="fr">
+      <header class="hud"><span class="hud-right"><button class="ib-b">&#10005;</button></span>
+        <span class="hud-mid"><span>&#1495;&#1493;&#1511; &#1492;&#1490;&#1497;&#1493;&#1505;</span></span>
+        <span class="h-a hud-coins"><span style="color:var(--primary)">&#9679;</span>75</span></header>
+      <div class="icard">
+        <p class="iq">&#1492;&#1495;&#8221;&#1499; &#1492;&#1494;&#1492; &#1492;&#1510;&#1489;&#1497;&#1506; <b>&#1504;&#1490;&#1491;</b> &mdash; &#1502;&#1497; &#1494;&#1492;?</p>
+        <div class="port b7"><img src="../../assets/mk/mk_lapid_609.webp" alt=""></div>
+        <div class="steps"><i class="on"></i><i class="on"></i><i></i><i></i></div>
+        <div class="grid2">
+          <button class="nm sm">&#1497;&#1488;&#1497;&#1512; &#1500;&#1508;&#1497;&#1491;</button>
+          <button class="nm sm">&#1489;&#1504;&#1497; &#1490;&#1504;&#1509;</button>
+          <button class="nm sm">&#1490;&#1491;&#1506;&#1493;&#1503; &#1505;&#1506;&#1512;</button>
+        </div>
+      </div>
+      <p class="pay" style="opacity:.62">&#1499;&#1500; &#1513;&#1500;&#1489; &#1513;&#1500;&#1488; &#1502;&#1495;&#1499;&#1497;&#1501; &#1513;&#1493;&#1493;&#1492; &#1497;&#1493;&#1514;&#1512;</p>
+    </div>
+    <p class="note"><b>Blur:</b> 4 steps. <b>Hint:</b> none to press &mdash; the party is step 4.
+    <b>Names:</b> two-up grid, third full width, so the block is shorter and the portrait can be
+    larger. <b>Early pick:</b> paid, stated as a sentence rather than a live number.</p>
+    <p class="cost">The simplest of the three and the only one with no second control at all: one
+    decision, three buttons, a clock. It also removes the &quot;did I waste my hint&quot; question
+    entirely, and with it the risk that a player hoards the hint and never uses it.</p>
+  </div>
+
+  <div class="opt"><span class="tag">V21-3</span><span class="sub">step 4 &mdash; the party arrives</span>
+    <div class="fr">
+      <header class="hud"><span class="hud-right"><button class="ib-b">&#10005;</button></span>
+        <span class="hud-mid"><span>&#1495;&#1493;&#1511; &#1492;&#1490;&#1497;&#1493;&#1505;</span></span>
+        <span class="h-a hud-coins"><span style="color:var(--primary)">&#9679;</span>75</span></header>
+      <div class="icard">
+        <p class="iq">&#1492;&#1495;&#8221;&#1499; &#1492;&#1494;&#1492; &#1492;&#1510;&#1489;&#1497;&#1506; <b>&#1504;&#1490;&#1491;</b> &mdash; &#1502;&#1497; &#1494;&#1492;?</p>
+        <div class="port b1"><img src="../../assets/mk/mk_lapid_609.webp" alt=""></div>
+        <div style="margin-top:9px"><span class="pill">&#1497;&#1513; &#1506;&#1514;&#1497;&#1491;</span></div>
+        <div class="steps" style="margin-top:8px"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div>
+        <div class="grid2">
+          <button class="nm sm">&#1497;&#1488;&#1497;&#1512; &#1500;&#1508;&#1497;&#1491;</button>
+          <button class="nm sm">&#1489;&#1504;&#1497; &#1490;&#1504;&#1509;</button>
+          <button class="nm sm">&#1490;&#1491;&#1506;&#1493;&#1503; &#1505;&#1506;&#1512;</button>
+        </div>
+      </div>
+      <p class="pay" style="opacity:.62">&#1499;&#1500; &#1513;&#1500;&#1489; &#1513;&#1500;&#1488; &#1502;&#1495;&#1499;&#1497;&#1501; &#1513;&#1493;&#1493;&#1492; &#1497;&#1493;&#1514;&#1512;</p>
+    </div>
+    <p class="note">At the last step the residual 1px blur and the party arrive together. The
+    portrait is still not fully sharp &mdash; that is the standing rule, and here it also stops the
+    final step feeling like the answer being handed over.</p>
+    <p class="risk"><b>Risk:</b> a player who is going to guess immediately never sees the party at
+    all, so the clue only reaches the people who least need it &mdash; the opposite of what a hint
+    is for. It also gives the round no interactive beat between arriving and answering, which over
+    eleven issues may read as passive. <b>And it is the only one of the three that cannot be tuned
+    per player:</b> the other two let a confident player skip the hint and an unsure one take it.</p>
+  </div>
+
+  <div class="opt"><span class="tag">ALL THREE</span><span class="sub">no portrait &mdash; the degraded state</span>
+    <div class="fr">
+      <header class="hud"><span class="hud-right"><button class="ib-b">&#10005;</button></span>
+        <span class="hud-mid"><span>&#1497;&#1493;&#1511;&#1512; &#1492;&#1502;&#1495;&#1497;&#1492;</span></span>
+        <span class="h-a hud-coins"><span style="color:var(--primary)">&#9679;</span>75</span></header>
+      <div class="icard">
+        <p class="iq">&#1492;&#1495;&#8221;&#1499; &#1492;&#1494;&#1492; &#1492;&#1510;&#1489;&#1497;&#1506; <b>&#1489;&#1506;&#1491;</b> &mdash; &#1502;&#1497; &#1494;&#1492;?</p>
+        <div class="port noport">&#1490;&#8221;&#1511;</div>
+        <div class="steps"><i class="on"></i><i class="on"></i><i></i><i></i></div>
+        <div class="names">
+          <button class="nm">&#1490;&#1500;&#1506;&#1491; &#1511;&#1512;&#1497;&#1489;</button>
+          <button class="nm">&#1497;&#1510;&#1495;&#1511; &#1490;&#1493;&#1500;&#1491;&#1511;&#1504;&#1493;&#1507;</button>
+          <button class="nm">&#1510;&#1489;&#1497; &#1505;&#1493;&#1499;&#1493;&#1514;</button>
+        </div>
+      </div>
+      <p class="pay" style="opacity:.62"><span class="ph">[&#1496;&#1511;&#1505;&#1496; &mdash; &#1514;&#1502;&#1512;]</span></p>
+    </div>
+    <p class="risk"><b>This state must not ship, and drawing it is how we keep it that way.</b> With
+    no portrait there is nothing to un-blur, so the round's entire mechanic is absent and the
+    player is asked to recognise an initials badge. The correct behaviour is
+    <b>not to deal the round at all</b> for an MK without art &mdash; the standing constraint above.
+    It is drawn because it becomes reachable the moment cascades exist for the new issues:
+    <b>11 of the 14 MKs the 3 Sep voting sheet introduces have no portrait</b>, so the first time
+    those cascades are written this state is one missing guard away.</p>
+  </div>
+</div>
+
+<h2>Where this leaves things</h2>
+<div class="must">
+  <ul>
+    <li>The three differ on <b>who pays for the clue</b>. V21-1 sells information for payout and
+        shows the price; V21-2 gives the same clue for free but a stronger one, and never mentions
+        the award; V21-3 has no clue to take &mdash; time gives it or nothing does.</li>
+    <li><b>The hint difference is the sharpest decision on the board.</b> V21-1's hint names the
+        party of the <i>face</i>; V21-2's tags the <i>options</i>. Only the second can end the round
+        in one tap, and only the second risks teaching a face-to-party stereotype.</li>
+    <li><b>V21-1 breaks a standing rule</b> — it shows an award value before a choice, which
+        &sect;0 forbids everywhere else in the game. It is the only one that does, and it does it
+        because the amount is the decision rather than a garnish. If the exception is refused,
+        V21-1 becomes V21-2.</li>
+    <li>All three are drawn with <code>mk_lapid_609.webp</code> at real blur values, so what is on
+        screen is what the filter actually does at 13/7/3/1px on a 168px portrait &mdash; none of
+        them deform the face.</li>
+  </ul>
+</div>
+<p class="lede" style="margin-top:20px"><b>Nothing here is implemented. All three OPEN.</b></p>
+
+</div>
+</body>
+</html>

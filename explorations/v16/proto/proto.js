@@ -63,6 +63,8 @@ const T = {
   b2Seat:    ms('--t-b2-seat'),
   claimHold: ms('--t-claim-hold'),
   claimBeat: ms('--t-claim-beat'),
+  peel:      ms('--t-peel'),
+  peelOut:   ms('--t-peel-out'),
   cardFlip:  ms('--t-card-flip'),
   cardExit:  ms('--t-card-exit'),
   gxLock:    ms('--t-gx-lock'),
@@ -618,12 +620,69 @@ function deckCard(i) {
     (art
       ? '<img class="mf-b__port" src="' + ROOT + (art.hi || art['400']) + '" alt="">'
       : '<span class="mf-b__badge">' + esc(initials(pol.name)) + '</span>') +
-    /* §1.4b the party label STAYS. Hiding it dumps the complexity on a
-       17-year-old as noise — Tesler's Law. The fix for a boring round
-       is curation, not concealment. */
-    '<div class="mf-b__id"><h2>' + esc(pol.name) + '</h2><p>' + esc(pol.party) + '</p></div>';
+    /* §1.4b THE PARTY LABEL STILL STAYS — it is COVERED, not hidden, and
+       that distinction is the whole of A-1. Hiding the field outright was
+       rejected for dumping complexity on a 17-year-old as noise; a cover
+       that peels off in one tap keeps the information one gesture away
+       and makes the player choose when to have it. Nothing is removed
+       from the DOM, so a screen reader gets the party either way — the
+       concealment is a visual game move, not a data one.
+       FREE. There is no coin cost and no price anywhere near it: coins
+       are earned and never spent until the end-game allocation, and
+       charging for the one thing the game promises not to withhold would
+       be the wrong signal. A-3 was rejected on exactly that.
+       THE IDENTITY BLOCK DOES NOT MOVE. Name and party stay at the top of
+       the card where they have always been — .mf-b__id is top:18px —
+       because RTL reading order is who -> face -> choice, and a tappable
+       covered slot directly above three vote chips invites misfires. */
+    '<div class="mf-b__id"><h2>' + esc(pol.name) + '</h2>' +
+      '<p class="pty"><span class="pty__val">' + esc(pol.party) + '</span>' +
+        '<button type="button" class="pcov" aria-label="' +
+          esc('גילוי המפלגה') + '">' +                       /* TAMAR */
+          '<i class="pcov__face" aria-hidden="true">' +
+            '<b class="pcov__lab">' + esc('מפלגה') + '</b>' + /* TAMAR */
+          '</i>' +
+          '<i class="pcov__curl" aria-hidden="true"></i>' +
+        '</button>' +
+      '</p></div>';
   d.append(back, front);
+  wirePeel(front);
   return d;
+}
+
+/* ===== A-1 · THE PEELING COVER ======================================
+   CSS-DRIVEN, JS ONLY SEQUENCES IT. Every phase is a keyframe animation
+   on a compositor-friendly property, so the peel cannot drop frames the
+   way a rAF loop writing clip-path would, and prefers-reduced-motion is
+   answered by a media query rather than by a branch in here. This
+   function does three things: it takes the tap, it advances the class
+   at the end of each phase, and it removes the node. See .pcov.
+
+   ONE WAY ONLY. There is no re-cover: the button is removed from the DOM
+   the moment the cover has fallen, so a card that has been peeled cannot
+   be un-peeled, and the state cannot desync from the animation. */
+function wirePeel(card) {
+  const cov = $('.pcov', card); if (!cov) return;
+  const chip = cov.parentElement;
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  pressable(cov).addEventListener('click', async e => {
+    e.stopPropagation();                 /* never counts as a vote */
+    if (cov.dataset.done) return;
+    cov.dataset.done = '1';
+    cov.disabled = true;
+    if (reduced) { cov.remove(); chip.classList.add('is-open'); return; }
+    /* 1 · the sheet lifts from the leading edge and curls as it goes,
+           uncovering the party line behind it */
+    cov.classList.add('is-peeling');
+    await wait(T.peel);
+    /* 2 · and is discarded — it leaves the card on an arc rather than
+           sliding or fading. The party line settles on the same tick, so
+           the landing belongs to the reveal and not to the exit. */
+    cov.classList.add('is-gone');
+    chip.classList.add('is-open');
+    await wait(T.peelOut);
+    cov.remove();
+  });
 }
 /* the backs drawn BEHIND the face-down card: everything still in the deck
    after it, capped at what .pile draws. Counted from the dealt sample so

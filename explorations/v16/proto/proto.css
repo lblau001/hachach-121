@@ -80,6 +80,26 @@
      land as its own event before the verdict arrives on top of it — with
      no gap the stamp reads as part of the tap. */
   --t-claim-beat: 400ms;
+  /* A-1 · THE PEEL. Three phases, all CSS.
+     --t-peel      the sheet lifting and curling off the party line. 620ms
+                   is slow enough to read as a physical action and short
+                   enough that a player peeling five cards in a cascade is
+                   not waiting on it; the ease starts fast and settles,
+                   which is how a stuck edge releases.
+     --t-peel-out  the discard. Shorter than the peel and on an
+                   ACCELERATING curve — the peel is something the player
+                   does, the fall is something gravity does.
+     --t-peel-land the party line's settle, run against the discard so the
+                   beat belongs to the reveal rather than to the exit. */
+  --t-peel:      620ms;
+  --t-peel-out:  460ms;
+  --t-peel-land: 240ms;
+  /* the first curve was cubic-bezier(.32,.72,.36,1) and it was wrong for
+     this: front-loaded, so 27% of the duration had already peeled ~70% of
+     the sheet and the lift read as a snap. A peel unsticks slowly, runs
+     steady, then releases — slow in, slow out, nearly linear between. */
+  --e-peel:      cubic-bezier(.55,.08,.35,1);
+  --e-fall:      cubic-bezier(.42,0,.86,.62);
 
   /* §A the deck. A card is turned over, never swapped: --t-card-flip is
      the turn, --t-card-exit the resolved card being swiped off. */
@@ -2282,4 +2302,99 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
 
 @media (prefers-reduced-motion: reduce){
   *{ animation-duration:1ms !important; transition-duration:1ms !important; }
+}
+
+
+/* =====================================================================
+   A-1 · PARTY CONCEALMENT — THE PEELING COVER
+   An object placed OVER the party line, not a missing field: it is the
+   size of the chip beneath it, it carries the sticker sheet's own die-cut
+   edge, and it says what it is covering. A-2's redaction bar was rejected
+   for reading as accusation on a product about the Knesset, and A-3's
+   priced chip for making this the first thing in the game a player pays
+   for.
+   ===================================================================== */
+.pty{ position:relative; }
+.pty__val{ display:inline-block; }
+/* the settle. The line is already visible by the time this runs — the
+   peel uncovered it progressively — so this is a small landing, not an
+   entrance: a 4% overshoot that resolves, nothing that fades in. */
+.pty.is-open .pty__val{
+  animation:pty-land var(--t-peel-land) var(--e-land) both;
+}
+@keyframes pty-land{
+  0%  { transform:scale(1.04) translateY(-1px) }
+  100%{ transform:none }
+}
+
+.pcov{
+  position:absolute; inset:-2px -4px; z-index:3;
+  border:0; padding:0; background:none; cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+/* THE FLAT SHEET. Paper, not a panel: the same cream the stickers are cut
+   from, a hard keyline and a flat 2px extrusion — the construction every
+   other sticker in the app uses. clip-path is what the peel animates, so
+   the sheet is genuinely removed from over the text rather than faded. */
+.pcov__face{
+  position:absolute; inset:0; display:grid; place-items:center;
+  border-radius:4px;
+  background:linear-gradient(160deg,#FBF7EE 0%,#EFE7D4 62%,#E2D9C2 100%);
+  box-shadow:0 0 0 1.4px rgba(0,0,0,.45), 0 2px 0 rgba(0,0,0,.26);
+  clip-path:inset(0 0 0 0);
+}
+.pcov__lab{
+  font-family:var(--font-display); font-weight:900; font-size:11px;
+  line-height:1; color:#6B6350; letter-spacing:.01em;
+}
+/* THE CURL, and this is what gives it thickness. It rides the peeling
+   edge: a narrow strip whose gradient runs light on the outer face to
+   dark on the underside, so the sheet reads as having two sides and a
+   rolled edge rather than as a rectangle being wiped away. It widens as
+   it lifts — a tighter roll opens out — and casts a shadow onto the card
+   below it. Sits at the LEADING edge, which under dir=rtl is the right. */
+.pcov__curl{
+  position:absolute; top:-1px; bottom:-1px; right:0; width:9px;
+  border-radius:2px 5px 5px 2px;
+  transform-origin:right center;
+  background:linear-gradient(to left,
+    #B9AE93 0%, #E8E0CD 34%, #FBF7EE 62%, #D8CFB6 100%);
+  box-shadow:-3px 1px 6px rgba(0,0,0,.42), inset 0 0 0 1px rgba(0,0,0,.18);
+}
+
+/* 1 · THE PEEL. Two animations on one clock: the sheet's clip retreats
+   from the right and the curl rides exactly that edge. They are separate
+   elements because the curl has to rotate and widen while the sheet only
+   clips, and one element cannot do both. */
+.pcov.is-peeling .pcov__face{ animation:peel-face var(--t-peel) var(--e-peel) both; }
+.pcov.is-peeling .pcov__curl{ animation:peel-curl var(--t-peel) var(--e-peel) both; }
+@keyframes peel-face{
+  from{ clip-path:inset(0 0 0 0) }
+  to  { clip-path:inset(0 100% 0 0) }
+}
+@keyframes peel-curl{
+  0%   { right:0;    transform:rotate(0deg)  scaleX(1);   }
+  35%  { transform:rotate(-7deg)  scaleX(1.7); }
+  100% { right:100%; transform:rotate(-14deg) scaleX(2.4); }
+}
+/* the label goes as soon as the sheet starts moving — type sliding under
+   a clip reads as a wipe, which is the one thing this must not look like */
+.pcov.is-peeling .pcov__lab{ animation:peel-lab 180ms linear both; }
+@keyframes peel-lab{ to{ opacity:0 } }
+
+/* 2 · THE DISCARD. It leaves on an arc — left, down and turning — on an
+   accelerating curve, so it reads as dropped rather than slid or faded.
+   The opacity only goes at the very end, so what the eye follows is the
+   object leaving, not the object dissolving. */
+.pcov.is-gone{ animation:peel-drop var(--t-peel-out) var(--e-fall) both; pointer-events:none; }
+@keyframes peel-drop{
+  0%   { transform:translate(0,0) rotate(0deg); opacity:1 }
+  55%  { transform:translate(-14px,16px) rotate(-26deg); opacity:1 }
+  100% { transform:translate(-30px,58px) rotate(-68deg); opacity:0 }
+}
+
+/* NO MOTION, NO COVER. The button is removed outright in wirePeel(), so
+   this only has to make sure nothing animates in the frame before that. */
+@media (prefers-reduced-motion: reduce){
+  .pcov, .pcov__face, .pcov__curl, .pty.is-open .pty__val{ animation:none !important; }
 }
