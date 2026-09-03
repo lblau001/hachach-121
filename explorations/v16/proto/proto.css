@@ -99,6 +99,7 @@
   --t-f5-coin-hold: 500ms;   /* the sticker alone before it flies      */
   --t-f5-coin-out:  300ms;
   --t-f5-in:        300ms;   /* a block arriving                       */
+  --t-f5-bnr-out:   250ms;   /* the emptied banner leaving              */
 
   /* §T · THE TACHLES -> CASCADE TRANSITION. One continuous move made of
      six overlapping steps; the offsets are when each STARTS, measured
@@ -2823,17 +2824,18 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
    ===================================================================== */
 
 .f5{ align-items:stretch; }
-/* THE GROUP IS CENTRED WHILE THE BEAT IS STILL ARRIVING, and anchors to
-   the top the moment the reading lands. During the count the board is
-   genuinely the only thing on screen, and pinning it to the top would
-   put the peak of the beat in the upper quarter with two thirds of the
-   phone empty under it; in the twin the outcome and the plate centre as
-   one group. This is justify-content rather than auto margins because
-   two auto-margined siblings fight — the board centred and shoved the
-   plate to the floor. */
-.f5 .b5fit{ display:flex; flex-direction:column; gap:11px; height:100%;
-  justify-content:center; }
-.f5 .b5fit.is-settled{ justify-content:flex-start; }
+/* THE BOARD IS CENTRED WHILE IT IS ALONE AND THEN HOLDS ITS PLACE.
+   justify-content:center cannot do this — it re-centres the whole group
+   every time a block is added, so the board climbed 441 -> 404 -> 340 ->
+   75 as the outcome, the coins and the reading arrived, which is four
+   moves for an object that is supposed to make one. The offset is
+   measured in JS by f5Place() instead: it is the centring offset while
+   the board is alone, and afterwards the SMALLER of that and whatever
+   the content actually leaves, so the board holds until the content
+   genuinely needs the room and then rises by exactly that much. */
+.f5 .b5fit{ display:flex; flex-direction:column; gap:11px; position:relative;
+  justify-content:flex-start;
+  transition:padding-top var(--t-f5-in) var(--e-settle); }
 
 /* ---- the board -------------------------------------------------------
    A GENERIC plenum display and deliberately not the Knesset's own: no
@@ -2979,8 +2981,15 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
 }
 
 /* ---- the coin moment ---- */
+/* OUT OF FLOW, because it is a MOMENT and not a block. In the column it
+   was 117px of layout that arrived, pushed the board up 13px and then
+   gave it back 800ms later — the board bounced 339 -> 326 -> 339 before
+   its real settle, which is exactly the double move Part 3 forbids. It
+   is absolutely placed under the board instead, so it can be as large as
+   it likes and move nothing. */
 .f5coin{
-  align-self:center; display:flex; flex-direction:column; align-items:center;
+  position:absolute; left:50%; translate:-50% 0; z-index:3;
+  display:flex; flex-direction:column; align-items:center;
   opacity:0; transform:scale(.9) rotate(-3deg);
   transition:opacity var(--t-f5-in) linear, transform var(--t-f5-in) var(--e-land);
 }
@@ -3005,24 +3014,12 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
   padding:9px 18px 10px; text-decoration:underline; text-underline-offset:3px;
 }
 
-/* ---- everything the player skips, behind one tap ---- */
-.f5scrim{
-  position:absolute; inset:0; z-index:8; background:rgba(16,14,11,.62);
-  opacity:0; transition:opacity var(--t-f5-in) linear;
-}
-.f5scrim.is-in{ opacity:1; }
-.f5sheet{
-  position:absolute; z-index:9; inset-inline:0; bottom:0; top:132px;
-  background:#211F1B; border-radius:18px 18px 0 0; padding:10px 16px 16px;
-  box-shadow:0 -6px 0 rgba(0,0,0,.34), inset 0 0 0 1.5px rgba(255,255,255,.10);
-  display:flex; flex-direction:column; gap:10px;
-  transform:translateY(100%); transition:transform var(--t-f5-in) var(--e-settle);
-}
-.f5sheet.is-in{ transform:none; }
-.f5grab{ width:44px; height:5px; border-radius:3px; background:rgba(255,255,255,.28); align-self:center; }
-/* THE SCROLL IS ON THE BODY, not the sheet — the close button has to
-   stay reachable on a long explanation. */
-.f5sheet__body{ flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; gap:10px; }
+/* ---- PART 2 · the disclosure's own surfaces are GONE. .f5scrim,
+   .f5sheet, .f5grab, .f5sheet__body and .f5close went with moreSheet();
+   the content opens on stickerModal() now and that component draws the
+   box, the scrim and the close. Only the things INSIDE it survive —
+   chips, links and the definition line — because those are content and
+   not surface. */
 .f5chips{ display:flex; flex-wrap:wrap; gap:6px; }
 .f5chip{
   border:0; cursor:pointer; padding:4px 11px 5px; border-radius:12px;
@@ -3031,6 +3028,15 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);
 }
 .f5def{ margin:0; font-size:14px; line-height:1.5; color:#E6E2D8; }
+/* inside the white modal the chips and links sit on paper, not on the
+   dark ground they were built for */
+.stmodal__box .f5chips{ margin-top:12px; justify-content:center; }
+.stmodal__box .f5chip{
+  background:rgba(19,19,16,.10); color:var(--ink);
+  box-shadow:inset 0 0 0 1.5px rgba(19,19,16,.28);
+}
+.stmodal__box .f5links{ margin-top:12px; }
+.stmodal__box .f5link{ color:#2B2926; }
 .f5links{ display:flex; flex-direction:column; gap:4px; }
 .f5link{
   font-size:14px; font-weight:700; color:#EFECE4; text-decoration:underline;
@@ -3180,4 +3186,114 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
   background:transparent;
   box-shadow:0 0 0 3px rgba(255,255,255,.34), 0 0 0 var(--ring-chip) rgba(0,0,0,.34);
   transition:background var(--t-tc-letters) linear, box-shadow var(--t-tc-letters) linear;
+}
+
+/* =====================================================================
+   §S-1 AMENDMENTS · parts 1, 3 and 4
+   ===================================================================== */
+
+/* ---- PART 1 · the emptied banner leaves ------------------------------
+   Slide up and fade, 250ms, no pop and no scale. It is not being
+   dismissed — it has handed its content to the board and is vacating. It
+   goes to hidden at the end so it cannot be tabbed to or read out. */
+/* [hidden] IS A UA RULE AND .chyron SETS display:flex, so the class won
+   and the emptied banner stayed on screen for the whole of beat 5 —
+   grey, spent, and exactly the object Part 1 exists to remove. The
+   attribute has to be made to stick. */
+.chyron[hidden]{ display:none !important; }
+.chyron.is-exiting{
+  opacity:0; transform:translateY(-14px);
+  transition:opacity var(--t-f5-bnr-out) linear,
+             transform var(--t-f5-bnr-out) var(--e-in);
+}
+
+/* ---- PART 3 · the finale takes the round's chrome back ---------------
+   The banner's slot, the helper line and .round's top padding are 88px
+   reserved for a card that does not exist on this beat, and they were
+   what put the board 65-70px below centre. They collapse the moment beat
+   5 starts — BEFORE the banner leaves, not with it, because the banner
+   is absolute at stage level with its box already frozen: it does not
+   move when the slot goes, so the board is centred against the layout
+   that will exist after the exit and is never placed twice. */
+.sc-round.is-finale .chyron-slot{ min-height:0; margin:0; }
+.sc-round.is-finale .helper{ display:none; }
+.sc-round.is-finale .round{ padding-top:0; }
+/* .b5 > * is flex:none, which left .b5fit at its content height inside a
+   taller .beat — so `justify-content:center` was centring against the
+   content rather than against the screen. */
+.f5 > .b5fit{ flex:1; height:auto; }
+/* .b5's own clamp(14px,5vh,44px) top padding is the last of the chrome
+   that was pushing the board down — 42px at 844 — and on this beat it
+   pads nothing: the board centres itself and the buttons are pinned to
+   the floor by their own auto margin. Zeroed here rather than on .b5,
+   which the other beat-5 variants still use. */
+.f5{ padding-top:0; }
+
+/* ---- PART 4 · EVERY BLOCK SITS ON THE BOARD --------------------------
+   The rule is that nothing on beat 5 sits directly on the dot-grid
+   ground. The tally had a surface and the resolution, the guess line and
+   the prose did not, so the beat read as one object plus three captions
+   floating under it. They are all the same blackboard now — same fill,
+   same inset hairline, same extrusion, same scanline — at a quieter
+   padding than the tally, because the tally is still the peak.
+   ONE SURFACE, DECLARED ONCE. .f5board keeps its own paddings and its
+   glow; everything else takes the surface and nothing more. */
+.f5board, .f5plate, .f5surf{
+  background:#15130F; border-radius:14px;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.10), 0 4px 0 rgba(0,0,0,.4);
+  position:relative; overflow:hidden; flex:none;
+}
+.f5surf::after, .f5plate::after{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background:repeating-linear-gradient(to bottom,rgba(255,255,255,.045) 0 1px,transparent 1px 3px);
+}
+.f5surf{ padding:11px 14px 12px; }
+.f5surf > *{ position:relative; z-index:1; }
+
+/* the resolution and the guess line are ONE surface, not two: they are
+   both the outcome — what happened, and what the player made of it —
+   and splitting them put a hairline between a sentence and its own
+   footnote. */
+.f5outcome{ display:flex; flex-direction:column; gap:7px; }
+.f5outcome .f5res, .f5outcome .f5shape{ margin:0; }
+.f5read{ padding:12px 14px 13px; }
+.f5read .f5more{ margin-top:11px; }
+
+/* ---- PART 4 · THE GLOW ----------------------------------------------
+   WARM YELLOW-CREAM, and it is neither of the two colours it could have
+   been mistaken for. Not --primary #FFD60A: that is the CTA and the coin,
+   and a saturated yellow halo on a non-tappable board would read as an
+   invitation to press it. Not cyan: that is the avatar token's identity,
+   the token LANDS on this board, and a cyan board would swallow the one
+   object whose whole job is to stay legible as the player.
+   #F5E3AA is warm, desaturated against the CTA, and carries no meaning
+   anywhere else in the app. It is a halo only — no ring, no hard rule —
+   so it can never read as an edge. */
+:root{ --f5-glow:245,227,170; }
+@keyframes f5-glow{
+  0%,100%{ box-shadow:inset 0 0 0 2px rgba(255,255,255,.10), 0 4px 0 rgba(0,0,0,.4),
+                      0 0 14px 1px rgba(var(--f5-glow),.26),
+                      0 0 34px 6px rgba(var(--f5-glow),.11); }
+  50%    { box-shadow:inset 0 0 0 2px rgba(255,255,255,.16), 0 4px 0 rgba(0,0,0,.4),
+                      0 0 22px 3px rgba(var(--f5-glow),.46),
+                      0 0 52px 12px rgba(var(--f5-glow),.20); }
+}
+/* it breathes while the board is the beat — through the count, the hold
+   and the landing — and settles the moment there is somewhere else for
+   the eye to go. */
+.f5board{ animation:f5-glow 2200ms ease-in-out infinite; }
+.f5board.is-glow-calm{
+  animation:none;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.10), 0 4px 0 rgba(0,0,0,.4),
+             0 0 12px 1px rgba(var(--f5-glow),.20),
+             0 0 28px 5px rgba(var(--f5-glow),.09);
+  transition:box-shadow var(--t-f5-in) linear;
+}
+
+@media (prefers-reduced-motion: reduce){
+  .f5board{ animation:none;
+    box-shadow:inset 0 0 0 2px rgba(255,255,255,.10), 0 4px 0 rgba(0,0,0,.4),
+               0 0 16px 2px rgba(var(--f5-glow),.30),
+               0 0 38px 7px rgba(var(--f5-glow),.13); }
+  .chyron.is-exiting{ transition:none; }
 }

@@ -81,6 +81,7 @@ const T = {
   f5CoinHold:ms('--t-f5-coin-hold'),
   f5CoinOut: ms('--t-f5-coin-out'),
   f5In:      ms('--t-f5-in'),
+  f5BnrOut:  ms('--t-f5-bnr-out'),
   claimHold: ms('--t-claim-hold'),
   claimBeat: ms('--t-claim-beat'),
   seatFill:  ms('--t-seat-fill'),
@@ -1559,7 +1560,12 @@ function stickerModal(o) {
       (o.art ? '<img class="stmodal__art" src="' + o.art + '" alt="">' : '') +
       '<h2 class="stmodal__title">' + esc(o.title || '') + '</h2>' +
       (o.meta ? '<p class="stmodal__meta">' + esc(o.meta) + '</p>' : '') +
-      '<p class="stmodal__body">' + esc(o.body || '') + '</p>' +
+      (o.body ? '<p class="stmodal__body">' + esc(o.body) + '</p>' : '') +
+      /* the ONE field this component grew, so beat 5's disclosure could
+         reuse it instead of getting a second modal shape of its own. It
+         is markup rather than text — chips and links, escaped by their
+         own builder. Callers that pass nothing are unaffected. */
+      (o.extra || '') +
     '</div>';
   let gone = false;
   const close = () => {
@@ -2400,6 +2406,20 @@ function explainSplit(text) {
 async function beat5() {
   S.beat = 5;
   const r = $('#round'); r.innerHTML = '';
+  /* PART 3 · THE FINALE TAKES THE SPACE THE ROUND'S CHROME WAS HOLDING.
+     The banner's slot, the helper line and .round's own top padding are
+     all reserved for a card that no longer exists on this beat — 88px of
+     it — and they are what was pushing the board 65-70px below the
+     centre of the screen.
+     THEY COLLAPSE AT BEAT-5 START, NOT AT THE BANNER'S EXIT. The banner
+     is absolutely positioned at stage level and its box is frozen here
+     before the slot goes, so it does not move when the slot collapses
+     and the board is centred against the POST-EXIT layout from the first
+     frame. That is what stops the board jumping twice: it is placed once,
+     and the banner leaves out of a layer that owes it nothing. */
+  placeChyron();
+  $('#scRound').classList.add('is-finale');
+
   const outer = el('div', 'beat b5 f5');
   const b = el('div', 'b5fit');
   outer.appendChild(b);
@@ -2407,6 +2427,7 @@ async function beat5() {
   repin();
 
   const tally  = issue._tally || null;
+  let outcome  = null;                 /* the shared outcome surface */
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const step = ms => wait(reduced ? 0 : ms);
 
@@ -2447,7 +2468,7 @@ async function beat5() {
         (issue.vote_result ? esc(issue.vote_result)
                            : ph('[טקסט — תמר: תוצאות ההצבעה]')) + '</p>';
   b.appendChild(board);
-  requestAnimationFrame(() => { board.classList.add('is-in'); fitBeat(); });
+  requestAnimationFrame(() => { board.classList.add('is-in'); f5Place(b, board); fitBeat(); });
 
   if (tally) await runCount(board, tally);
   else await step(T.f5Prose);
@@ -2469,7 +2490,7 @@ async function beat5() {
       '<span class="f5plate__t">' + esc('הקול שלכם נרשם:') +        /* TAMAR */
         '<b>' + esc(VOTE_PIN[S.position] || ph('[—]')) + '</b></span>';
     b.appendChild(plate);
-    requestAnimationFrame(() => { plate.classList.add('is-in'); fitBeat(); });
+    requestAnimationFrame(() => { plate.classList.add('is-in'); f5Place(b, board); fitBeat(); });
   }
   await step(T.f5Gap);
   await flyToken($('#f5slot', b));
@@ -2481,13 +2502,20 @@ async function beat5() {
     const mine = { for: tally.for, against: tally.against };
     if (S.position === 'for') mine.for++;
     if (S.position === 'against') mine.against++;
-    const res = el('p', 'f5res b5stage');
+    /* PART 4 · the outcome gets a BOARD, like everything else on this
+       beat. The resolution and the guess line share ONE surface rather
+       than taking one each: they are both the outcome — what happened,
+       and what the player made of it — and a hairline between a sentence
+       and its own footnote is a division that means nothing. */
+    outcome = el('div', 'f5outcome f5surf b5stage');
+    const res = el('p', 'f5res');
     res.innerHTML =
       esc('ההצעה עברה ') + N(tally.for + '—' + tally.against) + '.' +   /* TAMAR */
       '<span class="f5res__you">' + esc('עם הקול שלכם: ') +             /* TAMAR */
         '<b>' + N(mine.for + '—' + mine.against) + '</b></span>';
-    b.appendChild(res);
-    requestAnimationFrame(() => { res.classList.add('is-in'); fitBeat(); });
+    outcome.appendChild(res);
+    b.appendChild(outcome);
+    requestAnimationFrame(() => { outcome.classList.add('is-in'); f5Place(b, board); fitBeat(); });
   }
 
   /* the record is written before the coins, because both finishing
@@ -2513,7 +2541,7 @@ async function beat5() {
      the buttons.
      ================================================================= */
   board.classList.add('is-strip');
-  b.classList.add('is-settled');     /* the group stops centring and anchors */
+  f5Place(b, board);
   fitBeat();
 
   /* §1.8 the SHAPE of the guess. Skipped without a cascade — there is
@@ -2521,11 +2549,18 @@ async function beat5() {
   if (S.dealt.length && !S.inv) {
     const n = S.dealt.length;
     const hits = S.dealt.filter(d => S.guesses[d.id] === d.vote).length;
-    const shape = el('p', 'f5shape b5stage');
+    const shape = el('p', 'f5shape');
     shape.innerHTML = esc('ניחשתם נכון ב-') + '<b>' + N(hits) + '</b>' +
       esc(' מתוך ') + '<b>' + N(n) + '</b>';                          /* TAMAR */
-    b.appendChild(shape);
-    requestAnimationFrame(() => { shape.classList.add('is-in'); fitBeat(); });
+    /* it joins the outcome surface if there is one — a round with a
+       tally — and takes a surface of its own if there is not, so it can
+       never end up the one block sitting on the bare ground. */
+    if (outcome) { outcome.appendChild(shape); f5Place(b, board); fitBeat(); }
+    else {
+      const w = el('div', 'f5outcome f5surf b5stage');
+      w.appendChild(shape); b.appendChild(w);
+      requestAnimationFrame(() => { w.classList.add('is-in'); f5Place(b, board); fitBeat(); });
+    }
   }
 
   /* THE FIRST SENTENCE ONLY, and the rest goes behind one tap. That is
@@ -2539,16 +2574,16 @@ async function beat5() {
   const hasMore = !!(ex.rest || terms.length || links.length);
 
   if (ex.first || hasMore) {
-    const read = el('div', 'f5read b5stage');
+    const read = el('div', 'f5read f5surf b5stage');
     read.innerHTML =
       (ex.first ? '<p class="f5exp">' + markGlossary(ex.first) + '</p>' : '') +
       (hasMore ? '<button type="button" class="f5more">' +
                    esc('עוד על ההצבעה ›') + '</button>' : '');       /* TAMAR */
     b.appendChild(read);
-    requestAnimationFrame(() => { read.classList.add('is-in'); fitBeat(); });
+    requestAnimationFrame(() => { read.classList.add('is-in'); f5Place(b, board); fitBeat(); });
     const more = $('.f5more', read);
     if (more) pressable(more).addEventListener('click',
-      () => moreSheet(outer, ex.rest, terms, links));
+      () => moreModal(ex.rest, terms, links));
   }
 
   /* ---- the way out. Unchanged: if the topic has another unplayed
@@ -2569,7 +2604,73 @@ async function beat5() {
     acts.appendChild(go);
   }
   b.appendChild(acts);
-  requestAnimationFrame(() => { acts.classList.add('is-in'); fitBeat(); });
+  requestAnimationFrame(() => {
+    acts.classList.add('is-in');
+    f5Place(b, board);
+    /* PART 4 · the pulse has done its job. It ran while the board was the
+       only thing on screen and while the flight landed on it; once there
+       is somewhere else to go it settles to a static, quieter glow. */
+    board.classList.add('is-glow-calm');
+    fitBeat();
+  });
+}
+
+/* PART 3 · WHERE THE BOARD SITS, and it is one number recomputed rather
+   than a layout rule that keeps changing its mind.
+     alone  -> the centring offset, so the board sits in the middle of the
+               space between the HUD and the bottom edge
+     after  -> min(that offset, the room the content actually leaves)
+   So the board HOLDS its centred position while there is room for
+   everything under it, and rises only by the amount the content is short
+   — never further, and never twice. When even a zero offset is not
+   enough the beat is genuinely taller than the phone, and fitBeat()'s
+   scale is what catches it; f5Place() returns the numbers so that case
+   can be measured rather than guessed at. */
+function f5Place(b, board) {
+  const par = b.parentElement; if (!par || !board) return null;
+  const pcs = getComputedStyle(par);
+  const avail = par.clientHeight
+    - (parseFloat(pcs.paddingTop) || 0) - (parseFloat(pcs.paddingBottom) || 0);
+  /* MEASURED THE WAY fitBeat() MEASURES, WITH THE TRANSITION SUSPENDED.
+     Two traps here and both were live:
+     1  .b5fit is flex:1, so its scrollHeight is the container height
+        whatever is in it. flex:none for one read gives the content's own
+        height on the metric fitBeat() will use a frame later.
+     2  scrollHeight INCLUDES padding, and padding-top is transitioned —
+        so zeroing it and reading immediately measures the padding still
+        easing out of the way. It read 549px for 227px of content, which
+        made `room` too small and moved the board on every single block.
+     The transition is suspended for the read and the old value put back
+     before it is restored, so the one move that does happen still eases
+     from where the board actually was. */
+  const pad0 = parseFloat(b.style.paddingTop) || 0;
+  b.style.transition = 'none';
+  b.style.paddingTop = '0px';
+  b.style.flex = 'none';
+  const content = b.scrollHeight;
+  b.style.flex = '';
+  b.style.paddingTop = pad0 + 'px';
+  void b.offsetHeight;                 /* commit the restore before easing */
+  b.style.transition = '';
+
+  const boardH  = board.offsetHeight;
+  const centred = Math.max(0, Math.round((avail - boardH) / 2));
+  const room    = Math.max(0, avail - content);
+  const pad     = Math.min(centred, room);
+  /* THE FIRST PLACEMENT IS NOT A MOVE. Easing from 0 made the board
+     drift 425 -> 440 over the first 90ms of the beat, which is a fourth
+     animation on a screen whose whole rule is one move. It is simply
+     where the board starts. */
+  if (b.dataset.placed !== '1') {
+    b.dataset.placed = '1';
+    b.style.transition = 'none';
+    b.style.paddingTop = pad + 'px';
+    void b.offsetHeight;
+    b.style.transition = '';
+  } else {
+    b.style.paddingTop = pad + 'px';
+  }
+  return { avail, content, boardH, centred, room, pad, over: Math.max(0, content - avail) };
 }
 
 /* ---- the count. Near-linear to ~2.4s, with EVERYTHING STOPPING for
@@ -2634,9 +2735,23 @@ function runCount(board, tally) {
 function flyToken(slot) {
   const src = $('.chyron-av');
   if (!slot) return Promise.resolve();
+  /* PART 1 · THE BANNER LEAVES WHEN THE AVATAR LANDS, not when it takes
+     off. The order is the whole point: the banner HANDS ITS CONTENT to
+     the board, and only then does the empty shell go. Exiting at flight
+     start would make the token look like debris from a banner that was
+     already leaving; exiting on landing makes the landing the cause.
+     It used to stay behind as an empty grey pill for the rest of the
+     beat, which is the bug this fixes. */
   const land = () => {
     slot.innerHTML = '<span class="f5av">' + AV3 + '</span>';
-    const bnr = $('.chyron .bnr'); if (bnr) bnr.classList.add('is-spent');
+    const chy = $('#chyron');
+    const bnr = $('.chyron .bnr');
+    if (bnr) bnr.classList.add('is-spent');
+    if (!chy) return;
+    /* slide up and fade — no pop, no scale. The shell is not being
+       dismissed, it is being vacated. */
+    chy.classList.add('is-exiting');
+    setTimeout(() => { chy.hidden = true; chy.classList.remove('is-exiting'); }, T.f5BnrOut);
   };
   if (!src || matchMedia('(prefers-reduced-motion: reduce)').matches) { land(); return Promise.resolve(); }
   const a = src.getBoundingClientRect(), z = slot.getBoundingClientRect();
@@ -2685,60 +2800,64 @@ async function coinMoment(b, topicsWas) {
   const total = (S.coins || 0) + now;
 
   const coin = el('div', 'f5coin');
+  /* placed under the board rather than after it — it is out of flow now,
+     so it needs to be told where the board's bottom is. */
+  const bd = $('.f5board', b);
+  if (bd) coin.style.top = (bd.offsetTop + bd.offsetHeight + 26) + 'px';
   coin.innerHTML =
     '<span class="f5coin__n">+' + N(now) + '</span>' +
     '<p class="f5coin__sub">' + parts.join(' + ') + '</p>' +
     '<p class="f5coin__tot">' + esc('הסוגיה הזו: ') + N(total) + ' ●</p>'; /* TAMAR */
   b.appendChild(coin);
-  requestAnimationFrame(() => { coin.classList.add('is-in'); fitBeat(); });
+  requestAnimationFrame(() => { coin.classList.add('is-in'); });
   await wait(T.f5CoinHold);
   award(now, coin);              /* the flight leaves FROM the sticker */
   coin.classList.add('is-out');
   await wait(T.f5CoinOut);
   coin.remove();
-  fitBeat();
 }
 
-/* ---- everything the player skips, behind one tap. The tally strip and
-   the resolution line stay visible above the sheet — the disclosure
-   covers the prose, not the outcome. */
-function moreSheet(outer, rest, terms, links) {
-  if ($('.f5sheet', outer)) return;
-  const scrim = el('div', 'f5scrim');
-  const sheet = el('div', 'f5sheet');
-  sheet.innerHTML =
-    '<span class="f5grab" aria-hidden="true"></span>' +
-    '<div class="f5sheet__body">' +
-      (rest ? '<p class="f5exp">' + markGlossary(rest) + '</p>' : '') +
-      (terms.length ? '<div class="f5chips">' + terms.map(x =>
-        '<button type="button" class="f5chip" data-term="' + esc(x) + '">' +
-          esc(x) + '</button>').join('') + '</div>' : '') +
-      (links.length ? '<div class="f5links">' + links.map(l => {
-        const icon = /^\s*סרטון/.test(l.label || '') ? '▶' : '🔗';
-        return l.url
-          ? '<a class="f5link" href="' + esc(l.url) + '" target="_blank" rel="noopener">' +
-              '<i aria-hidden="true">' + icon + '</i>' + esc(l.label) + '</a>'
-          : '<span class="f5link is-missing" data-missing-url>' +
-              '<i aria-hidden="true">' + icon + '</i>' + esc(l.label) + '</span>';
-      }).join('') + '</div>' : '') +
-    '</div>' +
-    '<button type="button" class="f5close">' + esc('סגור') + '</button>';   /* TAMAR */
-  outer.append(scrim, sheet);
-  requestAnimationFrame(() => { scrim.classList.add('is-in'); sheet.classList.add('is-in'); });
-  const shut = () => { scrim.remove(); sheet.remove(); };
-  scrim.addEventListener('click', shut);
-  pressable($('.f5close', sheet)).addEventListener('click', shut);
-  sheet.addEventListener('click', e => {
-    const c = e.target.closest('.f5chip'); if (!c) return;
-    const open = $('.f5def', sheet);
-    const same = open && open.dataset.term === c.dataset.term;
-    if (open) open.remove();
-    if (same) return;
-    const d = el('p', 'f5def', '<b>' + esc(c.dataset.term) + '</b> — ' +
-      esc(DATA.glossary[c.dataset.term] || ''));
-    d.dataset.term = c.dataset.term;
-    c.parentElement.after(d);
+/* ---- PART 2 · everything the player skips, behind one tap, IN THE
+   MODAL THE APP ALREADY HAS. This was a dark bottom sheet of its own
+   making — a second modal shape, with its own scrim, its own radius and
+   its own close button, for content the app already had a surface for.
+   It is stickerModal() now: the white centred die-cut dialog that
+   lawModal() opens for the bill and glossModal() opens for a glossary
+   term. Same box, same ✕, same three ways out (the ✕, the ground and
+   Escape), same in and out timing. Nothing here draws a surface.
+
+   stickerModal() took only plain strings, so it grew ONE optional field
+   — `extra`, appended inside the same box under the body — rather than a
+   variant of itself. lawModal() and glossModal() pass no `extra` and
+   render byte-identically to before. */
+function moreModal(rest, terms, links) {
+  const extra =
+    (terms.length ? '<div class="f5chips">' + terms.map(x =>
+      '<button type="button" class="f5chip" data-term="' + esc(x) + '">' +
+        esc(x) + '</button>').join('') + '</div>' : '') +
+    (links.length ? '<div class="f5links">' + links.map(l => {
+      const icon = /^\s*סרטון/.test(l.label || '') ? '▶' : '🔗';
+      return l.url
+        ? '<a class="f5link" href="' + esc(l.url) + '" target="_blank" rel="noopener">' +
+            '<i aria-hidden="true">' + icon + '</i>' + esc(l.label) + '</a>'
+        : '<span class="f5link is-missing" data-missing-url>' +
+            '<i aria-hidden="true">' + icon + '</i>' + esc(l.label) + '</span>';
+    }).join('') + '</div>' : '');
+
+  const m = stickerModal({
+    title: issue.title || issue.bill_title || '',
+    body:  rest || '',
+    extra: extra
   });
+  /* a chip opens its definition on the SAME component, which is exactly
+     what glossModal() already is — one surface opened twice, rather than
+     a definition panel nested inside a dialog. */
+  m.addEventListener('click', e => {
+    const c = e.target.closest('.f5chip'); if (!c) return;
+    e.stopPropagation();
+    glossModal(c.dataset.term);
+  });
+  return m;
 }
 
 function assertProgress(iss, segsWas, topicsWas) {
@@ -3518,6 +3637,9 @@ function openTopic(topicId) {
    and the map is the thing you come back to with it. */
 function startRound(issueId) {
   applyDev();
+  const sr = $('#scRound'); if (sr) sr.classList.remove('is-finale');
+  const chy0 = $('#chyron');
+  if (chy0) { chy0.hidden = false; chy0.classList.remove('is-exiting'); }
   helper('');
   /* the chyron is emptied, never removed: it holds its box on beat 1 so
      the card is the same size before and after the answer is given */
