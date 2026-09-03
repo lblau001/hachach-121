@@ -82,6 +82,21 @@
   --t-load-fill:  1600ms;
   --t-load-hold:   180ms;
 
+  /* §1b · THE LOADING SCREEN'S EXIT. The chair rushes the camera and the
+     destination is already underneath when it dissolves.
+       0   -> 150   the bar fades
+       150 -> 350   the chair holds alone
+       350 -> 770   the chair launches, 1x -> 10x, ease-IN
+       602 -> 770   ... of which the last 40% is the chair fading out
+       350 -> 710   the destination fades up from scale 1.04
+     770ms bar-full to settled. Runs once per load. */
+  --t-lx-bar:       150ms;
+  --t-lx-hold:      200ms;
+  --t-lx-zoom:      420ms;
+  --t-lx-fade-at:   252ms;   /* 60% of the zoom */
+  --t-lx-fade:      168ms;   /* the remaining 40% */
+  --t-lx-dest:      360ms;
+
   /* §S-1 · THE FINALE'S CHRONOLOGY. The whole beat is these eight
      numbers, and the order they compose is the design:
        r1  0.0 count -> 2.4 settled -> 2.8 flight -> 3.5 landed
@@ -3315,4 +3330,81 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
 .f5 .b5fit.is-recentring .f5acts{ margin-top:0; }
 @media (prefers-reduced-motion: reduce){
   .f5 .b5fit.is-recentring{ transition:none; }
+}
+
+/* =====================================================================
+   §1b · THE LOADING SCREEN'S EXIT — the chair flies into the player
+   Zooming into the chair IS sitting down in it. The 121st seat is the
+   game's title and this beat is the only place it is enacted rather
+   than stated.
+   ===================================================================== */
+
+/* THE STRUCTURAL FIX, and it is the same class of blocker the chyron
+   was. Two things stopped the destination co-existing under the loading
+   screen, not one:
+     1  showScreen() sets .hidden on every screen but the named one, so
+        rendering the map destroys the chair mid-flight.
+     2  even unhidden they could not overlap — .screen is flex:1 inside
+        .stage's flex COLUMN, so two visible screens stack vertically.
+   The intro is taken OUT OF FLOW for the whole loading beat instead.
+   showScreen()'s contract is untouched: it still hides the intro when
+   the map is shown, and the exit simply un-hides it again for the few
+   hundred ms it is still flying. Nothing is faked and no screenshot is
+   substituted for the live screen — the map underneath is the real map,
+   already rendered and already animating.
+   It goes absolute BEFORE the chair is measured, so no coordinate the
+   loading beat computes is invalidated by the switch. */
+.sc-intro.is-lifted{
+  position:absolute; inset:0; z-index:40;
+  padding:calc(10px + env(safe-area-inset-top))
+          calc(16px + env(safe-area-inset-right))
+          calc(12px + env(safe-area-inset-bottom))
+          calc(16px + env(safe-area-inset-left));
+}
+/* the plaza gradient is .sc-intro::before and would otherwise paint an
+   opaque band over the map for the whole zoom */
+.sc-intro.is-lifted.is-loading::before{ opacity:0; }
+
+/* the bar goes first, on its own */
+.i-load.is-out{
+  opacity:0;
+  transition:opacity var(--t-lx-bar) linear;
+}
+
+/* THE LAUNCH. Transform and opacity only — no width, height, margin or
+   layout property is touched, so the whole thing is compositor work and
+   holds frame rate on a cheap Android.
+   EASE-IN, and that is the point of it: a symmetrical ease reads as the
+   chair politely growing, and this has to read as the chair rushing the
+   camera. It accelerates all the way out.
+   THE FADE IS THE HANDOFF, not a cut. It starts at 60% of the zoom, by
+   which time the chair is ~6x and the screen is a field of its white
+   die-cut border; cutting at max scale instead would be a hard frame. */
+/* the parent is in the selector because it has to be: the loading beat's
+   own rule is `.sc-intro.is-loading .i-chair` at (0,3,1) and this was
+   (0,2,1), so it lost — the chair got no opacity transition at all and
+   cut to nothing on the first frame of the zoom instead of fading over
+   the last 40% of it. */
+.sc-intro.is-loading .i-chair.is-launching{
+  transition:transform var(--t-lx-zoom) cubic-bezier(.55,0,1,.45),
+             opacity var(--t-lx-fade) linear var(--t-lx-fade-at);
+  opacity:0;
+}
+
+/* the destination, entering underneath while the chair is still coming.
+   It overrides .sc-map's own 260ms/1.02 arrival — the same idea, given
+   longer and a little more travel so it is legible through the zoom. */
+.stage.is-launch .sc-map.is-arriving{
+  animation:lx-dest var(--t-lx-dest) var(--e-settle) both;
+}
+@keyframes lx-dest{ from{ opacity:0; transform:scale(1.04) } }
+
+@media (prefers-reduced-motion: reduce){
+  /* no zoom at all — a plain crossfade. A 10x accelerating object filling
+     the viewport is exactly what this setting is asked to suppress. */
+  .sc-intro.is-loading .i-chair.is-launching{
+    transition:opacity var(--t-lx-dest) linear;
+    transform:none !important;
+  }
+  .stage.is-launch .sc-map.is-arriving{ animation:none; opacity:1; }
 }

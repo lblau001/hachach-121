@@ -66,6 +66,10 @@ const T = {
   loadBarIn: ms('--t-load-barin'),
   loadFill:  ms('--t-load-fill'),
   loadHold:  ms('--t-load-hold'),
+  lxBar:     ms('--t-lx-bar'),
+  lxHold:    ms('--t-lx-hold'),
+  lxZoom:    ms('--t-lx-zoom'),
+  lxDest:    ms('--t-lx-dest'),
   tcLetters:  ms('--t-tc-letters'),
   tcAvAt:     ms('--t-tc-av-at'),
   tcResolveAt:ms('--t-tc-resolve-at'),
@@ -3379,6 +3383,15 @@ function loadingBeat(done) {
 
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return done();
 
+  /* OUT OF FLOW BEFORE ANYTHING IS MEASURED. The exit needs the map to
+     render underneath this screen, and .screen is flex:1 in a flex
+     column — two visible screens would stack vertically rather than
+     overlap. Lifting it here rather than at the exit means every
+     coordinate computed below is already in the final coordinate
+     system, so nothing shifts when the destination arrives. */
+  sc.classList.add('is-lifted');
+  void sc.offsetWidth;
+
   /* THE GROWTH IS A MEASURED TRANSFORM, NOT A CLASS WITH A HARD-CODED
      SIZE. The chair's resting height is a vh clamp, so its start size
      differs on every device; the target is expressed as a share of the
@@ -3433,8 +3446,76 @@ function loadingBeat(done) {
     bar.setAttribute('aria-valuenow', '100');
     await wait(T.loadFill + T.loadHold);
 
-    done();
+    await loadingExit(sc, chair, bar, dx, dy, k, done);
   })();
+}
+
+/* ---- THE EXIT · the chair flies into the player ---------------------
+   Zooming into the chair IS sitting down in it — the 121st seat is the
+   game's title and this is the one beat that enacts it rather than
+   saying it.
+     0   -> 150   the bar fades out
+     150 -> 350   the chair holds alone, one beat
+     350 -> 770   the chair launches at the camera, 1x -> 10x, ease-in
+     602 -> 770   ... the last 40%, over which it fades to nothing
+     350 -> 710   the destination fades up underneath from scale 1.04
+   770ms bar-full to settled, once per load.
+
+   THE DESTINATION IS THE REAL SCREEN, rendered and animating, not an
+   image of one. done() renders it and showScreen() hides this one on the
+   way past; the intro is simply un-hidden again for the few hundred ms
+   it is still in the air. */
+async function loadingExit(sc, chair, bar, dx, dy, k, done) {
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const finish = () => {
+    sc.hidden = true;
+    sc.classList.remove('is-lifted', 'is-loading');
+    chair.classList.remove('is-launching');
+    chair.style.transition = ''; chair.style.transform = ''; chair.style.opacity = '';
+    /* THE MAP'S ARRIVAL CLASS COMES OFF FIRST. Dropping .is-launch swaps
+       the destination's animation from lx-dest back to .sc-map's own
+       map-in, and a changed animation-name RESTARTS it — the map faded
+       up a second time, 50ms after it had finished arriving. Clearing
+       .is-arriving leaves it at its settled state with nothing left to
+       re-trigger. */
+    const mp = $('#scMap'); if (mp) mp.classList.remove('is-arriving');
+    $('#stage').classList.remove('is-launch');
+    if (bar.isConnected) bar.remove();
+  };
+
+  /* 1 · the bar leaves first, alone */
+  bar.classList.add('is-out');
+  await wait(T.lxBar);
+  bar.remove();
+
+  /* 2 · and the chair holds for a beat, the only thing on screen */
+  await wait(T.lxHold);
+
+  /* 3 · the destination is brought up UNDERNEATH before the chair moves,
+         so there is never a frame of empty dot-grid between the two.
+         done() -> goMap() -> showScreen('map'), which hides this screen;
+         it is put straight back, still absolute and still on top. */
+  $('#stage').classList.add('is-launch');
+  done();
+  sc.hidden = false;
+
+  /* 4 · the launch. One frame later so the destination is painting
+         before the chair starts, and so the class and the transform
+         cannot land on the same tick — .i-chair has no launch transition
+         until .is-launching is applied. */
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  chair.classList.add('is-launching');
+  if (!reduced) {
+    chair.style.transform = 'translate(' + dx.toFixed(1) + 'px,' + dy.toFixed(1) +
+                            'px) scale(' + (k * 10).toFixed(4) + ')';
+  }
+  /* +60ms of tail. finish() hides the screen, and the two frames spent
+     waiting for the destination to paint before the launch mean the
+     zoom's clock starts after this function's does — cleaning up on the
+     nominal duration clipped the last ~36ms of the chair's fade, which
+     is the hard cut at max scale the whole handoff exists to avoid. */
+  await wait((reduced ? T.lxDest : T.lxZoom) + 60);
+  finish();
 }
 
 /* =====================================================================
