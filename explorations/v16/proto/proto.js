@@ -345,6 +345,133 @@ function initials(name) {
 }
 
 /* ===================== state ======================================== */
+/* ===================== §V21-1 · THE INVERTED ROUND ==================
+   The cascade run backwards: instead of a named MK whose vote is guessed,
+   ONE MK whose face is withheld and whose vote is stated. The player
+   names them. It is a different question about the same fact.
+
+   ONE ISSUE, AND a2 IS NOT AN ARBITRARY PICK. Only 6 of the 11 active
+   issues carry MK vote data at all, and accountability is the ONLY topic
+   holding two of them (a1 and a2). So a2 is the single place in the game
+   where the player is guaranteed to have just played a normal cascade in
+   the SAME TOPIC, arriving here by לסוגיה הבאה — pattern first, break
+   second. Converting any other issue would delete its topic's only
+   cascade and the break would have nothing to break from.
+   DO NOT SPREAD IT. The normal cascade is already only in 6 of 11. */
+const INVERTED_ISSUE = 'a2';
+
+/* the four held steps. Each is held INV_STEP_MS, so step i occupies
+   [i*1400, (i+1)*1400) and the last lands its full hold at 5600ms — four
+   steps, 1.4s apart, settled at 5.6s.
+   IT NEVER REACHES ZERO while the question is open. 1px is a softened
+   photograph of a real politician, which is fine; the sequence has no
+   step that deforms a face, because every step is a Gaussian blur and a
+   Gaussian blur cannot deform — it only removes. That is the whole
+   reason the mechanic is blur and not pixelation, mosaic or warp. */
+const INV_BLUR    = [13, 7, 3, 1];
+const INV_STEP_MS = 1400;
+const INV_SETTLE  = INV_BLUR.length * INV_STEP_MS;          /* 5600 */
+
+/* the decaying bonus over the existing floor. NEVER RENDERED BEFORE THE
+   ANSWER — see the note on the reward sticker in armInverted(). The
+   trade-off is legible from the blur itself: sharper face, easier
+   question, less coin. Index is the step the player answered on. */
+const INV_BONUS = [25, 15, 10, 5, 0];
+
+/* THE DEALING RULE, and it had to be written rather than assumed. It is
+   TWO constraints, and the second one only became visible once the first
+   was built and the deal was read back off the running page.
+
+   1 · THE STATED VOTE MUST NOT IDENTIFY THE ANSWER.
+   a2 is 3 for / 3 against, so an unconstrained trio hands the player
+   one, two or three names all holding the stated vote at random. The
+   question is "who is this" and its answer is the FACE — there is never
+   more than one correct name — but how far the stated vote narrows the
+   field is a design decision, not an accident:
+     one of three holds it  -> the clue is SUFFICIENT. a2's split IS the
+       coalition/opposition line, so anyone who can read that answers
+       without ever looking at the face and the blur is decoration again
+       — which is the flaw that got the earlier options rejected.
+     two of three hold it   -> the clue narrows three to two and the FACE
+       decides. Knowledge helps; recognition finishes.
+   Shipping two.
+
+   2 · THE FREE PARTY HINT MUST NOT IDENTIFY THE ANSWER EITHER, and this
+   is the one that nearly shipped broken. In a2 all three `for` MKs are
+   הליכוד and each of the three `against` MKs is a party of one. So if
+   the pictured MK is drawn from the opposition side, "the party is יש
+   עתיד" IS the answer, spelled out, for free, in one tap. A hint that
+   resolves the question is a solve button, and a free solve button is
+   the round not existing.
+   So the pictured MK is drawn only from those who have same-party
+   company in the pool, and EXACTLY ONE distractor shares their party.
+   The hint then always narrows three to two and never to one.
+
+   WHAT FALLS OUT OF THIS IN a2, and it is a fact about the data rather
+   than about the rule: party and vote are perfectly correlated on the
+   coalition side, so the pair the vote clue leaves and the pair the
+   party hint leaves are THE SAME PAIR. The hint is redundant with the
+   stated vote for a player who reasons from the vote, and still useful
+   to one who does not. It is never misleading and never sufficient,
+   which is the bar. On an issue whose parties cross the vote line the
+   two clues would narrow to different pairs and intersect on the
+   answer — the rule is written for that case too. */
+const INV_SAME_VOTE_DISTRACTORS = 1;
+
+/* seeded so a screenshot is reproducible and a playtest is repeatable */
+const INV_SEED = (n => n > 0 ? n : 7)(parseInt(Q.get('invseed'), 10));
+
+function invPlan(iss) {
+  /* §V21 CONSTRAINT · THE ROUND MAY ONLY DEAL MKs THAT HAVE AN
+     ILLUSTRATION. A card whose whole content is a face cannot fall back
+     to an initials badge — the badge would BE the answer, spelled out.
+     So the pool is filtered by the manifest, not by data.js, and the
+     shortfall is reported rather than papered over. This binds on every
+     cascade still to be written. */
+  const pool  = iss.politicians.filter(p => M.politicians && M.politicians[p.id]);
+  const noArt = iss.politicians.filter(p => !(M.politicians && M.politicians[p.id]));
+  const party = p => DATA.politicians[p.id].party;
+  if (pool.length < 3) return { fail:'pool', pool, noArt };
+
+  /* constraint 2: the pictured MK needs same-party company to hide
+     behind, and someone outside the party to be told apart from */
+  const cands = pool.filter(p =>
+    pool.some(q => q.id !== p.id && party(q) === party(p)) &&
+    pool.some(q => party(q) !== party(p)));
+  if (!cands.length) return { fail:'party', pool, noArt };
+
+  /* THE SEED IS SCRAMBLED AND THE FIRST DRAWS ARE BURNED. lcg()'s first
+     output is x*1664525 + 1013904223, and for any small seed the
+     increment dominates the product — seeds 1, 7, 13, 42 and 99 all
+     returned ~0.236 on the first call and therefore all picked the same
+     pictured MK. Multiplying the seed into the high bits first and
+     discarding two draws puts the generator past that. */
+  const r = lcg((INV_SEED * 2654435761) >>> 0);
+  r(); r();
+  const take = a => a.splice((r() * a.length) | 0, 1)[0];
+  const shown = cands[(r() * cands.length) | 0];
+
+  const sameParty = pool.filter(p => p.id !== shown.id && party(p) === party(shown));
+  const offParty  = pool.filter(p => party(p) !== party(shown));
+
+  /* exactly one same-party distractor, then one from outside it,
+     preferring one who also voted differently so the stated vote
+     narrows the field as well */
+  const opts = [shown, take(sameParty)];
+  const offDiffVote = offParty.filter(p => p.vote !== shown.vote);
+  opts.push(offDiffVote.length ? take(offDiffVote) : take(offParty));
+
+  /* display order is shuffled, or the answer is always in one slot */
+  for (let i = opts.length - 1; i > 0; i--) {
+    const j = (r() * (i + 1)) | 0; [opts[i], opts[j]] = [opts[j], opts[i]];
+  }
+  return {
+    shown, options: opts, noArt,
+    sameVote:  opts.filter(o => o.vote === shown.vote).length,
+    sameParty: opts.filter(o => party(o) === party(shown)).length
+  };
+}
+
 function newRound(issueId) {
   issue = DATA.issues.find(i => i.id === (issueId || ISSUE_ID));
   topic = DATA.topics.find(t => t.id === issue.topic);
@@ -363,11 +490,22 @@ function newRound(issueId) {
     const j = (Math.random() * (i + 1)) | 0; [dealt[i], dealt[j]] = [dealt[j], dealt[i]];
   }
 
+  /* the inverted round deals ONE card, and it is the pictured MK's. The
+     deck, the pile count and the flip are all unchanged — the card still
+     turns over out of the same deck, because the break is in the QUESTION
+     and pretending it is a different object would hide that. */
+  const inv = (issue.id === INVERTED_ISSUE && issue.politicians.length) ? invPlan(issue) : null;
+
   S = {
     beat: 1, claim: null, position: null,
-    dealt, ci: 0, guesses: {}, phase: 'predict',
+    dealt: (inv && !inv.fail) ? [inv.shown] : dealt,
+    ci: 0, guesses: {}, phase: 'predict',
+    inv: (inv && !inv.fail) ? inv : null, invStep: 0, invTimers: [],
     coins: 0, t0: 0, awarded: {}
   };
+  /* a pool too small to ask the question falls back to the normal
+     cascade rather than to a broken screen */
+  if (inv && inv.fail) console.warn('[inv] pool too small, falling back to cascade', inv);
   machineMs = 0;
 }
 
@@ -621,7 +759,24 @@ function deckCard(i) {
   const d = el('div', 'deckcard is-next');
   d.dataset.i = i;
   const back  = el('div', 'cardback');
-  const front = el('article', 'mf-b mkcard');
+  const front = el('article', 'mf-b mkcard' + (S.inv ? ' mf-b--inv' : ''));
+  /* §V21-1 THE INVERTED FACE. The portrait fills the card exactly as it
+     does in the cascade — same element, same 118% crop, same top — and
+     the ONLY differences are the blur and the fact that NOTHING NAMES
+     THE PERSON. No name, no party, no basis, no peel cover: the whole
+     round rests on the card carrying no identity, so .mf-b__id is not
+     hidden here, it is never built. There is nothing in the DOM for a
+     screen reader or a devtools inspector to give away. */
+  if (S.inv) {
+    front.style.setProperty('--inv-blur', INV_BLUR[0] + 'px');
+    front.innerHTML =
+      '<span class="mf-b__halo"></span>' +
+      (art
+        ? '<img class="mf-b__port" src="' + ROOT + (art.hi || art['400']) + '" alt="">'
+        : '<span class="mf-b__badge">?</span>');
+    d.append(back, front);
+    return d;
+  }
   front.innerHTML =
     '<span class="mf-b__halo"></span>' +
     /* `hi` IS THE NATIVE CROP, `400` the fallback. .mf-b__port draws at 401
@@ -848,6 +1003,13 @@ function firstRunIntro(done) {
 const ASK = {
   claim: 'אמת או שקר?',                    /* TAMAR */
   mk:    'נחשו מה הוא/היא הצביע/ה',        /* TAMAR */
+  /* §V21-1 · the inverted question. The VOTE IS STATED and the identity
+     is the unknown — the exact inverse of ASK.mk, which is why it reads
+     off the same sticker in the same place. The vote word comes from
+     VLABEL so it can never disagree with the card. */
+  inv:   v => 'הח״כ הזה הצביע ' + VLABEL[v] + ' — מי זה?',   /* TAMAR */
+  invHint: 'רמז: המפלגה',                  /* TAMAR */
+  invSharp:'חדות התמונה',                  /* TAMAR */
 };
 
 /* THE SLAP IS ITS OWN BEAT, which is the whole reason to build a sticker
@@ -1556,6 +1718,7 @@ async function beat3(ov) {
     /* the card the overlay was sitting on turns over in front of the
        player. It is the same element, not a replacement. */
     await flipUp();
+    if (S.inv) return armInverted();
     armPredict(true);          /* first card of the round: helper line */
   }, { once:true });
 }
@@ -1646,6 +1809,166 @@ async function verdict(guess, foot, card) {
   const spentStamp = $('.d2.is-leaving');  if (spentStamp) spentStamp.remove();
   await flipUp();
   armPredict(false);
+}
+
+/* ===================== BEAT 4 · THE INVERTED ROUND ==================
+   Same beat, same card, inverted question. Everything the cascade does
+   physically — the card turns over, the sticker slaps on top of it, the
+   answers sit in the card's foot, the stamp lands on .cardwrap, the card
+   swipes off — happens here identically. Only the question changed, and
+   the round is worth building precisely because the player has just
+   played the other one in this same topic.
+
+   THERE IS NO REWARD STICKER, and its absence is a decision. A value
+   shown before the choice is the price-tag-before-decision pattern this
+   game refuses everywhere else — it is the same reason the peel cover is
+   free and the same reason the two +25 labels in app.js are flagged. The
+   trade-off is already legible without a number: the face gets sharper,
+   the question gets easier, and the player can feel that costs
+   something. The bonus is real and it decays; it is simply never
+   announced until it is paid. */
+function armInverted() {
+  S.phase = 'inv';
+  const card = currentCard(); if (!card) return;
+  const plan = S.inv;
+
+  /* the question sticker sits on the card's TOP EDGE, the same .ask-st
+     the cascade uses, at the same slap angle and on the same delay */
+  /* the inverted question is roughly twice the cascade's — the sticker
+     has to be told it may wrap, or white-space:nowrap runs it past both
+     edges of the card. See .ask-st--inv. */
+  const ask = slapAsk(ASK.inv(plan.shown.vote));
+  if (ask) ask.classList.add('ask-st--inv');
+  helper('');
+
+  const foot = el('div', 'mf-b__foot inv-tray');
+  foot.innerHTML =
+    plan.options.map(o =>
+      '<button type="button" class="v-a inv-name" data-pid="' + esc(o.id) + '">' +
+        esc(DATA.politicians[o.id].name) + '</button>').join('') +
+    /* SUBORDINATE, and deliberately so: the step track is a readout, not
+       a control, and it sits on one line with the hint under the names
+       at a fraction of their weight. It is kept rather than dropped
+       because stepped blur has a discrete thing to report, and because
+       it is what tells the player that waiting is a CHOICE and not a
+       delay the game is imposing on them. */
+    '<div class="inv-bar">' +
+      '<span class="inv-steps" role="img" aria-label="' + esc(ASK.invSharp) + '">' +
+        INV_BLUR.map((_, i) => '<i data-s="' + i + '"></i>').join('') +
+      '</span>' +
+      '<button type="button" class="inv-hint">' + esc(ASK.invHint) + '</button>' +
+    '</div>';
+  card.appendChild(foot);
+
+  invBlurRun(card, foot);
+
+  $('.inv-hint', foot).addEventListener('click', e => {
+    e.stopPropagation(); invHint(card, e.currentTarget);
+  });
+  foot.querySelectorAll('.inv-name').forEach(b =>
+    pressable(b).addEventListener('click', () => invResolve(b.dataset.pid, foot, card, b)));
+}
+
+/* the four held steps. A step CHANGES on a short ramp rather than
+   snapping, but 200ms inside a 1400ms hold still reads as a step and not
+   as a crossfade — which is the point, because a continuous sharpen has
+   nothing to report and no moment to decide on. */
+function invBlurRun(card, foot) {
+  const dots = foot.querySelectorAll('.inv-steps i');
+  const mark = i => dots.forEach((d, k) => d.classList.toggle('is-on', k <= i));
+  S.invStep = 0; mark(0);
+  S.invTimers = [];
+  INV_BLUR.forEach((b, i) => {
+    if (!i) return;
+    S.invTimers.push(setTimeout(() => {
+      if (S.phase !== 'inv') return;
+      S.invStep = i;
+      card.style.setProperty('--inv-blur', b + 'px');
+      mark(i);
+    }, i * INV_STEP_MS));
+  });
+  /* settled: the last step has had its full hold. The blur STAYS AT 1px
+     from here — it never reaches zero while the question is open. */
+  S.invTimers.push(setTimeout(() => {
+    if (S.phase !== 'inv') return;
+    S.invStep = INV_BLUR.length;
+    foot.classList.add('is-settled');
+  }, INV_SETTLE));
+}
+
+/* ONE CONTROL, AND IT REVEALS THE PICTURED MK'S PARTY — never the
+   options'. Naming an option's party would be a process of elimination
+   dressed as a hint; naming the pictured MK's is a fact about the person
+   in the photograph, which is the same thing the peel cover gives in the
+   normal cascade. It lands as a sticker on the card, same family.
+   FREE. No coin cost and no price shown, for the same reason A-3 was
+   rejected: coins are earned and never spent until the end-game. */
+function invHint(card, btn) {
+  if (btn.dataset.done) return;
+  btn.dataset.done = '1'; btn.disabled = true;
+  S.invHintTaken = true;
+  const s = el('div', 'inv-hint-st');
+  s.innerHTML = '<span class="inv-hint-st__i">' +
+    esc(DATA.politicians[S.inv.shown.id].party) + '</span>';
+  /* PARENTED TO .cardwrap, NOT TO THE CARD — .mf-b carries overflow:hidden
+     and cut the sticker's white die-cut flat against the card's trailing
+     edge, which is the same trap .ask-st and .d2 are both parented out of.
+     A sticker that is clipped by the thing it was slapped onto stops
+     reading as applied. It still sits ON the card; it just is not IN it. */
+  ($('.cardwrap') || card).appendChild(s);
+  requestAnimationFrame(() => requestAnimationFrame(() => s.classList.add('is-slapped')));
+}
+
+async function invResolve(pid, foot, card, btn) {
+  if (S.phase !== 'inv') return;
+  S.phase = 'verdict';
+  (S.invTimers || []).forEach(clearTimeout);
+  const step = Math.min(S.invStep, INV_BONUS.length - 1);
+  const shown = S.inv.shown, ok = pid === shown.id;
+  S.guesses[shown.id] = pid;
+
+  foot.querySelectorAll('button').forEach(b => b.disabled = true);
+  btn.classList.add('is-picked');
+
+  /* §1.2 the player's choice sits alone before the truth arrives */
+  await wait(T.hold);
+  foot.remove();
+  retireAsk();
+  /* the party hint goes with it. It was standing IN FOR the identity
+     block, and the identity block is about to arrive carrying the same
+     party — leaving it up would put the same fact on the card twice, on
+     the chin of the face it was covering for. */
+  const hs = $('.inv-hint-st');
+  if (hs) { hs.classList.add('is-retired'); setTimeout(() => hs.remove(), 200); }
+
+  /* THE REVEAL IS THE FACE, and only now does it go to zero. The name
+     arrives with it, in the slot the cascade has always kept for it. */
+  card.style.setProperty('--inv-blur', '0px');
+  card.classList.add('is-unblurred');
+  const pol = DATA.politicians[shown.id];
+  const id = el('div', 'mf-b__id inv-id');
+  id.innerHTML = '<h2>' + esc(pol.name) + '</h2>' +
+    '<p><span class="pty__val">' + esc(pol.party) + '</span></p>';
+  card.appendChild(id);
+  requestAnimationFrame(() => requestAnimationFrame(() => id.classList.add('is-in')));
+  await wait(T.flip);
+
+  const mark = stamp(ok);
+  $('.cardwrap').appendChild(mark);
+  card.classList.add('is-stamped');
+  inkBleed();
+  setTimeout(() => buzz(25), T.stampDrop);
+
+  /* the floor plus the decaying bonus, paid from the stamp like every
+     other cascade award — and shown for the first time here */
+  const table = COIN_TABLES[DEV.coins];
+  if (ok) setTimeout(() => award(table.perCorrect + INV_BONUS[step], mark), T.stamp);
+
+  await wait(T.stamp + T.flip);
+  S.ci++;
+  leaveCard();
+  await wait(T.cardExit);
+  return beat5();
 }
 
 /* ---- the guess-vs-reality axis. The payload of the beat. -------------
@@ -2936,7 +3259,9 @@ function boot() {
   /* §7 the deep-link. `round` drops straight in without a map behind it,
      which is what makes it useful in a meeting; `map` and `intro` build
      their screen and stop. */
-  if (DEV.screen === 'round')      startRound();
+  /* ?issue=<id> lets the deep-link land on a specific round, which is the
+     only way to reach the inverted a2 without playing a1 first */
+  if (DEV.screen === 'round')      startRound(Q.get('issue') || undefined);
   else if (DEV.screen === 'map')   goMap();
   else                             renderIntro();
 }

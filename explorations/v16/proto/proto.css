@@ -1459,10 +1459,25 @@ body.no-ph [data-ph]{ display:none !important; }
     0 0 11px 2px color-mix(in srgb, var(--neon) 52%, transparent),
     0 0 26px 6px color-mix(in srgb, var(--neon) 20%, transparent);
 }
-/* the two states differ in FILL and in how they are set down, and in
-   nothing else — same object, same edge, same accent */
+/* the two states differ in FILL, in how they are set down, and in whether
+   they carry the accent — see below. Same object, same edge. */
 .bnr--vote{ background:var(--paper); transform:rotate(1.2deg); }
 .cmark.bnr{ background:var(--cm); transform:rotate(-1.6deg); border-radius:999px; }
+
+/* THE GLOW IS THE PINNED VOTE'S, NOT THE CHIP'S, and that is a meaning
+   distinction rather than a colour fix. The pinned vote persists for four
+   beats and is the 121st-MK conceit while it is on screen, so it earns
+   the accent; the correctness chip is on screen for a moment and already
+   carries a strong colour of its own. Cyan over magenta also stopped
+   reading as light and started reading as a third colour.
+   THE HALO IS NEVER TINTED TO THE CHIP'S HUE. That would make the accent
+   mean two things, and it would put a lime glow beside a right answer and
+   a magenta one beside a wrong answer — which is the accent creeping into
+   coding correctness, which it may never do. So it is removed, not
+   recoloured. */
+.cmark.bnr{
+  box-shadow:0 0 0 2px var(--keyline), 0 3px 0 rgba(0,0,0,.34);
+}
 
 /* ?neon=off draws the same sticker with the glow removed, so the two can
    be compared on a device rather than argued about. */
@@ -2564,3 +2579,130 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
 @media (prefers-reduced-motion: reduce){
   .pcov, .pcov__face, .pcov__curl, .pty.is-open .pty__val{ animation:none !important; }
 }
+
+/* =====================================================================
+   §V21-1 · THE INVERTED ROUND
+   One MK, face withheld, vote stated. The card, the sticker, the foot
+   and the stamp are the cascade's own objects — only the question is
+   inverted, and the styling here is deliberately thin for that reason.
+   ===================================================================== */
+
+/* THE BLUR IS ON THE PORTRAIT, NOT ON THE CARD. Blurring .mf-b would
+   take the card's border, its keyline and anything else inside it with
+   the photograph, and would read as a broken render rather than as a
+   withheld face. The drop-shadow is the cascade's own and is kept, so
+   the portrait still sits on the card the same way.
+   Gaussian only. It removes detail and never displaces it, so no step
+   in the sequence can deform a real politician's face — which is the
+   reason the mechanic is blur and not mosaic, pixelation or warp. */
+.mf-b--inv .mf-b__port{
+  filter:blur(var(--inv-blur, 13px)) drop-shadow(0 2px 0 rgba(0,0,0,.18));
+  transition:filter 200ms linear;
+}
+/* 200ms inside a 1400ms hold is 14% of the step: enough not to snap,
+   far too little to read as a continuous sharpen. The step has to stay
+   a step, because a step is the thing the player decides against. */
+
+.inv-tray{ display:flex; flex-direction:column; gap:var(--sp-2); }
+/* .v-a is flex:1, which in a COLUMN stretches each name to fill the
+   foot instead of sizing to its type. */
+.inv-name{ flex:none; width:100%; min-height:52px; font-size:19px; }
+.inv-name.is-picked{ box-shadow:0 0 0 3px var(--edge), 0 0 0 6px var(--ink); }
+
+/* SUBORDINATE. Half the type of the names, no fill, no edge, no
+   extrusion — it is a readout and a secondary control sharing one line
+   under the answers, and neither may look like a fourth option. */
+.inv-bar{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:var(--sp-2); padding:5px 9px 6px; margin-top:2px;
+  /* A GROUND, because what is behind it is a photograph. The bar sits on
+     the portrait at the card's foot, and the portrait is different behind
+     every MK — on this deal it lands on a red tie. Cream type on an
+     uncontrolled image is a contrast bug waiting for the next card, so
+     the bar carries its own bed rather than trusting the picture.
+     Dark and neutral, the same #2E2A26 family as the question sticker:
+     nothing at the foot of an unanswered card may carry a hue. */
+  background:rgba(30,27,24,.62); border-radius:11px;
+  -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px);
+}
+.inv-steps{ display:inline-flex; gap:5px; align-items:center; }
+.inv-steps i{
+  width:7px; height:7px; border-radius:50%;
+  background:rgba(244,241,232,.30);
+  box-shadow:0 0 0 1.5px rgba(0,0,0,.42);
+  transition:background 200ms linear;
+}
+/* filled = sharpness reached. It reports the FACE, which the player can
+   already see; it never reports the payout, which they cannot. */
+.inv-steps i.is-on{ background:#F4F1E8; }
+.inv-hint{
+  border:0; background:none; padding:2px 4px; cursor:pointer;
+  font-family:var(--font-display); font-weight:900; font-size:13px;
+  color:#F4F1E8; text-decoration:underline; text-underline-offset:3px;
+}
+.inv-hint:disabled{ opacity:.42; text-decoration:none; cursor:default; }
+
+/* THE HINT LANDS AS A STICKER, mid-card on the TRAILING side — which
+   under RTL is the left, hence inset-inline-end. Same die-cut family as
+   the peel reveal it stands in for, and cream rather than the question
+   sticker's neutral dark, because this one is an ANSWER to something and
+   the question sticker is not. It still carries no hue: lime and magenta
+   code correctness and nothing on an unanswered card may borrow them. */
+.inv-hint-st{
+  /* 56%, not the vertical middle. At 47% it landed across the cheek and
+     the eye line — the two features a player actually recognises a face
+     by — so a hint that is supposed to HELP was covering the evidence.
+     It sits on the jaw and shoulder instead, still unmistakably on the
+     card and still on the trailing side. */
+  position:absolute; z-index:8; top:56%; inset-inline-end:-9px;
+  pointer-events:none;
+  /* the counter-scale is on the WRAPPER and the slap is on the inner
+     span, exactly as .ask-st splits them — an animation that sets
+     transform would otherwise wipe the counter-scale out on frame one */
+  transform-origin:0 50%;
+  transform:scale(calc(1 / var(--card-scale, 1)));
+}
+.inv-hint-st__i{
+  display:block; opacity:0; transform-origin:0 100%;
+  background:var(--paper); color:var(--ink);
+  font-family:var(--font-display); font-weight:900;
+  font-size:16px; line-height:1.06; white-space:nowrap;
+  padding:7px 12px 8px; border-radius:12px;
+  border:3px solid var(--edge);
+  box-shadow:0 0 0 2px var(--keyline), 0 4px 0 rgba(0,0,0,.34);
+}
+.inv-hint-st.is-slapped .inv-hint-st__i{
+  animation:inv-hint-slap var(--t-ask-in) var(--e-land) both;
+}
+@keyframes inv-hint-slap{
+  0%   { opacity:0; transform:translate(-12px,-22px) rotate(15deg) scale(1.6) }
+  40%  { opacity:1 }
+  62%  { transform:translate(0,0) rotate(2.6deg) scale(.95) }
+  82%  { transform:translate(0,0) rotate(5.4deg) scale(1.03) }
+  100% { opacity:1; transform:translate(0,0) rotate(4.2deg) scale(1) }
+}
+
+/* the name arriving with the reveal, in the slot the cascade has always
+   kept for it — the card gains an identity block rather than unhiding
+   one, because it never had one to unhide */
+.inv-id{ opacity:0; transform:translateY(-7px);
+  transition:opacity var(--t-flip) linear, transform var(--t-flip) var(--e-land); }
+.inv-id.is-in{ opacity:1; transform:none; }
+
+/* THE INVERTED QUESTION IS TWICE THE LENGTH OF THE CASCADE'S. .ask-st__i
+   is white-space:nowrap and .ask-st counter-scales against --card-scale
+   to hold true size while the card shrinks, so at 360px the longer
+   string ran past BOTH edges of the card it is supposed to be stuck to —
+   a sticker that is wider than the object it was slapped onto stops
+   reading as applied and starts reading as a banner.
+   It wraps to two lines inside the card's own width instead. Centred,
+   because a two-line sticker with a ragged trailing edge reads as a
+   paragraph; and half a point smaller, which buys the second line back
+   most of what the wrap cost. */
+.ask-st--inv{ inset-inline-start:auto; }
+.ask-st--inv .ask-st__i{
+  white-space:normal; text-align:center; text-wrap:balance;
+  max-width:calc(var(--card-w) - 34px);
+  font-size:16px; line-height:1.18; padding:8px 14px 9px;
+}
+.inv-hint-st.is-retired{ opacity:0; transition:opacity 160ms linear; }
