@@ -177,9 +177,12 @@ const DEV = {
      either direction WITHOUT writing the flag, which is the only way to
      look twice at something that by definition happens once. */
   intro:  qPick('intro',  { on:true, off:false }, null),
-  /* §5.2 · ?title=multi puts a topic hue on each glyph's sticker stroke;
-     solid is the shipped white. Both live so they can be compared. */
-  title:  qPick('title',  { multi:'multi', solid:'solid' }, 'solid')
+  /* §3 · the title's sticker edge. `solid` is the shipped white and the
+     default; `keyline-multi` adds a coloured outer stroke per glyph from
+     the topic palette; `keyline-one` adds the same in a single accent.
+     The old filled `multi` is removed — see lsGlyph(). */
+  title:  qPick('title', { solid:'solid', 'keyline-multi':'keyline-multi',
+                           'keyline-one':'keyline-one' }, 'solid')
 };
 
 let M = null;                       /* manifest.json                     */
@@ -1122,11 +1125,25 @@ async function claimReveal(ans, card) {
 
   /* the correctness chip, in the chyron slot — a different plane from
      the card, so it cannot be read as part of the stamp */
+  /* §4d · THE MARK IS THE PLAYER'S, and it has to look it. As a bare
+     coloured chip in the chyron it was tied to nothing: on a שקר round it
+     read as a lime chip sitting beside a false claim, i.e. as a verdict on
+     the CLAIM rather than on the person who answered. It now carries the
+     avatar — the same AV3 that is the player everywhere else in the app,
+     in the HUD and pinned in this very slot two beats later — so the
+     colour attaches to a face and the sentence reads "you were right",
+     not "this is right".
+     §4c · AND IT LEAVES THE BAND BEHIND. .is-mark strips the chyron's
+     band — the fill, the neon and the full width — so what is on screen
+     is the chip alone rather than a chip in 250px of empty grey. The 44px
+     box is still RESERVED, because that is what keeps the card the same
+     size before and after the answer. */
   const chip = el('div', 'cmark ' + (ok ? 'cmark--ok' : 'cmark--sur'),
-    '<i class="cmark__dot" aria-hidden="true"></i><span>' +
-    esc(ok ? CLAIM_MARK.ok : CLAIM_MARK.bad) + '</span>');
+    '<span class="cmark__av as-d" aria-hidden="true">' + AV3 + '</span>' +
+    '<span>' + esc(ok ? CLAIM_MARK.ok : CLAIM_MARK.bad) + '</span>');
   const chy = $('#chyron');
-  chy.classList.remove('is-empty'); chy.removeAttribute('aria-hidden');
+  chy.classList.remove('is-empty'); chy.classList.add('is-mark');
+  chy.removeAttribute('aria-hidden');
   chy.innerHTML = ''; chy.appendChild(chip);
   requestAnimationFrame(() => chip.classList.add('is-in'));
 
@@ -1142,29 +1159,33 @@ async function claimReveal(ans, card) {
      not fit the panel at 360x640 at a legible size. The panel caps its
      height against the card and scrolls inside itself; the CTA is
      pinned below the scroller so it is never scrolled out of reach. */
+  /* §4b · THE CARD LIFTS. Of the three options the brief offered — panel
+     below the card, shorter panel, card lifts — this is the only one that
+     guarantees the card is never obscured at all rather than merely
+     obscured somewhere harmless. .cardwrap becomes a flex column, the
+     card drops its 620px min-height and becomes exactly its own content
+     (the graphic and the claim), and the panel takes the room underneath.
+     Nothing overlaps: the art and the claim are fully visible for the
+     whole reveal, which is the premise V18-1 was picked on.
+     §4e · AND הלאה LEAVES THE PLATE. It was 97px wide in the bottom-right
+     corner of a dark panel, which is where a footnote goes, not the
+     control that advances the round. It is now a sibling of the panel
+     rather than a child — full width, on the ground, under the
+     explanation instead of inside it. */
+  wrap.classList.add('is-revealing');
   const panel = el('div', 'creveal__exp');
   panel.innerHTML =
     '<div class="creveal__scroll"><p class="creveal__text">' +
-      markGlossary(issue.tf_explain || '') + '</p></div>' +
-    '<button type="button" class="p-c creveal__go">' +
-      esc('הלאה') + ' <i aria-hidden="true">›</i></button>';
+      markGlossary(issue.tf_explain || '') + '</p></div>';
   wrap.appendChild(panel);
+  const go = el('button', 'p-c creveal__go',
+    esc('הלאה') + ' <i aria-hidden="true">›</i>');
+  wrap.appendChild(go);
 
-  /* THE PANEL IS CAPPED SO IT CANNOT COVER THE CLAIM. This is V18-1's own
-     recorded risk — "the explanation sheet covers the claim it is
-     explaining" — and it is answered by measurement rather than by a
-     percentage. The cap is the room left under the claim; the floor is
-     170px, below which the panel would be a slot rather than a panel and
-     the right answer would be to shorten the claim, not the panel.
-     Everything past the cap scrolls inside .creveal__scroll. */
-  const claimEl = $('.b1claim', card);
-  if (claimEl) {
-    const gap = 10;
-    const room = wrap.getBoundingClientRect().bottom
-               - claimEl.getBoundingClientRect().bottom - gap;
-    const scale = parseFloat(CS.getPropertyValue('--card-scale')) || 1;
-    panel.style.maxHeight = Math.max(170, room / scale) + 'px';
-  }
+  /* NO MEASURED CAP ANY MORE. The panel used to be absolutely positioned
+     over the card's foot and JS computed a max-height so it could not
+     cover the claim. With the card lifted the panel simply takes the
+     space the card left, so the geometry that needed guarding is gone. */
   requestAnimationFrame(() => panel.classList.add('is-in'));
 
   panel.addEventListener('click', e => {
@@ -1172,13 +1193,14 @@ async function claimReveal(ans, card) {
     glossModal(t.dataset.gt);
   });
 
+
   /* ---- 5 · הלאה SENDS THE CARD AWAY -------------------------------
      The throw the answer used to trigger happens here instead, and it
      carries the stamp and the panel with it — they are the card's, not
      the screen's. Direction is the drag's own: dirFor() so a player who
      swiped right sees it leave right. */
   await new Promise(res => {
-    pressable($('.creveal__go', panel)).addEventListener('click', async () => {
+    pressable(go).addEventListener('click', async () => {
       const dir = card._swipe ? card._swipe.dirFor(S.claim) : 1;
       panel.classList.remove('is-in');
       /* .mf-b.is-stamped runs d2-jolt with fill:both, which HOLDS
@@ -1186,6 +1208,7 @@ async function claimReveal(ans, card) {
          inline style, so the card would not move. Clear it first. */
       card.classList.remove('is-stamped');
       card.style.animation = 'none';
+      go.classList.add('is-out');
       card.classList.add('is-leaving');
       card.style.transform = 'translateX(' + (dir * 620) + 'px) rotate(' + (dir * 25) + 'deg)';
       card.style.opacity = 0;
@@ -1194,10 +1217,12 @@ async function claimReveal(ans, card) {
       mark.style.transform = 'translateX(' + (dir * 620) + 'px) rotate(' + (dir * 25) + 'deg)';
       mark.style.opacity = 0;
       await wait(T.swipe);
-      card.remove(); mark.remove(); panel.remove();
+      card.remove(); mark.remove(); panel.remove(); go.remove();
+      wrap.classList.remove('is-revealing');
       /* the chip hands the chyron back — beat 2 pins the player's own
          vote into the same slot and the two must never share it */
       chip.remove();
+      chy.classList.remove('is-mark');
       chy.classList.add('is-empty'); chy.setAttribute('aria-hidden', 'true');
       res();
     }, { once:true });
@@ -2300,11 +2325,33 @@ const TITLE_HUES = [
   '#8a9663',  /* military       */
   '#ff6b9d',  /* gender         */
 ];
-const lsGlyph = (ch, i) =>
-  '<svg class="g" viewBox="0 0 100 116" aria-hidden="true"' +
-    (DEV.title === 'multi'
-      ? ' style="--gs:' + TITLE_HUES[i % TITLE_HUES.length] + '"' : '') + '>' +
+/* §3 · THE FILLED MULTI-COLOUR VERSION IS GONE. It failed for a structural
+   reason rather than a tuning one: colouring the STROKE that forms the
+   letter made the colour into the letterform, so each glyph read as a
+   coloured blob with a black hole punched through it and the nine stopped
+   being one object. `?title=multi` no longer exists; it falls back to
+   solid like any unknown value.
+   WHAT REPLACES IT IS A SECOND STROKE, OUTSIDE THE WHITE. Two <text>
+   elements per glyph: the first paints a wider coloured stroke and
+   nothing else, the second is the existing white-cut-over-black exactly
+   as it ships. Painted in that order the colour survives only as the few
+   pixels the white does not cover, so the white cut stays the dominant
+   edge and the hue is an accent on it — which is the thing the filled
+   version could not do. */
+const TITLE_ACCENT = '#37C4FF';   /* the app's own accent — see the CSS note */
+const lsGlyph = (ch, i) => {
+  const ring = DEV.title === 'keyline-multi' ? TITLE_HUES[i % TITLE_HUES.length]
+             : DEV.title === 'keyline-one'   ? TITLE_ACCENT
+             : null;
+  /* THE HUE GOES IN A CUSTOM PROPERTY, NOT IN A stroke= ATTRIBUTE. A
+     presentation attribute loses to any CSS declaration, and `.i-ls text`
+     sets `stroke:var(--edge)` — so the attribute version painted the ring
+     white and the variants were indistinguishable from solid. */
+  return '<svg class="g' + (ring ? ' g--ring' : '') + '" viewBox="0 0 100 116"' +
+      (ring ? ' style="--ring:' + ring + '"' : '') + ' aria-hidden="true">' +
+    (ring ? '<text class="g-ring" x="50" y="92">' + esc(ch) + '</text>' : '') +
     '<text x="50" y="92">' + esc(ch) + '</text></svg>';
+};
 
 /* THE INDEX RUNS ACROSS BOTH ROWS. lsRow is called twice — הח״כ then
    ה-121 — and a per-row counter would restart the palette on the second
