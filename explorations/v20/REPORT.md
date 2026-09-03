@@ -459,3 +459,199 @@ extrusion and the slap angle are unchanged, so it still reads as applied to the 
 7. **`הצבעת:` in the chyron switched from `ph()` to `esc()`** — on the new light band the yellow
    hazard stripe was the loudest thing in the row, and it is written Hebrew, not a description of
    unwritten copy. Same call I made on the exit modal last pass.
+
+---
+---
+
+# Addendum — the finale built, v20 option 4 (seat grid)
+
+Branch `flow-proto`. Nothing staged, nothing committed. `app.js`, `data.js` and `styles.css`
+untouched. Verified in Chromium 131 and WebKit 18.2 at 360×640, 393×852 and 430×932 — **zero
+console errors**, including all five cascade-less issues in both engines.
+
+---
+
+## 0 · The green/red problem, and the two replacements
+
+You are right that this is not a styling nit. Every one of my four v20 frames used lime for בעד
+and coral for נגד, which codes vote direction with the culturally loaded approval pair — the
+finale was quietly saying that voting *for* a bill is the right answer.
+
+### What ships
+
+| | hue | |
+|---|---|---|
+| **בעד** | **`#4E6BFF`** | `branches` `#2b4cff` from `data.js`, lightened |
+| **נגד** | **`#E8DCC0`** | the warm neutral of the `--paper` / `--kraft` family |
+| not in the record | `#34302A` | |
+| the player's seat | `--primary` `#FFD60A` | **and it is coded by shape, not hue — see below** |
+
+### Why every other candidate is ruled out
+
+The correctness palette is exactly two hues — `--verdict-correct` lime `#B6E521` and
+`--verdict-surprise` magenta `#FF3BC0` — carrying the claim chip, the cascade stamp and the
+cascade gap. I measured every palette hue against both (ΔE2000; under ~25 is confusable):
+
+| hue | vs lime | vs magenta | verdict |
+|---|---|---|---|
+| religion `#ffd23f` | **20.2** | 69.9 | too close to lime |
+| `--primary` `#FFD60A` | **18.9** | 74.2 | too close to lime |
+| gender `#ff6b9d` | 74.4 | **11.9** | too close to magenta |
+| accountability `#b06bff` | 88.0 | **18.4** | too close to magenta |
+| environment `#22c98e` | **24.8** | 87.0 | too close to lime — and it is green |
+| military `#8a9663` | **24.9** | 60.8 | too close to lime |
+| economy `#ff5240` | 65.1 | 30.8 | clear — but it is **red**, the valence being removed |
+| internal_sec `#37c4ff` | 58.8 | 62.2 | clear, no valence — but it is **the chyron's neon**, and I checked: the chyron *is* on screen at beat 5 |
+| **branches `#2b4cff`** | **94.1** | **32.9** | **clear on every count** |
+| **paper/kraft warm** | 24–28 vs lime, 43–48 vs magenta | | see the note below |
+
+Lightening branches to `#4E6BFF` raises its contrast on the board from 3.16 to **4.30:1**, past
+WCAG 1.4.11's 3:1 for graphical objects at a 17px block.
+
+**On the warm neutral being ΔE 24–28 from lime, which is under my own bar:** ΔE is the wrong test
+for that pair. Lime is a saturated yellow-green; `#E8DCC0` is a desaturated near-white that is the
+system's own paper tone, used for chips, sheets, vote buttons and the map's filled ring segments —
+**it signals correctness nowhere in the app**, so it cannot be mistaken for a verdict by usage.
+The >30 bar was written for two saturated hues sitting adjacent in a grid, which is the בעד/נגד
+relationship, not this one.
+
+**One useful finding while checking adjacency:** at beat 5 there is **no lime and no magenta on
+screen at all** — the claim chip is removed when the claim card leaves, the cascade stamp and the
+axis strip ride off with their cards. I verified this by scanning every computed style on the beat.
+Cyan is the only one of the three that survives to this beat, which is exactly why it is excluded.
+
+### The colourblind check
+
+The pair is separated on **relative luminance — 0.194 against 0.721** — which is the one channel no
+form of colour blindness touches. So the check does not depend on hue discrimination at all:
+
+| | normal | deuteranopia | protanopia | tritanopia |
+|---|---|---|---|---|
+| **בעד vs נגד**, ΔE2000 | **53.0** | **58.3** | **56.3** | **43.2** |
+| בעד vs not-in-record | 44.9 | 46.1 | 46.4 | 38.6 |
+| נגד vs not-in-record | 71.4 | 71.6 | 71.4 | 71.2 |
+
+Simulated with Viénot–Brettel–Mollon (1999) in LMS. Under deuteranopia the two read `#6262FF` and
+`#E0E0BF`; under protanopia `#6666FF` and `#DEDEBF` — a saturated blue against a pale warm grey in
+both cases. All figures are far above the ~25 needed for two squares sitting adjacent in a grid.
+
+### Why the player's seat is coded by shape
+
+`--primary` yellow is ΔE **21.6** from the נגד ecru (10.3 under tritanopia) — too close for two
+squares in one grid. Every other candidate is a verdict hue, a side hue, or the chyron's cyan.
+So the player's seat carries **three non-colour signals** instead: it is the only **round** block,
+the only one with a **keyline**, and it is **set apart on its own row** below the 120. Form does
+the work hue cannot, and the yellow is then free to mean "you", as it does everywhere else.
+
+**Neither side hue carries valence, and the assignment is arbitrary** — swapping `--seat-for` and
+`--seat-ag` is one line and nothing else changes.
+
+---
+
+## 1 · The build
+
+**Not a seating chart.** 15 × 8 abstract blocks, an arbitrary rectangle, no grouping by party, no
+hemicycle. The order carries no meaning beyond "how many" — we cannot source a true layout and
+anything implying one would be a claim we can't stand behind.
+
+**The remainder is honest.** `for + against` does not reach 120 on three of the four issues that
+have a tally — `a1` is 53 + 48 = 101 — so 19 blocks stay dark. Verified rendering 53/48/19.
+`m2` renders 68/9/43. Nothing invents an abstention or an absence it wasn't given.
+
+**Count-up:** one clock drives the seats and the numerals, so they cannot disagree — the numeral
+is a readout of the grid rather than a second animation. `--t-finale` **850ms** with the same cubic
+ease-out `countUp()` used, which is the round's existing held-beat weight. Measured: **36 distinct
+fill steps over 691ms**. Under `prefers-reduced-motion` it paints the final state and returns —
+**1 step, 0ms** — rather than running a shortened animation, because a 1ms fill of 120 blocks is a
+flash.
+
+**The numerals are secondary:** 26px under the grid, where the old count-up was 66px and was the
+headline.
+
+**Buttons verified.** `r1` (religion — the one-issue topic) renders the single primary
+`חזרה למפה ›`. `e3`, `e4`, `b3`, `g3`, `m3`, `a1` all render
+`לסוגיה הבאה ›` + secondary `חזרה למפה`.
+
+### Block size
+
+| viewport | block, rendered | unscaled | `fitBeat` scale |
+|---|---|---|---|
+| 430×932 | **22.14px** | 22.14 | 1.00 |
+| 393×852 | **17.99px** | 19.67 | 0.914 |
+| 360×640, degraded state | **14.92px** | 17.47 | 0.854 |
+| **360×640, worst case (`r1`)** | **11.33px** | 17.47 | 0.649 |
+
+The grid's intrinsic size is fine everywhere — 17.5px at 360. What costs it is `fitBeat()`, which
+scales the **whole beat** when the content exceeds the viewport, and `r1` at 640px of height is the
+worst case in the set: tally + 121st line + shape line + 3 links + two buttons. I recovered ~12px
+by making `.b5{padding-top}` fluid, which is why the r1 figure moved 10.76 → 11.33.
+
+**Is 11.33px muddy? No — it is small but crisp.** At DPR 3 that is a 34-device-pixel solid block
+with a 9px gap; `seat-r1-360.png` shows all 120 individually countable and the 63/57 split
+immediately readable. I would not call it muddy, and I have not "shipped something muddy" — but it
+is the one figure worth your eye, so here are the fallbacks rather than a silent choice:
+
+1. **Let beat 5 scroll at short viewports instead of scaling.** Keeps the block at its natural
+   17.5px. The app's "only the map scrolls" rule exists so the round never pans mid-gesture, and
+   beat 5 is terminal — there is no gesture left. **This is the one I'd pick.**
+2. **Change the grid shape at short viewports.** I computed every factor of 120: 12×10 gives
+   12.31px, 10×12 gives 13.22, 8×15 gives 13.75. All are worse *pictures* (a tall narrow column
+   stops reading as a chamber) for 1–2.5px, and going wider is actively worse — 20×6 gives 8.46px,
+   because the block shrinks faster than the reduced height buys back.
+3. **Drop the links row to one line at ≤640px height.** Cuts content, so I did not do it.
+
+---
+
+## 2 · The degraded state
+
+**7 of 11 active issues have no `_tally`** — `e3 e4 b3 g1 g3 a2 m3`. Drawn, not described:
+`seat-BOTH-STATES.png` (side by side at 393×852), plus `seat-state-empty-board.png` for the board
+alone.
+
+All 120 blocks at `#34302A` with a hairline so each is countable, the player's seat still lit and
+labelled, and the resolution text from `vote_result`. **No spinner, no placeholder zeros, no
+greyed-out numerals — the numeral row is simply not rendered.**
+
+**One thing I got wrong first and fixed:** I had `.b5board--empty .b5seats{ opacity:.85 }`, which
+is backwards. In this state the grid is the *entire* picture, so it must be more present than when
+two thirds of it are coloured, not less. Removed, and `--seat-off` lifted `#2A2822` → `#34302A`
+(1.26:1 → 1.42:1 against the board) so the 120 read as seats rather than as an empty box.
+
+**Does it look like a bug? No.** It reads as "no numbers were recorded, but you were there", which
+is the intended sentence — because the grid is still fully formed, still 120, and the one lit seat
+is yours. That is the reason this option was picked and it holds up.
+
+**All five cascade-less issues verified** in both engines: `e3 e4 b3 g3 m3` all reach beat 5 with
+the grid present, 0 lit, the player's seat present, no numerals, **no shape-of-the-guess line**,
+no 121st-vote line, correct two-button form, and negative overflow (84–138px of room to spare) —
+so they compose comfortably rather than merely fitting.
+
+Note on the 121st line: for a no-tally issue there is no `63—57` to state, so `.b5you` does not
+render. The player's lit seat in the grid *is* the 121st statement in that state, which is
+consistent rather than a gap.
+
+---
+
+## 3 · Decisions I made without you
+
+1. **The player's seat is shape-coded, not hue-coded.** Forced: every remaining palette hue is a
+   verdict, a side, or the chyron's. Yellow is ΔE 21.6 from the נגד ecru, which is too close for
+   two squares in a grid — so it is the only round, keylined, set-apart block instead.
+2. **`#E8DCC0` accepted at ΔE 24 from lime**, on the argument that it is the system's neutral paper
+   tone and signals correctness nowhere. If you disagree, the only untainted alternative in the
+   palette is `#37c4ff`, which means moving the chyron's neon to something else first.
+3. **branches lightened `#2b4cff` → `#4E6BFF`.** The raw token is 3.16:1 on the board, under the
+   3:1 line once antialiasing is counted at 17px. It is a tint of a palette hue, not a new colour.
+4. **15 × 8, and the player on a ninth row of its own** — the arrangement that best says "120, and
+   you" while staying obviously abstract.
+5. **11.33px shipped at 360×640 rather than restructuring**, with the scroll fallback proposed
+   above rather than taken unilaterally — it changes a standing rule about what may scroll.
+6. **`.b5{padding-top}` made fluid** (`clamp(14px, 5vh, 44px)`) to buy the grid back ~12px on short
+   phones. Affects beat 5 only.
+
+## Still open
+
+- The WhatsApp in-app browser check, unchanged from the previous two passes — still needs a device.
+- `e3`'s own `vote_result` reads "62 חברי כנסת הצביעו בעד, מול 55" — **the numbers exist in
+  Tamar's prose for several of the 7 issues that have no `_tally`.** Adding `_tally` for those is a
+  `data.js` content task, not a build one, and it would light up the grid on most of the set.

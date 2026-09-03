@@ -32,10 +32,101 @@ TOPICS = ROOT / "assets" / "topics"
 #             Master ink is 1747 x 1047.
 # The old sizes are kept alongside: the manifest names both and the renderer
 # picks, so a screen that wants the small one is not forced onto the big one.
+# ---- §5.1 · CUTTING THE SKY OFF THE KNESSET BUILDING -----------------------
+# The art is flat line-and-fill and the sky is effectively pure white
+# (#FEFEFE, per-channel std under 1 across the top 120 rows), so a colour key
+# is the right tool. A GLOBAL key is not: the flags are cream with blue
+# stripes, and keying every white pixel deletes the flag bodies along with
+# the sky.
+#
+# So it is a FLOOD FILL FROM THE BORDER — white that is connected to the edge
+# of the canvas is sky, white enclosed by artwork is not. The flags survive
+# because each one is drawn with a closed dark outline.
+#
+# THAT ALONE IS NOT ENOUGH, and this is the part worth knowing. Between the
+# flags there are pockets of sky fully enclosed by flag + pole + flag, which
+# connectivity cannot distinguish from intended white; left in, they render
+# as cream blobs floating in the gaps. They ARE separable, by colour:
+#   enclosed SKY    mean distance-from-white  4.0 - 10.6,  #FCFDFB, neutral
+#   flag CREAM      mean distance-from-white 23.0 - 29.3,  #FDF6E7, warm
+# so an enclosed component is sky if it is both near-white AND neutral. The
+# gap between the two populations is a factor of two with nothing in it.
+#
+# THE EDGE IS UN-PREMULTIPLIED. A binary mask leaves every anti-aliased pixel
+# as a half-white blend, which on the app's charcoal ground is a white
+# fringe — exactly the failure the brief says to stop for. Instead alpha
+# ramps over the 6..34 band and the colour is recovered as
+# (observed - (1-a)*white) / a, which is the correct inverse of compositing
+# over a white matte. The result has no fringe: see the report's crops.
+#
+# CACHED, because the flood fill is a 4M-pixel BFS. The cut is written once
+# as its own master and the exports come off that; the original
+# knessetbuilding.webp is never modified.
+def cut_white_sky(src, dst, t_lo=6.0, t_hi=34.0, neutral_max=15.0, spread_max=10.0):
+    from collections import deque
+    im = Image.open(src).convert("RGB")
+    a = np.asarray(im).astype(np.float64)
+    H, W, _ = a.shape
+    dist = np.abs(a - 255.0).max(axis=2)
+    whiteish = dist < t_hi
+
+    ext = np.zeros((H, W), bool)
+    q = deque()
+    def seed(y, x):
+        if whiteish[y, x] and not ext[y, x]:
+            ext[y, x] = True; q.append((y, x))
+    for x in range(W): seed(0, x); seed(H - 1, x)
+    for y in range(H): seed(y, 0); seed(y, W - 1)
+    while q:
+        y, x = q.popleft()
+        for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            ny, nx = y + dy, x + dx
+            if 0 <= ny < H and 0 <= nx < W and whiteish[ny, nx] and not ext[ny, nx]:
+                ext[ny, nx] = True; q.append((ny, nx))
+
+    # enclosed white: keep the warm cream, drop the neutral sky pockets
+    interior = whiteish & ~ext
+    lab = np.zeros((H, W), bool)
+    pockets = 0
+    ys, xs = np.nonzero(interior)
+    for sy, sx in zip(ys, xs):
+        if lab[sy, sx]: continue
+        qq = deque([(sy, sx)]); lab[sy, sx] = True; px = [(sy, sx)]
+        while qq:
+            y, x = qq.popleft()
+            for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                ny, nx = y + dy, x + dx
+                if 0 <= ny < H and 0 <= nx < W and interior[ny, nx] and not lab[ny, nx]:
+                    lab[ny, nx] = True; qq.append((ny, nx)); px.append((ny, nx))
+        arr = np.array(px)
+        v = a[arr[:, 0], arr[:, 1]]
+        if dist[arr[:, 0], arr[:, 1]].mean() < neutral_max and \
+           (v.max(axis=1) - v.min(axis=1)).mean() < spread_max:
+            ext[arr[:, 0], arr[:, 1]] = True
+            pockets += 1
+
+    alpha = np.ones((H, W))
+    alpha[ext] = np.clip((dist[ext] - t_lo) / (t_hi - t_lo), 0, 1)
+    al = alpha[..., None]
+    rgb = np.clip(np.where(al > 0.004, (a - 255.0 * (1 - al)) / np.maximum(al, 0.004), a), 0, 255)
+    Image.fromarray(np.dstack([rgb, alpha * 255]).astype(np.uint8)).save(
+        dst, "WEBP", lossless=True, exact=True)
+    return 100 * (alpha < 0.02).mean(), pockets, int(((alpha > .02) & (alpha < .98)).sum())
+
+BUILDING_CUT = MK / "knessetbuilding_cut.webp"
+if not BUILDING_CUT.exists():
+    pct, pk, edge = cut_white_sky(MK / "knessetbuilding.webp", BUILDING_CUT)
+    print("sky cut: %.1f%% removed, %d enclosed sky pockets closed, %d soft-edge px -> %s"
+          % (pct, pk, edge, BUILDING_CUT.name))
+
 PROP_JOBS = [
     # stem in assets/mk/   source                       sizes (w, h)
     ("knesset_chair",      MK / "knessetchair.webp",    [(900, 1050), (300, 350), (128, 149)]),
-    ("knesset_building",   MK / "knessetbuilding.webp", [(1170, 780), (390, 260)]),
+    # the building ships WITHOUT its sky — see cut_white_sky() above
+    # h=None keeps the INK aspect. Cutting the sky trimmed 26 transparent
+    # rows off the top, so the ink box is 2496x1638 rather than 2496x1664 —
+    # forcing the old (1170,780) would squash it 1.6% vertically.
+    ("knesset_building",   BUILDING_CUT,                [(1170, None), (390, None)]),
 ]
 
 # ---- THE CARD BACK, and the one job here with no master --------------------
@@ -129,7 +220,12 @@ TOPIC_JOBS = [
 # can only serve a 13px display, and there is no 13px icon in this app. They
 # are left on disk rather than deleted because deleting an asset is a
 # separate decision from re-sizing one; the audit lists them as unreferenced.
-TOPIC_SIZES = [40, 52, 64, 128, 256, 384]
+# 576 IS FOR THE ENLARGED CLAIM-CARD FALLBACK. §1.3 grows that graphic from
+# 128 to 190 CSS px — the card is 308px wide inside its padding and 128 was
+# using 42% of it — so the DPR-3 target moves 384 -> 576. It costs about
+# 30KB more on the one topic icon a claim card loads, against a round whose
+# whole first load is now 765KB.
+TOPIC_SIZES = [40, 52, 64, 128, 256, 384, 576]
 
 print("%-20s %-14s %-24s %s" % ("source", "canvas", "ink box", "exports"))
 for stem, sizes in JOBS:
@@ -172,6 +268,8 @@ for stem, src, sizes in PROP_JOBS:
     opaque = bool((np.array(ink)[..., 3] > 250).all())
     out = []
     for w, h in sizes:
+        if h is None:                      # keep the ink box's own aspect
+            h = max(1, round(w * ink.height / ink.width))
         r = ink.resize((w, h), Image.LANCZOS)
         # PROPS ARE NAMED BY WIDTH, not by their larger dimension. The chair is
         # 300x350 and has always been knesset_chair_300; renaming it to _350 to

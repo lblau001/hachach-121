@@ -1065,7 +1065,10 @@ body.no-ph [data-ph]{ display:none !important; }
    IT DOES NOT SCROLL. Only the map and character personalisation ever
    do. fitBeat() scales this block down on a short phone instead.
    ===================================================================== */
-.b5{ padding-top:44px; gap:var(--sp-2); justify-content:flex-start; }
+/* the top pad is what a short phone can least afford: at 640px of height
+   fitBeat() is already scaling the whole beat, and 44px of air above the
+   board is 44px the grid pays for. Fluid, so the tall phones keep it. */
+.b5{ padding-top:clamp(14px, 5vh, 44px); gap:var(--sp-2); justify-content:flex-start; }
 .b5 > *{ flex:none; }
 .b5fit{ transform-origin:top center; }
 
@@ -1074,6 +1077,106 @@ body.no-ph [data-ph]{ display:none !important; }
   width:calc(100% + 32px); margin:0 -16px; padding:16px var(--sp-4) 14px;
   display:flex; flex-direction:column; gap:var(--sp-2);
 }
+/* =====================================================================
+   THE SEAT GRID · v20 option 4
+   ===================================================================== */
+/* §0 · THE TWO SIDES ARE BLUE AND ECRU, and green/red are gone.
+   The old pair coded VOTE DIRECTION with the culturally loaded approval
+   colours — a 17-year-old reads green as good, so the finale was quietly
+   saying that voting for a bill is the right answer, on a product whose
+   whole promise is not to say that.
+
+   WHY THESE TWO, and everything else is ruled out rather than passed over:
+     lime #B6E521 and magenta #FF3BC0 are CORRECTNESS. They carry the claim
+       chip, the cascade stamp and the cascade gap. Nothing else may borrow
+       either. That also rules out religion #ffd23f (dE 20.2 from lime),
+       --primary #FFD60A (18.9), gender #ff6b9d (11.9 from magenta),
+       accountability #b06bff (18.4) and environment #22c98e (24.8) — all
+       measured, all too close to one of the two.
+     economy #ff5240 is clear of both but it is RED, which is the valence
+       being removed.
+     internal_sec #37c4ff is clear of both and carries no valence, but it
+       is the chyron's neon and the chyron IS on screen at this beat.
+   That leaves branches #2b4cff, lightened to #4E6BFF so a 17px block
+   clears WCAG 1.4.11 against the board (4.30:1, was 3.16), and the warm
+   neutral of the paper/kraft family at #E8DCC0.
+
+   THE COLOURBLIND CHECK IS PASSED ON LUMINANCE, not on hue. Relative
+   luminance 0.194 against 0.721 — a channel no dichromacy touches — so
+   the pair stays separated whatever the cones do: dE2000 53.0 normal,
+   58.3 deuteranopia, 56.3 protanopia, 43.2 tritanopia. All far above the
+   25 needed for two squares sitting adjacent in a grid. Simulated, the
+   two read #6262FF / #E0E0BF under deuteranopia and #6666FF / #DEDEBF
+   under protanopia.
+
+   NEITHER CARRIES VALENCE, and the assignment is arbitrary: swapping
+   --seat-for and --seat-ag is one line and nothing else changes. */
+.b5board{
+  --seat-for:#4E6BFF;      /* branches, lightened for block legibility */
+  --seat-ag:#E8DCC0;       /* the paper/kraft warm neutral             */
+  --seat-off:#34302A;      /* not in the record — never "abstained"    */
+  --seat-gap:3px;
+  background:#15130F; border-radius:14px; padding:12px 12px 10px;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.10), 0 4px 0 rgba(0,0,0,.4);
+}
+/* 15 x 8 = 120. The rectangle is arbitrary ON PURPOSE — see the note in
+   seatBoard(). fr columns rather than a fixed block size so the grid fills
+   the width it is given at 360, 393 and 430 rather than being tuned to one. */
+.b5seats{
+  display:grid; grid-template-columns:repeat(15, 1fr); gap:var(--seat-gap);
+}
+.seat{
+  display:block; aspect-ratio:1; border-radius:2.5px;
+  background:var(--seat-off);
+  transition:background 90ms linear;
+}
+.seat.is-for{ background:var(--seat-for); }
+.seat.is-ag { background:var(--seat-ag); }
+
+/* THE 121st, ON ITS OWN ROW. Round where every other block is square, the
+   only one with a keyline, and set apart under the 120 — three signals, so
+   it survives the empty state where colour says nothing. */
+.b5me{
+  display:flex; align-items:center; justify-content:center; gap:7px;
+  margin-top:10px; padding-top:9px;
+  border-top:1px solid rgba(255,255,255,.10);
+}
+.seat--me{
+  width:calc((100% - 14 * var(--seat-gap)) / 15 * 1.3);
+  min-width:17px; max-width:26px;
+  border-radius:50%; background:var(--primary);
+  box-shadow:0 0 0 2px var(--edge), 0 0 0 3.4px rgba(0,0,0,.45);
+  transition:none;
+}
+.b5me__lab{ font-size:11.5px; font-weight:700; color:#8E897C; }
+
+/* the numerals stay, and they are SECONDARY — the grid is the payload, so
+   they sit under it at a size that reads as a caption on the picture
+   rather than as the headline it used to be at 66px. */
+.b5tal{
+  display:flex; justify-content:center; gap:18px; margin-top:9px;
+}
+.b5tal__s{ display:inline-flex; align-items:baseline; gap:5px;
+  font-size:12px; font-weight:700; color:#8E897C; }
+.b5tal__s b{ font-family:var(--font-display); font-weight:900; font-size:26px; line-height:1; }
+.b5tal__s--for b{ color:var(--seat-for); }
+.b5tal__s--ag  b{ color:var(--seat-ag); }
+
+/* THE EMPTY STATE IS A STATE, NOT A FAILURE. 7 of the 11 active issues
+   have no _tally, so this is the MAJORITY case. Every block stays at
+   --seat-off, the player's seat stays lit, and there is no spinner, no
+   zeroed numerals and no greyed-out anything — the numerals are simply not
+   rendered. What is left says "no numbers were recorded, but you were
+   there", which is true, and the picture the screen exists to make is
+   unchanged: 120 and you. */
+/* NOT dimmed. The first build put opacity:.85 here, which is backwards:
+   in this state the grid is the ENTIRE picture, so it has to be MORE
+   present than when two thirds of it are coloured, not less. The blocks
+   keep their full --seat-off and gain a hairline so all 120 are countable
+   against the board — which is what makes it read as "no numbers were
+   recorded, but you were there" rather than as an empty box. */
+.b5board--empty .seat{ box-shadow:inset 0 0 0 1px rgba(255,255,255,.055); }
+
 .b5lead{ display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; }
 .b5count{ font-size:66px; color:#EFECE4; line-height:.95; }
 .b5-a2 .b5count{ font-size:22px; color:var(--ink-faint); }

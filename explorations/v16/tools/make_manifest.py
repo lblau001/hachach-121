@@ -90,8 +90,9 @@ ISSUE_ART = {"s1": ("internal_sec_s1", 300, 180),
 DISPLAY_CSS = {
     "portrait":      401.2,   # .mf-b__port, the cascade and claim cards
     "portrait_sm":    34.0,   # .gx-port, the guess-vs-reality strip
-    "topic_icon":    128.0,   # claimArt()'s topic fallback. The map node's
-                              # 56.6 is the SMALLER of this asset's two sites.
+    "topic_icon":    190.0,   # claimArt()'s topic fallback, enlarged by §1.3
+                              # from 128. The map node's 56.6 is the SMALLER
+                              # of this asset's two sites and is served by 256.
     "law_art":        65.0,   # .stmodal__art, the law modal's placeholder
     "chair":         288.5,   # .i-chair (intro) and .b2chair (tachles)
     "building":      390.0,   # .i-build, the intro
@@ -258,11 +259,12 @@ for tid, stem in sorted(TOPIC_ICONS.items()):
     assert any(t["id"] == tid for t in D["topics"]), (
         "topic icon has no matching topic id in data.js: " + tid)
     man["topics"][tid] = {k: need_topic("%s_%d.webp" % (stem, k))
-                          for k in (40, 52, 64, 128, 256, 384)}
-    # 384 = 3 x the 128px claim-card fallback, which is this asset's largest
-    # call site. The map node's 56.6px wants 170 and is served by 256.
+                          for k in (40, 52, 64, 128, 256, 384, 576)}
+    # 576 = 3 x the 190px claim-card fallback, which is this asset's largest
+    # call site since §1.3 enlarged it. The map node's 56.6px wants 170 and
+    # is served by 256.
     man["topics"][tid]["display_css"] = DISPLAY_CSS["topic_icon"]
-    man["topics"][tid]["dpr"] = round(384 / DISPLAY_CSS["topic_icon"], 2)
+    man["topics"][tid]["dpr"] = round(576 / DISPLAY_CSS["topic_icon"], 2)
     w, h = _mass[tid][1]
     man["topics"][tid]["aspect"] = round(w / h, 4)
     man["topics"][tid]["node_scale"] = round(_raw[tid] * max(w, h) / _mean, 4)

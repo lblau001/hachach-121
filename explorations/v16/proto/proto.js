@@ -1678,6 +1678,92 @@ function inkBleed() {
   }, T.stampDrop);
 }
 
+/* ===== THE SEAT GRID · v20 option 4 ==================================
+   THE TITLE, AS A PICTURE. 120 blocks and one more that is the player.
+   The civic point of the whole product — you are one seat among 120 —
+   delivered as an image instead of a sentence, which is why nothing else
+   on this screen may out-weigh it.
+
+   NOT A SEATING CHART, and that is a factual constraint rather than a
+   stylistic one. The real chamber is seated by faction, we cannot source
+   a true layout, and anything that implied one would be a claim we cannot
+   stand behind. So: abstract blocks, an arbitrary 15x8 rectangle, no
+   grouping by party, no hemicycle. The order carries no meaning beyond
+   "how many".
+
+   THE PLAYER'S SEAT IS THE 121st AND SITS APART, on its own row under the
+   120. That is the literal reading of the title and it is also what keeps
+   it visible in the empty state, where every other block is dark.
+
+   WHY IT IS CODED BY SHAPE AND NOT BY HUE. It must never be coloured as
+   either side. Both side hues are taken, the two correctness hues are
+   forbidden, the chyron's cyan is on screen at this beat, and the only
+   remaining candidate — --primary yellow — sits dE 21.6 from the נגד
+   ecru, which is too close for two squares in one grid. So it is the only
+   ROUND block, the only one with a keyline, and the only one set apart.
+   Form does the work that hue cannot, and the yellow is then free to say
+   "you" the way it does everywhere else in the system.
+
+   THE REMAINDER IS HONEST. for + against does not reach 120 on three of
+   the four issues that have a tally — a1 is 53+48 = 101 — and the other
+   19 are simply not in the record. They stay dark. Nothing here invents an
+   abstention or an absence it was not given. */
+const SEATS = 120, SEAT_COLS = 15;
+
+function seatBoard(tally) {
+  const cells = [];
+  for (let i = 0; i < SEATS; i++) cells.push('<i class="seat" data-i="' + i + '"></i>');
+  return '<div class="b5board' + (tally ? '' : ' b5board--empty') + '">' +
+      '<div class="b5seats" aria-hidden="true">' + cells.join('') + '</div>' +
+      '<div class="b5me">' +
+        '<i class="seat seat--me" aria-hidden="true"></i>' +
+        '<span class="b5me__lab">' + esc('המושב שלכם') + '</span>' +   /* TAMAR */
+      '</div>' +
+      (tally
+        ? '<div class="b5tal" aria-hidden="true">' +
+            '<span class="b5tal__s b5tal__s--for"><b class="num" id="b5for">0</b>' +
+              esc(VLABEL.for) + '</span>' +
+            '<span class="b5tal__s b5tal__s--ag"><b class="num" id="b5ag">0</b>' +
+              esc(VLABEL.against) + '</span>' +
+          '</div>'
+        : '') +
+    '</div>';
+}
+
+/* ONE CLOCK DRIVES BOTH, so the numerals and the seats can never disagree
+   — the numeral is a readout of the grid, not a second animation that
+   happens to finish at the same time. Same --t-finale (850ms) and the
+   same cubic ease-out countUp() used, because this IS the round's one held
+   beat and the brief asks for that weight rather than a 125ms flick.
+   REDUCED MOTION renders the final state and returns; there is no
+   shortened animation, because a 1ms fill of 120 blocks is a flash. */
+function runTally(panel, tally) {
+  const seats = $$('.b5seats .seat', panel);
+  const nf = $('#b5for', panel), na = $('#b5ag', panel);
+  const paint = (f, a) => {
+    for (let i = 0; i < seats.length; i++) {
+      const c = i < f ? 'seat is-for' : i < f + a ? 'seat is-ag' : 'seat';
+      if (seats[i].className !== c) seats[i].className = c;
+    }
+    if (nf) nf.textContent = f;
+    if (na) na.textContent = a;
+  };
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    paint(tally.for, tally.against);
+    return Promise.resolve();
+  }
+  return new Promise(res => {
+    const t0 = performance.now();
+    (function tick(now) {
+      const k = Math.min(1, (now - t0) / T.finale);
+      const e = 1 - Math.pow(1 - k, 3);
+      paint(Math.round(tally.for * e), Math.round(tally.against * e));
+      if (k < 1) requestAnimationFrame(tick);
+      else { paint(tally.for, tally.against); res(); }
+    })(t0);
+  });
+}
+
 /* ===================== BEAT 5 · THE REVEAL ========================== */
 /* B5-A. LESS on screen, in a strict order. §8 forbids >1 number at the
    emotional peak, so the tally counts up ALONE and the score and the
@@ -1709,14 +1795,14 @@ async function beat5() {
   const tally = issue._tally || null;
   const panel = el('div', 'b5panel b5stage' + (tally ? '' : ' b5-nocount'));
   panel.innerHTML =
-    (tally ? '<div class="b5lead"><span class="b5count num" id="b5count">0–0</span></div>' : '') +
+    seatBoard(tally) +
     (issue.vote_result
       ? '<p class="b5result">' + esc(issue.vote_result) + '</p>'
       : '<p class="b5result">' + ph('[טקסט — תמר: תוצאות ההצבעה]') + '</p>');
   b.appendChild(panel);
   requestAnimationFrame(() => { panel.classList.add('is-in'); fitBeat(); });
 
-  if (tally) { await countUp($('#b5count', panel), tally); await wait(T.hold); }
+  if (tally) { await runTally(panel, tally); await wait(T.hold); }
   else await wait(T.flip);
 
   /* ---- 3. §1.4c THE 121st VOTE. Compared to the OUTCOME only. ----- */
