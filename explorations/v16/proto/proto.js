@@ -188,7 +188,9 @@ const DEV = {
      the topic palette; `keyline-one` adds the same in a single accent.
      The old filled `multi` is removed — see lsGlyph(). */
   title:  qPick('title', { solid:'solid', 'keyline-multi':'keyline-multi',
-                           'keyline-one':'keyline-one' }, 'solid')
+                           'keyline-one':'keyline-one' }, 'solid'),
+  /* the banner's accent halo. on ships; off is for the side-by-side. */
+  neon:   qPick('neon', { on:'on', off:'off' }, 'on')
 };
 
 let M = null;                       /* manifest.json                     */
@@ -577,13 +579,19 @@ function pinVote(vote) {
   const c = $('#chyron');
   c.classList.remove('is-empty');
   c.removeAttribute('aria-hidden');
+  /* B-5 · THE BANNER IS A STICKER, SIZED TO ITS CONTENTS. It is no longer
+     the chyron box itself — .chyron is now only the reserved 44px slot
+     that positions it, and .bnr is the object inside. That is what takes
+     the band from 361px holding 119px of content to a pill that cannot be
+     empty by construction. */
   c.innerHTML =
-    '<span class="chyron-av as-d" aria-hidden="true">' + AV3 + '</span>' +
-    /* esc(), not ph(): written Hebrew pending Tamar, not a description of
-       copy that does not exist. On the §2 light band the yellow hazard
-       stripe was the loudest thing in the row. */
-    '<span class="chyron-line">' + esc('הצבעת:') +   /* TAMAR */
-      '<b>' + esc(VOTE_PIN[vote] || '') + '</b></span>';
+    '<span class="bnr bnr--vote">' +
+      '<span class="chyron-av as-d" aria-hidden="true">' + AV3 + '</span>' +
+      /* esc(), not ph(): written Hebrew pending Tamar, not a description
+         of copy that does not exist. */
+      '<span class="chyron-line">' + esc('הצבעת:') +   /* TAMAR */
+        '<b>' + esc(VOTE_PIN[vote] || '') + '</b></span>' +
+    '</span>';
   return c;
 }
 /* the round re-renders on every beat; the chyron is outside #round and
@@ -1201,7 +1209,7 @@ async function claimReveal(ans, card) {
      is the chip alone rather than a chip in 250px of empty grey. The 44px
      box is still RESERVED, because that is what keeps the card the same
      size before and after the answer. */
-  const chip = el('div', 'cmark ' + (ok ? 'cmark--ok' : 'cmark--sur'),
+  const chip = el('div', 'bnr cmark ' + (ok ? 'cmark--ok' : 'cmark--sur'),
     '<span class="cmark__av as-d" aria-hidden="true">' + AV3 + '</span>' +
     '<span>' + esc(ok ? CLAIM_MARK.ok : CLAIM_MARK.bad) + '</span>');
   const chy = $('#chyron');
@@ -2943,6 +2951,9 @@ function topicLabel() {
 function applyDev() {
   document.documentElement.dataset.hold = DEV.hold;
   document.documentElement.dataset.chyron = DEV.chyron;
+  /* ?neon=off strips the banner's glow and leaves the sticker otherwise
+     identical, so the two can be compared on a device */
+  document.documentElement.dataset.neon = DEV.neon;
   document.body.classList.toggle('no-ph', !DEV.ph);
 }
 

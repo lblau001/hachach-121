@@ -1402,24 +1402,76 @@ body.no-ph [data-ph]{ display:none !important; }
    it or fight the sticker language around it. No animation: a pulsing
    chyron would compete with §3.3's next-up node, which is the one thing
    on screen that IS allowed to pulse. */
+/* =====================================================================
+   THE ROUND BANNER · B-5 sticker + B-1's neon
+   .chyron is the RESERVED SLOT and nothing else now — no fill, no edge, no
+   width. The object is .bnr inside it, sized to its own contents, which is
+   what removes the 67% void the full-width band carried. Both banner
+   states are the same construction: only the fill and the skew differ.
+   ===================================================================== */
 [data-chyron="band"] .chyron{
-  --neon:#37C4FF;
-  padding-inline:var(--sp-3);
-  border-radius:var(--r-chip);
-  background:rgba(251,247,238,.72);
-  -webkit-backdrop-filter:blur(12px) saturate(1.15);
-  backdrop-filter:blur(12px) saturate(1.15);
-  box-shadow:
-    0 0 0 2px var(--neon),
-    0 0 9px  0 color-mix(in srgb, var(--neon) 55%, transparent),
-    0 0 20px 0 color-mix(in srgb, var(--neon) 22%, transparent),
-    inset 0 0 0 1px rgba(255,255,255,.55);
-  color:var(--ink);
+  background:none; box-shadow:none; padding-inline:0;
+  backdrop-filter:none; -webkit-backdrop-filter:none;
+  justify-content:flex-start;
 }
 [data-chyron="band"] .chyron-line{ color:var(--ink); }
 [data-chyron="band"] .chyron-line .ph{ color:var(--ink); }
+/* ---- .bnr · ONE STICKER, TWO STATES ---------------------------------
+   B-5's construction: sized to contents, white die-cut, hard keyline
+   outside it, flat extrusion, set down slightly off-square.
+   B-1's ACCENT, AND ONLY AS A GLOW. The neon does not replace the
+   keyline and is not a second hard rule — there is no `0 0 0 Npx neon`
+   term anywhere here. It is two blurred, spread shadows painted BEHIND
+   the keyline and the extrusion, so the stacking from the middle out is:
+       fill -> 3px white die-cut -> 2px keyline -> soft cyan halo
+   The white cut stays the object's edge; the cyan is light coming off it.
+   Order in the box-shadow list is load-bearing — the first entry paints on
+   top, so the keyline and the extrusion must be listed before the glows or
+   the halo washes over them. */
+.bnr{
+  --neon:#37C4FF;
+  display:inline-flex; align-items:center; gap:8px;
+  /* PADDING IS OPTICALLY BALANCED, NOT NUMERICALLY. The leading side holds
+     a 28px circle and the trailing side holds Hebrew. A circle touches its
+     boundary at one point and curves away, so it reads as having more room
+     than flat type at the same distance; Hebrew letters like ד, ר and ם
+     end on a straight vertical stroke that sits flush. Equal numbers
+     therefore look wrong in exactly the way the brief describes — the word
+     crowding the edge while the avatar floats.
+     TUNED BY MEASUREMENT, NOT BY EYE ALONE. The first attempt swung too
+     far the other way — 8px behind the avatar and 17px behind the word
+     put the real ink gaps at 5.25px and 16.5px, a 3x difference, because
+     the avatar's own 2px ring already eats into its padding while the
+     Hebrew sits flush against its own. Rendered at DPR 4 and measured
+     from the last inked column to the inner edge, 11px / 12px lands the
+     ink at 8.2px and 11.4px — and those two READ as equal, because the
+     circle recedes from its tangent point while the flat stroke of ד
+     does not. Numerically 3px apart, optically level. */
+  padding:6px 6px 7px 6px;
+  padding-inline-start:11px;
+  padding-inline-end:12px;
+  border:3px solid var(--edge);
+  border-radius:13px;
+  color:var(--ink);
+  box-shadow:
+    0 0 0 2px var(--keyline),
+    0 3px 0 rgba(0,0,0,.34),
+    0 0 11px 2px color-mix(in srgb, var(--neon) 52%, transparent),
+    0 0 26px 6px color-mix(in srgb, var(--neon) 20%, transparent);
+}
+/* the two states differ in FILL and in how they are set down, and in
+   nothing else — same object, same edge, same accent */
+.bnr--vote{ background:var(--paper); transform:rotate(1.2deg); }
+.cmark.bnr{ background:var(--cm); transform:rotate(-1.6deg); border-radius:999px; }
+
+/* ?neon=off draws the same sticker with the glow removed, so the two can
+   be compared on a device rather than argued about. */
+[data-neon="off"] .bnr{
+  box-shadow:0 0 0 2px var(--keyline), 0 3px 0 rgba(0,0,0,.34);
+}
+
 /* THE AVATAR IS RE-INKED BY ITS EDGE, not by repainting AV3. Its ground
-   circle is #C9BFA6 cream, which on a cream band loses its silhouette
+   circle is #C9BFA6 cream, which on a cream sticker loses its silhouette
    entirely; a dark keyline restores the boundary without touching the
    inline SVG's fills — which the map node and the HUD also draw. */
 [data-chyron="band"] .chyron-av{
@@ -2080,16 +2132,15 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
 /* §4d · the avatar, so the mark is visibly the PLAYER's */
 .cmark__av{ width:26px; height:26px; flex:none; line-height:0; }
 .cmark__av svg{ width:100%; height:100%; display:block; }
+/* the correctness chip is now .bnr + this: the fill, the type and the
+   entrance. Everything about its edge comes from .bnr. */
 .cmark{
-  display:inline-flex; align-items:center; gap:8px;
-  padding:5px 14px 5px 6px; border-radius:999px;
   font-family:var(--font-display); font-weight:900; font-size:15px;
-  color:var(--ink); background:var(--cm);
-  box-shadow:0 0 0 2px rgba(0,0,0,.5), 0 3px 0 rgba(0,0,0,.32);
-  opacity:0; transform:translateY(-6px) scale(.94);
+  opacity:0;
   transition:opacity var(--t-flip) linear, transform var(--t-flip) var(--e-land);
 }
-.cmark.is-in{ opacity:1; transform:none; }
+.cmark:not(.is-in){ transform:rotate(-1.6deg) translateY(-6px) scale(.94); }
+.cmark.is-in{ opacity:1; }
 .cmark--ok { --cm:var(--verdict-correct); }
 .cmark--sur{ --cm:var(--verdict-surprise); }
 /* the neutral dot is gone — the avatar is the thing on the leading edge
