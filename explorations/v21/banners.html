@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>v21 — the round banner</title>
+<link rel="stylesheet" href="../v16/prototype/hachach.css">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#8E8C86;font-family:system-ui,"Segoe UI",Arial,sans-serif;
+       -webkit-font-smoothing:antialiased;color:#131310}
+  .page{max-width:1600px;margin:0 auto;padding:28px 20px 90px}
+  h1{font-family:var(--font-display);font-size:26px;margin:0 0 6px}
+  .lede{max-width:78ch;font-size:14px;line-height:1.6;margin:0 0 22px;color:#2A2823}
+  h2{font-family:var(--font-display);font-size:19px;margin:34px 0 4px;
+     border-top:2px solid rgba(0,0,0,.35);padding-top:14px}
+  .ask{max-width:78ch;font-size:13px;line-height:1.6;margin:0 0 14px;color:#332F29}
+  h1,h2,.lede,.ask,.note,.risk,.tag,.open,.must li,.must h3{direction:ltr;text-align:left}
+  .row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;direction:ltr}
+  .col{width:392px}
+  .tag{direction:ltr;display:inline-block;font-family:var(--font-display);font-size:11px;
+       letter-spacing:.06em;background:#FBF7EE;border-radius:5px;padding:2px 8px 3px;
+       box-shadow:0 0 0 1.5px rgba(0,0,0,.45);margin-bottom:6px}
+  .open{display:inline-block;font-family:var(--font-display);font-size:11px;letter-spacing:.06em;
+        background:#FFD60A;border-radius:5px;padding:2px 8px 3px;
+        box-shadow:0 0 0 1.5px rgba(0,0,0,.5);margin:0 0 6px 6px}
+  .note{font-size:12px;line-height:1.55;margin:8px 0 0;color:#2A2823}
+  .note b{font-family:var(--font-display)}
+  .risk{font-size:11.5px;line-height:1.5;margin:6px 0 0;color:#3A1418;
+        background:rgba(255,80,110,.20);border-radius:6px;padding:6px 8px;
+        box-shadow:inset 0 0 0 1px rgba(120,20,40,.30)}
+  .risk b{font-family:var(--font-display)}
+  .must{max-width:78ch;background:rgba(255,255,255,.40);border-radius:8px;padding:12px 16px;margin:0 0 20px}
+  .must h3{font-family:var(--font-display);font-size:13px;margin:0 0 6px}
+  .must ul{margin:0;padding-inline-start:18px}
+  .must li{font-size:12.5px;line-height:1.6}
+  code{font-family:ui-monospace,Menlo,monospace;font-size:.94em;background:rgba(255,255,255,.5);
+       padding:0 4px;border-radius:3px}
+
+  /* the strip: HUD row + banner, at 393 */
+  .fr{direction:rtl;width:392px;background:#403E3A;padding:10px 16px 16px;position:relative;
+      isolation:isolate;box-shadow:0 3px 14px rgba(0,0,0,.3)}
+  .fr::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+    background-image:radial-gradient(rgba(255,255,255,.07) .5px,transparent .6px),
+                     radial-gradient(rgba(0,0,0,.34) .5px,transparent .6px);
+    background-size:4px 4px,7px 7px;background-position:0 0,2px 3px}
+  .fr > *{position:relative;z-index:1}
+  .hud{display:flex;align-items:center;gap:8px}
+  .hud-mid{flex:1;min-width:0;display:flex;justify-content:center}
+  .hud-mid span{font-family:var(--font-display);font-weight:900;font-size:14px;white-space:nowrap;color:#EFECE4}
+  .hud-right{flex:none;width:40px;height:40px;display:grid;place-items:center}
+  .hud-coins{direction:ltr;border-radius:999px}
+  .bnr{margin-top:8px;min-height:44px;display:flex;align-items:center;gap:9px}
+  .lbl{direction:ltr;font-size:10.5px;font-weight:700;color:#B9B4A8;margin:10px 0 2px}
+
+  .av{width:28px;height:28px;border-radius:50%;background:#C9BFA6;flex:none;
+      box-shadow:0 0 0 2px #fff}
+  .av--ink{box-shadow:0 0 0 2px rgba(19,19,16,.72)}
+  .vt{font-family:var(--font-display);font-weight:900;font-size:20px}
+  .cap{font-size:13px;font-weight:700;opacity:.8}
+  .dot{width:11px;height:11px;border-radius:50%;background:var(--ink);flex:none}
+
+  /* ---- the five treatments ---- */
+  /* 1 · current: full-width light fill + neon ring */
+  .t1{padding-inline:12px;border-radius:var(--r-chip);background:rgba(251,247,238,.72);
+      box-shadow:0 0 0 2px #37C4FF,0 0 9px 0 rgba(55,196,255,.55),0 0 20px 0 rgba(55,196,255,.22),
+                 inset 0 0 0 1px rgba(255,255,255,.55);color:var(--ink)}
+  /* 2 · sized to contents, solid paper, no neon, hard keyline */
+  .t2{width:fit-content;padding:6px 14px 7px;border-radius:999px;background:var(--paper);
+      color:var(--ink);box-shadow:0 0 0 2px var(--keyline),0 3px 0 rgba(0,0,0,.34)}
+  /* 3 · sized to contents, dark fill, accent underline only */
+  .t3{width:fit-content;padding:7px 14px 8px;border-radius:12px;background:#211F1B;color:#EFECE4;
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.10),0 2px 0 rgba(55,196,255,.9)}
+  /* 4 · no band at all — objects on the ground */
+  .t4{background:none;box-shadow:none;padding:0}
+  .t4 .vt{color:#EFECE4}
+  .t4 .cap{color:#B9B4A8}
+  /* 5 · sticker: skewed paper, die-cut, no neon */
+  .t5{width:fit-content;padding:6px 15px 7px;background:var(--paper);color:var(--ink);
+      transform:rotate(-1.6deg);border:3px solid #fff;border-radius:11px;
+      box-shadow:0 0 0 2px var(--keyline),0 4px 0 rgba(0,0,0,.34)}
+  .t5b{transform:rotate(1.2deg)}
+
+  .mk{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:4px 13px 5px 5px;
+      font-family:var(--font-display);font-weight:900;font-size:15px;color:var(--ink);
+      box-shadow:0 0 0 2px rgba(0,0,0,.5),0 3px 0 rgba(0,0,0,.32)}
+  .mk--ok{background:#B6E521} .mk--sur{background:#FF3BC0}
+  .mk .av{width:26px;height:26px}
+  .ph{display:inline-block;background:repeating-linear-gradient(45deg,#FFE03D 0 8px,#FFD60A 8px 16px);color:#131310;border:2px dashed #131310;border-radius:4px;font-weight:900;font-family:var(--font-display)}
+</style>
+</head>
+<body>
+<div class="page">
+<h1>v21 &mdash; the round banner</h1>
+<p class="lede">
+Five treatments, each drawn with <b>both</b> contents it has to hold: the beat-1 correctness chip
+and the beats 2&ndash;5 pinned vote. Strips are 392px wide on the prototype's own ground, HUD row
+included so the 8px clearance is visible. <b>Nothing here is implemented. All OPEN.</b>
+</p>
+
+<div class="must">
+  <h3>What is wrong with the one treatment they currently share</h3>
+  <ul>
+    <li>The band is <b>full width with a lot of empty grey</b> — on beat 1 it is 361px holding one
+        119px chip, so it is 67% void.</li>
+    <li>The <b>neon outline reads as a container</b>, not as an object: a lit rectangle around
+        mostly nothing looks like a frame waiting to be filled.</li>
+    <li>The two contents have <b>different jobs and the same box</b>. One is a result about the
+        player; the other is the player's position, which is never right or wrong.</li>
+  </ul>
+  <h3 style="margin-top:12px">Binding on every option</h3>
+  <ul>
+    <li><b>&ge;8px from the HUD.</b> Already applied in the build regardless of what is picked here.</li>
+    <li>The beat-1 chip must read as <b>the player's result</b>. On a &#1513;&#1511;&#1512; round a
+        lime chip beside a false claim currently reads as approval of the claim — which is why the
+        avatar is in it in every option below.</li>
+    <li>The pinned vote <b>must never look scored</b>. No verdict hue, no tick, no comparison
+        anywhere near it.</li>
+  </ul>
+</div>
+
+<h2>The five</h2>
+<div class="row">
+
+  <div class="col"><span class="tag">B-1 &middot; as built</span><span class="open">OPEN</span>
+    <p class="lbl">BEAT 1 &mdash; correctness</p>
+    <div class="fr"><header class="hud"><span class="hud-right"><button class="ib-b">&#10005;</button></span>
+      <span class="hud-mid"><span>&#1495;&#1493;&#1511; &#1492;&#1490;&#1497;&#1493;&#1505;</span></span>
+      <span class="h-a hud-coins"><span style="color:var(--primary)">&#9679;</span>25</span></header>
+      <div class="bnr t1" style="justify-content:center;background:none;box-shadow:none">
+        <span class="mk mk--sur"><span class="av"></span>&#1492;&#1493;&#1508;&#1514;&#1506;&#1514;&#1501;</span>
+      </div></div>
+    <p class="lbl">BEATS 2&ndash;5 &mdash; pinned vote</p>
+    <div class="fr"><header class="hud"><span class="hud-right"><button class="ib-b">&#10005;</button></span>
+      <span class="hud-mid"><span>&#1495;&#1493;&#1511; &#1492;&#1490;&#1497;&#1493;&#1505;</span></span>
+      <span class="h-a hud-coins"><span style="color:var(--primary)">&#9679;</span>25</span></header>
+      <div class="bnr t1"><span class="av av--ink"></span>
+        <span class="cap">&#1492;&#1510;&#1489;&#1506;&#1514;:</span><span class="vt">&#1489;&#1506;&#1491;</span></div></div>
+    <p class="note"><b>Diverges.</b> Beat 1 already drops the band (that shipped last pass);
+    beats 2&ndash;5 keep the full-width light fill and the neon ring.</p>
+    <p class="risk"><b>Risk:</b> the pinned banner is still 67% empty and the neon still reads as a
+    container. This is the baseline the other four are measured against, not a recommendation.</p>
+  </div>
+
+  <div class="col"><span class="tag">B-2 &middot; sized to contents, paper</span><span class="open">OPEN</span>
+    <p class="lbl">BEAT 1</p>
+    <div class="fr"><header class="hud"><span class="hud-right"><button class="ib-b">&#10005;</button></span>
+      <span class="hud-mid"><span>&#1495;&#1493;&#1511; &#1492;&#1490;&#1497;&#1493;&#1505;</span></span>
+      <span class="h-a hud-coins"><span style="color:var(--primary)">&#9679;</span>25</span></header>
+      <div class="bnr" style="justify-content:center">
+        <span class="mk mk--sur"><span class="av"></span>&#1492;&#1493;&#1508;&#1514;&#1506;&#1514;&#1501;</span></div></div>
+    <p class="lbl">BEATS 2&ndash;5</p>
+    <div class="fr"><header class="hud"><span class="hud-right"><button class="ib-b">&#10005;</button></span>
+      <span class="hud-mid"><span>&#1495;&#1493;&#1511; &#1492;&#1490;&#1497;&#1493;&#1505;</span></span>
+      <span class="h-a hud-coins"><span style="color:var(--primary)">&#9679;</span>25</span></header>
+      <div class="bnr"><span class="t2" style="display:inline-flex;align-items:center;gap:8px">
+        <span class="av av--ink"></span><span class="cap">&#1492;&#1510;&#1489;&#1506;&#1514;:</span>
+        <span class="vt">&#1489;&#1506;&#1491;</span></span></div></div>
+    <p class="note"><b>Shared treatment, no neon.</b> Both are pills sized to their contents on the
+    ground; the only difference between them is fill colour, which is the difference in meaning.</p>
+    <p class="note">The void problem disappears by construction — a pill cannot be empty. The
+    accent budget goes back to the CTA and the map's next-up pulse.</p>
+    <p class="risk"><b>Risk:</b> the pinned vote in paper-on-charcoal is the same construction as
+    a <code>.v-a</code> vote chip, and it sits directly above the card where those chips live. It
+    may read as a control the player can press.</p>
+  </div>
+
+  <div class="col"><span class="tag">B-3 &middot; dark fill, accent underline</span><span class="open">OPEN</span>
+    <p class="lbl">BEAT 1</p>
+    <div class="fr"><header class="hud"><span class="hud-right"><button class="ib-b">&#10005;</button></span>
+      <span class="hud-mid"><span>&#1495;&#1493;&#1511; &#1492;&#1490;&#1497;&#1493;&#1505;</span></span>
+      <span class="h-a hud-coins"><span style="color:var(--primary)">&#9679;</span>25</span></header>
+      <div class="bnr" style="justify-content:center">
+        <span class="mk mk--sur"><span class="av"></span>&#1492;&#1493;&#1508;&#1514;&#1506;&#1514;&#1501;</span></div></div>
+    <p class="lbl">BEATS 2&ndash;5</p>
+    <div class="fr"><header class="hud"><span class="hud-right"><button class="ib-b">&#10005;</button></span>
+      <span class="hud-mid"><span>&#1495;&#1493;&#1511; &#1492;&#1490;&#1497;&#1493;&#1505;</span></span>
+      <span class="h-a hud-coins"><span style="color:var(--primary)">&#9679;</span>25</span></header>
+      <div class="bnr"><span class="t3" style="display:inline-flex;align-items:center;gap:8px">
+        <span class="av"></span><span class="cap">&#1492;&#1510;&#1489;&#1506;&#1514;:</span>
+        <span class="vt">&#1489;&#1506;&#1491;</span></span></div></div>
+    <p class="note"><b>The accent survives as an edge, not a ring.</b> One 2px cyan rule along the
+    bottom of the pinned banner — lit, but it cannot read as a container because it does not
+    enclose anything.</p>
+    <p class="risk"><b>Risk:</b> a dark pill on a dark ground is the quietest option here, and the
+    pinned vote is meant to persist for four beats. If it recedes too far the 121st-MK conceit
+    stops being visible at exactly the point the game is making it.</p>
+  </div>
+
+  <div class="col"><span class="tag">B-4 &middot; no band at all</span><span class="open">OPEN</span>
+    <p class="lbl">BEAT 1</p>
+    <div class="fr"><header class="hud"><span class="hud-right"><button class="ib-b">&#10005;</button></span>
+      <span class="hud-mid"><span>&#1495;&#1493;&#1511; &#1492;&#1490;&#1497;&#1493;&#1505;</span></span>
+      <span class="h-a hud-coins"><span style="color:var(--primary)">&#9679;</span>25</span></header>
+      <div class="bnr t4" style="justify-content:center">
+        <span class="mk mk--sur"><span class="av"></span>&#1492;&#1493;&#1508;&#1514;&#1506;&#1514;&#1501;</span></div></div>
+    <p class="lbl">BEATS 2&ndash;5</p>
+    <div class="fr"><header class="hud"><span class="hud-right"><button class="ib-b">&#10005;</button></span>
+      <span class="hud-mid"><span>&#1495;&#1493;&#1511; &#1492;&#1490;&#1497;&#1493;&#1505;</span></span>
+      <span class="h-a hud-coins"><span style="color:var(--primary)">&#9679;</span>25</span></header>
+      <div class="bnr t4"><span class="av"></span>
+        <span class="cap">&#1492;&#1510;&#1489;&#1506;&#1514;:</span><span class="vt">&#1489;&#1506;&#1491;</span></div></div>
+    <p class="note"><b>The avatar and the words sit straight on the ground.</b> No fill, no edge,
+    no accent &mdash; the banner stops being an object and becomes a line of the round's chrome,
+    like the HUD above it.</p>
+    <p class="risk"><b>Risk:</b> it can never look scored, which is the pinned vote's hardest
+    requirement, but it also loses the thing that made the banner feel like the player's own
+    artefact. And it has no home for the beat-1 chip except floating, which is close to what is
+    being complained about now.</p>
+  </div>
+
+  <div class="col"><span class="tag">B-5 &middot; sticker, skewed</span><span class="open">OPEN</span>
+    <p class="lbl">BEAT 1</p>
+    <div class="fr"><header class="hud"><span class="hud-right"><button class="ib-b">&#10005;</button></span>
+      <span class="hud-mid"><span>&#1495;&#1493;&#1511; &#1492;&#1490;&#1497;&#1493;&#1505;</span></span>
+      <span class="h-a hud-coins"><span style="color:var(--primary)">&#9679;</span>25</span></header>
+      <div class="bnr" style="justify-content:center">
+        <span class="mk mk--sur" style="transform:rotate(-1.6deg);border:3px solid #fff;padding:4px 13px 5px 5px">
+          <span class="av"></span>&#1492;&#1493;&#1508;&#1514;&#1506;&#1514;&#1501;</span></div></div>
+    <p class="lbl">BEATS 2&ndash;5</p>
+    <div class="fr"><header class="hud"><span class="hud-right"><button class="ib-b">&#10005;</button></span>
+      <span class="hud-mid"><span>&#1495;&#1493;&#1511; &#1492;&#1490;&#1497;&#1493;&#1505;</span></span>
+      <span class="h-a hud-coins"><span style="color:var(--primary)">&#9679;</span>25</span></header>
+      <div class="bnr"><span class="t5 t5b" style="display:inline-flex;align-items:center;gap:8px">
+        <span class="av av--ink"></span><span class="cap">&#1492;&#1510;&#1489;&#1506;&#1514;:</span>
+        <span class="vt">&#1489;&#1506;&#1491;</span></span></div></div>
+    <p class="note"><b>The sticker language the rest of the app already speaks.</b> Sized to
+    contents, white die-cut, keyline, flat extrusion, slightly off-square &mdash; the same
+    construction as the ask sticker, the map nodes and the modals. <b>This is also the one that
+    makes &sect;5's callout trivial</b>: the tachles callout is specified as a sibling of the
+    banner, and a skewed sticker over the chair is exactly that.</p>
+    <p class="risk"><b>Risk:</b> the skew is charming once and may wear over eleven issues, since
+    this element is on screen for four of the five beats. And two skewed stickers &mdash; this and
+    the ask sticker on the card below it &mdash; may be one tilt too many in one column.</p>
+  </div>
+</div>
+
+
+<h2>&sect;5 &middot; the tachles callout, and the move into the cascade</h2>
+<p class="ask">
+<b>Blocked on the choice above</b>, and only for its edge: the callout is specified as a sibling of
+the banner, so it inherits whichever fill and accent wins. Everything else &mdash; the geometry, the
+sequence and the timings &mdash; is independent and is proposed here. Drawn with B-5's sticker
+treatment because that is the option under which the callout costs nothing extra.
+</p>
+
+<div class="must">
+  <h3>The callout</h3>
+  <ul>
+    <li>Sits <b>over the lower part of the chair</b> rather than in a plain plate under it, skewed
+        ~1.6&deg;, same die-cut and keyline as the banner it will become.</li>
+    <li>Copy unchanged: &#1494;&#1493; &#1492;&#1510;&#1506;&#1514; &#1495;&#1493;&#1511; &#1488;&#1502;&#1497;&#1514;&#1497;&#1514;.
+        &#1499;&#1495;&#8221;&#1499; &#1492;-121, &#1488;&#1514;&#1501; &#1502;&#1510;&#1489;&#1497;&#1506;&#1497;&#1501; &#1489;&#1502;&#1500;&#1497;&#1488;&#1492; &mdash;
+        &#1493;&#1488;&#1494; &#1504;&#1512;&#1488;&#1492; &#1488;&#1497;&#1498; &#1492;&#1510;&#1489;&#1497;&#1506;&#1493; &#1492;&#1488;&#1495;&#1512;&#1497;&#1501;.</li>
+    <li><b>It is the same object that becomes the banner</b> &mdash; not a plate that fades out and a
+        banner that fades in. That identity is the whole reason the sequence reads as one move.</li>
+  </ul>
+  <h3 style="margin-top:12px">Proposed timings &mdash; 1,720ms end to end</h3>
+  <ul>
+    <li><b>1 &middot; the letters fly &mdash; 0&rarr;340ms.</b> The chosen chip's label detaches and
+        travels to the callout on <code>--e-in</code>; the two unchosen chips recede to .3 over the
+        first 160ms so nothing else is moving when the letters arrive.</li>
+    <li><b>2 &middot; the avatar joins &mdash; 180&rarr;480ms.</b> Overlaps step 1 by 160ms
+        deliberately. It flies from the HUD's avatar slot, arriving 140ms after the letters so the
+        pair assembles rather than lands together.</li>
+    <li><b>3 &middot; the callout resolves &mdash; 480&rarr;740ms.</b> The framing text
+        cross-fades out over 140ms while the sticker contracts to
+        <code>[avatar] &#1492;&#1510;&#1489;&#1506;&#1514;: &#1489;&#1506;&#1491;</code> &mdash; a width
+        transition on the same element, so it is one object changing rather than two swapping.</li>
+    <li><b>4 &middot; it travels to the pin &mdash; 740&rarr;1,120ms.</b> 380ms on
+        <code>--e-settle</code>, the longest single step, because this is the move the player is
+        meant to follow.</li>
+    <li><b>5 &middot; the next screen enters behind it &mdash; 900&rarr;1,300ms.</b> Starts while the
+        banner is still travelling. The cascade comes up at scale .97 with a 10px blur that clears
+        over 400ms. <b>The banner holds z-index above every layer for the whole transition</b>,
+        including the blur layer &mdash; the one thing that must not go wrong.</li>
+    <li><b>6 &middot; the tap affordance &mdash; from 1,300ms.</b> The blur does <b>not</b> fully
+        clear: it settles at 3px and holds. A
+        <span class="ph" style="padding:0 5px">[&#1496;&#1511;&#1505;&#1496; &mdash; &#1514;&#1502;&#1512;]</span>
+        line and a slow 2.4s pulse on the deck say the screen is waiting. Tapping anywhere clears
+        the last 3px over 220ms and arms the cascade.</li>
+  </ul>
+  <h3 style="margin-top:12px">The two things to get right</h3>
+  <ul>
+    <li><b>The banner above every layer.</b> It has to outrank the incoming screen, the blur and the
+        HUD for the whole 1,720ms. In the current DOM the chyron is inside
+        <code>#scRound</code>, which <code>showScreen()</code> hides &mdash; so the transition
+        cannot be built by swapping screens underneath it. The banner has to be promoted out of the
+        screen it lives in, or the two screens have to co-exist for the duration. <b>That is a
+        structural change and it is the real cost of &sect;5</b>, not the animation.</li>
+    <li><b>Step 6 must not read as dead.</b> A fully-cleared blur with nothing moving is a screen
+        that looks finished and isn't. Holding 3px of blur is what keeps it legibly a waiting
+        state, and the pulse is what makes the wait an invitation.</li>
+  </ul>
+</div>
+
+<h2>Where this leaves things</h2>
+<div class="must">
+  <ul>
+    <li><b>Four of the five size the banner to its contents.</b> That is the single change that
+        removes the void, and it is independent of fill and accent — worth deciding first.</li>
+    <li><b>The neon survives in one option only</b> (B-3, as an edge rather than a ring). If it goes
+        entirely, <code>#37C4FF</code> returns to the glossary and is free for other uses.</li>
+    <li><b>The avatar is in the beat-1 chip in every option.</b> That is not a variable — it is what
+        stops a lime chip beside a &#1513;&#1511;&#1512; claim reading as approval of the claim.</li>
+    <li><b>&sect;5 is blocked on this.</b> The tachles callout inherits whichever edge treatment is
+        chosen; B-5 makes it a one-line change, B-4 leaves the callout with no family to belong to.</li>
+  </ul>
+</div>
+<p class="lede" style="margin-top:18px"><b>Nothing here is implemented. All OPEN.</b></p>
+</div>
+</body>
+</html>

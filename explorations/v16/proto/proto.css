@@ -80,6 +80,17 @@
      land as its own event before the verdict arrives on top of it — with
      no gap the stamp reads as part of the tap. */
   --t-claim-beat: 400ms;
+  /* §6c · the seat fill. 2.15s of travel plus a 340ms stop on the seat
+     that crosses 61 — about 2.5s end to end, at the top of the brief's
+     1.8-2.5s window because the majority beat is time the eye spends on
+     one square rather than on the fill. */
+  --t-seat-fill:  2150ms;
+  --t-seat-cross:  340ms;
+  /* §0 · the two gaps that separate the reveal's three movements. Unequal
+     on purpose: an even rhythm reads as a loading sequence, an uneven one
+     reads as staging. */
+  --t-mark-gap:  120ms;
+  --t-panel-gap: 160ms;
   /* A-1 · THE PEEL. Three phases, all CSS.
      --t-peel      the sheet lifting and curling off the party line. 620ms
                    is slow enough to read as a physical action and short
@@ -337,17 +348,10 @@ body{
 /* §3.3 the ✕ — a third way to stay, and the one that costs nothing to
    reach because it is where the ✕ that opened this already was. Inset so
    it clears the die-cut border rather than sitting on it. */
-/* PHYSICALLY RIGHT, not inline-end. §3.3 says top-right and the app's own
-   ✕ — the one in the HUD that opened this — is physically top-right too.
-   inset-inline-end resolves to the LEFT under dir=rtl, which would have
-   put the modal's close on the opposite side of the screen from the close
-   the player just pressed. */
-.exitsheet__x{
-  position:absolute; right:4px; left:auto; top:4px; z-index:2;
-  width:40px; height:40px; border:0; background:none; cursor:pointer;
-  font-size:18px; line-height:1; color:var(--ink); opacity:.6;
-}
-.exitsheet__x:active{ opacity:1; }
+/* the exit confirm's ✕ is the SAME COMPONENT as the modals' — see the
+   shared rules under .stmodal__x. Physically right, not inline-end:
+   inset-inline-end resolves LEFT under dir=rtl, which would put it on the
+   opposite side from the HUD ✕ that opened it. */
 /* §3.3 THE QUESTION IS BLACK AND IT IS A QUESTION. It used to be one
    string carrying the question and the consequence at once, at
    --ink-faint's weight, which made the thing being agreed to read as
@@ -361,7 +365,26 @@ body{
   margin:-4px 0 0; font-size:var(--fs-meta); font-weight:700;
   line-height:1.4; color:var(--ink-soft); text-align:start;
 }
-.exitsheet__row{ display:flex; flex-direction:column; gap:8px; }
+/* §1b · EQUAL HEIGHTS AND A REAL GAP. .p-c is min-height:56px and .r-b is
+   52px, so the yellow was 4px taller than the outline and the pair read as
+   primary-plus-afterthought rather than as two choices. I kept 56 — the
+   PRIMARY's height is the one tuned against every other primary in the
+   app, and shrinking it here would make this the one 52px primary in the
+   build; raising the outline costs nothing.
+   The gap goes 8 -> 14px: at 8 the two boxes were nearly flush and read as
+   a segmented control, which is the wrong affordance for a destructive
+   confirm where the two options are opposites. */
+.exitsheet__row{ display:flex; flex-direction:column; gap:14px; }
+/* min-height is not what was making them unequal — both already had 56 and
+   both already exceeded it. The heights come from the TYPE: .p-c is 25px
+   (--fs-action) and .r-b is 17px (--fs-body), which put them at 70 and 61.
+   The type sizes are system tokens and are not this modal's to change, so
+   the fix is an explicit shared height with the label centred in it. */
+.exitsheet__row > *{
+  min-height:70px;
+  display:flex; align-items:center; justify-content:center;
+  padding-block:0;
+}
 /* R-B IS BUILT FOR THE DARK GROUND. hachach.css draws it as
    `color:var(--paper); background:transparent; box-shadow:inset 0 0 0 2.5px
    var(--paper)` — cream type in a cream outline, which is correct on the
@@ -534,9 +557,19 @@ body.no-ph [data-ph]{ display:none !important; }
 }
 .b1card.is-dragging{ transition:none; }
 .b1card.is-snapping{ transition:transform var(--t-snapback) var(--e-settle); }
-/* ONE class drives the exit, so a tap and a swipe leave identically */
-.b1card.is-leaving{ transition:transform var(--t-swipe) var(--e-out),
-                                opacity var(--t-swipe) linear; }
+/* §3 · THE CARD IS THROWN, AND IT IS THE DECK'S OWN THROW. It used to
+   travel on --t-swipe 220ms with --e-out — a DECELERATING curve, which is
+   the ease for something arriving — while fading 1 -> 0 linearly across
+   the whole flight, so it was half transparent by the time it had crossed
+   half the screen. That reads as vanishing, not as being thrown.
+   It now uses exactly what .deckcard.is-leaving uses when a resolved MK
+   card is swiped off in the cascade: --t-card-exit 320ms on --e-in, the
+   accelerating curve, and it fades only to .2 and only over the last
+   100ms, so the object is opaque for two thirds of its travel and leaves
+   the frame rather than dissolving in it. One throw in the round, not
+   two. */
+.b1card.is-leaving{ transition:transform var(--t-card-exit) var(--e-in),
+                                opacity 100ms linear 220ms; }
 
 /* §1.3 · THE GRAPHIC USES THE ROOM, AND IT IS THE THING THAT YIELDS.
    The card is 620px and the art had a flat 210px floor with the claim
@@ -1160,11 +1193,13 @@ body.no-ph [data-ph]{ display:none !important; }
   background:#15130F; border-radius:14px; padding:12px 12px 10px;
   box-shadow:inset 0 0 0 2px rgba(255,255,255,.10), 0 4px 0 rgba(0,0,0,.4);
 }
-/* 15 x 8 = 120. The rectangle is arbitrary ON PURPOSE — see the note in
-   seatBoard(). fr columns rather than a fixed block size so the grid fills
-   the width it is given at 360, 393 and 430 rather than being tuned to one. */
+/* §6d · 11 x 11 = 121, SQUARE. The old 15 x 8 was wide and squat, which is
+   what made the blocks small — a square grid at the same width gives cells
+   half again as big. It is still an ARBITRARY arrangement and not a
+   seating chart: no grouping by party, no hemicycle, no claim about where
+   anyone sits. What 11 x 11 does carry is the number itself. */
 .b5seats{
-  display:grid; grid-template-columns:repeat(15, 1fr); gap:var(--seat-gap);
+  display:grid; grid-template-columns:repeat(11, 1fr); gap:var(--seat-gap);
 }
 .seat{
   display:block; aspect-ratio:1; border-radius:2.5px;
@@ -1174,22 +1209,42 @@ body.no-ph [data-ph]{ display:none !important; }
 .seat.is-for{ background:var(--seat-for); }
 .seat.is-ag { background:var(--seat-ag); }
 
-/* THE 121st, ON ITS OWN ROW. Round where every other block is square, the
-   only one with a keyline, and set apart under the 120 — three signals, so
-   it survives the empty state where colour says nothing. */
-.b5me{
-  display:flex; align-items:center; justify-content:center; gap:7px;
-  margin-top:10px; padding-top:9px;
-  border-top:1px solid rgba(255,255,255,.10);
-}
+/* §6a · THE 121st SEAT, IN THE GRID, AT ITS CENTRE. Round where every
+   other cell is square, the only one with a keyline, and the only one
+   that never takes a side colour — three signals, so it holds in the
+   empty state too, where colour says nothing at all. It occupies a real
+   cell of the 121, which is the entire point of the option. */
 .seat--me{
-  width:calc((100% - 14 * var(--seat-gap)) / 15 * 1.3);
-  min-width:17px; max-width:26px;
-  border-radius:50%; background:var(--primary);
-  box-shadow:0 0 0 2px var(--edge), 0 0 0 3.4px rgba(0,0,0,.45);
-  transition:none;
+  border-radius:50%;
+  background:var(--primary);
+  box-shadow:0 0 0 2px var(--edge), 0 0 0 3.4px rgba(0,0,0,.55);
+  transition:none; z-index:2;
 }
-.b5me__lab{ font-size:11.5px; font-weight:700; color:#8E897C; }
+.b5me__lab{
+  margin:9px 0 0; text-align:center;
+  font-size:11.5px; font-weight:700; color:#8E897C;
+}
+/* the label points at the seat rather than replacing it */
+.b5me__lab::before{
+  content:""; display:inline-block; vertical-align:-1px;
+  width:9px; height:9px; margin-inline-end:6px; border-radius:50%;
+  background:var(--primary); box-shadow:0 0 0 1.5px var(--edge);
+}
+
+/* §6c · THE MAJORITY LINE. The seat that takes the count past 61 is the
+   one instant on this screen that means "the bill passed", and nothing
+   marked it before. It gets a ring, a short pulse, and the whole fill
+   stops for 340ms while it lands. */
+.seat.is-cross{
+  box-shadow:0 0 0 2px var(--edge), 0 0 0 4px rgba(0,0,0,.5),
+             0 0 12px 2px rgba(255,214,10,.55);
+  animation:seat-cross 340ms var(--e-land) both; z-index:3;
+}
+@keyframes seat-cross{
+  0%  { transform:scale(1) }
+  38% { transform:scale(1.55) }
+  100%{ transform:scale(1) }
+}
 
 /* the numerals stay, and they are SECONDARY — the grid is the payload, so
    they sit under it at a size that reads as a caption on the picture
@@ -1293,7 +1348,12 @@ body.no-ph [data-ph]{ display:none !important; }
 .chyron{
   position:relative; z-index:12; flex:none;
   display:flex; align-items:center; gap:var(--sp-2);
-  min-height:44px; margin-bottom:var(--sp-2);
+  /* §2 · AT LEAST 8px OFF THE HUD, at every width. The band was flush
+     against the HUD row — .hud has its own bottom padding but the chyron
+     had no top margin, so on the beats where the band is filled the two
+     read as one stacked object. margin-top, not a gap on the parent,
+     because .sc-round's other children must not gain the same space. */
+  min-height:44px; margin-top:8px; margin-bottom:var(--sp-2);
   color:var(--ink);
 }
 /* THE BOX IS RESERVED IN ALL THREE STATES. Only the contents change,
@@ -1666,9 +1726,27 @@ body.no-ph [data-ph]{ display:none !important; }
    closed up by 2px when the overhang went, so the margin has to make up
    the difference as well as grow. Board: 132 - (24.5+76+7) + 2 = 26.5px.
    Now: 130 - (17.5+87+8) + 13 = 30.5px, which is 26.5 x 1.15. */
+/* §0b · THE SAME LIFT THE INTRO TAGLINE GOT, for the same reason and by
+   the same mechanism. On flat charcoal this type was fine; §3.2's warm
+   gradient put the labels over ground that runs to #F2B33C at the foot of
+   the map, and #EFECE4 on that is nearly invisible. Two blurred black
+   layers, no 0-blur term and no colour, so it is lift and never an
+   outline or a glow. The status line gets it too and needs it more — it
+   is smaller and it is --ink-faint rather than white. */
 .node-name{ margin-top:13px; font-size:16px; line-height:1.2; text-align:center;
-  color:#EFECE4; font-family:var(--font-display); font-weight:900; }
-.node-status{ font-size:13px; font-weight:700; color:var(--ink-faint); }
+  color:#EFECE4; font-family:var(--font-display); font-weight:900;
+  text-shadow:0 1px 4px rgba(0,0,0,.92), 0 2px 14px rgba(0,0,0,.78); }
+/* THE STATUS LINE IS ALSO RE-INKED, and it had to be. --ink-faint is
+   #BEB9AC — a light grey chosen for a dark ground — and on the gradient's
+   light end it starts at 1.24:1, which no shadow can rescue: a shadow
+   raises contrast by darkening what is BEHIND the glyph, and there is a
+   limit to how much of a light ground a blur can darken before it reads
+   as a plate. #E4DFD3 gives the shadow something to work with while
+   staying clearly subordinate to the 16px display name above it.
+   Measured ceiling for this mechanism is in the report — it clears
+   AA-Large but not AA at the very foot of the map. */
+.node-status{ font-size:13px; font-weight:700; color:#E4DFD3;
+  text-shadow:0 1px 4px rgba(0,0,0,.92), 0 2px 14px rgba(0,0,0,.78); }
 
 /* ---- the node itself ----------------------------------------------
    THE RING IS A SEPARATE ELEMENT BEHIND THE NODE and nothing the node
@@ -1933,9 +2011,34 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
    over the artwork, which is what a stamp on a document does.
    It is smaller than the cascade's 190px on purpose: at 190 nothing fits
    in that band at any offset. */
+/* §0 · THE STAMP STRIKES THE CARD. d2-land was already running, so the
+   fault was not a missing animation — it was the EASE. --e-land is
+   cubic-bezier(.2,.9,.25,1), which front-loads: measured frame by frame,
+   the disc reached final scale at 134ms of a 190ms fall and the overshoot
+   peaked near 1.036 instead of 1.06. It arrived rather than landed.
+   Same keyframe, re-cut with a per-phase timing function over a linear
+   base, so each stated duration is the duration it takes:
+     0 -> 190ms    scale 1.8 -> 1.0, ACCELERATING, like a thing falling
+     190 -> 252ms  overshoot to 1.06, the rebound off the card
+     252 -> 340ms  settle to 1.0
+   Opacity is up by 20ms so the disc is never a ghost mid-fall. The card's
+   3px jolt is hachach.css's own d2-jolt at --t-stamp-drop, so it fires on
+   the frame the disc hits. */
 .d2--claim{
   top:20px; left:-26px; z-index:12;
   width:136px; height:136px;
+  animation:d2-claim-land var(--t-stamp) linear both;
+}
+@keyframes d2-claim-land{
+  0%   { transform:scale(1.8); opacity:0;
+         animation-timing-function:cubic-bezier(.5,0,.75,.2) }
+  6%   { opacity:1;
+         animation-timing-function:cubic-bezier(.5,0,.75,.2) }
+  56%  { transform:scale(1);
+         animation-timing-function:cubic-bezier(.25,.9,.35,1) }
+  74%  { transform:scale(1.06);
+         animation-timing-function:cubic-bezier(.35,0,.45,1) }
+  100% { transform:scale(1) }
 }
 .d2--claim .d2__word{ font-size:34px; }
 /* ACHROMATIC. .d2 normally mixes --d2-ink at --verdict-wash over the
@@ -1956,7 +2059,7 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
 }
 .d2--neutral .d2__art circle{ stroke:var(--ink); }
 .d2--claim.is-leaving{
-  transition:transform var(--t-swipe) var(--e-in), opacity var(--t-swipe) linear;
+  transition:transform var(--t-card-exit) var(--e-in), opacity 100ms linear 220ms;
 }
 
 /* ---- the correctness chip, in the chyron slot ----------------------
@@ -1999,35 +2102,22 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
    issues — and does not fit at a legible size on a 360px phone. The CTA
    is a sibling of the scroller, not inside it, so it can never be
    scrolled out of reach. */
-/* §4b · THE CARD LIFTS AND THE PANEL TAKES THE ROOM UNDER IT.
-   .cardwrap becomes a flex column for the duration of the reveal; the
-   card gives up its 620px min-height and becomes exactly its own content,
-   so the graphic and the claim are the whole card and nothing covers
-   either.
-   THE DECK GOES, IT IS NOT DIMMED. .deckcard is position:absolute inset:0
-   and still 620px tall, so at any opacity above zero a card back sat
-   BEHIND the panel and the button and the composition read as one tall
-   card with things printed on it rather than as a card, a panel and a
-   control. It comes back the moment .is-revealing is removed, which is
-   the same tick the claim card leaves. */
-.cardwrap.is-revealing{ display:flex; flex-direction:column; }
-.b1card.is-revealing{ min-height:0; flex:none; }
-.cardwrap.is-revealing .pile,
-.cardwrap.is-revealing .deckcard{ opacity:0; transition:opacity var(--t-flip) linear; }
-
-/* flex:0 1 auto, not 1 1 auto — the panel is as tall as its text and no
-   taller. Stretched to fill, a short explanation (r1 is four lines) left a
-   large empty dark box between the card and the button. It still SHRINKS
-   when it has to, and .creveal__scroll takes over from there, which is
-   what keeps e3's 280 characters inside the same box. */
+/* §0 · THE CARD DOES NOT RESIZE. REVERTED, and the causal chain is worth
+   writing down: the last pass dropped .b1card's 620px min-height so the
+   card shrank to its content and the panel could sit below it. That did
+   two things at once — the card visibly changed height on answering, and
+   shrinking it EXPOSED THE DECK'S CARD BACK behind it, so the Knesset
+   building appeared under the claim. One cause, two symptoms; fixing only
+   the visible half would have brought the other half back.
+   The height is restored, the deck is untouched, and the panel is a SHEET
+   over the card's foot again rather than a block under it. */
 .creveal__exp{
-  position:relative; z-index:14; flex:0 1 auto; min-height:0;
-  margin-top:10px;
-  display:flex; flex-direction:column;
-  padding:var(--sp-3);
-  border-radius:var(--r-chip);
+  position:absolute; left:0; right:0; bottom:0; z-index:14;
+  max-height:62%;
+  display:flex; flex-direction:column; gap:var(--sp-3);
+  padding:var(--sp-3) var(--sp-3) calc(var(--sp-3) + 2px);
   background:#211F1B;
-  box-shadow:0 3px 0 rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.07);
+  box-shadow:0 -3px 0 rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.06);
   opacity:0; transform:translateY(18px);
   transition:opacity var(--t-flip) var(--e-out), transform var(--t-flip) var(--e-settle);
 }
@@ -2040,24 +2130,17 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
   margin:0; font-size:15.5px; font-weight:700; line-height:1.5;
   color:#EFECE4; text-align:start; text-wrap:pretty;
 }
-/* §4e · הלאה IS THE CONTROL THAT ADVANCES THE ROUND, so it is sized like
-   one. It used to be a 97px pill in the bottom-right corner INSIDE the
-   dark panel, which is where a footnote goes. It is now a sibling of the
-   panel rather than a child — full width, on the ground beneath the
-   explanation, at the same weight as any other primary in the app. */
-/* position+z-index are load-bearing: .deckcard is absolute at z-index 1-2
-   inside the same .cardwrap, so a static button painted UNDER it and the
-   card-back artwork showed straight through the yellow. */
+/* §0/§3 · הלאה goes back INSIDE the sheet with the structure, but not back
+   to the 97px pill in the corner it was before the last pass. It keeps the
+   full width it earned there and gains height: the widest thing in the
+   panel and the only thing in it that is not type. §3 asked for
+   substantially wider — 100% of the card against the 28% it had. */
 .creveal__go{
   position:relative; z-index:15;
   flex:none; align-self:stretch; width:100%;
   display:flex; align-items:center; justify-content:center; gap:9px;
-  margin-top:10px; padding:12px 0 13px; font-size:19px;
-  opacity:0; transform:translateY(10px);
-  transition:opacity var(--t-flip) var(--e-out), transform var(--t-flip) var(--e-settle);
+  padding:14px 0 15px; font-size:19px;
 }
-.cardwrap.is-revealing .creveal__go{ opacity:1; transform:none; }
-.creveal__go.is-out{ opacity:0; }
 .creveal__go i{ font-style:normal; }
 
 /* =====================================================================
@@ -2138,8 +2221,13 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
    extrusion straight down with zero blur. The 1.4-degree tilt is what
    makes it a sticker laid on the screen rather than a dialog box. */
 .stmodal__box{
+  /* THE BOX NO LONGER SCROLLS — ITS BODY DOES. The ✕ went from sticky to
+     absolute when it became a drawn control, and an absolute child of a
+     scrolling box scrolls away with the content; on b3's 309-character
+     summary the close would have left the screen. Moving the scroll to
+     .stmodal__body pins the ✕, the graphic and the title, which is the
+     better behaviour anyway. */
   position:relative; width:100%; max-width:312px; max-height:76%;
-  overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain;
   background:var(--paper); color:var(--ink);
   border:5px solid var(--edge); border-radius:18px;
   box-shadow:0 0 0 2px var(--keyline), 0 8px 0 rgba(0,0,0,.4);
@@ -2154,13 +2242,38 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
 /* flex-start in an RTL column is the PHYSICAL RIGHT, which is where the
    app's own ✕ lives — see .exitsheet__x. Sticky so a long bill_summary
    cannot scroll the way out off the top of the box. */
-.stmodal__x{
-  position:sticky; top:0; align-self:flex-start; z-index:2;
-  width:40px; height:40px; margin:-6px -8px -34px 0;
-  border:0; background:none; cursor:pointer;
-  font-size:18px; line-height:1; color:var(--ink); opacity:.6;
+/* §1 + §1b · ONE CLOSE BUTTON, SHARED BY BOTH MODALS, AND IT IS DRAWN.
+   It was an 18px ✕ glyph at 60% opacity inset 8px from the corner — a
+   typographic character, not a control, and the thinnest thing on a sheet
+   whose every other edge is 2-5px. A glyph also cannot be given a stroke
+   weight: ✕ has no bold in this face, so the only way to specify
+   thickness is to draw it. Two 3px bars in a 46px target.
+   MATCHED TO THE HUD's ✕, which is already right: .ib-b is a 40px cream
+   button and .hud-x sets its glyph at 17px. This is 46px with a 19px mark
+   and a 3px stroke — slightly larger because it sits on paper rather than
+   in a chip, and closer to the corner because a modal's close belongs in
+   the corner, not floated in from it.
+   ONE COMPONENT: the law sheet, the glossary sheet and the exit confirm
+   all use these rules. Two of them previously had their own. */
+.stmodal__x,
+.exitsheet__x{
+  position:absolute; top:2px; right:2px; left:auto; z-index:4;
+  width:46px; height:46px; margin:0;
+  border:0; background:none; cursor:pointer; padding:0;
+  font-size:0; color:var(--ink); opacity:.72;
 }
-.stmodal__x:active{ opacity:1; }
+.stmodal__x::before, .stmodal__x::after,
+.exitsheet__x::before, .exitsheet__x::after{
+  content:""; position:absolute; left:50%; top:50%;
+  width:19px; height:3px; border-radius:2px; background:currentColor;
+  margin:-1.5px 0 0 -9.5px;
+}
+.stmodal__x::before, .exitsheet__x::before{ transform:rotate(45deg); }
+.stmodal__x::after,  .exitsheet__x::after { transform:rotate(-45deg); }
+.stmodal__x:active, .exitsheet__x:active{ opacity:1; }
+/* the sheet is position:relative already; the title needs to clear the
+   button now that it sits in the corner rather than in the flow */
+.stmodal__box{ padding-top:calc(var(--sp-4) + 8px); }
 .stmodal__art{ width:64px; height:auto; display:block; filter:url(#dcw-sm); }
 .stmodal__title{
   margin:0; padding-inline:30px;   /* symmetric, so a centred title clears the ✕ */
@@ -2171,6 +2284,8 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
 .stmodal__body{
   margin:2px 0 0; font-size:var(--fs-meta); font-weight:700;
   line-height:1.55; text-align:start; align-self:stretch;
+  min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
 }
 /* a glossary term has no graphic and no date, so its sticker is short —
    the title carries the term and the body carries data.js's definition */

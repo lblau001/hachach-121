@@ -63,6 +63,10 @@ const T = {
   b2Seat:    ms('--t-b2-seat'),
   claimHold: ms('--t-claim-hold'),
   claimBeat: ms('--t-claim-beat'),
+  seatFill:  ms('--t-seat-fill'),
+  seatCross: ms('--t-seat-cross'),
+  markGap:   ms('--t-mark-gap'),
+  panelGap:  ms('--t-panel-gap'),
   peel:      ms('--t-peel'),
   peelOut:   ms('--t-peel-out'),
   cardFlip:  ms('--t-card-flip'),
@@ -1204,13 +1208,23 @@ async function claimReveal(ans, card) {
   chy.classList.remove('is-empty'); chy.classList.add('is-mark');
   chy.removeAttribute('aria-hidden');
   chy.innerHTML = ''; chy.appendChild(chip);
-  requestAnimationFrame(() => chip.classList.add('is-in'));
 
   const table = COIN_TABLES[DEV.coins];
   if (table.claimNeedsCorrect && ok) setTimeout(() => award(table.claim, mark), T.stamp);
 
-  /* the stamp holds alone before the panel rises under it */
-  await wait(T.claimHold);
+  /* §0 · THREE MOVEMENTS, IN ORDER, AND NOTHING ELSE MOVES.
+       1  the stamp falls and lands            0 -> 340ms  (--t-stamp)
+       2  the correctness mark appears       +120ms gap, 260ms (--t-flip)
+       3  the explanation sheet rises        +160ms gap, 260ms
+     The two gaps are what make it read as three events rather than one
+     compound arrival; they are deliberately unequal so the sequence has a
+     shape. The mark is held back until the stamp has settled because a
+     coloured chip moving during the fall competes with it — that is what
+     made this beat read as five things happening at once. */
+  await wait(T.stamp);
+  await wait(T.markGap);
+  requestAnimationFrame(() => chip.classList.add('is-in'));
+  await wait(T.flip + T.panelGap);
 
   /* ---- 4 · THE EXPLANATION PANEL RISES OVER THE CARD'S LOWER PORTION
      IT SCROLLS, and that is a requirement rather than a nicety: e3's
@@ -1231,15 +1245,27 @@ async function claimReveal(ans, card) {
      control that advances the round. It is now a sibling of the panel
      rather than a child — full width, on the ground, under the
      explanation instead of inside it. */
-  wrap.classList.add('is-revealing');
   const panel = el('div', 'creveal__exp');
   panel.innerHTML =
     '<div class="creveal__scroll"><p class="creveal__text">' +
-      markGlossary(issue.tf_explain || '') + '</p></div>';
+      markGlossary(issue.tf_explain || '') + '</p></div>' +
+    '<button type="button" class="p-c creveal__go">' +
+      esc('הלאה') + ' <i aria-hidden="true">›</i></button>';
   wrap.appendChild(panel);
-  const go = el('button', 'p-c creveal__go',
-    esc('הלאה') + ' <i aria-hidden="true">›</i>');
-  wrap.appendChild(go);
+  requestAnimationFrame(() => panel.classList.add('is-in'));
+  const go = $('.creveal__go', panel);
+
+  /* THE PANEL IS CAPPED SO IT CANNOT COVER THE CLAIM — back with the
+     structure. The cap is the room left under the claim, measured rather
+     than a percentage; the floor is 170px, below which the panel would be
+     a slot and the right fix would be a shorter claim. */
+  const claimEl = $('.b1claim', card);
+  if (claimEl) {
+    const room = wrap.getBoundingClientRect().bottom
+               - claimEl.getBoundingClientRect().bottom - 10;
+    const sc = parseFloat(CS.getPropertyValue('--card-scale')) || 1;
+    panel.style.maxHeight = Math.max(170, room / sc) + 'px';
+  }
 
   /* NO MEASURED CAP ANY MORE. The panel used to be absolutely positioned
      over the card's foot and JS computed a max-height so it could not
@@ -1267,17 +1293,15 @@ async function claimReveal(ans, card) {
          inline style, so the card would not move. Clear it first. */
       card.classList.remove('is-stamped');
       card.style.animation = 'none';
-      go.classList.add('is-out');
       card.classList.add('is-leaving');
       card.style.transform = 'translateX(' + (dir * 620) + 'px) rotate(' + (dir * 25) + 'deg)';
-      card.style.opacity = 0;
+      card.style.opacity = .2;              /* the deck's own exit value */
       mark.style.animation = 'none';
       mark.classList.add('is-leaving');
       mark.style.transform = 'translateX(' + (dir * 620) + 'px) rotate(' + (dir * 25) + 'deg)';
-      mark.style.opacity = 0;
-      await wait(T.swipe);
-      card.remove(); mark.remove(); panel.remove(); go.remove();
-      wrap.classList.remove('is-revealing');
+      mark.style.opacity = .2;
+      await wait(T.cardExit);
+      card.remove(); mark.remove(); panel.remove();
       /* the chip hands the chyron back — beat 2 pins the player's own
          vote into the same slot and the two must never share it */
       chip.remove();
@@ -1818,17 +1842,81 @@ function inkBleed() {
    the four issues that have a tally — a1 is 53+48 = 101 — and the other
    19 are simply not in the record. They stay dark. Nothing here invents an
    abstention or an absence it was not given. */
-const SEATS = 120, SEAT_COLS = 15;
+const SEATS = 120, SEAT_COLS = 11, SEAT_ME = 60;   /* 11 x 11 = 121, you in the middle */
+
+/* §6a · THE 121st SEAT IS IN THE GRID. It was a yellow chip in a legend
+   row UNDER the grid, next to a label — which is the one thing this
+   option was chosen over the number panels to avoid. The whole argument
+   was that the player sees themselves as one square among 120; a chip in
+   a caption is not that.
+   IT IS THE CENTRE CELL. 11 x 11 is 121 exactly — the game's own number —
+   so there is a true middle, and putting the player there makes the
+   picture say "one of 121, in the middle of it" rather than "120, plus
+   you, over here". It stays visually distinct: round where every other
+   cell is square, the only one with a keyline, and it never takes a side
+   colour. The legend line survives underneath as a LABEL, which is what
+   the brief allows, but it is no longer where the seat lives.
+   §6d · AND IT IS SQUARER. 15 x 8 was wide and squat, which is what made
+   the blocks small; 11 x 11 is square and the cells are half again as
+   big at every width — the figures are in the report. */
+
+/* §6b · THE FILL ORDER IS A FIXED PSEUDO-RANDOM PERMUTATION.
+   The old fill ran straight through the array, so בעד flooded from the
+   top and נגד from the bottom and they met in a line: two solid
+   contiguous blocks, which reads as a stacked bar made of squares rather
+   than as a vote happening — and, worse, contiguous blocks imply the
+   chamber is SEATED BY FACTION, which is exactly the claim we excluded
+   because we cannot source a real layout.
+   OF THE THREE OPTIONS THE BRIEF OFFERED I took the fixed pseudo-random
+   sequence over live randomness or clusters. Clusters re-introduce the
+   contiguity problem at a smaller scale — a cluster of blue IS a bloc.
+   Live randomness makes the screen different every run, which cannot be
+   screenshotted, cannot be QA'd, and would let a genuinely ugly
+   distribution ship one time in fifty. A seeded permutation is a DESIGNED
+   order: identical every run, verifiably interleaved, and reproducible in
+   a bug report.
+   TWO permutations, not one. `where` decides which seat holds which vote,
+   `when` decides the order they arrive in. With a single permutation
+   every בעד would light before every נגד — scattered in space but sorted
+   in time, which reads as one side voting and then the other. */
+function lcg(seed) {
+  let x = seed >>> 0;
+  return () => (x = (x * 1664525 + 1013904223) >>> 0) / 4294967296;
+}
+function shuffled(n, seed) {
+  const a = Array.from({ length: n }, (_, i) => i), r = lcg(seed);
+  for (let i = n - 1; i > 0; i--) { const j = (r() * (i + 1)) | 0; [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+function seatPlan(tally) {
+  const cells = Array.from({ length: SEATS + 1 }, (_, i) => i)      /* 121 */
+                     .filter(i => i !== SEAT_ME);                   /* 120 votable */
+  const where = shuffled(SEATS, 0x5EA7).map(k => cells[k]);
+  const when  = shuffled(SEATS, 0xB0A2D);
+  const kind  = new Array(SEATS + 1).fill('off');
+  where.forEach((cell, i) => {
+    kind[cell] = i < tally.for ? 'for'
+               : i < tally.for + tally.against ? 'ag' : 'off';
+  });
+  /* the arrival sequence, and the index within it that crosses 61 */
+  const order = when.map(k => where[k]);
+  let f = 0, cross = -1;
+  order.forEach((cell, i) => {
+    if (kind[cell] === 'for' && ++f === 61 && cross < 0) cross = i;
+  });
+  return { kind, order, cross };
+}
 
 function seatBoard(tally) {
   const cells = [];
-  for (let i = 0; i < SEATS; i++) cells.push('<i class="seat" data-i="' + i + '"></i>');
+  for (let i = 0; i <= SEATS; i++) {
+    cells.push(i === SEAT_ME
+      ? '<i class="seat seat--me" data-i="' + i + '"></i>'
+      : '<i class="seat" data-i="' + i + '"></i>');
+  }
   return '<div class="b5board' + (tally ? '' : ' b5board--empty') + '">' +
       '<div class="b5seats" aria-hidden="true">' + cells.join('') + '</div>' +
-      '<div class="b5me">' +
-        '<i class="seat seat--me" aria-hidden="true"></i>' +
-        '<span class="b5me__lab">' + esc('המושב שלכם') + '</span>' +   /* TAMAR */
-      '</div>' +
+      '<p class="b5me__lab">' + esc('המושב שלכם') + '</p>' +      /* TAMAR */
       (tally
         ? '<div class="b5tal" aria-hidden="true">' +
             '<span class="b5tal__s b5tal__s--for"><b class="num" id="b5for">0</b>' +
@@ -1840,36 +1928,66 @@ function seatBoard(tally) {
     '</div>';
 }
 
-/* ONE CLOCK DRIVES BOTH, so the numerals and the seats can never disagree
-   — the numeral is a readout of the grid, not a second animation that
-   happens to finish at the same time. Same --t-finale (850ms) and the
-   same cubic ease-out countUp() used, because this IS the round's one held
-   beat and the brief asks for that weight rather than a 125ms flick.
-   REDUCED MOTION renders the final state and returns; there is no
-   shortened animation, because a 1ms fill of 120 blocks is a flash. */
+/* §6c · THE TIMING IS INVERTED, and this is the substantive fix.
+   Measured off the recording, the old fill put the bulk of 120 seats down
+   in ~0.6s and then spent ~2s changing one or two squares at the edge:
+   the dramatic part was over before the eye could follow it and the
+   player waited through the dull part. That came from running the count
+   through the same cubic ease-out the numerals used — an ease that is
+   right for a number settling and wrong for a queue arriving.
+   NOW: ~2.15s total, near-linear with a gentle ease-out only at the very
+   end, so the pace is legible the whole way and the last seats land
+   rather than trickle. And the seat that crosses 61 gets a beat of its
+   own — everything stops for 340ms while it lands, because a bill passing
+   is the single most meaningful instant on this screen and until now
+   nothing marked it at all. */
 function runTally(panel, tally) {
   const seats = $$('.b5seats .seat', panel);
   const nf = $('#b5for', panel), na = $('#b5ag', panel);
-  const paint = (f, a) => {
-    for (let i = 0; i < seats.length; i++) {
-      const c = i < f ? 'seat is-for' : i < f + a ? 'seat is-ag' : 'seat';
-      if (seats[i].className !== c) seats[i].className = c;
+  const plan = seatPlan(tally);
+  let marked = -1;
+  const paint = n => {
+    let f = 0, a = 0;
+    for (let i = 0; i < SEATS; i++) {
+      const cell = plan.order[i], k = plan.kind[cell];
+      const on = i < n;
+      if (on) { if (k === 'for') f++; else if (k === 'ag') a++; }
+      /* the crossing mark is part of the class string, not something set
+         beside it — paint() rewrites className every frame and would
+         otherwise wipe the ring off the majority seat the frame after it
+         was added. */
+      const cls = 'seat' + (on && k !== 'off' ? ' is-' + k : '')
+                + (marked === cell ? ' is-cross' : '');
+      if (seats[cell].className !== cls) seats[cell].className = cls;
     }
     if (nf) nf.textContent = f;
     if (na) na.textContent = a;
   };
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    paint(tally.for, tally.against);
-    return Promise.resolve();
+    paint(SEATS); return Promise.resolve();
   }
+  /* near-linear, easing out only over the last stretch */
+  const curve = p => 1 - Math.pow(1 - p, 1.35);
   return new Promise(res => {
-    const t0 = performance.now();
+    const RUN = T.seatFill, t0 = performance.now();
+    let held = false, holdUntil = 0;
     (function tick(now) {
-      const k = Math.min(1, (now - t0) / T.finale);
-      const e = 1 - Math.pow(1 - k, 3);
-      paint(Math.round(tally.for * e), Math.round(tally.against * e));
+      if (held && now < holdUntil) return requestAnimationFrame(tick);
+      const k = Math.min(1, (now - t0 - (held ? T.seatCross : 0)) / RUN);
+      let n = Math.round(SEATS * curve(k));
+      /* §6c the majority beat: stop ON the crossing seat, mark it, hold */
+      if (!held && plan.cross >= 0 && n > plan.cross) {
+        n = plan.cross + 1;
+        held = true; holdUntil = now + T.seatCross;
+        marked = plan.order[plan.cross];
+        paint(n);
+        $('.b5board', panel).classList.add('is-crossed');
+        buzz(18);
+        return requestAnimationFrame(tick);
+      }
+      paint(n);
       if (k < 1) requestAnimationFrame(tick);
-      else { paint(tally.for, tally.against); res(); }
+      else { paint(SEATS); res(); }
     })(t0);
   });
 }
