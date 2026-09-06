@@ -438,7 +438,9 @@ const AV3 = `<svg viewBox="0 0 100 100" aria-hidden="true">
                 are the old build.
      invited  · Part C's once-only flag — the identity-moment invitation
                 has been shown (or forfeited) and never comes back.
-     cfg      · RESERVED for Part D. null = the preset wins. */
+     cfg      · the built character (§D): {skin, hair, hairColor, eyes,
+                clothes, bg}, option ids from BLD. null = the preset wins;
+                set, it outranks the preset — see avatarSvg(). */
 const PROFILE = { avatarId: null, name: '', gender: null, invited: false, cfg: null };
 /* 24 characters: the longest Hebrew given name plus a hyphenated second
    one fits with room, and the record heading has to carry it on one line
@@ -488,9 +490,190 @@ function roundShell(svg) {
     '<g clip-path="url(#c-av3)">' + inner + '</g>' +
     '<circle cx="50" cy="50" r="48" fill="none" stroke="rgba(0,0,0,.55)" stroke-width="1.6"/></svg>';
 }
-/* WHAT THE SIX CONSUMERS READ: the chosen preset in the round shell, or
-   AV3 when there is no sheet to choose from. Never the constant directly. */
+/* ===================== §D · THE BUILT CHARACTER ====================
+   The eight presets are hand-drawn single SVGs; nothing can edit them.
+   So the builder is not "adjust this one" — it is "build your own from
+   nothing", and what it builds is drawn by THIS generator, ported from
+   app.js:4-94 (the source of truth the Builder boards cite for "every
+   category and label"). Two representations coexist in PROFILE — a
+   chosen preset (avatarId) or a built character (cfg) — exactly one is
+   active, and neither destroys the other; see avatarSvg() for which.
+
+   THE SIX AXES: the CHAR board's five in its order, ids/colours/labels
+   as shipped, then the BACKGROUND, which is ours. app.js painted the
+   square behind the figure as the outfit at 15%, the presets paint it as
+   the skin, and the disc shell reads that square's fill as the disc —
+   so under the shell a build's face and ground were one colour and the
+   head had no edge; at s4/s5 the figure vanished into itself. The ground
+   is CHOSEN now: six flat neutrals and tints that sit apart from every
+   skin tone (all five skins are hue 25–27; the nearest ground is kraft
+   at hue 43 with a third of the saturation, and the four tints are 100+
+   hues away), none of them lime or magenta, the default being the tone
+   AV3's own disc wears. The grey is the one DARK ground, pushed cool
+   (hue 213) and well below kraft in value: a pale grey sat at the same
+   value as kraft and was a wasted option. Labels are ours, a TAMAR item.
+   One set of shipped labels is not words: the skin tones are labelled
+   with the emoji skin-tone modifiers 🏻…🏿, which are swatches, not
+   names — Part B shows the colour and leaves the naming to Tamar. */
+const BLD = {
+  skin: [
+    {id:'s1',color:'#f4c9a5',label:'🏻'},{id:'s2',color:'#e8b088',label:'🏼'},
+    {id:'s3',color:'#c68b5c',label:'🏽'},{id:'s4',color:'#8b5e3c',label:'🏾'},{id:'s5',color:'#5c3a1e',label:'🏿'}
+  ],
+  hair: [
+    {id:'short',label:'קצר'},{id:'long',label:'ארוך'},{id:'curly',label:'מתולתל'},
+    {id:'kippah',label:'כיפה'},{id:'hijab',label:"חיג'אב"},{id:'bald',label:'קרח'}
+  ],
+  hairColor: [
+    {id:'hc1',color:'#1a1a1a',label:'שחור'},{id:'hc2',color:'#3a2418',label:'חום'},
+    {id:'hc3',color:'#c8a832',label:'בלונד'},{id:'hc4',color:'#888',label:'אפור'},{id:'hc5',color:'#8b1a1a',label:'אדום'}
+  ],
+  eyes: [
+    {id:'normal',label:'רגיל'},{id:'glasses',label:'משקפיים'},{id:'sunglasses',label:'משקפי שמש'}
+  ],
+  clothes: [
+    {id:'cl1',color:'#2b4cff',label:'כחול'},{id:'cl2',color:'#ff5240',label:'אדום'},
+    {id:'cl3',color:'#22c98e',label:'ירוק'},{id:'cl4',color:'#3a3a3a',label:'שחור'},{id:'cl5',color:'#b06bff',label:'סגול'}
+  ],
+  bg: [
+    {id:'bg1',color:'#C9BFA6',label:'קרפט'},{id:'bg2',color:'#FBF7EE',label:'נייר'},
+    {id:'bg3',color:'#BFDDF0',label:'שמיים'},{id:'bg4',color:'#BFE3D3',label:'מנטה'},
+    {id:'bg5',color:'#D8CCEE',label:'לילך'},{id:'bg6',color:'#99A3B1',label:'אפור'}
+  ]
+};
+const BLD_ORDER = ['skin', 'hair', 'hairColor', 'eyes', 'clothes', 'bg'];
+/* the axis headings Part B shows above each grid. hairColor has TWO: on
+   the חיג'אב path the same axis colours the scarf, and it says so. */
+const BLD_TITLE = { /* TAMAR */
+  skin: 'גוון עור', hair: 'שיער', hairColor: 'צבע שיער', hairColorHijab: "צבע החיג'אב",
+  eyes: 'עיניים', clothes: 'לבוש', bg: 'רקע'
+};
+/* NO LIGHT DEFAULT. The shipped list runs light→dark and app.js starts
+   at s1; a build here starts in the MIDDLE of the range, index 2 (s3,
+   #c68b5c — the tone AV3 itself wears). Part B's first cfg and the
+   generator's own fallback both read this. */
+const BLD_SKIN_DEFAULT = 2;
+/* THE HIDE RULE, narrowed from app.js:231. The old build hid the hair
+   colour for קרח AND חיג'אב — but the hijab's fabric is drawn in
+   hairColor, so a hidden axis was controlling a visible thing, and the
+   scarf took whatever the axis last held. Now only קרח skips the axis
+   (nothing there to colour); on the hijab path the same axis stays,
+   headed BLD_TITLE.hairColorHijab, and colours the scarf on purpose. */
+const hairHidesColor = hair => hair === 'bald';
+/* an axis value → its option. cfg holds option IDS on every axis (a
+   divergence from app.js, which stores hex for skin/hairColor/clothes and
+   ids for hair/eyes): an id can be checked against the table on restore,
+   the way avatarId is checked against the sheet, and the palette lives in
+   one place. A bare hex is still honoured below, so an app.js-shaped cfg
+   draws the same figure. */
+function bldOpt(axis, v) {
+  return BLD[axis].find(o => o.id === v || (o.color && o.color === v)) || null;
+}
+const isHex = v => typeof v === 'string' && /^#[0-9a-fA-F]{3,8}$/.test(v);
+
+/* buildAvatar(cfg, gender) · app.js's buildAvatarSvg, COPIED not
+   referenced (app.js is untouched and unloaded here). Lines 32–88 of the
+   original — body, neck, face, hair, eyes, nose, mouth — are verbatim.
+   Everything that differs is in the prologue and the two lines after:
+     · gender comes from PROFILE, not `player`. THERE IS NO NEUTRAL
+       BODY: the generator draws a dress-with-collar for 'f' and a
+       shirt-and-tie for everything else, and its own fallback for an
+       unset gender (app.js:25, `|| 'm'`) is the tie. Ported as is —
+       null draws the tie — and flagged in the Part A report.
+     · axis values are ids resolved through BLD (hex accepted).
+     · a missing skin falls back to BLD_SKIN_DEFAULT, not s1.
+     · the background rect is the chosen bg axis, opaque, not the outfit
+       at 15%: roundShell() reads that rect's fill as the disc. (The
+       outfit tint would have become a solid outfit-coloured disc; the
+       skin tone, tried first, left the head with no edge.)
+     · no xmlns on the root — inline SVG, same as the presets.
+   NOT here, tried and removed: a paper keyline inside every hair shape,
+   for black hair on the darkest skin. It read as a headband on short
+   hair and as beads on curly — a different hairstyle, not a rim. With
+   the ground no longer the skin, s5 × שחור reads as hair on its own. */
+function buildAvatar(cfg, gnd) {
+  var c = cfg || {}, gen = gnd || PROFILE.gender || 'm';
+  var col = (axis, v, i) => { var o = bldOpt(axis, v); return o ? o.color : (isHex(v) ? v : BLD[axis][i].color); };
+  var opt = (axis, v, i) => { var o = bldOpt(axis, v); return o ? o.id : BLD[axis][i].id; };
+  var skin = col('skin', c.skin, BLD_SKIN_DEFAULT);
+  var hairStyle = opt('hair', c.hair, 0);
+  var hairColor = col('hairColor', c.hairColor, 0);
+  var clothesColor = col('clothes', c.clothes, 0);
+  var eyeStyle = opt('eyes', c.eyes, 0);
+  var bgColor = col('bg', c.bg, 0);
+
+  var body = gen === 'f'
+    ? '<path d="M20 96 Q20 68 50 68 Q80 68 80 96 Z" fill="'+clothesColor+'" stroke="#161310" stroke-width="2.5"/><path d="M38 68 Q50 80 62 68 Q56 76 44 76 Z" fill="#fff" stroke="#161310" stroke-width="1.5" opacity="0.7"/>'
+    : '<path d="M20 96 Q20 68 50 68 Q80 68 80 96 Z" fill="'+clothesColor+'" stroke="#161310" stroke-width="2.5"/><path d="M42 68 L50 78 L58 68 L58 96 L42 96 Z" fill="#fff" stroke="#161310" stroke-width="2"/><path d="M50 72 L46 78 L47 92 L50 96 L53 92 L54 78 Z" fill="'+clothesColor+'" stroke="#161310" stroke-width="1.5"/>';
+
+  var neck = '<rect x="45" y="60" width="10" height="10" fill="'+skin+'" stroke="#161310" stroke-width="2"/>';
+  var face = '<circle cx="50" cy="42" r="20" fill="'+skin+'" stroke="#161310" stroke-width="2.5"/>';
+
+  var hair = '';
+  switch(hairStyle) {
+    case 'short':
+      hair = '<path d="M30 40 Q30 22 50 22 Q70 22 70 40 Q66 32 62 30 Q55 26 50 26 Q45 26 38 30 Q34 32 30 40 Z" fill="'+hairColor+'" stroke="#161310" stroke-width="2"/>'; break;
+    case 'long':
+      hair = '<path d="M30 40 Q30 22 50 22 Q70 22 70 40 Q66 32 62 30 Q55 26 50 26 Q45 26 38 30 Q34 32 30 40 Z" fill="'+hairColor+'" stroke="#161310" stroke-width="2"/>'
+           + '<path d="M28 44 Q22 60 24 80 L30 90 L34 78 Q30 60 32 44 Z" fill="'+hairColor+'" stroke="#161310" stroke-width="1.5"/>'
+           + '<path d="M72 44 Q78 60 76 80 L70 90 L66 78 Q70 60 68 44 Z" fill="'+hairColor+'" stroke="#161310" stroke-width="1.5"/>'; break;
+    case 'curly':
+      hair = '<path d="M28 42 Q26 22 50 20 Q74 22 72 42 Q72 56 65 62 Q60 65 50 65 Q40 65 35 62 Q28 56 28 42 Z" fill="'+hairColor+'" stroke="#161310" stroke-width="2"/>'
+           + '<ellipse cx="50" cy="43" rx="16" ry="19" fill="'+skin+'" stroke="#161310" stroke-width="1.5"/>'
+           + '<circle cx="30" cy="35" r="5" fill="'+hairColor+'" stroke="#161310" stroke-width="1.5"/>'
+           + '<circle cx="70" cy="35" r="5" fill="'+hairColor+'" stroke="#161310" stroke-width="1.5"/>'
+           + '<circle cx="36" cy="24" r="5" fill="'+hairColor+'" stroke="#161310" stroke-width="1.5"/>'
+           + '<circle cx="64" cy="24" r="5" fill="'+hairColor+'" stroke="#161310" stroke-width="1.5"/>'
+           + '<circle cx="50" cy="21" r="5" fill="'+hairColor+'" stroke="#161310" stroke-width="1.5"/>'; break;
+    case 'kippah':
+      hair = '<path d="M38 32 Q38 20 50 20 Q62 20 62 32 Z" fill="'+hairColor+'" stroke="#161310" stroke-width="2"/>'
+           + '<ellipse cx="50" cy="32" rx="12" ry="3.5" fill="'+hairColor+'" stroke="#161310" stroke-width="1.5"/>'; break;
+    case 'hijab':
+      hair = '<path d="M28 46 Q26 22 50 20 Q74 22 72 46 Q72 72 50 72 Q28 72 28 46 Z" fill="'+hairColor+'" stroke="#161310" stroke-width="2"/>'
+           + '<ellipse cx="50" cy="44" rx="17" ry="20" fill="'+skin+'" stroke="#161310" stroke-width="1.5"/>'; break;
+    default: break;
+  }
+
+  var eyes = '';
+  switch(eyeStyle) {
+    case 'glasses':
+      eyes = '<rect x="37" y="39" width="10" height="8" rx="1" fill="rgba(150,200,255,0.3)" stroke="#161310" stroke-width="2"/>'
+           + '<rect x="53" y="39" width="10" height="8" rx="1" fill="rgba(150,200,255,0.3)" stroke="#161310" stroke-width="2"/>'
+           + '<line x1="47" y1="43" x2="53" y2="43" stroke="#161310" stroke-width="2"/>'
+           + '<line x1="27" y1="43" x2="37" y2="43" stroke="#161310" stroke-width="1.5"/>'
+           + '<line x1="63" y1="43" x2="73" y2="43" stroke="#161310" stroke-width="1.5"/>'
+           + '<circle cx="42" cy="43" r="1.5" fill="#161310"/><circle cx="58" cy="43" r="1.5" fill="#161310"/>'
+           + '<path d="M39 37 Q43 36 47 37" stroke="#161310" stroke-width="1.5" fill="none"/>'
+           + '<path d="M53 37 Q57 36 61 37" stroke="#161310" stroke-width="1.5" fill="none"/>'; break;
+    case 'sunglasses':
+      eyes = '<rect x="37" y="39" width="10" height="8" rx="1" fill="#1a1a1a" stroke="#161310" stroke-width="2"/>'
+           + '<rect x="53" y="39" width="10" height="8" rx="1" fill="#1a1a1a" stroke="#161310" stroke-width="2"/>'
+           + '<line x1="47" y1="43" x2="53" y2="43" stroke="#161310" stroke-width="2"/>'
+           + '<line x1="27" y1="43" x2="37" y2="43" stroke="#161310" stroke-width="1.5"/>'
+           + '<line x1="63" y1="43" x2="73" y2="43" stroke="#161310" stroke-width="1.5"/>'; break;
+    default:
+      eyes = '<ellipse cx="43" cy="42" rx="2" ry="2.5" fill="#161310"/><ellipse cx="57" cy="42" rx="2" ry="2.5" fill="#161310"/>'
+           + '<path d="M39 37 Q43 36 47 37" stroke="#161310" stroke-width="1.5" fill="none"/>'
+           + '<path d="M53 37 Q57 36 61 37" stroke="#161310" stroke-width="1.5" fill="none"/>'; break;
+  }
+
+  var nose = '<path d="M50 46 L48 51 L50 52 L52 51 Z" fill="none" stroke="#161310" stroke-width="1.2"/>';
+  var mouth = '<path d="M44 55 Q50 58 56 55" stroke="#161310" stroke-width="1.5" fill="none"/>';
+  var bg = '<rect x="4" y="4" width="92" height="92" fill="'+bgColor+'" stroke="#161310" stroke-width="3" rx="12"/>';
+
+  return '<svg viewBox="0 0 100 100">'+bg+body+neck+face+hair+eyes+nose+mouth+'</svg>';
+}
+
+/* WHAT THE SIX CONSUMERS READ, and the one place the two representations
+   are ranked: a built character, else the chosen preset, else AV3 when
+   there is no sheet to choose from. Never a constant directly.
+   cfg WINS when both are set. Building a character from nothing is the
+   more deliberate act, and a preset chosen earlier — or the default one
+   assigned at boot, which every player has — must not outrank it. Part B
+   keeps both-set transient (picking a preset clears cfg), but the order
+   here is the rule, not the UI. */
 function avatarSvg() {
+  if (PROFILE.cfg) return roundShell(buildAvatar(PROFILE.cfg));
   const x = currentPreset();
   return x ? roundShell(x.svg) : AV3;
 }
@@ -1871,8 +2054,15 @@ const PROF_COPY = {
   m:     'לשון זכר',                    /* shipped · board 2b */
   swap:  'בחרו את הדמות שלכם',          /* shipped · board 2a title, 2b door */
   sub:   'בחרו דמות שתלווה אתכם במפה',  /* shipped · board 2a */
-  tweak: 'התאימו את הדמות',             /* written · the one label on the board we wrote */
-  soon:  'בקרוב',                       /* TAMAR */
+  build: 'בנו דמות משלכם',              /* TAMAR · 2b's second door and the builder's title while no build exists. NOT התאימו את הדמות — the presets cannot be adjusted; this builds from nothing */
+  edit:  'ערכו את הדמות שלכם',          /* TAMAR · the same door and title once a build exists: now there IS something to edit */
+  of:    'מתוך',                        /* shipped · the board's progress, "2 מתוך 5" */
+  prev:  'הקודם',                       /* TAMAR · the builder's back chevron */
+  next:  'הבא',                         /* TAMAR · the builder's forward chevron */
+  back:  'חזרה',                        /* TAMAR · prev on the first axis: back to 2b */
+  finish:'סיימתי',                      /* TAMAR · next on the last axis: back to 2b, nothing to save */
+  shuffle:'ערבבו',                      /* TAMAR · one tap, one random character */
+  any:   'לא משנה',                     /* TAMAR · the builder's voice step: picks one of the two bodies arbitrarily and moves on */
   hud:   'הדמות שלכם',                  /* TAMAR · the HUD sticker's label */
   save:  'שמור',                        /* TAMAR · 2b's one primary; it closes, everything is already kept */
   skip:  'לא משנה',                     /* TAMAR · the invitation's dismiss */
@@ -1892,6 +2082,7 @@ function profileModal() {
    plural) and the way back to it has to be one tap too. */
 function renderProfile(m) {
   const box = $('[data-prof]', m);
+  box.classList.remove('prof--bld');
   const has = presets().length > 0;
   /* THE HERO IS THE DOOR TO 2a. A 132px button — the whole token, not
      just the chip — labelled with the board's shipped string, and a
@@ -1927,10 +2118,12 @@ function renderProfile(m) {
       '<button type="button" class="gchip" data-g="m">' + esc(PROF_COPY.m) + '</button>' +
     '</div>' +
     '<div class="prof-actions">' +
-      /* Part D's door. Disabled and labelled, not hidden: the board draws
-         two doors and a door that is not there yet is still a door. */
-      '<button type="button" class="r-b prof-tweak" disabled aria-disabled="true">' +
-        esc(PROF_COPY.tweak) + '<span class="prof-soon">' + esc(PROF_COPY.soon) + '</span></button>' +
+      /* THE BUILDER'S DOOR (§D, 2c). Its label says which of two things it
+         does: with no build, it builds one from nothing; with a build
+         active, it edits that one. The hero above already shows which
+         is active, because avatarSvg() ranks cfg first. */
+      '<button type="button" class="r-b prof-tweak" data-build>' +
+        esc(PROFILE.cfg ? PROF_COPY.edit : PROF_COPY.build) + '</button>' +
       /* שמור, AND IT ONLY CLOSES. Everything above applied the moment it
          was tapped, so the button is always safe to press and never has
          anything to do; the copy matches the player's model — "I typed a
@@ -1948,6 +2141,7 @@ function renderProfile(m) {
     paint();
   }));
   if (has) pressable($('[data-swap]', box)).addEventListener('click', () => renderSheet(m));
+  pressable($('[data-build]', box)).addEventListener('click', () => renderBuilder(m));
   pressable($('[data-close]', box)).addEventListener('click', () => $('.stmodal__x', m).click());
   const nm = $('#profName', box);
   nm.addEventListener('input', () => setProfile({ name: cleanName(nm.value) }));
@@ -1966,7 +2160,11 @@ function renderProfile(m) {
 const SHEET_RETURN_MS = 300;
 function renderSheet(m) {
   const box = $('[data-prof]', m);
-  const cur = currentPreset();
+  /* with a build active NO sticker is the current one — the character in
+     play is not on this sheet — so none carries the mark until one is
+     picked, and picking it is what retires the build (below) */
+  const cur = PROFILE.cfg ? null : currentPreset();
+  box.classList.remove('prof--bld');
   box.innerHTML =
     '<h2 class="peel-title">' + esc(PROF_COPY.swap) + '</h2>' +
     '<p class="peel-sub">' + esc(PROF_COPY.sub) + '</p>' +
@@ -2000,10 +2198,13 @@ function renderSheet(m) {
      choice but does not start a second timer. */
   let leaving = null;
   $$('.avp', box).forEach(b => pressable(b).addEventListener('click', () => {
-    /* avatarId ONLY. PROFILE.name is never written here or anywhere a
-       preset is chosen: it is the player's, and only the player writes
-       it. 2b re-renders its field from PROFILE.name on return. */
-    setProfile({ avatarId: b.dataset.av });
+    /* avatarId, AND cfg CLEARED — one truth in the state. A preset chosen
+       here is the character now; a built one kept dormant beside it would
+       be a second character nothing shows and everything has to reason
+       about. The build is gone; the builder's door on 2b starts fresh.
+       PROFILE.name is never written here or anywhere a preset is chosen:
+       it is the player's, and only the player writes it. */
+    setProfile({ avatarId: b.dataset.av, cfg: null });
     $$('.avp', box).forEach(x => {
       const on = x === b; x.classList.toggle('avp-peel', on); x.setAttribute('aria-pressed', on);
     });
@@ -2014,6 +2215,202 @@ function renderSheet(m) {
                          SHEET_RETURN_MS);
   }));
 }
+
+/* ===== §D · 2c THE BUILDER ============================================
+   The CHAR board (v16 canvas, V15CHAR): the preview on its card up top,
+   then a kraft sheet with a progress line, ONE axis at a time as a grid
+   of white tiles — a mini figure and a name on each — and chevrons at
+   the foot. Inside the same sticker 2a and 2b use, content swapped in
+   place, so there is one sticker on screen throughout.
+
+   TWO REPRESENTATIONS, ONE ACTIVE. PROFILE.avatarId is the chosen
+   preset; PROFILE.cfg is the built character; avatarSvg() ranks cfg
+   first. Opening the builder changes NOTHING: `work` is a private copy
+   (the saved cfg, or the defaults) and cfg is written only by an axis
+   tap or a shuffle — the first such write is the moment the HUD and the
+   six consumers switch from preset to build. Open-and-✕ leaves the
+   preset active and cfg null. Picking a preset on 2a clears cfg (see
+   renderSheet), so both-set never persists.
+
+   THE VOICE STEP. The generator has two bodies and no neutral one, and
+   the game never chooses a voice for the player (§B). So when the
+   builder opens with no voice set, its FIRST step is the voice question
+   — 2b's two chips as tiles showing each body, plus לא משנה, which picks
+   one of the two at random and moves on. It writes PROFILE.gender, the
+   same field 2b's chips write, and NOT cfg: answering it and closing
+   activates no build. If a voice is set the step is not there.
+
+   THE COUNT NEVER LIES because it is never stored: the step list is
+   recomputed from the state on every paint — voice (if the builder was
+   opened without one), then the six axes less hairColor when the hair is
+   קרח. So it reads N מתוך 6, 5 on the bald path, 7 with the voice step,
+   and the moment קרח is tapped on the hair axis the line re-reads 5.
+   The voice step stays in the list for the whole visit once shown, so
+   the count does not jump from 7 to 6 under the player's thumb after
+   they answer; prev from the first axis returns to it.
+
+   HAIR COLOUR ON THE HIJAB PATH is the same axis with a different
+   heading (BLD_TITLE.hairColorHijab): it colours the scarf, on purpose.
+
+   SHUFFLE is one button, one tap, one result: every axis re-rolled from
+   its own list, voice untouched, committed like a tap. No animation
+   that rewards a second tap, no sound.
+
+   NO DONE GATE. Every tap already saved. Prev on the first step and the
+   ✕ both return to 2b; so does next on the last step (סיימתי), which
+   is the same one-way door 2b's שמור is — it closes, it has nothing to
+   save — because a chevron that dies on the last step is a dead end. */
+function defaultCfg() {
+  return { skin: BLD.skin[BLD_SKIN_DEFAULT].id, hair: BLD.hair[0].id, hairColor: BLD.hairColor[0].id,
+           eyes: BLD.eyes[0].id, clothes: BLD.clothes[0].id, bg: BLD.bg[0].id };
+}
+/* a saved cfg, coerced axis by axis: an unknown id is the default for
+   that axis, and anything that is not an object is no build at all.
+   Never grounds for discarding a save (the same rule as every profile
+   field). */
+function cleanCfg(c) {
+  if (!c || typeof c !== 'object' || Array.isArray(c)) return null;
+  const d = defaultCfg(), out = {};
+  BLD_ORDER.forEach(a => { out[a] = bldOpt(a, c[a]) ? bldOpt(a, c[a]).id : d[a]; });
+  return out;
+}
+function shuffleCfg() {
+  const out = {};
+  BLD_ORDER.forEach(a => { out[a] = BLD[a][Math.floor(Math.random() * BLD[a].length)].id; });
+  return out;
+}
+/* the steps for this state: the axes less the one the hide rule removes */
+function bldAxes(work) {
+  return BLD_ORDER.filter(a => !(a === 'hairColor' && hairHidesColor(work.hair)));
+}
+
+function renderBuilder(m) {
+  const box = $('[data-prof]', m);
+  const editing = !!PROFILE.cfg;
+  const work = editing ? cleanCfg(PROFILE.cfg) : defaultCfg();
+  const withVoice = PROFILE.gender === null;
+  const steps = () => (withVoice ? ['voice'] : []).concat(bldAxes(work));
+  let cur = withVoice ? 'voice' : 'skin';
+  const commit = () => setProfile({ cfg: Object.assign({}, work) });
+  const preview = (c, g) => roundShell(buildAvatar(c, g));
+
+  /* the grid is the one thing that may scroll here, never the hero */
+  box.classList.add('prof--bld');
+  box.innerHTML =
+    '<h2 class="peel-title bld-title">' + esc(editing ? PROF_COPY.edit : PROF_COPY.build) + '</h2>' +
+    /* THE HERO, once. It is never re-created, only repainted, and it
+       sits outside the sheet in the box's flow — so whatever the sheet
+       does below it, it is on screen: the sticky preview is structural,
+       not a scroll trick. */
+    '<div class="prof-hero bld-hero">' +
+      '<span class="prof-well" aria-hidden="true"></span>' +
+      '<span class="as-d prof-st avs-cut" data-hero></span>' +
+    '</div>' +
+    '<div class="bsheet" data-sheet></div>';
+  const hero = $('[data-hero]', box), sheet = $('[data-sheet]', box);
+
+  /* the voice step shows the token in play — no body has been chosen,
+     so none is drawn; the two tiles below show the bodies */
+  const paintHero = () => {
+    hero.innerHTML = (cur === 'voice' && PROFILE.gender === null) ? avatarSvg() : preview(work);
+  };
+
+  const tile = (id, label, svg, on) =>
+    '<button type="button" class="bopt' + (on ? ' on' : '') + '" data-opt="' + esc(id) + '"' +
+      ' aria-pressed="' + on + '" aria-label="' + esc(label) + '">' +
+      '<span class="bopt-st" aria-hidden="true">' + svg + '</span>' +
+      '<span class="bopt-lbl" aria-hidden="true">' + esc(label) + '</span>' +
+      '<span class="node-check bopt-check" aria-hidden="true">✓</span>' +
+    '</button>';
+
+  const paintSheet = () => {
+    const st = steps(), i = st.indexOf(cur), n = st.length;
+    const first = i === 0, last = i === n - 1;
+    const voice = cur === 'voice';
+    const title = voice ? PROF_COPY.voice
+                : (cur === 'hairColor' && work.hair === 'hijab') ? BLD_TITLE.hairColorHijab
+                : BLD_TITLE[cur];
+    let grid;
+    if (voice) {
+      grid = tile('f', PROF_COPY.f, preview(work, 'f'), PROFILE.gender === 'f') +
+             tile('m', PROF_COPY.m, preview(work, 'm'), PROFILE.gender === 'm') +
+             '<button type="button" class="gchip bopt-any" data-opt="">' + esc(PROF_COPY.any) + '</button>';
+    } else {
+      grid = BLD[cur].map(o => tile(o.id, o.label, preview(Object.assign({}, work, { [cur]: o.id })), work[cur] === o.id)).join('');
+    }
+    sheet.innerHTML =
+      '<div class="bhead">' +
+        '<p class="bprog" aria-live="polite">' +
+          '<span class="bprog__n">' + (i + 1) + ' ' + esc(PROF_COPY.of) + ' ' + n + '</span>' +
+          '<span class="bprog__bar" aria-hidden="true"><i style="width:' + Math.round((i + 1) / n * 100) + '%"></i></span>' +
+        '</p>' +
+        (voice ? '' :
+          '<button type="button" class="ib-b bshuf" data-shuffle aria-label="' + esc(PROF_COPY.shuffle) + '">' +
+            SHUFFLE_GLYPH + '</button>') +
+      '</div>' +
+      '<h3 class="baxis">' + esc(title) + '</h3>' +
+      '<div class="bgrid scrolls' + (voice ? ' bgrid--voice' : '') + '" role="group" aria-label="' + esc(title) + '">' + grid + '</div>' +
+      '<div class="bfoot">' +
+        '<button type="button" class="bnav bnav--prev" data-prev>' +
+          CHEV_R + esc(first ? PROF_COPY.back : PROF_COPY.prev) + '</button>' +
+        '<button type="button" class="bnav bnav--next' + (last ? ' bnav--last' : '') + '" data-next>' +
+          esc(last ? PROF_COPY.finish : PROF_COPY.next) + CHEV_L + '</button>' +
+      '</div>';
+    const go = a => { cur = a; paintHero(); paintSheet(); };
+    $$('[data-opt]', sheet).forEach(b => pressable(b).addEventListener('click', () => {
+      if (voice) {
+        /* gender ONLY — not cfg. לא משנה picks one of the two bodies at
+           random: something must be drawn and the game does not choose
+           silently, so the player is told it was arbitrary by the label. */
+        const g = b.dataset.opt || (Math.random() < .5 ? 'f' : 'm');
+        setProfile({ gender: g });
+        go(steps()[1]);
+        return;
+      }
+      work[cur] = b.dataset.opt;
+      commit();
+      paintHero();
+      $$('[data-opt]', sheet).forEach(x => {
+        const on = x === b; x.classList.toggle('on', on); x.setAttribute('aria-pressed', on);
+      });
+      const ck = $('.bopt-check', b);
+      if (ck) { ck.classList.remove('is-pop'); void ck.offsetWidth; ck.classList.add('is-pop'); }
+      /* the hide rule may have changed the step list (קרח, or back from
+         it): only the count line and the chevrons need to know */
+      if (cur === 'hair') paintSheet();
+    }));
+    const sh = $('[data-shuffle]', sheet);
+    if (sh) pressable(sh).addEventListener('click', () => {
+      Object.assign(work, shuffleCfg());
+      commit();
+      /* the axis under the thumb may have been removed by the roll */
+      if (steps().indexOf(cur) < 0) cur = 'hair';
+      paintHero(); paintSheet();
+    });
+    pressable($('[data-prev]', sheet)).addEventListener('click', () => {
+      if (first) renderProfile(m); else go(st[i - 1]);
+    });
+    pressable($('[data-next]', sheet)).addEventListener('click', () => {
+      if (last) renderProfile(m); else go(st[i + 1]);
+    });
+  };
+  paintHero();
+  paintSheet();
+}
+/* THE CHEVRONS ARE DRAWN, NOT TYPED. › and ‹ are bidi-mirrored glyphs:
+   in this RTL document a typed › renders pointing LEFT, so the back
+   chevron pointed forward. An SVG path points where it is drawn. Back
+   is to the physical RIGHT here (the first flex child, the way the
+   reader came from); forward is to the left. */
+const chev = d => '<svg class="bnav__chev" viewBox="0 0 24 24" width="20" height="20" fill="none"' +
+  ' stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+  '<path d="' + d + '"/></svg>';
+const CHEV_R = chev('M9 5l7 7-7 7'), CHEV_L = chev('M15 5l-7 7 7 7');
+/* two crossing arrows, stroked, so it takes the chip's ink like the sheet glyph */
+const SHUFFLE_GLYPH =
+  '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"' +
+  ' stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+  '<path d="M3 7h4l10 10h4M3 17h4l3-3M14 10l3-3h4"/><path d="M18 4l3 3-3 3M18 14l3 3-3 3"/></svg>';
 
 /* ============= BEATS 2 AND 3 · ONE OVERLAY, TWO CONTENTS ============ */
 /* THE DECK IS ONE ISSUE. Every card in the round belongs to the same
@@ -3608,7 +4005,7 @@ function restoreSave() {
   PROFILE.name     = cleanName(p.name);
   PROFILE.gender   = (p.gender === 'm' || p.gender === 'f') ? p.gender : null;
   PROFILE.invited  = p.invited === true;
-  PROFILE.cfg      = (p.cfg && typeof p.cfg === 'object' && !Array.isArray(p.cfg)) ? p.cfg : null;
+  PROFILE.cfg      = cleanCfg(p.cfg);
 }
 
 /* the reason is developer-facing and the recovery is silent: the player
