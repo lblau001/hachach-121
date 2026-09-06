@@ -113,10 +113,13 @@
   <header class="hud" id="hud">
     <span class="hud-right">
       <!-- §4.1 the default avatar, assigned instantly, no creation step.
-           Tappable IN PRINCIPLE — it is the door to customisation — but it
-           opens nothing in this build, so it is a sticker and not a
-           button: a control that does nothing is worse than no control. -->
-      <span class="as-d hud-you" id="hudAvatar"></span>
+           It is the door to customisation, and it is a BUTTON now because
+           it opens something: 2b, the character sheet (§B in proto.js). It
+           was a span until then on purpose — a control that does nothing
+           is worse than no control — and that principle is why it stayed a
+           sticker for as long as there was nowhere for it to go.
+           The label is ours, pending Tamar. /* TAMAR */ -->
+      <button type="button" class="as-d hud-you" id="hudAvatar" aria-label="הדמות שלכם"></button>
       <button type="button" class="ib-b hud-x" id="hudX" hidden aria-label="יציאה מהסוגיה">✕</button>
     </span>
     <span class="hud-mid">
@@ -188,6 +191,7 @@
 </div>
 
 <script src="../../../data.js"></script>
+<script src="../../../avatars.js"></script>
 <script src="proto.js"></script>
 </body>
 </html>
