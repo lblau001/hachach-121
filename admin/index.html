@@ -403,7 +403,7 @@ function buildIssueRow(iss){
     '<span class="issue-emoji">'+(iss.emoji||'')+'</span>'+
     '<div class="issue-meta"><div class="issue-title">'+esc(iss.title)+'</div><div class="issue-id">'+iss.id+'</div></div>'+
     '<span class="answer-badge '+ans+'">'+(ANSWER_LABELS[ans]||ans)+'</span>'+
-    '<span class="mode-badge">'+(MODE_LABELS[iss.mode]||iss.mode)+'</span>'+
+    '<span class="mode-badge">'+(MODE_LABELS[iss.mode]||iss.mode||'')+'</span>'+
     '</div>'+
     '<div class="edit-form">'+buildIssueForm(iss)+'</div>'+
     '</div>';
