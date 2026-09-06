@@ -327,6 +327,50 @@ addEventListener('resize', placeChyron);
 addEventListener('resize', () => { if ($('#mapline')) redrawPath(); });
 addEventListener('orientationchange', () => setTimeout(sizeStage, 250));
 if (window.visualViewport) visualViewport.addEventListener('resize', sizeStage);
+
+/* ===== §N · THE SOFT KEYBOARD ========================================
+   THE STAGE DOES NOT MOVE. window.innerHeight is what --vh mirrors, and
+   on iOS Safari it does NOT change when the keyboard opens — only
+   visualViewport.height does — so the stage keeps its size and its place
+   and nothing outside the modal shifts. What the keyboard takes is
+   measured here and handed to the MODAL alone as --kb-h: .stmodal ends
+   that many px above the stage's foot, so its box re-centres in what is
+   still visible and its scrolling body absorbs the rest.
+   WEBKIT SCROLLS THE LAYOUT VIEWPORT ANYWAY when a focused field would
+   be under the keyboard, overflow:hidden or not. That is corrected on
+   visualViewport's scroll event rather than fought at focus: put the
+   layout viewport back at 0 and let --kb-h do the revealing.
+   Under 80px is the URL bar breathing, not a keyboard, and is ignored.
+   On blur --kb-h returns to 0, so the modal is exactly where it was. */
+function kbSync() {
+  const vv = window.visualViewport, d = document.documentElement;
+  const a = document.activeElement;
+  const typing = !!(a && a.matches && a.matches('input, textarea') && $('#stage').contains(a));
+  let kb = 0;
+  if (typing && vv) {
+    kb = Math.round(window.innerHeight - vv.height);
+    if (kb < 80) kb = 0;
+  }
+  d.style.setProperty('--kb-h', kb + 'px');
+  /* the box's ceiling in px, not a percentage: a percentage max-height on
+     a grid item does not track the container once `bottom` shortens it
+     (measured in Chrome — 92% left a 501px box in a 340px area) */
+  d.style.setProperty('--kb-vis', (window.innerHeight - kb) + 'px');
+  d.classList.toggle('kb-open', kb > 0);
+  /* NOT ONLY WHILE TYPING. The body never scrolls by design, so any
+     layout-viewport offset is drift — Chrome on iOS was seen leaving one
+     behind after the keyboard closed, and with it the top of the sheet
+     (and the ✕) under its toolbar. Blur is the moment to put it back. */
+  if (window.scrollY || (vv && vv.offsetTop)) window.scrollTo(0, 0);
+  if (kb && a.scrollIntoView) a.scrollIntoView({ block: 'nearest' });
+}
+if (window.visualViewport) {
+  visualViewport.addEventListener('resize', kbSync);
+  visualViewport.addEventListener('scroll', kbSync);
+}
+addEventListener('focusin', () => setTimeout(kbSync, 50));
+/* activeElement is body again only AFTER focusout has run */
+addEventListener('focusout', () => setTimeout(kbSync, 0));
 /* belt and braces against rubber-band: the body never pans. The two
    surfaces that may (map, character) carry .scrolls and opt back in. */
 addEventListener('touchmove', e => {
@@ -384,12 +428,10 @@ const AV3 = `<svg viewBox="0 0 100 100" aria-hidden="true">
    a save written before it simply has none and restores to these
    defaults, the same reasoning `cf` used. No SAVE_VER bump.
      avatarId · a preset's id. Defaults to the first preset at boot.
-     name     · RESERVED, not built. The field needs a keyboard-up test on
-                a 100dvh overflow:hidden stage, which cannot be run from
-                here (no simulator; desktop emulation has no soft
-                keyboard), and untested input on this stage is exactly the
-                bug class this file guards against. The slot stays so the
-                save shape does not change when it lands.
+     name     · optional, cleaned by cleanName(), at most NAME_MAX. The
+                field is in 2b; the keyboard it summons is handled by
+                kbSync() (§N) and is the one thing here that can only be
+                verified on a phone.
      gender   · null | 'm' | 'f'. null is the PLURAL copy, which is what
                 the game speaks today. NEVER forced: the board draws
                 לשון זכר selected and app.js writes 'm' on save, and both
@@ -398,6 +440,12 @@ const AV3 = `<svg viewBox="0 0 100 100" aria-hidden="true">
                 has been shown (or forfeited) and never comes back.
      cfg      · RESERVED for Part D. null = the preset wins. */
 const PROFILE = { avatarId: null, name: '', gender: null, invited: false, cfg: null };
+/* 24 characters: the longest Hebrew given name plus a hyphenated second
+   one fits with room, and the record heading has to carry it on one line
+   at title size on a 360. Whitespace runs collapse, ends are trimmed, and
+   a name that was only whitespace is no name. */
+const NAME_MAX = 24;
+const cleanName = v => String(v == null ? '' : v).replace(/\s+/g, ' ').trim().slice(0, NAME_MAX);
 
 /* THE PRESETS, RESOLVED DEFENSIVELY. On flow-proto they are `AVATARS`,
    the second constant in data.js; master has since moved them to their
@@ -1806,18 +1854,27 @@ function glossModal(term) {
    EVERYTHING APPLIES ON TAP. No save button: setProfile() writes the
    save and repaints the HUD behind the modal, so the player sees the
    change land in the corner the moment they lift their thumb.
-   THE NAME FIELD IS NOT HERE — see PROFILE. The room for it is the gap
-   between the hero and the chips. */
+   The name field sits between the hero and the voice chips. */
+/* the sheet glyph on the hero's chip: four stickers on a sheet, which is
+   what the door opens. Stroked, so it takes the chip's ink. */
+const SHEET_GLYPH =
+  '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"' +
+  ' stroke-width="2.2" stroke-linejoin="round" aria-hidden="true">' +
+  '<rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/>' +
+  '<rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg>';
+
 const PROF_COPY = {
   voice: 'איך לפנות אליכם?',            /* TAMAR */
+  nameLbl:'איך לקרוא לכם?',             /* TAMAR · the board's (אופציונלי) dropped: nothing on this card is required, so saying it once is noise */
+  namePh: 'השם שלכם',                   /* shipped · board 2b */
   f:     'לשון נקבה',                   /* shipped · board 2b */
   m:     'לשון זכר',                    /* shipped · board 2b */
   swap:  'בחרו את הדמות שלכם',          /* shipped · board 2a title, 2b door */
   sub:   'בחרו דמות שתלווה אתכם במפה',  /* shipped · board 2a */
   tweak: 'התאימו את הדמות',             /* written · the one label on the board we wrote */
   soon:  'בקרוב',                       /* TAMAR */
-  back:  'חזרה',                        /* TAMAR */
   hud:   'הדמות שלכם',                  /* TAMAR · the HUD sticker's label */
+  save:  'שמור',                        /* TAMAR · 2b's one primary; it closes, everything is already kept */
   skip:  'לא משנה',                     /* TAMAR · the invitation's dismiss */
   change:'החליפו',                      /* TAMAR · the invitation's second line */
 };
@@ -1836,20 +1893,50 @@ function profileModal() {
 function renderProfile(m) {
   const box = $('[data-prof]', m);
   const has = presets().length > 0;
+  /* THE HERO IS THE DOOR TO 2a. A 132px button — the whole token, not
+     just the chip — labelled with the board's shipped string, and a
+     44px paper chip on its corner carrying the sheet glyph so it reads
+     as tappable. It replaced a full-width yellow door: two primaries on
+     one sheet competed, and the token is the thing being chosen anyway.
+     With no sheet to choose from it is a plain span again. */
   box.innerHTML =
-    '<div class="prof-hero"><span class="prof-well" aria-hidden="true"></span>' +
-      '<span class="as-d prof-st avs-cut" data-hero>' + avatarSvg() + '</span></div>' +
+    (has
+      ? '<button type="button" class="prof-hero" data-swap aria-label="' + esc(PROF_COPY.swap) + '">'
+      : '<div class="prof-hero">') +
+      '<span class="prof-well" aria-hidden="true"></span>' +
+      '<span class="as-d prof-st avs-cut" data-hero>' + avatarSvg() + '</span>' +
+      (has ? '<span class="prof-hero__chip" aria-hidden="true">' + SHEET_GLYPH + '</span>' : '') +
+    (has ? '</button>' : '</div>') +
+    /* THE NAME. Optional, never gated, no submit: the value lands on every
+       input and again, cleaned, on blur. 17px so iOS does not zoom the
+       page to the field; dir=auto so a Latin name does not sit RTL;
+       autocorrect and autocapitalize off so nothing rewrites a Hebrew
+       name; enterkeyhint=done and Enter blurs, which is the only "submit"
+       there is. Board 2b: label and placeholder are shipped copy. */
+    '<div class="prof-name">' +
+      '<label class="prof-lbl prof-lbl--name" for="profName">' + esc(PROF_COPY.nameLbl) + '</label>' +
+      '<input class="prof-field" id="profName" type="text" dir="auto"' +
+        ' placeholder="' + esc(PROF_COPY.namePh) + '" maxlength="' + NAME_MAX + '"' +
+        ' inputmode="text" autocomplete="nickname" autocorrect="off"' +
+        ' autocapitalize="off" spellcheck="false" enterkeyhint="done"' +
+        ' value="' + esc(PROFILE.name) + '">' +
+    '</div>' +
     '<p class="prof-lbl">' + esc(PROF_COPY.voice) + '</p>' +
     '<div class="prof-gender" role="group" aria-label="' + esc(PROF_COPY.voice) + '">' +
       '<button type="button" class="gchip" data-g="f">' + esc(PROF_COPY.f) + '</button>' +
       '<button type="button" class="gchip" data-g="m">' + esc(PROF_COPY.m) + '</button>' +
     '</div>' +
     '<div class="prof-actions">' +
-      (has ? '<button type="button" class="p-c prof-swap" data-swap>' + esc(PROF_COPY.swap) + '</button>' : '') +
       /* Part D's door. Disabled and labelled, not hidden: the board draws
          two doors and a door that is not there yet is still a door. */
       '<button type="button" class="r-b prof-tweak" disabled aria-disabled="true">' +
         esc(PROF_COPY.tweak) + '<span class="prof-soon">' + esc(PROF_COPY.soon) + '</span></button>' +
+      /* שמור, AND IT ONLY CLOSES. Everything above applied the moment it
+         was tapped, so the button is always safe to press and never has
+         anything to do; the copy matches the player's model — "I typed a
+         name, I want to keep it" — not the code's. It was סגור for one
+         device round and read as a second ✕ with no confirm. */
+      '<button type="button" class="p-c prof-save" data-close>' + esc(PROF_COPY.save) + '</button>' +
     '</div>';
   const paint = () => $$('.gchip', box).forEach(c => {
     const on = c.dataset.g === PROFILE.gender;
@@ -1861,12 +1948,22 @@ function renderProfile(m) {
     paint();
   }));
   if (has) pressable($('[data-swap]', box)).addEventListener('click', () => renderSheet(m));
+  pressable($('[data-close]', box)).addEventListener('click', () => $('.stmodal__x', m).click());
+  const nm = $('#profName', box);
+  nm.addEventListener('input', () => setProfile({ name: cleanName(nm.value) }));
+  nm.addEventListener('blur',  () => { nm.value = cleanName(nm.value); setProfile({ name: nm.value }); });
+  nm.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); nm.blur(); } });
 }
 
 /* 2a. The board's sheet: eight square die-cuts in three columns, each on
-   a dashed well with its name under it, the current one shown mid-peel.
-   Tapping applies at once and the peel moves; one tap on חזרה is 2b
-   again, with the new token already in its hero. */
+   a dashed well with its name under it, the current one shown mid-peel
+   AND carrying the map's completed mark. Tapping applies at once, both
+   move, and the sheet returns to 2b by itself. */
+/* 300ms: the lift travels for 200 (.avp-st's translate transition) and
+   the mark pops in over 180 alongside it; 300 lets both finish and hold
+   for a beat before the cut. 250 cut into the pop's tail on a phone;
+   longer started to read as waiting for something. Tune in the hand. */
+const SHEET_RETURN_MS = 300;
 function renderSheet(m) {
   const box = $('[data-prof]', m);
   const cur = currentPreset();
@@ -1875,22 +1972,47 @@ function renderSheet(m) {
     '<p class="peel-sub">' + esc(PROF_COPY.sub) + '</p>' +
     '<div class="sheet" role="group">' + presets().map(x => {
       const on = !!cur && x.id === cur.id;
+      /* THE NAMES ARE NOT SHOWN. They are labels for eight drawings, not
+         names on offer — the player's name is the field on 2b, and it is
+         theirs alone — so they live on the buttons for screen readers and
+         nowhere the eye can read them as a suggestion. */
       return '<button type="button" class="avp' + (on ? ' avp-peel' : '') + '" data-av="' +
-          esc(x.id) + '" aria-pressed="' + on + '">' +
-        '<span class="avp-well" aria-hidden="true"></span>' +
-        '<span class="avs avs-cut avp-st">' + squareSvg(x) + '</span>' +
-        '<span class="avp-name">' + esc(x.name || '') + '</span>' +
+          esc(x.id) + '" aria-pressed="' + on + '" aria-label="' + esc(x.name || x.id) + '">' +
+        '<span class="avp-well" aria-hidden="true"></span>'  +
+        /* THE MARK IS THE MAP'S, exactly: .node-check's glyph and casing,
+           scaled to this host as 24/76 of the face was to the node. It
+           lives INSIDE the sticker so the mid-peel lift carries it. */
+        '<span class="avs avs-cut avp-st">' + squareSvg(x) +
+          '<span class="node-check avp-check" aria-hidden="true">✓</span></span>' +
         '<span class="avp-lift" aria-hidden="true"></span>' +
       '</button>'; }).join('') +
-    '</div>' +
-    '<button type="button" class="f5back peel-back" data-back>' + esc(PROF_COPY.back) + '</button>';
+    '</div>';
+  /* SELECTING IS THE EXIT. A tap lifts the sticker, lands the mark, and
+     after SHEET_RETURN_MS the sheet is 2b again with the new token in
+     its hero. Never on the tap's own frame — the confirmation has to be
+     seen — and never sooner than the lift has finished travelling. The
+     ✕ is the only control left: the way out for someone who opened the
+     sheet and wants nothing changed. Nothing at the foot.
+     THE ALREADY-CHOSEN STICKER DOES THE SAME, not nothing: the mark pops
+     again, the same hold, the same return. A tap that did nothing would
+     read as a tap that failed.
+     One return per opening: a second tap during the hold re-aims the
+     choice but does not start a second timer. */
+  let leaving = null;
   $$('.avp', box).forEach(b => pressable(b).addEventListener('click', () => {
+    /* avatarId ONLY. PROFILE.name is never written here or anywhere a
+       preset is chosen: it is the player's, and only the player writes
+       it. 2b re-renders its field from PROFILE.name on return. */
     setProfile({ avatarId: b.dataset.av });
     $$('.avp', box).forEach(x => {
       const on = x === b; x.classList.toggle('avp-peel', on); x.setAttribute('aria-pressed', on);
     });
+    const ck = $('.avp-check', b);
+    ck.classList.remove('is-pop'); void ck.offsetWidth; ck.classList.add('is-pop');
+    if (leaving) return;
+    leaving = setTimeout(() => { if (m.isConnected && $('[data-prof]', m) === box) renderProfile(m); },
+                         SHEET_RETURN_MS);
   }));
-  pressable($('[data-back]', box)).addEventListener('click', () => renderProfile(m));
 }
 
 /* ============= BEATS 2 AND 3 · ONE OVERLAY, TWO CONTENTS ============ */
@@ -3483,7 +3605,7 @@ function restoreSave() {
      the sheet falls back to the first, silently. */
   const p = (s.profile && typeof s.profile === 'object') ? s.profile : {};
   PROFILE.avatarId = (typeof p.avatarId === 'string' && preset(p.avatarId)) ? p.avatarId : null;
-  PROFILE.name     = typeof p.name === 'string' ? p.name.slice(0, 40) : '';
+  PROFILE.name     = cleanName(p.name);
   PROFILE.gender   = (p.gender === 'm' || p.gender === 'f') ? p.gender : null;
   PROFILE.invited  = p.invited === true;
   PROFILE.cfg      = (p.cfg && typeof p.cfg === 'object' && !Array.isArray(p.cfg)) ? p.cfg : null;
@@ -4601,9 +4723,8 @@ async function egBeat1() {
 async function egBeat2() {
   const c = egStage();
   const s = endStats();
-  /* §C the record is the player's, so the player's token heads it. The
-     by-name address is DORMANT: PROFILE.name is never set until the name
-     field ships (see PROFILE), so today this is always the plural. */
+  /* §C the record is the player's, so the player's token heads it, and
+     it is addressed by name when one was given — the plural otherwise. */
   c.innerHTML =
     '<span class="as-d eg-av" aria-hidden="true">' + avatarSvg() + '</span>' +
     '<h2 class="eg-h2">' +
