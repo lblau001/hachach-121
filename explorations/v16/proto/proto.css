@@ -3787,3 +3787,42 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
 }
 .avp-peel .avp-lift{ display:block; }
 .peel-back{ margin-top:8px; color:var(--ink-soft); }
+
+/* =====================================================================
+   §C · THE INVITATION, AND THE PLAYER ON THE END-GAME
+   The invitation is the profile sticker with less in it: one line, three
+   equal chips, the avatar line. Same .gchip, same paper, same ✕.
+   ===================================================================== */
+.prof--invite{ padding-top:0; }
+.inv-q{
+  margin:4px 0 0; padding-inline:30px; text-align:center;
+  font-family:var(--font-display); font-weight:900; font-size:20px; line-height:1.22;
+}
+/* three of the same size. "I'd rather not say" is an answer, so it is
+   not smaller, not lighter and not last-but-quieter. */
+.inv-row{ display:flex; gap:7px; margin-top:14px; width:100%; }
+.inv-row > .gchip{ flex:1; justify-content:center; padding-inline:6px; white-space:nowrap; }
+.inv-av{
+  margin:18px 0 2px; display:flex; align-items:center; gap:8px;
+  font-size:var(--fs-meta); font-weight:700; color:var(--ink-soft);
+}
+.inv-av__st{ width:30px; height:30px; }
+.inv-link{
+  border:0; background:none; padding:0; cursor:pointer;
+  font:inherit; color:var(--ink); text-decoration:underline; text-underline-offset:3px;
+}
+
+/* the record's head: the token, then the line */
+.eg-av{
+  width:56px; height:56px; margin:0 auto 4px; display:block; filter:url(#dcw-sm);
+  opacity:0; transform:translateY(6px);
+  transition:opacity var(--t-f5-in) var(--e-settle), transform var(--t-f5-in) var(--e-settle);
+}
+.eg-av.is-in{ opacity:1; transform:none; }
+/* the card's head: the token beside the tag, the optional name under it */
+.eg-share__head{ display:flex; align-items:center; gap:10px; }
+.eg-share__av{ width:34px; height:34px; flex:none; }
+.eg-share__name{
+  margin:0; width:100%; font-family:var(--font-display); font-weight:900;
+  font-size:var(--fs-body); color:var(--ink);
+}

@@ -1818,6 +1818,8 @@ const PROF_COPY = {
   soon:  'בקרוב',                       /* TAMAR */
   back:  'חזרה',                        /* TAMAR */
   hud:   'הדמות שלכם',                  /* TAMAR · the HUD sticker's label */
+  skip:  'לא משנה',                     /* TAMAR · the invitation's dismiss */
+  change:'החליפו',                      /* TAMAR · the invitation's second line */
 };
 
 function profileModal() {
@@ -3625,7 +3627,16 @@ const EXIT_COPY = {
 
 function exitRound() {
   const midRound = S && S.beat > 1 && S.beat < 5;
-  if (!midRound) return goMap();
+  /* quiet: leaving a round is never the moment for the invitation */
+  /* KNOWN, NOT FIXED (Part C, 6 Sep 2026): leaving from BEAT 2 or 3
+     strands the beat-2 surface. .ov--stage is a child of #stage, not of
+     #scRound, so showScreen('map') hides the round and the chair, the
+     prompt and the vote chips stay painted over the map until the next
+     round's beat 2 builds a new one. Its only removal is its own dismiss
+     tap (beat 3). The fix is one line at the top of goMap() — remove any
+     .ov--stage — and it belongs to whoever next touches the round's
+     exit, not to the profile work this note was written during. */
+  if (!midRound) return goMap({ quiet: true });
 
   const sh = el('div', 'exitsheet');
   sh.innerHTML =
@@ -3655,7 +3666,7 @@ function exitRound() {
   const onKey = e => { if (e.key === 'Escape') close(); };
   addEventListener('keydown', onKey);
   pressable($('[data-go]', sh)).addEventListener('click', () => {
-    removeEventListener('keydown', onKey); sh.remove(); goMap();
+    removeEventListener('keydown', onKey); sh.remove(); goMap({ quiet: true });
   });
   pressable($('[data-stay]', sh)).addEventListener('click', close);
   pressable($('.exitsheet__x', sh)).addEventListener('click', close);
@@ -4255,10 +4266,101 @@ function paintHud() {
   const cn = $('#coinNum'); if (cn) cn.textContent = wallet;
 }
 
-function goMap() {
+function goMap(o) {
   renderMap();
   const m = $('#scMap');
   m.classList.remove('is-arriving'); void m.offsetWidth; m.classList.add('is-arriving');
+  /* §C the identity moment is the ARRIVAL, after it has landed — never
+     during map-in, never under the chair. `quiet` is the exit confirm's:
+     an arrival by abandoning a round is not a moment to ask anything. */
+  onMapSettled(m, () => { if (!(o && o.quiet)) maybeInvite(); });
+}
+
+/* ===== §C · THE ARRIVAL GATE ========================================
+   There was no "after the map has arrived" hook: goMap() fires the
+   animation and returns. This is that hook, and it is the ONLY place
+   that measures the arrival. Three arrivals exist and it waits for the
+   longest thing on screen in each:
+     · map-in (260ms) from a round or the end-game — animationend;
+     · lx-dest (180ms) from the intro launch, while the chair is still
+       flying — animationend comes early, so it also waits for .is-launch
+       to come off the stage, which loadingBeat()'s finish() does;
+     · reduced motion, where the launch arrival is animation:none and no
+       animationend ever fires — the timer is the floor.
+   It fires ONCE, whichever comes last. */
+function onMapSettled(m, fn) {
+  let done = false, launching = () => $('#stage').classList.contains('is-launch');
+  let landed = false, obs = null;
+  const go = () => {
+    if (done) return;
+    if (launching()) {
+      /* the chair is still coming: wait for finish() to drop the class */
+      if (!obs) {
+        obs = new MutationObserver(() => { if (!launching()) { obs.disconnect(); obs = null; go(); } });
+        obs.observe($('#stage'), { attributes: true, attributeFilter: ['class'] });
+      }
+      return;
+    }
+    done = true; m.removeEventListener('animationend', onEnd); fn();
+  };
+  const onEnd = e => { if (e.target === m) { landed = true; go(); } };
+  m.addEventListener('animationend', onEnd);
+  setTimeout(() => { if (!landed) go(); }, Math.max(T.mapIn, T.lxDest) + 60);
+}
+
+/* ===== §C · THE INVITATION ==========================================
+   §4.1: "1–2 contextual invitations at identity moments (after first
+   completed topic; pre-share)". The first of those, and only it.
+   THE CONDITION IS STATE, NOT PATH. It reads what is true — a topic is
+   complete, the player has not been asked, no voice is set — rather
+   than which button brought them here, so a reload, a deep link and the
+   end-game's חזרה למפה all behave the same. The exit confirm's arrival
+   is the one exception and it opts out at the call site.
+   ONCE. `invited` is written the moment the card opens, before anything
+   is tapped, so a dismiss, an ✕, an Escape and a reload all count as
+   asked. It is never re-armed; the door in the HUD is always there.
+   NEVER if a voice is already set in 2b — there is nothing to ask. */
+function maybeInvite() {
+  if (PROFILE.invited || PROFILE.gender !== null) return;
+  if (topicsDone() < 1) return;
+  if ($('#stage').dataset.screen !== 'map') return;
+  if ($('.stmodal') || $('.exitsheet')) return;
+  inviteModal();
+}
+
+/* ONE CARD, ONE LINE, THREE EQUAL CHIPS. The dismiss is the same size
+   and the same shape as the two answers, because "I'd rather not say"
+   is an answer and not a lesser one. The second line is the sheet's
+   other identity hook — the avatar, and a way to change it — and it
+   opens 2a INSIDE this same sticker, never a second one on top.
+   It is the same modal 2b is, so the ground, the ✕ and Escape all
+   dismiss it. */
+function inviteModal() {
+  setProfile({ invited: true });
+  const m = stickerModal({ extra: '<div class="prof prof--invite" data-prof></div>' });
+  m.dataset.profile = '';
+  const box = $('[data-prof]', m);
+  box.innerHTML =
+    '<p class="inv-q">' + esc(PROF_COPY.voice) + '</p>' +
+    '<div class="inv-row" role="group" aria-label="' + esc(PROF_COPY.voice) + '">' +
+      '<button type="button" class="gchip" data-g="f">' + esc(PROF_COPY.f) + '</button>' +
+      '<button type="button" class="gchip" data-g="m">' + esc(PROF_COPY.m) + '</button>' +
+      '<button type="button" class="gchip" data-g="">' + esc(PROF_COPY.skip) + '</button>' +
+    '</div>' +
+    '<p class="inv-av">' +
+      '<span class="as-d inv-av__st" aria-hidden="true">' + avatarSvg() + '</span>' +
+      '<span>' + esc(PROF_COPY.hud) + '</span>' +
+      (presets().length
+        ? '<button type="button" class="inv-link" data-swap>' + esc(PROF_COPY.change) + '</button>'
+        : '') +
+    '</p>';
+  $$('.gchip', box).forEach(c => pressable(c).addEventListener('click', () => {
+    if (c.dataset.g) setProfile({ gender: c.dataset.g });
+    $('.stmodal__x', m).click();
+  }));
+  const sw = $('[data-swap]', box);
+  if (sw) pressable(sw).addEventListener('click', () => renderSheet(m));
+  return m;
 }
 
 /* MAP -> ROUND. One transition, cheap, under the 350ms cap: the map drops
@@ -4499,9 +4601,16 @@ async function egBeat1() {
 async function egBeat2() {
   const c = egStage();
   const s = endStats();
-  c.innerHTML = '<h2 class="eg-h2">' + esc('מה יצא לכם') + '</h2>';    /* TAMAR */
+  /* §C the record is the player's, so the player's token heads it. The
+     by-name address is DORMANT: PROFILE.name is never set until the name
+     field ships (see PROFILE), so today this is always the plural. */
+  c.innerHTML =
+    '<span class="as-d eg-av" aria-hidden="true">' + avatarSvg() + '</span>' +
+    '<h2 class="eg-h2">' +
+      esc(PROFILE.name ? 'מה יצא לך, ' + PROFILE.name : 'מה יצא לכם') +  /* TAMAR */
+    '</h2>';
   const h2 = $('.eg-h2', c);
-  requestAnimationFrame(() => h2.classList.add('is-in'));
+  requestAnimationFrame(() => { h2.classList.add('is-in'); $('.eg-av', c).classList.add('is-in'); });
   await egStep(T.f5In);
 
   /* ---- the surprise count, alone ---- */
@@ -4701,6 +4810,13 @@ function egPaint() {
    publishing it raises the opt-in and hashtag questions §5.3 leaves
    open, and those are Tamar/NGO decisions rather than build ones.
    ===================================================================== */
+/* §C THE NAME STAYS OFF THE CARD BY DEFAULT. The card is the artifact a
+   player may put in front of other people, and a name on it is the
+   opt-in question §5.3 leaves open — so it is a switch, off, rather than
+   a behaviour. The avatar is on the card regardless: it is the player's
+   token, not their identity. */
+const SHARE_NAME = false;
+
 async function egBeat4() {
   const c = egStage();
   const s = endStats();
@@ -4712,7 +4828,12 @@ async function egBeat4() {
 
   const card = el('div', 'eg-share');
   card.innerHTML =
-    '<p class="eg-share__tag">' + esc('הח״כ ה-121') + '</p>' +          /* TAMAR */
+    '<div class="eg-share__head">' +
+      '<span class="as-d eg-share__av" aria-hidden="true">' + avatarSvg() + '</span>' +
+      '<p class="eg-share__tag">' + esc('הח״כ ה-121') + '</p>' +        /* TAMAR */
+      (SHARE_NAME && PROFILE.name
+        ? '<p class="eg-share__name">' + esc(PROFILE.name) + '</p>' : '') +
+    '</div>' +
     '<p class="eg-share__lead">' +
       '<span>' + esc('פעמים שהכנסת הפתיעה אותי') + '</span>' +          /* TAMAR */
       '<b class="eg-num eg-share__n">' + N(s.surprises) + '</b></p>' +
