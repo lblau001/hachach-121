@@ -3,142 +3,168 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ח"כ 121 — עריכת שאלות</title>
+<title>ח"כ 121 — CMS</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --bg: #0e1117; --surface: #161b26; --surface-hi: #1d2435;
-  --border: #252d3f; --accent: #0052ff; --accent-hi: #1a66ff;
-  --success: #39ff14; --warn: #ffb800; --danger: #ff3b30;
-  --text: #e2e8f0; --text-dim: #94a3b8; --text-muted: #64748b;
-  --radius: 4px; --font: 'Heebo', system-ui, sans-serif;
-  --mono: 'JetBrains Mono', monospace;
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0e1117;--surface:#161b26;--surface-hi:#1d2435;
+  --border:#252d3f;--accent:#0052ff;--accent-hi:#1a66ff;
+  --success:#39ff14;--warn:#ffb800;--danger:#ff3b30;
+  --text:#e2e8f0;--text-dim:#94a3b8;--text-muted:#64748b;
+  --radius:4px;--font:'Heebo',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;
 }
-body { background: var(--bg); color: var(--text); font-family: var(--font); direction: rtl; font-size: 14px; line-height: 1.5; min-height: 100vh; }
+body{background:var(--bg);color:var(--text);font-family:var(--font);direction:rtl;font-size:14px;line-height:1.5;min-height:100vh}
 
-/* ── GATE ── */
-#gate { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 200; }
-.gate-card { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 36px 44px; width: 380px; display: flex; flex-direction: column; gap: 16px; }
-.gate-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .1em; color: var(--accent); text-transform: uppercase; }
-.gate-title { font-size: 20px; font-weight: 800; letter-spacing: -.4px; margin-top: -4px; }
-.gate-title small { display: block; font-size: 13px; font-weight: 400; color: var(--text-muted); margin-top: 2px; }
-.gate-sep { border: none; border-top: 1px solid var(--border); }
-.gate-label { font-size: 11px; font-weight: 700; letter-spacing: .05em; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 4px; }
-.gate-input { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-family: var(--mono); font-size: 13px; letter-spacing: .04em; padding: 9px 12px; width: 100%; direction: ltr; outline: none; transition: border-color .15s; }
-.gate-input:focus { border-color: var(--accent); }
-.gate-pat-row { display: flex; gap: 8px; align-items: center; font-size: 12px; color: var(--text-muted); margin-top: 4px; }
-.gate-pat-row input[type=checkbox] { accent-color: var(--accent); width: 14px; height: 14px; }
-.gate-hint { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
-.gate-hint a { color: var(--accent); text-decoration: none; }
-.gate-hint a:hover { text-decoration: underline; }
-.gate-btn { background: var(--accent); border: none; border-radius: var(--radius); color: #fff; cursor: pointer; font-family: var(--font); font-size: 14px; font-weight: 700; padding: 11px; width: 100%; transition: background .15s; }
-.gate-btn:hover { background: var(--accent-hi); }
-.gate-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.gate-error { font-size: 12px; color: var(--danger); min-height: 16px; }
+/* GATE */
+#gate{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:200}
+.gate-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:36px 44px;width:380px;display:flex;flex-direction:column;gap:16px}
+.gate-eyebrow{font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--accent);text-transform:uppercase}
+.gate-title{font-size:20px;font-weight:800;letter-spacing:-.4px;margin-top:-4px}
+.gate-title small{display:block;font-size:13px;font-weight:400;color:var(--text-muted);margin-top:2px}
+.gate-sep{border:none;border-top:1px solid var(--border)}
+.gate-label{font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--text-muted);text-transform:uppercase;display:block;margin-bottom:4px}
+.gate-input{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--mono);font-size:13px;letter-spacing:.04em;padding:9px 12px;width:100%;direction:ltr;outline:none;transition:border-color .15s}
+.gate-input:focus{border-color:var(--accent)}
+.gate-pat-row{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--text-muted);margin-top:4px}
+.gate-pat-row input[type=checkbox]{accent-color:var(--accent);width:14px;height:14px}
+.gate-hint{font-size:11px;color:var(--text-muted);line-height:1.5}
+.gate-hint a{color:var(--accent);text-decoration:none}
+.gate-hint a:hover{text-decoration:underline}
+.gate-btn{background:var(--accent);border:none;border-radius:var(--radius);color:#fff;cursor:pointer;font-family:var(--font);font-size:14px;font-weight:700;padding:11px;width:100%;transition:background .15s}
+.gate-btn:hover{background:var(--accent-hi)}
+.gate-error{font-size:12px;color:var(--danger);min-height:16px}
 
-/* ── APP ── */
-#app { display: none; flex-direction: column; min-height: 100vh; }
-#app.visible { display: flex; }
-.header { background: var(--surface); border-bottom: 1px solid var(--border); height: 52px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; flex-shrink: 0; }
-.header-brand { display: flex; align-items: baseline; gap: 8px; }
-.header-logo { font-size: 15px; font-weight: 800; letter-spacing: -.4px; }
-.header-tag { font-family: var(--mono); font-size: 11px; color: var(--text-muted); background: var(--bg); border: 1px solid var(--border); border-radius: 3px; padding: 1px 6px; }
-.header-actions { display: flex; gap: 8px; align-items: center; }
-.commit-status { font-size: 12px; font-weight: 600; color: var(--text-muted); }
-.commit-status.ok { color: var(--success); }
-.commit-status.err { color: var(--danger); }
-.commit-status.loading { color: var(--warn); }
+/* APP */
+#app{display:none;flex-direction:column;min-height:100vh}
+#app.visible{display:flex}
+.header{background:var(--surface);border-bottom:1px solid var(--border);height:52px;padding:0 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;flex-shrink:0}
+.header-brand{display:flex;align-items:baseline;gap:8px}
+.header-logo{font-size:15px;font-weight:800;letter-spacing:-.4px}
+.header-tag{font-family:var(--mono);font-size:11px;color:var(--text-muted);background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:1px 6px}
+.header-actions{display:flex;gap:8px;align-items:center}
+.commit-status{font-size:12px;font-weight:600;color:var(--text-muted)}
+.commit-status.ok{color:var(--success)}.commit-status.err{color:var(--danger)}.commit-status.loading{color:var(--warn)}
 
-/* ── BUTTONS ── */
-.btn { border-radius: var(--radius); cursor: pointer; font-family: var(--font); font-size: 13px; font-weight: 600; padding: 6px 14px; border: 1px solid transparent; transition: background .12s, border-color .12s, color .12s; line-height: 1.4; }
-.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.btn:disabled { opacity: .4; cursor: not-allowed; }
-.btn-ghost { background: transparent; border-color: var(--border); color: var(--text-dim); }
-.btn-ghost:not(:disabled):hover { border-color: var(--text-muted); color: var(--text); }
-.btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-.btn-primary:not(:disabled):hover { background: var(--accent-hi); border-color: var(--accent-hi); }
-.btn-success { background: rgba(57,255,20,.1); border-color: var(--success); color: var(--success); }
-.btn-success:not(:disabled):hover { background: rgba(57,255,20,.2); }
+/* BUTTONS */
+.btn{border-radius:var(--radius);cursor:pointer;font-family:var(--font);font-size:13px;font-weight:600;padding:6px 14px;border:1px solid transparent;transition:background .12s,border-color .12s,color .12s;line-height:1.4}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-ghost{background:transparent;border-color:var(--border);color:var(--text-dim)}
+.btn-ghost:not(:disabled):hover{border-color:var(--text-muted);color:var(--text)}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn-primary:not(:disabled):hover{background:var(--accent-hi);border-color:var(--accent-hi)}
+.btn-success{background:rgba(57,255,20,.1);border-color:var(--success);color:var(--success)}
+.btn-success:not(:disabled):hover{background:rgba(57,255,20,.2)}
+.btn-danger{background:rgba(255,59,48,.1);border-color:var(--danger);color:var(--danger)}
+.btn-danger:not(:disabled):hover{background:rgba(255,59,48,.2)}
+.btn-sm{padding:4px 10px;font-size:12px}
 
-/* ── LAYOUT ── */
-.layout { display: flex; flex: 1; min-height: 0; }
-.sidebar { width: 196px; flex-shrink: 0; background: var(--surface); border-left: 1px solid var(--border); padding: 14px 0; position: sticky; top: 52px; height: calc(100vh - 52px); overflow-y: auto; }
-.sidebar-label { font-size: 10px; font-weight: 700; letter-spacing: .1em; color: var(--text-muted); text-transform: uppercase; padding: 0 14px 8px; }
-.topic-btn { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 14px; background: transparent; border: none; color: var(--text-dim); font-family: var(--font); font-size: 13px; font-weight: 500; cursor: pointer; text-align: right; transition: background .1s, color .1s; }
-.topic-btn:hover { background: var(--surface-hi); color: var(--text); }
-.topic-btn.active { color: var(--accent); background: rgba(0,82,255,.09); font-weight: 700; }
-.topic-count { margin-right: auto; font-size: 11px; color: var(--text-muted); font-family: var(--mono); }
-.content { flex: 1; padding: 24px; overflow-y: auto; max-width: 860px; }
-.section-hd { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
-.section-hd-title { font-size: 16px; font-weight: 800; letter-spacing: -.3px; }
-.section-hd-pill { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; background: rgba(0,82,255,.12); color: var(--accent); }
+/* TABS */
+.tabs{background:var(--surface);border-bottom:1px solid var(--border);display:flex;padding:0 20px;gap:2px;flex-shrink:0}
+.tab-btn{background:transparent;border:none;border-bottom:2px solid transparent;color:var(--text-muted);cursor:pointer;font-family:var(--font);font-size:13px;font-weight:600;padding:12px 14px;margin-bottom:-1px;transition:color .12s,border-color .12s}
+.tab-btn:hover{color:var(--text-dim)}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-panel{display:none;flex:1;min-height:0;overflow:hidden}
+.tab-panel.active{display:flex}
 
-/* ── ISSUE ROW ── */
-.issues-list { display: flex; flex-direction: column; gap: 3px; margin-bottom: 32px; }
-.issue-row { border: 1px solid transparent; border-radius: var(--radius); overflow: hidden; }
-.issue-row.open { border-color: var(--accent); }
-.issue-hd { display: grid; grid-template-columns: 28px 1fr auto auto; align-items: center; gap: 12px; padding: 10px 14px; background: var(--surface); cursor: pointer; transition: background .1s; user-select: none; }
-.issue-hd:hover { background: var(--surface-hi); }
-.issue-row.open .issue-hd { background: var(--surface-hi); }
-.issue-emoji { font-size: 17px; text-align: center; }
-.issue-meta { min-width: 0; }
-.issue-title { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.issue-id { font-family: var(--mono); font-size: 11px; color: var(--text-muted); margin-top: 1px; }
-.answer-badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 3px; white-space: nowrap; flex-shrink: 0; }
-.answer-badge.true  { background: rgba(57,255,20,.1);  color: var(--success); }
-.answer-badge.false { background: rgba(255,59,48,.1);  color: var(--danger);  }
-.answer-badge.partial { background: rgba(255,184,0,.1); color: var(--warn); }
-.mode-badge { font-size: 11px; color: var(--text-muted); padding: 2px 7px; border: 1px solid var(--border); border-radius: 3px; flex-shrink: 0; }
+/* LAYOUT (issues tab) */
+.sidebar{width:196px;flex-shrink:0;background:var(--surface);border-left:1px solid var(--border);padding:14px 0;height:100%;overflow-y:auto}
+.sidebar-label{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--text-muted);text-transform:uppercase;padding:0 14px 8px}
+.topic-btn{display:flex;align-items:center;gap:8px;width:100%;padding:8px 14px;background:transparent;border:none;color:var(--text-dim);font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;text-align:right;transition:background .1s,color .1s}
+.topic-btn:hover{background:var(--surface-hi);color:var(--text)}
+.topic-btn.active{color:var(--accent);background:rgba(0,82,255,.09);font-weight:700}
+.topic-count{margin-right:auto;font-size:11px;color:var(--text-muted);font-family:var(--mono)}
+.panel-content{flex:1;padding:24px;overflow-y:auto}
+.section-hd{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.section-hd-title{font-size:16px;font-weight:800;letter-spacing:-.3px}
+.section-hd-pill{font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;background:rgba(0,82,255,.12);color:var(--accent)}
+.section-hd-spacer{flex:1}
 
-/* ── EDIT FORM ── */
-.edit-form { display: none; background: var(--bg); border-top: 1px solid var(--border); padding: 18px; }
-.issue-row.open .edit-form { display: block; }
-.form-section-label { font-size: 10px; font-weight: 700; letter-spacing: .1em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px; }
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
-.form-grid.full { grid-template-columns: 1fr; }
-.form-grid.thirds { grid-template-columns: 1fr 1fr 1fr; }
-.form-group { display: flex; flex-direction: column; gap: 4px; }
-.form-label { font-size: 11px; font-weight: 700; letter-spacing: .04em; color: var(--text-muted); text-transform: uppercase; }
-.form-input, .form-select, .form-textarea { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-family: var(--font); font-size: 13px; padding: 7px 10px; width: 100%; outline: none; transition: border-color .15s; direction: rtl; }
-.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent); }
-.form-textarea { resize: vertical; min-height: 72px; line-height: 1.55; }
-.form-textarea.tall { min-height: 96px; }
-.form-input.ltr, .form-select.ltr { direction: ltr; font-family: var(--mono); font-size: 12px; }
-.form-divider { border: none; border-top: 1px solid var(--border); margin: 16px 0 14px; }
-.form-actions { display: flex; align-items: center; gap: 10px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); }
-.save-status { font-size: 12px; font-weight: 600; color: var(--success); opacity: 0; transition: opacity .2s; }
-.save-status.visible { opacity: 1; }
-.save-status.err { color: var(--danger); }
+/* ISSUE ROWS */
+.issues-list{display:flex;flex-direction:column;gap:3px;margin-bottom:32px}
+.issue-row{border:1px solid transparent;border-radius:var(--radius);overflow:hidden}
+.issue-row.open{border-color:var(--accent)}
+.issue-hd{display:grid;grid-template-columns:28px 1fr auto auto;align-items:center;gap:12px;padding:10px 14px;background:var(--surface);cursor:pointer;transition:background .1s;user-select:none}
+.issue-hd:hover,.issue-row.open .issue-hd{background:var(--surface-hi)}
+.issue-emoji{font-size:17px;text-align:center}
+.issue-meta{min-width:0}
+.issue-title{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.issue-id{font-family:var(--mono);font-size:11px;color:var(--text-muted);margin-top:1px}
+.answer-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:3px;white-space:nowrap;flex-shrink:0}
+.answer-badge.true{background:rgba(57,255,20,.1);color:var(--success)}
+.answer-badge.false{background:rgba(255,59,48,.1);color:var(--danger)}
+.answer-badge.partial{background:rgba(255,184,0,.1);color:var(--warn)}
+.mode-badge{font-size:11px;color:var(--text-muted);padding:2px 7px;border:1px solid var(--border);border-radius:3px;flex-shrink:0}
 
-/* ── LOADING / EMPTY ── */
-.loading-msg { padding: 60px 0; color: var(--text-muted); text-align: center; }
-.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; height: 60vh; color: var(--text-muted); text-align: center; }
-.empty-state h2 { font-size: 18px; font-weight: 700; color: var(--text-dim); }
-.empty-state p { font-size: 13px; max-width: 320px; line-height: 1.6; }
+/* EDIT FORM */
+.edit-form{display:none;background:var(--bg);border-top:1px solid var(--border);padding:18px}
+.issue-row.open .edit-form{display:block}
+.form-section-label{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--text-muted);text-transform:uppercase;margin-bottom:10px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.form-grid.full{grid-template-columns:1fr}
+.form-grid.thirds{grid-template-columns:1fr 1fr 1fr}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-label{font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--text-muted);text-transform:uppercase}
+.form-input,.form-select,.form-textarea{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:13px;padding:7px 10px;width:100%;outline:none;transition:border-color .15s;direction:rtl}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent)}
+.form-textarea{resize:vertical;min-height:72px;line-height:1.55}
+.form-textarea.tall{min-height:96px}
+.form-input.ltr,.form-select.ltr{direction:ltr;font-family:var(--mono);font-size:12px}
+.form-divider{border:none;border-top:1px solid var(--border);margin:16px 0 14px}
+.form-actions{display:flex;align-items:center;gap:10px;margin-top:18px;padding-top:14px;border-top:1px solid var(--border)}
+.save-status{font-size:12px;font-weight:600;color:var(--success);opacity:0;transition:opacity .2s}
+.save-status.visible{opacity:1}
+.save-status.err{color:var(--danger)}
 
-/* ── STATUS BAR ── */
-.statusbar { background: var(--surface); border-top: 1px solid var(--border); padding: 5px 20px; display: flex; align-items: center; gap: 10px; font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
-.status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-muted); flex-shrink: 0; transition: background .3s; }
-.status-dot.ok { background: var(--success); }
-.status-dot.err { background: var(--danger); }
-.status-dot.loading { background: var(--warn); animation: pulse 1s ease-in-out infinite; }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-.status-link { color: var(--accent); text-decoration: none; font-family: var(--mono); }
-.status-link:hover { text-decoration: underline; }
+/* TOPICS GRID */
+.topics-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+.topic-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.topic-card-hd{display:flex;align-items:center;gap:10px}
+.topic-card-icon{font-size:24px}
+.topic-card-id{font-family:var(--mono);font-size:11px;color:var(--text-muted)}
+.color-row{display:flex;gap:10px;align-items:center}
+.color-preview{width:32px;height:32px;border-radius:4px;border:1px solid var(--border);flex-shrink:0;cursor:pointer}
+.color-preview input[type=color]{opacity:0;position:absolute;width:32px;height:32px;cursor:pointer}
+.color-pair{display:flex;gap:8px;flex:1}
 
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+/* GLOSSARY */
+.glossary-list{display:flex;flex-direction:column;gap:8px}
+.gloss-row{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.gloss-hd{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;user-select:none;transition:background .1s}
+.gloss-hd:hover,.gloss-row.open .gloss-hd{background:var(--surface-hi)}
+.gloss-term{font-weight:700;font-size:14px;flex:1}
+.gloss-edit{display:none;padding:14px;border-top:1px solid var(--border);background:var(--bg)}
+.gloss-row.open .gloss-edit{display:block}
+.gloss-def{font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:400px}
+
+/* POLITICIANS */
+.pol-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.pol-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px;display:flex;gap:12px;align-items:flex-start}
+.pol-avatar{font-size:28px;flex-shrink:0;width:44px;text-align:center}
+.pol-fields{flex:1;display:flex;flex-direction:column;gap:6px}
+.pol-key{font-family:var(--mono);font-size:10px;color:var(--text-muted)}
+
+/* STATUS BAR */
+.statusbar{background:var(--surface);border-top:1px solid var(--border);padding:5px 20px;display:flex;align-items:center;gap:10px;font-size:11px;color:var(--text-muted);flex-shrink:0}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--text-muted);flex-shrink:0;transition:background .3s}
+.status-dot.ok{background:var(--success)}.status-dot.err{background:var(--danger)}.status-dot.loading{background:var(--warn);animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.status-link{color:var(--accent);text-decoration:none;font-family:var(--mono)}
+.status-link:hover{text-decoration:underline}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;height:60vh;color:var(--text-muted);text-align:center}
+.empty-state h2{font-size:18px;font-weight:700;color:var(--text-dim)}
 </style>
 </head>
 <body>
 
-<!-- ── GATE ── -->
+<!-- GATE -->
 <div id="gate">
   <div class="gate-card">
     <div>
       <div class="gate-eyebrow">CMS פנימי</div>
-      <div class="gate-title">עריכת שאלות<small>ח"כ ה-121</small></div>
+      <div class="gate-title">עריכת נתונים<small>ח"כ ה-121</small></div>
     </div>
     <form id="gateForm">
       <div>
@@ -154,7 +180,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); dire
           <label for="rememberPat">שמור את ה-token בדפדפן</label>
         </div>
         <p class="gate-hint" style="margin-top:6px">
-          צור token עם הרשאת <strong>Contents: Read &amp; Write</strong> ב-<a href="https://github.com/settings/personal-access-tokens/new" target="_blank">GitHub Settings → Fine-grained tokens</a>
+          צור token עם <strong>Contents: Read &amp; Write</strong> ב-<a href="https://github.com/settings/personal-access-tokens/new" target="_blank">GitHub → Fine-grained tokens</a>
         </p>
       </div>
       <div class="gate-error" id="gateError" role="alert"></div>
@@ -163,7 +189,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); dire
   </div>
 </div>
 
-<!-- ── APP ── -->
+<!-- APP -->
 <div id="app">
   <header class="header">
     <div class="header-brand">
@@ -177,16 +203,65 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); dire
     </div>
   </header>
 
-  <div class="layout">
-    <aside class="sidebar" id="sidebar">
-      <p class="sidebar-label">נושאים</p>
-    </aside>
-    <main class="content" id="content">
-      <div class="empty-state">
-        <h2>טוען נתונים…</h2>
-        <p>מתחבר ל-GitHub וקורא את data.js</p>
+  <!-- SECTION TABS -->
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="issues">שאלות</button>
+    <button class="tab-btn" data-tab="topics">נושאים</button>
+    <button class="tab-btn" data-tab="glossary">מילון</button>
+    <button class="tab-btn" data-tab="politicians">חכ"ים</button>
+  </nav>
+
+  <!-- TAB: ISSUES -->
+  <div class="tab-panel active" id="tab-issues">
+    <aside class="sidebar" id="sidebar"><p class="sidebar-label">נושאים</p></aside>
+    <div class="panel-content" id="issues-content">
+      <div class="empty-state"><h2>טוען…</h2></div>
+    </div>
+  </div>
+
+  <!-- TAB: TOPICS -->
+  <div class="tab-panel" id="tab-topics">
+    <div class="panel-content">
+      <div class="section-hd">
+        <span class="section-hd-title">נושאים</span>
+        <span class="section-hd-pill" id="topics-count">8</span>
       </div>
-    </main>
+      <div class="topics-grid" id="topics-grid"></div>
+    </div>
+  </div>
+
+  <!-- TAB: GLOSSARY -->
+  <div class="tab-panel" id="tab-glossary">
+    <div class="panel-content">
+      <div class="section-hd">
+        <span class="section-hd-title">מילון מונחים</span>
+        <span class="section-hd-pill" id="glossary-count">0</span>
+        <span class="section-hd-spacer"></span>
+        <button class="btn btn-primary btn-sm" id="addTermBtn">+ הוסף מונח</button>
+      </div>
+      <div id="new-term-form" style="display:none;background:var(--surface);border:1px solid var(--accent);border-radius:6px;padding:16px;margin-bottom:16px">
+        <div class="form-grid" style="margin-bottom:10px">
+          <div class="form-group"><label class="form-label">מונח</label><input class="form-input" id="newTermKey" placeholder="שם המונח"></div>
+          <div class="form-group"><label class="form-label">הגדרה</label><textarea class="form-textarea" id="newTermVal" placeholder="הסבר קצר…"></textarea></div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-primary btn-sm" id="saveNewTermBtn">הוסף</button>
+          <button class="btn btn-ghost btn-sm" id="cancelNewTermBtn">ביטול</button>
+        </div>
+      </div>
+      <div class="glossary-list" id="glossary-list"></div>
+    </div>
+  </div>
+
+  <!-- TAB: POLITICIANS -->
+  <div class="tab-panel" id="tab-politicians">
+    <div class="panel-content">
+      <div class="section-hd">
+        <span class="section-hd-title">חברי כנסת</span>
+        <span class="section-hd-pill" id="pol-count">0</span>
+      </div>
+      <div class="pol-grid" id="pol-grid"></div>
+    </div>
   </div>
 
   <div class="statusbar">
@@ -202,379 +277,389 @@ const REPO     = 'romangash-star/hachach-121';
 const BRANCH   = 'master';
 const FILE     = 'data.js';
 
-const TOPICS = {
-  religion:      { name: 'דת וחרדים',      emoji: '🕍' },
-  economy:       { name: 'כלכלה',           emoji: '💰' },
-  branches:      { name: 'ממשל ומשפט',     emoji: '⚖️' },
-  gender:        { name: 'מגדר ומשפחה',    emoji: '⚤'  },
-  accountability:{ name: 'אחריות',          emoji: '🕯️' },
-  environment:   { name: 'סביבה',           emoji: '🌿' },
-  internal_sec:  { name: 'ביטחון פנים',     emoji: '🚨' },
-  military:      { name: 'ביטחון לאומי',    emoji: '🌐' },
-};
 const TOPIC_ORDER   = ['religion','economy','branches','gender','accountability','environment','internal_sec','military'];
-const ANSWER_LABELS = { true:'נכון', false:'לא נכון', partial:'חלקי' };
-const MODE_LABELS   = { vote:'הצבעה', stance:'עמדות' };
+const ANSWER_LABELS = {true:'נכון',false:'לא נכון',partial:'חלקי'};
+const MODE_LABELS   = {vote:'הצבעה',stance:'עמדות'};
 
-let ghPat     = '';
-let fileSha   = '';
-let fileRaw   = '';   // full data.js text
-let fileTail  = '';   // everything after the `const DATA = {...};` statement (preserved on commit)
-let dataObj   = null; // parsed DATA object
-let issues    = {};   // id -> issue
-let dirty     = false;
-let currentTopic = TOPIC_ORDER[0];
+let ghPat='', fileSha='', dataObj=null, issues={}, dirty=false, currentTopic=TOPIC_ORDER[0];
 
-// ── GATE ──
-(function initGate() {
+/* ── GATE ── */
+(function(){
   const saved = localStorage.getItem('admin_gh_pat');
-  if (saved) {
-    document.getElementById('patInput').value = saved;
-    document.getElementById('rememberPat').checked = true;
-  }
-  document.getElementById('gateForm').addEventListener('submit', function(e) {
+  if(saved){ document.getElementById('patInput').value=saved; document.getElementById('rememberPat').checked=true; }
+  document.getElementById('gateForm').addEventListener('submit',function(e){
     e.preventDefault();
-    const pw  = document.getElementById('pwInput').value.trim();
-    const pat = document.getElementById('patInput').value.trim();
-    const err = document.getElementById('gateError');
-    if (pw !== PASSWORD) { err.textContent = 'סיסמה שגויה'; return; }
-    if (!pat) { err.textContent = 'נדרש GitHub Token'; return; }
-    if (document.getElementById('rememberPat').checked) {
-      localStorage.setItem('admin_gh_pat', pat);
-    } else {
-      localStorage.removeItem('admin_gh_pat');
-    }
-    ghPat = pat;
-    document.getElementById('gate').style.display = 'none';
+    const pw=document.getElementById('pwInput').value.trim();
+    const pat=document.getElementById('patInput').value.trim();
+    const err=document.getElementById('gateError');
+    if(pw!==PASSWORD){err.textContent='סיסמה שגויה';return;}
+    if(!pat){err.textContent='נדרש GitHub Token';return;}
+    if(document.getElementById('rememberPat').checked) localStorage.setItem('admin_gh_pat',pat);
+    else localStorage.removeItem('admin_gh_pat');
+    ghPat=pat;
+    document.getElementById('gate').style.display='none';
     document.getElementById('app').classList.add('visible');
     loadFile();
   });
-  document.getElementById('pwInput').addEventListener('input', () => {
-    document.getElementById('gateError').textContent = '';
-  });
+  document.getElementById('pwInput').addEventListener('input',()=>{ document.getElementById('gateError').textContent=''; });
 })();
 
-// ── GITHUB API ──
-async function ghFetch(path, options = {}) {
-  const url = `https://api.github.com${path}`;
-  const res = await fetch(url, {
-    ...options,
-    headers: {
-      'Authorization': `Bearer ${ghPat}`,
-      'Accept': 'application/vnd.github.v3+json',
-      'Content-Type': 'application/json',
-      ...(options.headers || {}),
-    },
+/* ── TABS ── */
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
   });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
+});
+
+/* ── GITHUB API ── */
+async function ghFetch(path,options={}){
+  const res=await fetch('https://api.github.com'+path,{
+    ...options,
+    headers:{'Authorization':'Bearer '+ghPat,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json',...(options.headers||{})},
+  });
+  const data=await res.json();
+  if(!res.ok) throw new Error(data.message||'HTTP '+res.status);
   return data;
 }
 
-// ── LOAD FILE ──
-async function loadFile() {
-  setStatus('loading', 'קורא data.js מ-GitHub…');
-  document.getElementById('reloadBtn').disabled = true;
-  document.getElementById('commitBtn').disabled = true;
-  try {
-    const resp = await ghFetch(`/repos/${REPO}/contents/${FILE}?ref=${BRANCH}`);
-    fileSha  = resp.sha;
-    // GitHub returns base64 of the raw UTF-8 bytes; atob alone leaves Hebrew as Latin-1 mojibake
-    fileRaw  = new TextDecoder().decode(Uint8Array.from(atob(resp.content.replace(/\n/g, '')), c => c.charCodeAt(0)));
-
-    // Parse: the DATA statement is `const DATA = {...};`, terminated by the first `;`
-    // that is followed by a newline or end-of-file (inside JSON a `;` is never followed
-    // by a raw newline). Anything after that terminator is kept in fileTail.
-    const m = fileRaw.match(/^const DATA = ([\s\S]*?);(\r?\n|$)/);
-    if (!m) throw new Error('data.js אינו מתחיל ב-const DATA = {...};');
-    fileTail = m[2] + fileRaw.slice(m[0].length);
-    dataObj = JSON.parse(m[1]);
-
-    issues = {};
-    (dataObj.issues || []).forEach(iss => { issues[iss.id] = iss; });
-
-    renderSidebar();
-    renderTopic(currentTopic);
-    setStatus('ok', `${Object.keys(issues).length} שאלות נטענו`);
-    document.getElementById('statusSha').innerHTML =
-      `<a class="status-link" href="https://github.com/${REPO}/blob/${fileSha}/${FILE}" target="_blank">${fileSha.substring(0,7)}</a>`;
-    document.getElementById('reloadBtn').disabled = false;
-    dirty = false;
-    updateCommitBtn();
-  } catch(err) {
-    setStatus('err', `שגיאה: ${err.message}`);
-  }
+/* ── LOAD ── */
+async function loadFile(){
+  setStatus('loading','קורא data.js מ-GitHub…');
+  document.getElementById('reloadBtn').disabled=true;
+  document.getElementById('commitBtn').disabled=true;
+  try{
+    const resp=await ghFetch('/repos/'+REPO+'/contents/'+FILE+'?ref='+BRANCH);
+    fileSha=resp.sha;
+    const raw=atob(resp.content.replace(/\n/g,''));
+    const jsonStr=raw.slice('const DATA = '.length,raw.lastIndexOf(';'));
+    dataObj=JSON.parse(jsonStr);
+    issues={};
+    (dataObj.issues||[]).forEach(i=>{ issues[i.id]=i; });
+    renderSidebar(); renderTopic(currentTopic);
+    renderTopics(); renderGlossary(); renderPoliticians();
+    updateTabCounts();
+    setStatus('ok',Object.keys(issues).length+' שאלות נטענו');
+    document.getElementById('statusSha').innerHTML=
+      '<a class="status-link" href="https://github.com/'+REPO+'/blob/'+fileSha+'/'+FILE+'" target="_blank">'+fileSha.substring(0,7)+'</a>';
+    document.getElementById('reloadBtn').disabled=false;
+    dirty=false; updateCommitBtn();
+  }catch(err){ setStatus('err','שגיאה: '+err.message); }
 }
 
-// ── SIDEBAR ──
-function renderSidebar() {
-  const sb = document.getElementById('sidebar');
-  sb.innerHTML = '<p class="sidebar-label">נושאים</p>';
-  TOPIC_ORDER.forEach(tid => {
-    const t = TOPICS[tid];
-    const count = Object.values(issues).filter(i => i.topic === tid).length;
-    const btn = document.createElement('button');
-    btn.className = 'topic-btn' + (tid === currentTopic ? ' active' : '');
-    btn.dataset.topic = tid;
-    btn.innerHTML = `<span>${t.emoji} ${t.name}</span><span class="topic-count">${count}</span>`;
-    btn.addEventListener('click', () => {
-      currentTopic = tid;
-      document.querySelectorAll('.topic-btn').forEach(b => b.classList.toggle('active', b.dataset.topic === tid));
+function updateTabCounts(){
+  document.getElementById('topics-count').textContent=(dataObj.topics||[]).length;
+  document.getElementById('glossary-count').textContent=Object.keys(dataObj.glossary||{}).length;
+  document.getElementById('pol-count').textContent=Object.keys(dataObj.politicians||{}).length;
+  document.querySelectorAll('.tab-btn').forEach(b=>{
+    if(b.dataset.tab==='issues') b.textContent='שאלות ('+Object.keys(issues).length+')';
+    else if(b.dataset.tab==='topics') b.textContent='נושאים ('+(dataObj.topics||[]).length+')';
+    else if(b.dataset.tab==='glossary') b.textContent='מילון ('+Object.keys(dataObj.glossary||{}).length+')';
+    else if(b.dataset.tab==='politicians') b.textContent='חכ"ים ('+Object.keys(dataObj.politicians||{}).length+')';
+  });
+}
+
+/* ── ISSUES ── */
+function renderSidebar(){
+  const sb=document.getElementById('sidebar');
+  sb.innerHTML='<p class="sidebar-label">נושאים</p>';
+  TOPIC_ORDER.forEach(tid=>{
+    const t=(dataObj.topics||[]).find(x=>x.id===tid)||{id:tid,label:tid,icon:''};
+    const count=Object.values(issues).filter(i=>i.topic===tid).length;
+    const btn=document.createElement('button');
+    btn.className='topic-btn'+(tid===currentTopic?' active':'');
+    btn.dataset.topic=tid;
+    btn.innerHTML='<span>'+t.icon+' '+esc(t.label)+'</span><span class="topic-count">'+count+'</span>';
+    btn.addEventListener('click',()=>{
+      currentTopic=tid;
+      document.querySelectorAll('.topic-btn').forEach(b=>b.classList.toggle('active',b.dataset.topic===tid));
       renderTopic(tid);
     });
     sb.appendChild(btn);
   });
 }
 
-// ── RENDER TOPIC ──
-function renderTopic(tid) {
-  const c = document.getElementById('content');
-  const t = TOPICS[tid];
-  const topicIssues = Object.values(issues)
-    .filter(i => i.topic === tid)
-    .sort((a,b) => a.id.localeCompare(b.id));
-
-  let html = `<div class="section-hd">
-    <span class="section-hd-title">${t.emoji} ${t.name}</span>
-    <span class="section-hd-pill">${topicIssues.length} שאלות</span>
-  </div><div class="issues-list">`;
-
-  if (!topicIssues.length) {
-    html += '<p class="loading-msg">אין שאלות בנושא זה</p>';
-  } else {
-    topicIssues.forEach(iss => { html += buildRow(iss); });
-  }
-  html += '</div>';
-  c.innerHTML = html;
-
-  topicIssues.forEach(iss => {
-    document.querySelector(`#row-${CSS.escape(iss.id)} .issue-hd`)
-      ?.addEventListener('click', () => toggleRow(iss.id));
-    document.getElementById(`form-${iss.id}`)
-      ?.addEventListener('submit', e => { e.preventDefault(); saveLocal(iss.id); });
+function renderTopic(tid){
+  const c=document.getElementById('issues-content');
+  const t=(dataObj.topics||[]).find(x=>x.id===tid)||{id:tid,label:tid,icon:''};
+  const topicIssues=Object.values(issues).filter(i=>i.topic===tid).sort((a,b)=>a.id.localeCompare(b.id));
+  let html='<div class="section-hd"><span class="section-hd-title">'+t.icon+' '+esc(t.label)+'</span><span class="section-hd-pill">'+topicIssues.length+' שאלות</span></div><div class="issues-list">';
+  if(!topicIssues.length) html+='<p style="color:var(--text-muted);padding:20px">אין שאלות בנושא זה</p>';
+  else topicIssues.forEach(iss=>{ html+=buildIssueRow(iss); });
+  html+='</div>';
+  c.innerHTML=html;
+  topicIssues.forEach(iss=>{
+    document.querySelector('#row-'+CSS.escape(iss.id)+' .issue-hd')?.addEventListener('click',()=>toggleRow(iss.id));
+    document.getElementById('form-'+iss.id)?.addEventListener('submit',e=>{ e.preventDefault(); saveIssueLocal(iss.id); });
   });
 }
 
-// ── BUILD ROW ──
-function buildRow(iss) {
-  const ans = iss.tf_answer || 'false';
-  const ansLabel  = ANSWER_LABELS[ans] || ans;
-  const modeLabel = MODE_LABELS[iss.mode] || iss.mode || '—';
-
-  return `
-<div class="issue-row" id="row-${iss.id}">
-  <div class="issue-hd" tabindex="0" role="button" aria-expanded="false">
-    <span class="issue-emoji">${iss.emoji||''}</span>
-    <div class="issue-meta">
-      <div class="issue-title">${esc(iss.title)}</div>
-      <div class="issue-id">${iss.id}</div>
-    </div>
-    <span class="answer-badge ${ans}">${ansLabel}</span>
-    <span class="mode-badge">${modeLabel}</span>
-  </div>
-  <div class="edit-form">
-    <form id="form-${iss.id}">
-      <div class="form-section-label">בסיסי</div>
-      <div class="form-grid">
-        <div class="form-group"><label class="form-label">אימוג'י</label>
-          <input class="form-input" name="emoji" value="${esc(iss.emoji||'')}" maxlength="4"></div>
-        <div class="form-group"><label class="form-label">כותרת</label>
-          <input class="form-input" name="title" value="${esc(iss.title||'')}"></div>
-      </div>
-      <hr class="form-divider">
-      <div class="form-section-label">טענת אמת/שקר</div>
-      <div class="form-grid full"><div class="form-group"><label class="form-label">טענה</label>
-        <textarea class="form-textarea" name="tf">${esc(iss.tf||'')}</textarea></div></div>
-      <div class="form-grid">
-        <div class="form-group"><label class="form-label">תשובה</label>
-          <select class="form-select" name="tf_answer">
-            <option value="true"    ${ans==='true'?'selected':''}>נכון (true)</option>
-            <option value="false"   ${ans==='false'?'selected':''}>לא נכון (false)</option>
-            <option value="partial" ${ans==='partial'?'selected':''}>חלקי (partial)</option>
-          </select></div>
-        <div class="form-group"><label class="form-label">מצב (mode)</label>
-          <select class="form-select" name="mode">
-            <option value=""       ${!iss.mode?'selected':''}>—</option>
-            <option value="vote"   ${iss.mode==='vote'?'selected':''}>הצבעה (vote)</option>
-            <option value="stance" ${iss.mode==='stance'?'selected':''}>עמדות (stance)</option>
-          </select></div>
-      </div>
-      <div class="form-grid full"><div class="form-group"><label class="form-label">הסבר</label>
-        <textarea class="form-textarea tall" name="tf_explain">${esc(iss.tf_explain||'')}</textarea></div></div>
-      <hr class="form-divider">
-      <div class="form-section-label">חוק / הצעה</div>
-      <div class="form-grid">
-        <div class="form-group"><label class="form-label">כותרת</label>
-          <input class="form-input" name="bill_title" value="${esc(iss.bill_title||'')}"></div>
-        <div class="form-group"><label class="form-label">תאריך</label>
-          <input class="form-input" name="bill_date" value="${esc(iss.bill_date||'')}"></div>
-      </div>
-      <div class="form-grid full"><div class="form-group"><label class="form-label">תיאור</label>
-        <textarea class="form-textarea" name="bill_summary">${esc(iss.bill_summary||'')}</textarea></div></div>
-      <hr class="form-divider">
-      <div class="form-section-label">הצבעה ואימות</div>
-      <div class="form-grid thirds">
-        <div class="form-group"><label class="form-label">voteId</label>
-          <input class="form-input ltr" name="voteId" value="${esc(iss.voteId||'')}" placeholder="מספר הצבעה"></div>
-        <div class="form-group"><label class="form-label">בעד</label>
-          <input class="form-input ltr" type="number" min="0" name="tally_for" value="${iss._tally?.for ?? ''}"></div>
-        <div class="form-group"><label class="form-label">נגד</label>
-          <input class="form-input ltr" type="number" min="0" name="tally_against" value="${iss._tally?.against ?? ''}"></div>
-      </div>
-      <div class="form-grid">
-        <div class="form-group"><label class="form-label">אימות</label>
-          <select class="form-select" name="verification">
-            <option value="verified" ${iss.verification==='verified'?'selected':''}>verified</option>
-            <option value="partial"  ${iss.verification==='partial'?'selected':''}>partial</option>
-            <option value="stance"   ${iss.verification==='stance'?'selected':''}>stance</option>
-          </select></div>
-        <div class="form-group"><label class="form-label">קישור כנסת</label>
-          <input class="form-input ltr" name="knesset_url" value="${esc(iss.knesset_url||'')}" placeholder="https://..."></div>
-      </div>
-      <hr class="form-divider">
-      <div class="form-section-label">מקור</div>
-      <div class="form-grid">
-        <div class="form-group"><label class="form-label">שם</label>
-          <input class="form-input" name="source_name" value="${esc(iss.source?.name||'')}"></div>
-        <div class="form-group"><label class="form-label">קישור</label>
-          <input class="form-input ltr" name="source_url" value="${esc(iss.source?.url||'')}" placeholder="https://..."></div>
-      </div>
-      <div class="form-actions">
-        <button type="submit" class="btn btn-primary btn-sm">✓ עדכן שאלה</button>
-        <span class="save-status" id="st-${iss.id}"></span>
-      </div>
-    </form>
-  </div>
-</div>`;
+function buildIssueRow(iss){
+  const ans=iss.tf_answer||'false';
+  return '<div class="issue-row" id="row-'+iss.id+'">'+
+    '<div class="issue-hd" tabindex="0" role="button" aria-expanded="false">'+
+    '<span class="issue-emoji">'+(iss.emoji||'')+'</span>'+
+    '<div class="issue-meta"><div class="issue-title">'+esc(iss.title)+'</div><div class="issue-id">'+iss.id+'</div></div>'+
+    '<span class="answer-badge '+ans+'">'+(ANSWER_LABELS[ans]||ans)+'</span>'+
+    '<span class="mode-badge">'+(MODE_LABELS[iss.mode]||iss.mode)+'</span>'+
+    '</div>'+
+    '<div class="edit-form">'+buildIssueForm(iss)+'</div>'+
+    '</div>';
 }
 
-// ── TOGGLE ──
-function toggleRow(id) {
-  const row = document.getElementById('row-' + id);
-  const isOpen = row.classList.toggle('open');
-  row.querySelector('.issue-hd').setAttribute('aria-expanded', isOpen);
+function buildIssueForm(iss){
+  const ans=iss.tf_answer||'false';
+  return '<form id="form-'+iss.id+'">'+
+    '<div class="form-section-label">בסיסי</div>'+
+    '<div class="form-grid">'+
+    fg('אימוג\'י','emoji','<input class="form-input" name="emoji" value="'+esc(iss.emoji||'')+'" maxlength="4">')+
+    fg('כותרת','title','<input class="form-input" name="title" value="'+esc(iss.title||'')+'">')+
+    '</div><hr class="form-divider">'+
+    '<div class="form-section-label">טענת אמת/שקר</div>'+
+    '<div class="form-grid full">'+fg('טענה','tf','<textarea class="form-textarea" name="tf">'+esc(iss.tf||'')+'</textarea>')+'</div>'+
+    '<div class="form-grid">'+
+    fg('תשובה','tf_answer','<select class="form-select" name="tf_answer"><option value="true"'+(ans==='true'?' selected':'')+'>נכון (true)</option><option value="false"'+(ans==='false'?' selected':'')+'>לא נכון (false)</option><option value="partial"'+(ans==='partial'?' selected':'')+'>חלקי (partial)</option></select>')+
+    fg('מצב','mode','<select class="form-select" name="mode"><option value="vote"'+(iss.mode==='vote'?' selected':'')+'>הצבעה (vote)</option><option value="stance"'+(iss.mode==='stance'?' selected':'')+'>עמדות (stance)</option></select>')+
+    '</div>'+
+    '<div class="form-grid full">'+fg('הסבר','tf_explain','<textarea class="form-textarea tall" name="tf_explain">'+esc(iss.tf_explain||'')+'</textarea>')+'</div>'+
+    '<hr class="form-divider"><div class="form-section-label">חוק / הצעה</div>'+
+    '<div class="form-grid">'+
+    fg('כותרת','bill_title','<input class="form-input" name="bill_title" value="'+esc(iss.bill_title||'')+'">')+
+    fg('תאריך','bill_date','<input class="form-input" name="bill_date" value="'+esc(iss.bill_date||'')+'">')+
+    '</div>'+
+    '<div class="form-grid full">'+fg('תיאור','bill_summary','<textarea class="form-textarea" name="bill_summary">'+esc(iss.bill_summary||'')+'</textarea>')+'</div>'+
+    '<hr class="form-divider"><div class="form-section-label">הצבעה ואימות</div>'+
+    '<div class="form-grid thirds">'+
+    fg('voteId','voteId','<input class="form-input ltr" name="voteId" value="'+esc(iss.voteId||'')+'" placeholder="מספר הצבעה">')+
+    fg('בעד','tally_for','<input class="form-input ltr" type="number" min="0" name="tally_for" value="'+(iss.tally_for||0)+'">')+
+    fg('נגד','tally_against','<input class="form-input ltr" type="number" min="0" name="tally_against" value="'+(iss.tally_against||0)+'">')+
+    '</div>'+
+    '<div class="form-grid">'+
+    fg('אימות','verification','<select class="form-select" name="verification"><option value="verified"'+(iss.verification==='verified'?' selected':'')+'>verified</option><option value="partial"'+(iss.verification==='partial'?' selected':'')+'>partial</option><option value="stance"'+(iss.verification==='stance'?' selected':'')+'>stance</option></select>')+
+    fg('קישור כנסת','knesset_url','<input class="form-input ltr" name="knesset_url" value="'+esc(iss.knesset_url||'')+'" placeholder="https://...">')+
+    '</div>'+
+    '<hr class="form-divider"><div class="form-section-label">מקור</div>'+
+    '<div class="form-grid">'+
+    fg('שם','source_name','<input class="form-input" name="source_name" value="'+esc(iss.source_name||'')+'">')+
+    fg('קישור','source_url','<input class="form-input ltr" name="source_url" value="'+esc(iss.source_url||'')+'" placeholder="https://...">')+
+    '</div>'+
+    '<div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">✓ עדכן שאלה</button>'+
+    '<span class="save-status" id="st-'+iss.id+'"></span></div>'+
+    '</form>';
 }
 
-// ── SAVE LOCALLY (marks dirty, does NOT commit) ──
-function saveLocal(id) {
-  const form  = document.getElementById('form-' + id);
-  const stEl  = document.getElementById('st-' + id);
-  const fd    = new FormData(form);
+function fg(label,name,input){ return '<div class="form-group"><label class="form-label">'+label+'</label>'+input+'</div>'; }
 
-  issues[id] = Object.assign({}, issues[id], {
-    emoji:        fd.get('emoji'),
-    title:        fd.get('title'),
-    tf:           fd.get('tf'),
-    tf_answer:    fd.get('tf_answer'),
-    tf_explain:   fd.get('tf_explain'),
-    bill_title:   fd.get('bill_title'),
-    bill_date:    fd.get('bill_date'),
-    bill_summary: fd.get('bill_summary'),
-    verification: fd.get('verification'),
-    source:       Object.assign({}, issues[id].source, { name: fd.get('source_name'), url: fd.get('source_url') }),
+function toggleRow(id){
+  const row=document.getElementById('row-'+id);
+  const isOpen=row.classList.toggle('open');
+  row.querySelector('.issue-hd').setAttribute('aria-expanded',isOpen);
+}
+
+function saveIssueLocal(id){
+  const form=document.getElementById('form-'+id);
+  const stEl=document.getElementById('st-'+id);
+  const fd=new FormData(form);
+  issues[id]=Object.assign({},issues[id],{
+    emoji:fd.get('emoji'),title:fd.get('title'),tf:fd.get('tf'),
+    tf_answer:fd.get('tf_answer'),tf_explain:fd.get('tf_explain'),
+    bill_title:fd.get('bill_title'),bill_date:fd.get('bill_date'),bill_summary:fd.get('bill_summary'),
+    mode:fd.get('mode'),verification:fd.get('verification'),voteId:fd.get('voteId'),
+    tally_for:parseInt(fd.get('tally_for'))||0,tally_against:parseInt(fd.get('tally_against'))||0,
+    knesset_url:fd.get('knesset_url'),source_name:fd.get('source_name'),source_url:fd.get('source_url'),
   });
-
-  // voteId / knesset_url: only written when non-empty
-  for (const k of ['voteId', 'knesset_url']) { const v = fd.get(k); if (v) issues[id][k] = v; else delete issues[id][k]; }
-
-  // mode: only written when non-empty (most issues have no mode and must stay that way)
-  const mode = fd.get('mode');
-  if (mode) issues[id].mode = mode; else delete issues[id].mode;
-
-  // _tally: nested {for, against}; an empty field is never written as 0
-  const tallyFor = fd.get('tally_for'), tallyAgainst = fd.get('tally_against');
-  if (tallyFor === '' && tallyAgainst === '') {
-    delete issues[id]._tally;
-  } else {
-    const t = Object.assign({}, issues[id]._tally);
-    if (tallyFor !== '') t.for = parseInt(tallyFor, 10); else delete t.for;
-    if (tallyAgainst !== '') t.against = parseInt(tallyAgainst, 10); else delete t.against;
-    issues[id]._tally = t;
-  }
-
-  // flat keys written by the previous version of this form (none exist in data.js today)
-  ['tally_for', 'tally_against', 'source_name', 'source_url'].forEach(k => delete issues[id][k]);
-
-  dirty = true;
-  updateCommitBtn();
-
-  stEl.textContent = '✓ עודכן — לחץ "שמור ב-GitHub" לשמירה סופית';
-  stEl.className = 'save-status visible';
-  setTimeout(() => { stEl.className = 'save-status'; }, 4000);
+  markDirty();
+  stEl.textContent='✓ עודכן — לחץ "שמור ב-GitHub" לשמירה סופית';
+  stEl.className='save-status visible';
+  setTimeout(()=>{ stEl.className='save-status'; },4000);
 }
 
-// ── COMMIT TO GITHUB ──
-document.getElementById('commitBtn').addEventListener('click', commitToGitHub);
-document.getElementById('reloadBtn').addEventListener('click', loadFile);
-
-async function commitToGitHub() {
-  if (!dirty) return;
-  const btn = document.getElementById('commitBtn');
-  btn.disabled = true;
-  setCommitStatus('loading', 'מבצע commit…');
-
-  try {
-    // Rebuild issues array in original topic order
-    const sorted = Object.values(issues).sort((a,b) => {
-      const ta = TOPIC_ORDER.indexOf(a.topic), tb = TOPIC_ORDER.indexOf(b.topic);
-      return ta !== tb ? ta - tb : a.id.localeCompare(b.id);
+/* ── TOPICS ── */
+function renderTopics(){
+  const grid=document.getElementById('topics-grid');
+  grid.innerHTML='';
+  (dataObj.topics||[]).forEach((t,idx)=>{
+    const card=document.createElement('div');
+    card.className='topic-card';
+    card.innerHTML=
+      '<div class="topic-card-hd"><span class="topic-card-icon">'+esc(t.icon||'')+'</span>'+
+      '<div><div style="font-weight:700">'+esc(t.label)+'</div><div class="topic-card-id">'+t.id+'</div></div></div>'+
+      '<div class="form-group"><label class="form-label">שם נושא</label>'+
+      '<input class="form-input" data-tf="label" data-idx="'+idx+'" value="'+esc(t.label||'')+'"></div>'+
+      '<div class="form-group"><label class="form-label">כותרת משנה</label>'+
+      '<input class="form-input" data-tf="sub" data-idx="'+idx+'" value="'+esc(t.sub||'')+'"></div>'+
+      '<div class="form-group"><label class="form-label">אימוג\'י / אייקון</label>'+
+      '<input class="form-input" data-tf="icon" data-idx="'+idx+'" value="'+esc(t.icon||'')+'" maxlength="4"></div>'+
+      '<div class="form-group"><label class="form-label">צבעים</label>'+
+      '<div class="color-pair">'+
+      '<div class="form-group" style="flex:1"><label class="form-label" style="font-size:10px">ראשי</label>'+
+      '<input class="form-input ltr" data-tf="color" data-idx="'+idx+'" value="'+esc(t.color||'')+'"></div>'+
+      '<div class="form-group" style="flex:1"><label class="form-label" style="font-size:10px">משני</label>'+
+      '<input class="form-input ltr" data-tf="color2" data-idx="'+idx+'" value="'+esc(t.color2||'')+'"></div>'+
+      '</div></div>'+
+      '<button class="btn btn-primary btn-sm" data-save-topic="'+idx+'">✓ עדכן נושא</button>'+
+      '<span class="save-status" id="tst-'+idx+'"></span>';
+    card.querySelectorAll('button[data-save-topic]').forEach(btn=>{
+      btn.addEventListener('click',()=>saveTopicLocal(card,idx));
     });
+    grid.appendChild(card);
+  });
+}
 
-    // Replace DATA.issues with updated array
-    dataObj.issues = sorted;
-    const newJson    = JSON.stringify(dataObj);
-    const newContent = `const DATA = ${newJson};${fileTail}`;
-    const encoded    = btoa(unescape(encodeURIComponent(newContent)));
+function saveTopicLocal(card,idx){
+  const inputs=card.querySelectorAll('[data-tf]');
+  inputs.forEach(inp=>{ dataObj.topics[idx][inp.dataset.tf]=inp.value; });
+  markDirty();
+  renderSidebar();
+  const st=document.getElementById('tst-'+idx);
+  st.textContent='✓ עודכן';st.className='save-status visible';
+  setTimeout(()=>{ st.className='save-status'; },3000);
+}
 
-    const now = new Date().toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem', hour12: false });
-    const result = await ghFetch(`/repos/${REPO}/contents/${FILE}`, {
-      method: 'PUT',
-      body: JSON.stringify({
-        message: `CMS: עדכון שאלות (${now})`,
-        content: encoded,
-        sha: fileSha,
-        branch: BRANCH,
-      }),
+/* ── GLOSSARY ── */
+function renderGlossary(){
+  const list=document.getElementById('glossary-list');
+  list.innerHTML='';
+  Object.entries(dataObj.glossary||{}).forEach(([term,def])=>{
+    const row=document.createElement('div');
+    row.className='gloss-row';
+    const safeId='gl-'+btoa(encodeURIComponent(term)).replace(/[^a-z0-9]/gi,'');
+    row.innerHTML=
+      '<div class="gloss-hd" tabindex="0" role="button">'+
+      '<span class="gloss-term">'+esc(term)+'</span>'+
+      '<span class="gloss-def">'+esc(def)+'</span>'+
+      '</div>'+
+      '<div class="gloss-edit">'+
+      '<div class="form-group" style="margin-bottom:10px"><label class="form-label">מונח</label>'+
+      '<input class="form-input" id="gk-'+safeId+'" value="'+esc(term)+'"></div>'+
+      '<div class="form-group" style="margin-bottom:10px"><label class="form-label">הגדרה</label>'+
+      '<textarea class="form-textarea tall" id="gv-'+safeId+'">'+esc(def)+'</textarea></div>'+
+      '<div style="display:flex;gap:8px">'+
+      '<button class="btn btn-primary btn-sm" data-gloss-save="'+esc(term)+'">✓ שמור</button>'+
+      '<button class="btn btn-danger btn-sm" data-gloss-del="'+esc(term)+'">✕ מחק</button>'+
+      '</div></div>';
+    row.querySelector('.gloss-hd').addEventListener('click',()=>row.classList.toggle('open'));
+    row.querySelector('[data-gloss-save]').addEventListener('click',()=>{
+      const newKey=document.getElementById('gk-'+safeId).value.trim();
+      const newVal=document.getElementById('gv-'+safeId).value.trim();
+      if(!newKey) return;
+      if(newKey!==term) delete dataObj.glossary[term];
+      dataObj.glossary[newKey]=newVal;
+      markDirty(); renderGlossary(); updateTabCounts();
     });
+    row.querySelector('[data-gloss-del]').addEventListener('click',()=>{
+      if(confirm('מחק את המונח "'+term+'"?')){ delete dataObj.glossary[term]; markDirty(); renderGlossary(); updateTabCounts(); }
+    });
+    list.appendChild(row);
+  });
+  document.getElementById('glossary-count').textContent=Object.keys(dataObj.glossary||{}).length;
+}
 
-    fileSha = result.content.sha;
-    fileRaw = newContent;
-    dirty   = false;
-    updateCommitBtn();
+document.getElementById('addTermBtn').addEventListener('click',()=>{
+  document.getElementById('new-term-form').style.display='block';
+  document.getElementById('newTermKey').focus();
+});
+document.getElementById('cancelNewTermBtn').addEventListener('click',()=>{
+  document.getElementById('new-term-form').style.display='none';
+  document.getElementById('newTermKey').value='';
+  document.getElementById('newTermVal').value='';
+});
+document.getElementById('saveNewTermBtn').addEventListener('click',()=>{
+  const k=document.getElementById('newTermKey').value.trim();
+  const v=document.getElementById('newTermVal').value.trim();
+  if(!k||!v) return;
+  if(!dataObj.glossary) dataObj.glossary={};
+  dataObj.glossary[k]=v;
+  markDirty(); renderGlossary(); updateTabCounts();
+  document.getElementById('new-term-form').style.display='none';
+  document.getElementById('newTermKey').value=''; document.getElementById('newTermVal').value='';
+});
 
-    const commitUrl = result.commit.html_url;
-    setCommitStatus('ok', '✓ נשמר ב-GitHub');
-    document.getElementById('statusSha').innerHTML =
-      `<a class="status-link" href="${commitUrl}" target="_blank">${result.commit.sha.substring(0,7)}</a>`;
-    setStatus('ok', `Commit: ${result.commit.sha.substring(0,7)} — האתר יתעדכן בעוד ~1-2 דקות`);
+/* ── POLITICIANS ── */
+function renderPoliticians(){
+  const grid=document.getElementById('pol-grid');
+  grid.innerHTML='';
+  Object.entries(dataObj.politicians||{}).sort((a,b)=>a[1].name.localeCompare(b[1].name,'he')).forEach(([key,pol])=>{
+    const card=document.createElement('div');
+    card.className='pol-card';
+    card.innerHTML=
+      '<div class="pol-avatar">'+esc(pol.avatar||'👤')+'</div>'+
+      '<div class="pol-fields">'+
+      '<span class="pol-key">'+key+'</span>'+
+      '<input class="form-input" data-pf="name" data-key="'+key+'" value="'+esc(pol.name||'')+'" placeholder="שם" style="margin-bottom:4px">'+
+      '<input class="form-input" data-pf="party" data-key="'+key+'" value="'+esc(pol.party||'')+'" placeholder="סיעה" style="margin-bottom:4px">'+
+      '<div style="display:flex;gap:6px">'+
+      '<input class="form-input" data-pf="avatar" data-key="'+key+'" value="'+esc(pol.avatar||'')+'" placeholder="🙂" maxlength="4" style="width:60px">'+
+      '<input class="form-input ltr" data-pf="mk_id" data-key="'+key+'" type="number" value="'+(pol.mk_id||'')+'" placeholder="MK ID" style="flex:1">'+
+      '</div>'+
+      '<button class="btn btn-primary btn-sm" style="margin-top:6px" data-save-pol="'+key+'">✓ עדכן</button>'+
+      '<span class="save-status" id="pst-'+key+'"></span>'+
+      '</div>';
+    card.querySelector('[data-save-pol]').addEventListener('click',()=>{
+      card.querySelectorAll('[data-pf]').forEach(inp=>{
+        const field=inp.dataset.pf;
+        dataObj.politicians[key][field] = field==='mk_id' ? (parseInt(inp.value)||0) : inp.value;
+      });
+      markDirty();
+      card.querySelector('.pol-avatar').textContent=dataObj.politicians[key].avatar||'👤';
+      const st=document.getElementById('pst-'+key);
+      st.textContent='✓';st.className='save-status visible';
+      setTimeout(()=>{ st.className='save-status'; },2000);
+    });
+    grid.appendChild(card);
+  });
+  document.getElementById('pol-count').textContent=Object.keys(dataObj.politicians||{}).length;
+}
 
-  } catch(err) {
-    setCommitStatus('err', `שגיאה: ${err.message}`);
-    btn.disabled = false;
-    dirty = true;
-    updateCommitBtn();
+/* ── COMMIT ── */
+document.getElementById('commitBtn').addEventListener('click',commitToGitHub);
+document.getElementById('reloadBtn').addEventListener('click',loadFile);
+
+async function commitToGitHub(){
+  if(!dirty) return;
+  const btn=document.getElementById('commitBtn');
+  btn.disabled=true;
+  setCommitStatus('loading','מבצע commit…');
+  try{
+    const sorted=Object.values(issues).sort((a,b)=>{
+      const ta=TOPIC_ORDER.indexOf(a.topic),tb=TOPIC_ORDER.indexOf(b.topic);
+      return ta!==tb?ta-tb:a.id.localeCompare(b.id);
+    });
+    dataObj.issues=sorted;
+    const newContent='const DATA = '+JSON.stringify(dataObj)+';';
+    const encoded=btoa(unescape(encodeURIComponent(newContent)));
+    const now=new Date().toLocaleString('he-IL',{timeZone:'Asia/Jerusalem',hour12:false});
+    const result=await ghFetch('/repos/'+REPO+'/contents/'+FILE,{
+      method:'PUT',
+      body:JSON.stringify({message:'CMS: עדכון נתונים ('+now+')',content:encoded,sha:fileSha,branch:BRANCH}),
+    });
+    fileSha=result.content.sha;
+    dirty=false; updateCommitBtn();
+    setCommitStatus('ok','✓ נשמר ב-GitHub');
+    const commitUrl=result.commit.html_url;
+    document.getElementById('statusSha').innerHTML=
+      '<a class="status-link" href="'+commitUrl+'" target="_blank">'+result.commit.sha.substring(0,7)+'</a>';
+    setStatus('ok','Commit: '+result.commit.sha.substring(0,7)+' — האתר יתעדכן בעוד ~1-2 דקות');
+  }catch(err){
+    setCommitStatus('err','שגיאה: '+err.message);
+    btn.disabled=false; dirty=true; updateCommitBtn();
   }
 }
 
-function updateCommitBtn() {
-  const btn = document.getElementById('commitBtn');
-  btn.disabled = !dirty;
-  btn.textContent = dirty ? '💾 שמור ב-GitHub ●' : '💾 שמור ב-GitHub';
+function markDirty(){ dirty=true; updateCommitBtn(); }
+function updateCommitBtn(){
+  const btn=document.getElementById('commitBtn');
+  btn.disabled=!dirty;
+  btn.textContent=dirty?'💾 שמור ב-GitHub ●':'💾 שמור ב-GitHub';
 }
-
-// ── UTILS ──
-function esc(s) {
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-function setStatus(type, msg) {
-  document.getElementById('statusDot').className = 'status-dot' + (type ? ' ' + type : '');
-  document.getElementById('statusTxt').textContent = msg;
-}
-function setCommitStatus(type, msg) {
-  const el = document.getElementById('commitStatus');
-  el.className = 'commit-status ' + type;
-  el.textContent = msg;
-  if (type === 'ok') setTimeout(() => { el.textContent = ''; el.className = 'commit-status'; }, 5000);
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function setStatus(type,msg){ document.getElementById('statusDot').className='status-dot'+(type?' '+type:''); document.getElementById('statusTxt').textContent=msg; }
+function setCommitStatus(type,msg){
+  const el=document.getElementById('commitStatus');
+  el.className='commit-status '+type; el.textContent=msg;
+  if(type==='ok') setTimeout(()=>{ el.textContent=''; el.className='commit-status'; },5000);
 }
 </script>
 </body>
