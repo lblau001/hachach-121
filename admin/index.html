@@ -272,7 +272,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);direction:rt
 </div>
 
 <script>
-const PASSWORD = 'hachach121';
+/* password hash (SHA-256 of the real password — plaintext never stored in source) */
+const PW_HASH  = '50d1751710204448941bb951d1c9974a1a29193f273d47640effc96375a84bc1';
 const REPO     = 'romangash-star/hachach-121';
 const BRANCH   = 'master';
 const FILE     = 'data.js';
@@ -284,16 +285,23 @@ const MODE_LABELS   = {vote:'הצבעה',stance:'עמדות'};
 let ghPat='', fileSha='', dataObj=null, issues={}, dirty=false, currentTopic=TOPIC_ORDER[0];
 
 /* ── GATE ── */
+async function hashPw(pw){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(pw));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
 (function(){
-  const saved = localStorage.getItem('admin_gh_pat');
-  if(saved){ document.getElementById('patInput').value=saved; document.getElementById('rememberPat').checked=true; }
-  document.getElementById('gateForm').addEventListener('submit',function(e){
+  /* prefer sessionStorage (tab-scoped); fall back to localStorage if user checked "remember" */
+  const saved = sessionStorage.getItem('admin_gh_pat') || localStorage.getItem('admin_gh_pat');
+  if(saved){ document.getElementById('patInput').value=saved; document.getElementById('rememberPat').checked=!!localStorage.getItem('admin_gh_pat'); }
+  document.getElementById('gateForm').addEventListener('submit',async function(e){
     e.preventDefault();
     const pw=document.getElementById('pwInput').value.trim();
     const pat=document.getElementById('patInput').value.trim();
     const err=document.getElementById('gateError');
-    if(pw!==PASSWORD){err.textContent='סיסמה שגויה';return;}
+    const h=await hashPw(pw);
+    if(h!==PW_HASH){err.textContent='סיסמה שגויה';return;}
     if(!pat){err.textContent='נדרש GitHub Token';return;}
+    sessionStorage.setItem('admin_gh_pat',pat);
     if(document.getElementById('rememberPat').checked) localStorage.setItem('admin_gh_pat',pat);
     else localStorage.removeItem('admin_gh_pat');
     ghPat=pat;
@@ -371,7 +379,7 @@ function renderSidebar(){
     const btn=document.createElement('button');
     btn.className='topic-btn'+(tid===currentTopic?' active':'');
     btn.dataset.topic=tid;
-    btn.innerHTML='<span>'+t.icon+' '+esc(t.label)+'</span><span class="topic-count">'+count+'</span>';
+    btn.innerHTML='<span>'+esc(t.icon||'')+' '+esc(t.label)+'</span><span class="topic-count">'+count+'</span>';
     btn.addEventListener('click',()=>{
       currentTopic=tid;
       document.querySelectorAll('.topic-btn').forEach(b=>b.classList.toggle('active',b.dataset.topic===tid));
