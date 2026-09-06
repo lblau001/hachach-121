@@ -377,6 +377,123 @@ const AV3 = `<svg viewBox="0 0 100 100" aria-hidden="true">
 </g>
 <circle cx="50" cy="50" r="48" fill="none" stroke="rgba(0,0,0,.55)" stroke-width="1.6"/></svg>`;
 
+/* ===================== §B · THE PLAYER'S PROFILE ====================
+   §4.1: no creation step. A default avatar is assigned instantly and the
+   HUD sticker is the door to changing it. PROFILE is the whole of what
+   the player has said about themselves, and it is ADDITIVE to the save —
+   a save written before it simply has none and restores to these
+   defaults, the same reasoning `cf` used. No SAVE_VER bump.
+     avatarId · a preset's id. Defaults to the first preset at boot.
+     name     · RESERVED, not built. The field needs a keyboard-up test on
+                a 100dvh overflow:hidden stage, which cannot be run from
+                here (no simulator; desktop emulation has no soft
+                keyboard), and untested input on this stage is exactly the
+                bug class this file guards against. The slot stays so the
+                save shape does not change when it lands.
+     gender   · null | 'm' | 'f'. null is the PLURAL copy, which is what
+                the game speaks today. NEVER forced: the board draws
+                לשון זכר selected and app.js writes 'm' on save, and both
+                are the old build.
+     invited  · Part C's once-only flag — the identity-moment invitation
+                has been shown (or forfeited) and never comes back.
+     cfg      · RESERVED for Part D. null = the preset wins. */
+const PROFILE = { avatarId: null, name: '', gender: null, invited: false, cfg: null };
+
+/* THE PRESETS, RESOLVED DEFENSIVELY. On flow-proto they are `AVATARS`,
+   the second constant in data.js; master has since moved them to their
+   own avatars.js, which this index.html does not load. So nothing here
+   assumes the constant exists or which file declared it: whatever is
+   there and well-formed is the sheet, and no sheet is a legal state —
+   the HUD keeps AV3 and 2b hides its swap door. */
+function presets() {
+  let a = [];
+  try {
+    if (typeof AVATARS !== 'undefined' && Array.isArray(AVATARS)) a = AVATARS;
+    else if (typeof DATA !== 'undefined' && DATA && Array.isArray(DATA.avatars)) a = DATA.avatars;
+  } catch (e) { a = []; }
+  return a.filter(x => x && typeof x.id === 'string' && typeof x.svg === 'string'
+                         && x.svg.indexOf('<svg') === 0);
+}
+function preset(id) { return presets().find(x => x.id === id) || null; }
+/* the one the player carries: their pick if it still exists, else the first */
+function currentPreset() { return preset(PROFILE.avatarId) || presets()[0] || null; }
+
+/* ---- THE ROUND SHELL. A preset is a SQUARE sticker — a rounded rect in
+   the skin colour, a translucent band, the figure — and the game's token
+   is a DISC. Round is one of the three devices that keep the player
+   readable as not one of the 120 (AV3 above), and it is kept HERE, in
+   the one function the six consumers read from, rather than by CSS in
+   six places: the background rect is dropped, its fill becomes the disc,
+   and the rest is clipped to the same r48 circle AV3 uses, under the
+   same keyline. .f5av/.f5fly still circle-crop by CSS; with the disc
+   built in there are no corners left for them to crop.
+   A preset that does not open the way Roman's eight do is used whole,
+   clipped: a round sticker with a square inside it, never a broken one. */
+const SQ_BG = /^<svg[^>]*>\s*<rect x="4" y="4" width="92" height="92" fill="(#[0-9a-fA-F]{3,8})"[^>]*\/>/;
+function roundShell(svg) {
+  const m = svg.match(SQ_BG);
+  let inner = svg.replace(/^<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '');
+  if (m) inner = inner.replace(/^\s*<rect[^>]*\/>/, '');
+  return '<svg viewBox="0 0 100 100" aria-hidden="true">' +
+    '<defs><clipPath id="c-av3"><circle cx="50" cy="50" r="48"/></clipPath></defs>' +
+    '<circle cx="50" cy="50" r="48" fill="' + (m ? m[1] : '#C9BFA6') + '"/>' +
+    '<g clip-path="url(#c-av3)">' + inner + '</g>' +
+    '<circle cx="50" cy="50" r="48" fill="none" stroke="rgba(0,0,0,.55)" stroke-width="1.6"/></svg>';
+}
+/* WHAT THE SIX CONSUMERS READ: the chosen preset in the round shell, or
+   AV3 when there is no sheet to choose from. Never the constant directly. */
+function avatarSvg() {
+  const x = currentPreset();
+  return x ? roundShell(x.svg) : AV3;
+}
+/* the square die-cut, for the 2a sheet only — the one place the presets
+   are shown as Roman drew them */
+function squareSvg(x) { return x.svg.replace(/^<svg /, '<svg aria-hidden="true" '); }
+
+/* ONE SETTER. Everything 2a and 2b do goes through here, so a change is
+   saved and the HUD repainted in the same breath — there is no save
+   button anywhere in them and nothing to forget. */
+function setProfile(patch) {
+  Object.assign(PROFILE, patch);
+  saveState();
+  paintHudAvatar();
+}
+function paintHudAvatar() { const h = $('#hudAvatar'); if (h) h.innerHTML = avatarSvg(); }
+
+/* ---- t(key) · THE VOICE. The game speaks in the plural — 24 second-
+   person strings, all אתם — and gender null keeps it that way. A set
+   gender picks the singular slot when it EXISTS and falls back to the
+   plural when it does not, so Tamar can fill the slots one at a time and
+   nothing is ever blank or wrong-gendered in the meantime.
+   THREE SLOTS ARE FILLED, to prove the mechanism, and only three; the
+   other 21 stay where they are, inline, until she writes them. All three
+   are visible inside any round: the beat-2 framing line, the tap hint,
+   and the exit confirm's question. */
+const COPY = {
+  b2frame: {
+    p: 'זו הצעת חוק אמיתית. כח״כ ה-121, אתם מצביעים במליאה — ואז נראה איך הצביעו האחרים.',    /* TAMAR */
+    m: 'זו הצעת חוק אמיתית. כח״כ ה-121, אתה מצביע במליאה — ואז נראה איך הצביעו האחרים.',      /* TAMAR */
+    f: 'זו הצעת חוק אמיתית. כח״כית ה-121, את מצביעה במליאה — ואז נראה איך הצביעו האחרים.',    /* TAMAR */
+  },
+  tapNext: {
+    p: 'הקישו להמשך',                                                /* TAMAR */
+    m: 'הקש להמשך',                                                  /* TAMAR */
+    f: 'הקישי להמשך',                                                /* TAMAR */
+  },
+  /* the plural REPLACES the slash form בטוח/ה שאת/ה: the slash was the
+     one second-person string not in the plural, and the plural is now
+     what gender-null means everywhere */
+  exitQ: {
+    p: 'בטוחים שאתם רוצים לצאת?',                                    /* TAMAR */
+    m: 'בטוח שאתה רוצה לצאת?',                                       /* TAMAR */
+    f: 'בטוחה שאת רוצה לצאת?',                                       /* TAMAR */
+  },
+};
+function t(key) {
+  const c = COPY[key]; if (!c) return '';
+  return (PROFILE.gender && c[PROFILE.gender]) || c.p;
+}
+
 /* ---- the initials badge. First letter of each part of the SHIPPED
         name, so it cannot drift from it. NEVER another MK's face. ---- */
 function initials(name) {
@@ -839,7 +956,7 @@ function pinVote(vote) {
      empty by construction. */
   c.innerHTML =
     '<span class="bnr bnr--vote">' +
-      '<span class="chyron-av as-d" aria-hidden="true">' + AV3 + '</span>' +
+      '<span class="chyron-av as-d" aria-hidden="true">' + avatarSvg() + '</span>' +
       /* esc(), not ph(): written Hebrew pending Tamar, not a description
          of copy that does not exist. */
       '<span class="chyron-line">' + esc('הצבעת:') +   /* TAMAR */
@@ -1487,7 +1604,7 @@ async function claimReveal(ans, card) {
      box is still RESERVED, because that is what keeps the card the same
      size before and after the answer. */
   const chip = el('div', 'bnr cmark ' + (ok ? 'cmark--ok' : 'cmark--sur'),
-    '<span class="cmark__av as-d" aria-hidden="true">' + AV3 + '</span>' +
+    '<span class="cmark__av as-d" aria-hidden="true">' + avatarSvg() + '</span>' +
     '<span>' + esc(ok ? CLAIM_MARK.ok : CLAIM_MARK.bad) + '</span>');
   const chy = $('#chyron');
   placeChyron();
@@ -1677,6 +1794,103 @@ function glossModal(term) {
   return stickerModal({ title: term, body: (DATA.glossary || {})[term] || '' });
 }
 
+/* ===== §B · 2b THE CHARACTER, 2a THE STICKER SHEET ==================
+   Both on stickerModal(), both through `extra`, no title of their own:
+   the sticker is the surface and the character is the content, and the
+   game has one modal shape, not two. The HUD's avatar opens 2b on the
+   map and the end. Two doors out of 2b — the board's shipped
+   בחרו את הדמות שלכם to 2a, and the written התאימו את הדמות to Part D,
+   which is not built and says so rather than pretending. 2a swaps the
+   SAME modal's content in place and comes back the same way, so there is
+   one sticker on screen throughout, never one on top of another.
+   EVERYTHING APPLIES ON TAP. No save button: setProfile() writes the
+   save and repaints the HUD behind the modal, so the player sees the
+   change land in the corner the moment they lift their thumb.
+   THE NAME FIELD IS NOT HERE — see PROFILE. The room for it is the gap
+   between the hero and the chips. */
+const PROF_COPY = {
+  voice: 'איך לפנות אליכם?',            /* TAMAR */
+  f:     'לשון נקבה',                   /* shipped · board 2b */
+  m:     'לשון זכר',                    /* shipped · board 2b */
+  swap:  'בחרו את הדמות שלכם',          /* shipped · board 2a title, 2b door */
+  sub:   'בחרו דמות שתלווה אתכם במפה',  /* shipped · board 2a */
+  tweak: 'התאימו את הדמות',             /* written · the one label on the board we wrote */
+  soon:  'בקרוב',                       /* TAMAR */
+  back:  'חזרה',                        /* TAMAR */
+  hud:   'הדמות שלכם',                  /* TAMAR · the HUD sticker's label */
+};
+
+function profileModal() {
+  const m = stickerModal({ extra: '<div class="prof" data-prof></div>' });
+  m.dataset.profile = '';
+  renderProfile(m);
+  return m;
+}
+
+/* 2b. The hero is the SAME round token the HUD carries, at 156px on a
+   dashed well, die-cut. The chips are three-state: none, m, f — tapping
+   the selected chip again clears it, because null is a real state (the
+   plural) and the way back to it has to be one tap too. */
+function renderProfile(m) {
+  const box = $('[data-prof]', m);
+  const has = presets().length > 0;
+  box.innerHTML =
+    '<div class="prof-hero"><span class="prof-well" aria-hidden="true"></span>' +
+      '<span class="as-d prof-st avs-cut" data-hero>' + avatarSvg() + '</span></div>' +
+    '<p class="prof-lbl">' + esc(PROF_COPY.voice) + '</p>' +
+    '<div class="prof-gender" role="group" aria-label="' + esc(PROF_COPY.voice) + '">' +
+      '<button type="button" class="gchip" data-g="f">' + esc(PROF_COPY.f) + '</button>' +
+      '<button type="button" class="gchip" data-g="m">' + esc(PROF_COPY.m) + '</button>' +
+    '</div>' +
+    '<div class="prof-actions">' +
+      (has ? '<button type="button" class="p-c prof-swap" data-swap>' + esc(PROF_COPY.swap) + '</button>' : '') +
+      /* Part D's door. Disabled and labelled, not hidden: the board draws
+         two doors and a door that is not there yet is still a door. */
+      '<button type="button" class="r-b prof-tweak" disabled aria-disabled="true">' +
+        esc(PROF_COPY.tweak) + '<span class="prof-soon">' + esc(PROF_COPY.soon) + '</span></button>' +
+    '</div>';
+  const paint = () => $$('.gchip', box).forEach(c => {
+    const on = c.dataset.g === PROFILE.gender;
+    c.classList.toggle('on', on); c.setAttribute('aria-pressed', on);
+  });
+  paint();
+  $$('.gchip', box).forEach(c => pressable(c).addEventListener('click', () => {
+    setProfile({ gender: c.dataset.g === PROFILE.gender ? null : c.dataset.g });
+    paint();
+  }));
+  if (has) pressable($('[data-swap]', box)).addEventListener('click', () => renderSheet(m));
+}
+
+/* 2a. The board's sheet: eight square die-cuts in three columns, each on
+   a dashed well with its name under it, the current one shown mid-peel.
+   Tapping applies at once and the peel moves; one tap on חזרה is 2b
+   again, with the new token already in its hero. */
+function renderSheet(m) {
+  const box = $('[data-prof]', m);
+  const cur = currentPreset();
+  box.innerHTML =
+    '<h2 class="peel-title">' + esc(PROF_COPY.swap) + '</h2>' +
+    '<p class="peel-sub">' + esc(PROF_COPY.sub) + '</p>' +
+    '<div class="sheet" role="group">' + presets().map(x => {
+      const on = !!cur && x.id === cur.id;
+      return '<button type="button" class="avp' + (on ? ' avp-peel' : '') + '" data-av="' +
+          esc(x.id) + '" aria-pressed="' + on + '">' +
+        '<span class="avp-well" aria-hidden="true"></span>' +
+        '<span class="avs avs-cut avp-st">' + squareSvg(x) + '</span>' +
+        '<span class="avp-name">' + esc(x.name || '') + '</span>' +
+        '<span class="avp-lift" aria-hidden="true"></span>' +
+      '</button>'; }).join('') +
+    '</div>' +
+    '<button type="button" class="f5back peel-back" data-back>' + esc(PROF_COPY.back) + '</button>';
+  $$('.avp', box).forEach(b => pressable(b).addEventListener('click', () => {
+    setProfile({ avatarId: b.dataset.av });
+    $$('.avp', box).forEach(x => {
+      const on = x === b; x.classList.toggle('avp-peel', on); x.setAttribute('aria-pressed', on);
+    });
+  }));
+  pressable($('[data-back]', box)).addEventListener('click', () => renderProfile(m));
+}
+
 /* ============= BEATS 2 AND 3 · ONE OVERLAY, TWO CONTENTS ============ */
 /* THE DECK IS ONE ISSUE. Every card in the round belongs to the same
    issue and they are ONE deck: the claim card on top, the MK cards
@@ -1733,8 +1947,8 @@ function beat2() {
            carries bill_summary on a tap; this is the default-visible
            framing, that is the detail on request. */
         '<p class="b2frame">' +
-          esc('זו הצעת חוק אמיתית. כח״כ ה-121, אתם מצביעים במליאה — ואז נראה איך הצביעו האחרים.') +
-        '</p>' +                                          /* TAMAR */
+          esc(t('b2frame')) +                              /* TAMAR · COPY.b2frame */
+        '</p>' +
         /* A7 · THE PROMPT IS TAMAR'S, from the sheet's תכלס- בגדול column.
            It replaces our generic "איך הייתם מצביעים?" with the issue's
            own framing — "פטור משירות עבור החרדים - בעד או נגד?" — so the
@@ -1853,7 +2067,7 @@ function tachlesTransition(btn, ov) {
   const cy = seatR.top  + seatR.height * 0.62 - sr.top;
 
   const cal = el('div', 'tcal',
-    '<span class="tcal__av as-d" aria-hidden="true">' + AV3 + '</span>' +
+    '<span class="tcal__av as-d" aria-hidden="true">' + avatarSvg() + '</span>' +
     '<span class="tcal__w">' + esc(VOTE_PIN[vote] || VLABEL[vote] || '') + '</span>');
   cal.style.left = cx + 'px';
   cal.style.top  = cy + 'px';
@@ -1922,11 +2136,11 @@ function tachlesTransition(btn, ov) {
 function tapAffordance(ov) {
   if (!ov.isConnected || $('.tctap', ov)) return;
   ov.classList.add('is-held');
-  const t = el('div', 'tctap',
-    '<span>' + esc('הקישו להמשך') + '</span>' +                      /* TAMAR */
+  const hint = el('div', 'tctap',
+    '<span>' + esc(t('tapNext')) + '</span>' +                       /* TAMAR · COPY.tapNext */
     '<span class="tctap__c" aria-hidden="true">›</span>');
-  ov.appendChild(t);
-  requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('is-in')));
+  ov.appendChild(hint);
+  requestAnimationFrame(() => requestAnimationFrame(() => hint.classList.add('is-in')));
 }
 
 /* ===================== BEAT 3 · THE BILL ============================ */
@@ -2946,7 +3160,7 @@ function flyToken(slot) {
      It used to stay behind as an empty grey pill for the rest of the
      beat, which is the bug this fixes. */
   const land = () => {
-    slot.innerHTML = '<span class="f5av">' + AV3 + '</span>';
+    slot.innerHTML = '<span class="f5av">' + avatarSvg() + '</span>';
     const chy = $('#chyron');
     const bnr = $('.chyron .bnr');
     if (bnr) bnr.classList.add('is-spent');
@@ -2959,7 +3173,7 @@ function flyToken(slot) {
   if (!src || matchMedia('(prefers-reduced-motion: reduce)').matches) { land(); return Promise.resolve(); }
   const a = src.getBoundingClientRect(), z = slot.getBoundingClientRect();
   if (!z.width || !z.height) { land(); return Promise.resolve(); }
-  const fly = el('span', 'f5fly', AV3);
+  const fly = el('span', 'f5fly', avatarSvg());
   fly.style.cssText = 'left:' + a.left + 'px; top:' + a.top + 'px;' +
     'width:' + a.width + 'px; height:' + a.height + 'px;';
   document.body.appendChild(fly);
@@ -3218,7 +3432,8 @@ function saveState() {
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify({
       v: SAVE_VER, wallet, progress: PROGRESS, record: RECORD,
-      cf: EG_CONFETTI_SPENT
+      cf: EG_CONFETTI_SPENT,
+      profile: PROFILE
     }));
   } catch (e) { /* fails open — a full or disabled store must not break play */ }
 }
@@ -3260,6 +3475,16 @@ function restoreSave() {
   /* coerced rather than validated: a malformed `cf` is a cosmetic field
      and must not be grounds for discarding eleven rounds of progress */
   EG_CONFETTI_SPENT = s.cf === true;
+  /* §B the profile, coerced field by field the way `cf` is: anything that
+     is not a legal value is the default, and nothing in it can be grounds
+     for discarding a save. An avatarId that names a preset no longer on
+     the sheet falls back to the first, silently. */
+  const p = (s.profile && typeof s.profile === 'object') ? s.profile : {};
+  PROFILE.avatarId = (typeof p.avatarId === 'string' && preset(p.avatarId)) ? p.avatarId : null;
+  PROFILE.name     = typeof p.name === 'string' ? p.name.slice(0, 40) : '';
+  PROFILE.gender   = (p.gender === 'm' || p.gender === 'f') ? p.gender : null;
+  PROFILE.invited  = p.invited === true;
+  PROFILE.cfg      = (p.cfg && typeof p.cfg === 'object' && !Array.isArray(p.cfg)) ? p.cfg : null;
 }
 
 /* the reason is developer-facing and the recovery is silent: the player
@@ -3392,7 +3617,7 @@ function showScreen(name) {
 
    COPY IS OURS AND MARKED. */
 const EXIT_COPY = {
-  q:    'בטוח/ה שאת/ה רוצה לצאת?',   /* TAMAR */
+  /* q moved to COPY.exitQ — it is read through t(), by voice */
   note: 'ההתקדמות בסוגיה לא תישמר',   /* TAMAR */
   go:   'לצאת',                       /* TAMAR */
   stay: 'להישאר',                     /* TAMAR */
@@ -3413,7 +3638,7 @@ function exitRound() {
          Struck through ph() they rendered at --fs-meta on a yellow
          hazard stripe, which is neither the 19px black question §3.3
          asked for nor legible on a cream sticker. */
-      '<p class="exitsheet__q">' + esc(EXIT_COPY.q) + '</p>' +
+      '<p class="exitsheet__q">' + esc(t('exitQ')) + '</p>' +
       '<p class="exitsheet__note">' + esc(EXIT_COPY.note) + '</p>' +
       '<div class="exitsheet__row">' +
         '<button type="button" class="p-c" data-go>' + esc(EXIT_COPY.go) + '</button>' +
@@ -4572,7 +4797,17 @@ function boot() {
      finds nothing and the session starts as a first-ever visit. */
   if (DEV.reset) clearSave();
   restoreSave();
-  $('#hudAvatar').innerHTML = AV3;
+  /* §B the default is the first preset, written down so the save carries
+     an explicit id rather than "whatever is first"; restoreSave() has
+     already put back a saved pick if there was one. The sticker is the
+     door to 2b on the map and the end — the round swaps it for the ✕ and
+     the intro hides the HUD, so there is nothing to wire for those. */
+  if (!PROFILE.avatarId && presets()[0]) PROFILE.avatarId = presets()[0].id;
+  paintHudAvatar();
+  pressable($('#hudAvatar')).addEventListener('click', () => {
+    if ($('.stmodal[data-profile]')) return;
+    profileModal();
+  });
   pressable($('#hudX')).addEventListener('click', exitRound);
   $('#coinNum').textContent = wallet;
   /* §7 the deep-link. `round` drops straight in without a map behind it,
