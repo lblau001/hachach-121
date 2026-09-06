@@ -3784,11 +3784,6 @@ button.prof-hero:focus-visible{ outline:3px solid var(--primary); outline-offset
 .prof-tweak{ min-height:46px; }
 /* R-B re-inked for paper, exactly as .exitsheet .r-b is */
 .prof-tweak{ font-size:17px; color:var(--ink); box-shadow:inset 0 0 0 2.5px rgba(19,19,16,.38); }
-.prof-tweak[disabled]{ opacity:.6; cursor:default; }
-.prof-soon{
-  font-size:11px; line-height:1; padding:3px 7px 4px; border-radius:8px;
-  background:rgba(19,19,16,.10); box-shadow:inset 0 0 0 1.5px rgba(19,19,16,.28);
-}
 
 /* 2a · the board's sheet, inside the sticker. Title and sub at the
    modal's own sizes, in ink, because they sit on paper here rather than
@@ -3852,6 +3847,103 @@ button.prof-hero:focus-visible{ outline:3px solid var(--primary); outline-offset
    a short pop, so a tap always shows something landing */
 .avp-check.is-pop{ animation:avp-pop 180ms var(--e-land) both; }
 @keyframes avp-pop{ from{ transform:scale(.4); opacity:0 } 60%{ transform:scale(1.12); opacity:1 } to{ transform:none } }
+
+/* =====================================================================
+   §D · 2c THE BUILDER (see renderBuilder). The board's construction on
+   the profile sticker: the preview on its dashed well up top, then the
+   MK card's own kraft — the 27px grid, the die-cut edge, the hard
+   shadow — holding one axis at a time as white tiles built the way the
+   vote chips are (14px radius, hard 3px shadow, the double ring when
+   on), and the map's mark on the chosen one.
+   ===================================================================== */
+.bld-title{ padding-inline:34px; }
+.bld-hero{ margin-top:4px; }
+/* THE HERO NEVER SCROLLS OFF. While the builder is showing, .prof stops
+   being the scroller: the hero is a fixed-height child, the sheet takes
+   the rest and shrinks, and inside it only the tile grid may scroll.
+   §0.4-3 was exactly this bug in the old build — the preview scrolled
+   away with the options — and this makes it structural: the grid is
+   the one overflow:auto in the chain, so a sheet that cannot fit
+   scrolls its tiles under a preview that stays put. On a 640 stage
+   nothing scrolls at all (measured below the axes, see the report). */
+.prof--bld{ overflow:hidden; }
+.prof--bld .bld-hero{ flex:none; }
+.bsheet{
+  margin-top:10px; width:100%; min-height:0; flex:1 1 auto;
+  display:flex; flex-direction:column; gap:8px;
+  padding:9px 8px 9px;
+  background:var(--card-surface);
+  border:5px solid var(--edge); border-radius:var(--r-chip);
+  box-shadow:0 0 0 2px var(--keyline), 0 6px 0 rgba(0,0,0,.4);
+}
+.bhead{ display:flex; align-items:center; gap:10px; }
+/* the board's progress: the count in H-A's meta, the bar in the one
+   yellow — it is progress, not a control, so P-C's colour is right */
+.bprog{ flex:1; min-width:0; margin:0; display:flex; flex-direction:column; gap:5px; }
+.bprog__n{ font-size:var(--fs-meta); font-weight:700; color:var(--ink-soft); line-height:1.1; }
+.bprog__bar{
+  display:block; height:8px; border-radius:99px; overflow:hidden;
+  background:rgba(19,19,16,.12); box-shadow:inset 0 0 0 1.5px rgba(19,19,16,.28);
+}
+.bprog__bar i{ display:block; height:100%; border-radius:99px; background:var(--primary);
+  transition:width 200ms var(--e-settle); }
+/* the shuffle: an IB-B chip, 44px, so it is a control and not a primary */
+.bshuf{ flex:none; width:44px; height:44px; -webkit-tap-highlight-color:transparent; }
+.bshuf:active{ transform:translateY(2px); box-shadow:0 0 0 2px var(--keyline), 0 1px 0 rgba(0,0,0,.34); }
+.baxis{ margin:0; font-family:var(--font-display); font-weight:900; font-size:17px; line-height:1.2; }
+/* the tiles. 8px of padding all round so the ring (5.5px) and the mark
+   (6px past the corner) stay inside the scroller's clip. */
+.bgrid{
+  min-height:0; flex:1 1 auto; overflow-y:auto;
+  display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px 8px;
+  padding:8px; margin:-8px;
+  align-content:start;
+  /* TWO ROWS' WORTH ON EVERY AXIS. Six options fill two rows; three
+     (eyes) fill one, and a shorter sheet would re-centre the whole
+     sticker and drop the hero 44px between axes — measured. The grid
+     reserves the second row so the box, and the hero, hold still. */
+  min-height:186px;
+}
+.bgrid--voice{ grid-template-columns:repeat(2, minmax(0,1fr)); }
+.bopt{
+  position:relative; appearance:none; border:0; cursor:pointer;
+  padding:6px 4px 5px; min-width:0;
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+  background:#fff; border-radius:var(--r-chip); color:var(--ink); font:inherit;
+  box-shadow:0 3px 0 rgba(0,0,0,.3); -webkit-tap-highlight-color:transparent;
+  transition:transform var(--t-press) linear, box-shadow var(--t-press) linear;
+}
+.bopt.on{ box-shadow:0 0 0 3px #FBF7EE, 0 0 0 5.5px #131310, 0 4px 0 rgba(0,0,0,.32); }
+.bopt:active{ transform:translateY(2px); box-shadow:0 1px 0 rgba(0,0,0,.3); }
+.bopt.on:active{ box-shadow:0 0 0 3px #FBF7EE, 0 0 0 5.5px #131310, 0 2px 0 rgba(0,0,0,.32); }
+.bopt-st{ display:block; width:50px; height:50px; line-height:0; }
+.bopt-st svg{ display:block; width:100%; height:100%;
+  filter:url(#dcw-sm) drop-shadow(0 2px 0 rgba(0,0,0,.28)); }
+.bopt-lbl{
+  max-width:100%; font-family:var(--font-ui); font-size:12px; font-weight:700; line-height:1.15;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+/* the map's mark, at its own size, on the tile's corner */
+.bopt-check{ display:none; right:-6px; bottom:-6px; width:22px; height:22px; font-size:13px; }
+.bopt.on .bopt-check{ display:grid; }
+.bopt-check.is-pop{ animation:avp-pop 180ms var(--e-land) both; }
+/* the voice step's third answer, a chip across both columns */
+.bopt-any{ grid-column:1 / -1; justify-content:center; min-height:44px; }
+/* the chevrons: two paper chips, the forward one yellow on the last step
+   because there it is the way back to the character, not a step */
+.bfoot{ display:flex; gap:8px; }
+.bnav{
+  flex:1; min-height:44px; appearance:none; border:0; cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:center; gap:3px;
+  background:var(--paper); color:var(--ink); border-radius:var(--r-chip);
+  font-family:var(--font-display); font-weight:900; font-size:16px;
+  box-shadow:0 0 0 2px var(--keyline), 0 3px 0 rgba(0,0,0,.34);
+  -webkit-tap-highlight-color:transparent;
+  transition:transform var(--t-press) linear, box-shadow var(--t-press) linear;
+}
+.bnav:active{ transform:translateY(2px); box-shadow:0 0 0 2px var(--keyline), 0 1px 0 rgba(0,0,0,.34); }
+.bnav--last{ background:var(--primary); }
+.bnav__chev{ display:block; flex:none; }
 
 /* =====================================================================
    §C · THE INVITATION, AND THE PLAYER ON THE END-GAME
