@@ -1886,7 +1886,6 @@ async function claimReveal(ans, card) {
     '<button type="button" class="p-c creveal__go">' +
       esc('הלאה') + ' <i aria-hidden="true">›</i></button>';
   wrap.appendChild(panel);
-  requestAnimationFrame(() => panel.classList.add('is-in'));
   const go = $('.creveal__go', panel);
 
   /* THE PANEL IS CAPPED SO IT CANNOT COVER THE CLAIM — back with the
@@ -1901,10 +1900,36 @@ async function claimReveal(ans, card) {
     panel.style.maxHeight = Math.max(170, room / sc) + 'px';
   }
 
-  /* NO MEASURED CAP ANY MORE. The panel used to be absolutely positioned
-     over the card's foot and JS computed a max-height so it could not
-     cover the claim. With the card lifted the panel simply takes the
-     space the card left, so the geometry that needed guarding is gone. */
+  /* ---- 4b · A CUT BLOCK HAS TO LOOK CUT ON PURPOSE -----------------
+     The scroller above is the cap doing its job: on six of the twenty-two
+     issues tf_explain is longer than the room under the claim, and the
+     four longest lose 58, 41, 23 and 13px of a line at 390x844 — more at
+     360x640. It has always scrolled. What it has never done is SAY so:
+     macOS and iOS both draw an overlay scrollbar, which is invisible at
+     rest and takes no width, so what the player sees is a paragraph
+     sliced horizontally through the middle of a line of Hebrew. That is
+     indistinguishable from a rendering fault, and the reflex it produces
+     is to tap הלאה rather than to drag.
+     .has-more masks the scroller's bottom edge, and .is-atend takes the
+     mask off again once there is nothing left below — a fade that stays
+     up at the end of the text says there is more when there is not.
+
+     ESTABLISHED BEFORE THE BEAT, NOT DURING IT. maxHeight above is the
+     last thing on this panel that changes layout, so the scroller's
+     geometry is final on this line — synchronously, before the rAF that
+     starts .is-in. The reveal then animates opacity and transform only,
+     and neither the scroll container nor the mask is touched while it
+     runs. The state is re-read on scroll and on nothing else. */
+  const scEl = $('.creveal__scroll', panel);
+  const syncFade = () => {
+    const over = scEl.scrollHeight - scEl.clientHeight > 1;
+    panel.classList.toggle('has-more', over);
+    panel.classList.toggle('is-atend',
+      over && scEl.scrollTop + scEl.clientHeight >= scEl.scrollHeight - 2);
+  };
+  syncFade();
+  scEl.addEventListener('scroll', syncFade, { passive: true });
+
   requestAnimationFrame(() => panel.classList.add('is-in'));
 
   panel.addEventListener('click', e => {
@@ -4147,14 +4172,11 @@ const EXIT_COPY = {
 function exitRound() {
   const midRound = S && S.beat > 1 && S.beat < 5;
   /* quiet: leaving a round is never the moment for the invitation */
-  /* KNOWN, NOT FIXED (Part C, 6 Sep 2026): leaving from BEAT 2 or 3
-     strands the beat-2 surface. .ov--stage is a child of #stage, not of
-     #scRound, so showScreen('map') hides the round and the chair, the
-     prompt and the vote chips stay painted over the map until the next
-     round's beat 2 builds a new one. Its only removal is its own dismiss
-     tap (beat 3). The fix is one line at the top of goMap() — remove any
-     .ov--stage — and it belongs to whoever next touches the round's
-     exit, not to the profile work this note was written during. */
+  /* FIXED, and not here: the stranded beat-2 surface this function used
+     to carry a KNOWN-NOT-FIXED note about is gone with endRound(), which
+     goMap() runs on the way out. Nothing about leaving a round is
+     special-cased in this function any more — it decides whether to ask,
+     and the teardown belongs to the door, not to the confirm. */
   if (!midRound) return goMap({ quiet: true });
 
   const sh = el('div', 'exitsheet');
@@ -4785,7 +4807,62 @@ function paintHud() {
   const cn = $('#coinNum'); if (cn) cn.textContent = wallet;
 }
 
+/* ===== A4b · THE ROUND IS UNMOUNTED, NOT HIDDEN ======================
+   showScreen() toggles `hidden` on the four .screen sections and on the
+   chyron, and that is all it knows about. The beat-2/3 surface is not one
+   of them: .ov--stage is a child of #stage — it has to be, or the blur
+   stops at .round's padding and the dot grid shows through at every
+   border — so hiding the round left the chair, the prompt and the three
+   vote chips painted over the map at z-index 9, above everything the map
+   draws, with their handlers still attached. Its only removal was its own
+   beat-3 dismiss tap, which is a tap the player who just left the round
+   is by definition not going to make.
+
+   REMOVING THAT ONE NODE WOULD HAVE BEEN THE SYMPTOM'S FIX. What was
+   actually wrong is that a round had no teardown at all: S kept the
+   abandoned round's beat, position and guesses until the next newRound()
+   happened to overwrite it, #round kept the whole beat's DOM behind the
+   hidden screen, the chyron kept whatever the last beat pinned in it, and
+   the inverted round's step timers kept firing against a round that no
+   longer exists. This is that teardown, and it is the ONE place that
+   knows what a round parents outside itself.
+
+   S IS SET TO NULL, NOT EMPTIED. Every reader of it either runs inside a
+   round or already guards (exitRound), and a null is what makes a stale
+   timer's `S.phase` test fail outright instead of quietly passing against
+   the dead round's state.
+
+   .stmodal[data-profile] IS NOT A ROUND'S. It is the map's character
+   sheet, opened from the HUD sticker; the invitation opens after goMap()
+   has returned, on the map's own settle. Neither is touched here. */
+function endRound() {
+  if (S && S.invTimers) S.invTimers.forEach(clearTimeout);
+  S = null;
+
+  /* every node a beat parents to the stage rather than to #round */
+  $$('.ov, .tcal, .b1intro, .exitsheet, .stmodal:not([data-profile])')
+    .forEach(n => n.remove());
+
+  const chy = $('#chyron');
+  if (chy) {
+    chy.innerHTML = '';
+    chy.classList.remove('is-mark', 'is-exiting');
+    chy.classList.add('is-empty');
+    chy.setAttribute('aria-hidden', 'true');
+  }
+  helper('');
+
+  const sr = $('#scRound'); if (sr) sr.classList.remove('is-finale');
+  const rd = $('#round');   if (rd) rd.innerHTML = '';
+}
+
 function goMap(o) {
+  /* the round is torn down BEFORE the map is built, so renderMap() and
+     showScreen('map') run against a stage with nothing of the round left
+     on it. Every way out of a round funnels through here — the exit
+     confirm's two paths and beat 5's חזרה למפה — and on the paths where
+     there is no round (the intro launch, ?screen=map) it is a no-op. */
+  endRound();
   renderMap();
   const m = $('#scMap');
   m.classList.remove('is-arriving'); void m.offsetWidth; m.classList.add('is-arriving');
@@ -5400,6 +5477,11 @@ async function egBeat4() {
    and the map is the thing you come back to with it. */
 function startRound(issueId) {
   applyDev();
+  /* the other door. Coming here from beat 5's לסוגיה הבאה, or back into a
+     topic from the map, has to start on the same empty stage the map's
+     door leaves behind — re-entering a topic must not inherit anything
+     from the round before it. */
+  endRound();
   const sr = $('#scRound'); if (sr) sr.classList.remove('is-finale');
   const chy0 = $('#chyron');
   if (chy0) { chy0.hidden = false; chy0.classList.remove('is-exiting'); }

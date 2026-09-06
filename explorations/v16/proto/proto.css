@@ -2217,6 +2217,28 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
 .creveal__scroll{
   min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch;
   overscroll-behavior:contain;
+  /* THE SCROLLBAR IS DRAWN OUT, NOT LEFT TO THE PLATFORM. On the two
+     engines this ships to it is an overlay bar — no width, invisible at
+     rest — so hiding it costs nothing and removes the one place a stray
+     light grey track could sit on a #211F1B sheet. The affordance is the
+     fade below, which is legible on both and does not depend on a
+     scroll gesture having already started. */
+  scrollbar-width:none;
+}
+.creveal__scroll::-webkit-scrollbar{ width:0; height:0; display:none; }
+/* THE FADE IS A MASK ON THE SCROLLER, NOT A GRADIENT OVER IT. A pseudo
+   element pinned to the panel would have to know the CTA's height to sit
+   on the right edge, and a child of the scroller would scroll away with
+   the text; a mask is anchored to the padding box and stays put while the
+   content moves under it. 34px is a little over one line at 15.5px/1.5,
+   so the cut line is half-there rather than half-gone — visibly more
+   text, not a decorative shadow.
+   .has-more is set only when the block actually overflows and .is-atend
+   clears it at the bottom of the scroll, so a fully-read block and a
+   short one both end on a hard edge. */
+.creveal__exp.has-more:not(.is-atend) .creveal__scroll{
+  -webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 34px),transparent 100%);
+          mask-image:linear-gradient(to bottom,#000 calc(100% - 34px),transparent 100%);
 }
 .creveal__text{
   margin:0; font-size:15.5px; font-weight:700; line-height:1.5;
