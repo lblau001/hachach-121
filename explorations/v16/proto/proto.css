@@ -2303,7 +2303,23 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
    ===================================================================== */
 .stmodal{
   position:absolute; inset:0; z-index:60; display:grid; place-items:center;
-  padding:var(--sp-4); background:rgba(20,18,15,.76);
+  /* §N THE SCRIM NEVER SHORTENS. The keyboard's height (0 unless a field
+     in the modal has focus — see kbSync()) goes into the BOTTOM PADDING,
+     so the grid area the box centres in ends above the keyboard while
+     the scrim still paints the whole stage. It was `bottom` before, and
+     on the phone the strip between the box and the keyboard showed bare
+     map — the scrim had been cut to the estimate, and any estimate is
+     wrong by the accessory bar. Padding is wrong by nothing. */
+  /* THE BOX CENTRES IN THE SAFE AREA, not in the whole stage. The stage
+     runs under the status bar (viewport-fit=cover) and pads its own HUD
+     down by the inset; the modal covers the stage's padding box, so
+     without this its box centred against the notch line and its ✕ could
+     sit where a browser's toolbar overlays the top — Chrome on iOS was
+     seen hiding it. Safari reported no problem, but the inset is the
+     same rule in both. */
+  padding:calc(var(--sp-4) + env(safe-area-inset-top, 0px)) var(--sp-4)
+          calc(var(--sp-4) + env(safe-area-inset-bottom, 0px) + var(--kb-h, 0px));
+  background:rgba(20,18,15,.76);
   opacity:0; transition:opacity var(--t-ov-in) linear;
 }
 .stmodal.is-in{ opacity:1; }
@@ -3695,6 +3711,9 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
 /* the profile sticker has no title of its own — the character is the
    title — so the component's empty <h2> is out of the flow */
 .stmodal[data-profile] .stmodal__title{ display:none; }
+/* the profile sheet is sized to FIT (see .prof-hero), so the 76% ceiling
+   the law modal wants would only clip it; it may use the whole area */
+.stmodal[data-profile] .stmodal__box{ max-height:100%; }
 /* THE CONTENT SCROLLS, THE STICKER DOES NOT — the same rule as
    .stmodal__body, for the same reason: the ✕ has to stay put. 2a at
    360×640 is taller than the box's 76%, and this is what absorbs it. */
@@ -3706,12 +3725,38 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
 }
 /* 2b · the hero: the SAME round token the HUD carries, at 156px, on a
    dashed well like 2a's, with the board's die-cut. */
-.prof-hero{ position:relative; width:176px; height:176px; display:grid; place-items:center; }
+/* FITS A 640px STAGE WITHOUT SCROLLING — iPhone 16 in Safari with its
+   bars is about 660, and 360×640 is the floor. Measured settled at
+   360×640: the box is 523px tall inside the modal's 608, with no internal
+   scroll (clientHeight equals scrollHeight). A scrolling sticker
+   card was the wrong fix (and the stage blocks touch scrolling anyway):
+   the hero came down from 156 to 116, which still reads, and every gap
+   gave a little. */
+.prof-hero{
+  position:relative; width:132px; height:132px; display:grid; place-items:center;
+  /* as a button: nothing of a button's own. The whole 132px is the target. */
+  border:0; padding:0; margin:0; background:none; cursor:pointer; color:var(--ink);
+  -webkit-tap-highlight-color:transparent; font:inherit;
+}
+button.prof-hero:active .prof-st{ transform:scale(.96); }
+button.prof-hero:focus-visible{ outline:3px solid var(--primary); outline-offset:6px; border-radius:50%; }
+/* the corner chip: 44px, the paper chip the HUD's ✕ is made of (IB-B),
+   carrying the sheet glyph. Bottom-left physical, off the disc's edge,
+   so it reads as pinned on the token rather than part of the drawing. */
+.prof-hero__chip{
+  position:absolute; left:-2px; bottom:-2px; z-index:3;
+  width:44px; height:44px; display:grid; place-items:center;
+  border-radius:var(--r-chip); background:var(--paper); color:var(--ink);
+  box-shadow:0 0 0 2px var(--keyline), 0 3px 0 rgba(0,0,0,.34);
+}
+.prof-hero__chip svg{ display:block; }
 .prof-well{ position:absolute; inset:0; border-radius:50%; border:1.5px dashed rgba(19,19,16,.32); }
-.prof-st{ position:relative; width:156px; height:156px; }
-.avs-cut{ filter:url(#dcw) drop-shadow(0 3px 0 rgba(0,0,0,.28)); }
-.prof-lbl{ margin:18px 0 0; font-size:var(--fs-meta); font-weight:700; color:var(--ink-soft); }
-.prof-gender{ display:flex; gap:9px; margin-top:9px; }
+.prof-st{ position:relative; width:116px; height:116px; transition:transform var(--t-press) linear; }
+/* ON THE SVG, NOT THE SPAN: the span can then carry a mark (.avp-check)
+   that the dilate does not fatten */
+.avs-cut > svg{ filter:url(#dcw) drop-shadow(0 3px 0 rgba(0,0,0,.28)); }
+.prof-lbl{ margin:12px 0 0; font-size:var(--fs-meta); font-weight:700; color:var(--ink-soft); }
+.prof-gender{ display:flex; gap:9px; margin-top:7px; }
 /* the board's .gchip, as a button, on paper: white so it reads as a
    sticker on the cream, the board's hard 3px shadow, and the board's
    double ring when it is on. Never a colour — a voice is not a verdict. */
@@ -3728,12 +3773,15 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
 .gchip.on:active{ box-shadow:0 0 0 3px #FBF7EE, 0 0 0 5.5px #131310, 0 2px 0 rgba(0,0,0,.32); }
 /* the two doors, at the exit confirm's shared height so P-C and R-B
    match — see .exitsheet__row for why the type sizes make them unequal */
-.prof-actions{ margin-top:20px; width:100%; display:flex; flex-direction:column; gap:10px; }
+.prof-actions{ margin-top:14px; width:100%; display:flex; flex-direction:column; gap:8px; }
 .prof-actions > *{
-  min-height:56px; display:flex; align-items:center; justify-content:center;
+  min-height:52px; display:flex; align-items:center; justify-content:center;
   padding-block:0; gap:8px;
 }
-.prof-swap{ font-size:19px; }
+/* the one primary. Everything on this sheet applied the moment it was
+   tapped; this closes, and its copy is the player's model, not the code's. */
+.prof-save{ font-size:19px; }
+.prof-tweak{ min-height:46px; }
 /* R-B re-inked for paper, exactly as .exitsheet .r-b is */
 .prof-tweak{ font-size:17px; color:var(--ink); box-shadow:inset 0 0 0 2.5px rgba(19,19,16,.38); }
 .prof-tweak[disabled]{ opacity:.6; cursor:default; }
@@ -3751,42 +3799,59 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
 }
 .peel-sub{ margin:4px 0 0; font-size:var(--fs-meta); font-weight:700; color:var(--ink-soft); text-align:center; }
 .sheet{
-  margin-top:14px; width:100%; padding:16px 8px 12px;
-  display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:16px 8px; justify-items:center;
+  margin-top:14px; width:100%; padding:14px 6px 12px;
+  display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:14px 6px; justify-items:center;
   background:
     linear-gradient(102deg,rgba(255,255,255,.5) 0 16%,rgba(255,255,255,0) 40%,
                     rgba(255,255,255,0) 62%,rgba(255,255,255,.3) 88%),#E9ECEA;
   border:5px solid #fff; box-shadow:0 0 0 2px var(--keyline), 0 6px 0 rgba(0,0,0,.4);
 }
 /* each sticker is a button with nothing of a button's own */
+/* no names under the stickers (see renderSheet) — the stickers take the
+   room: 84px on a 390 sheet, the column's width less the well on a 360 */
 .avp{
-  position:relative; width:100%; max-width:92px;
+  position:relative; width:100%; max-width:100px;
   display:flex; flex-direction:column; align-items:center; gap:6px;
   border:0; background:none; padding:0; cursor:pointer;
   font:inherit; color:var(--ink); -webkit-tap-highlight-color:transparent;
 }
 .avp-well{
   position:absolute; top:-5px; left:50%; translate:-50% 0;
-  width:calc(100% - 4px); max-width:88px; aspect-ratio:1;
+  width:100%; max-width:94px; aspect-ratio:1;
   border:1.5px dashed #9AA4A0; border-radius:14px;
 }
 .avp-st{
   position:relative; z-index:2; display:block; line-height:0;
-  width:calc(100% - 14px); max-width:78px; aspect-ratio:1;
+  width:calc(100% - 10px); max-width:84px; aspect-ratio:1;
   transition:translate 200ms var(--e-settle);
 }
 .avp-st svg{ display:block; width:100%; height:100%; }
-.avp-name{ position:relative; z-index:2; font-size:13px; font-weight:700; }
 /* the current one, mid-peel: lifted off its well, its shadow gone soft
    and directional, the corner it is peeling from showing its back */
-.avp-peel .avp-st{ translate:6px -9px; filter:url(#dcw) drop-shadow(-6px 10px 9px rgba(0,0,0,.38)); }
+.avp-peel .avp-st{ translate:6px -9px; }
+.avp-peel .avp-st > svg{ filter:url(#dcw) drop-shadow(-6px 10px 9px rgba(0,0,0,.38)); }
+/* THE MAP'S MARK ON THE CHOSEN STICKER. .node-check is 24px inset 6px on
+   a 76px face with a 14px glyph and a 2px casing; here every one of
+   those is the same fraction of the sticker, in container units, so it
+   reads identically on the 78px sticker at 390 and the 62px one at 360.
+   Hidden until the sticker is the chosen one; the lift and the mark
+   arrive together. */
+.avp-st{ container-type:inline-size; }
+.avp-check{
+  display:none; right:7.9cqw; bottom:7.9cqw; width:31.6cqw; height:31.6cqw;
+  font-size:18.4cqw; border-width:max(1.5px, 2.6cqw); box-shadow:0 2.6cqw 0 0 #161413;
+}
+.avp-peel .avp-check{ display:grid; }
 .avp-lift{
   display:none; position:absolute; z-index:1; top:0; left:8px; width:30px; height:30px;
   background:linear-gradient(135deg,#fff 0 48%,#D6D9D7 52%,#C2C6C4 100%);
   border-radius:0 0 24px 0; box-shadow:-2px 3px 5px rgba(0,0,0,.22);
 }
 .avp-peel .avp-lift{ display:block; }
-.peel-back{ margin-top:8px; color:var(--ink-soft); }
+/* the mark's arrival, and its re-arrival on the already-chosen sticker:
+   a short pop, so a tap always shows something landing */
+.avp-check.is-pop{ animation:avp-pop 180ms var(--e-land) both; }
+@keyframes avp-pop{ from{ transform:scale(.4); opacity:0 } 60%{ transform:scale(1.12); opacity:1 } to{ transform:none } }
 
 /* =====================================================================
    §C · THE INVITATION, AND THE PLAYER ON THE END-GAME
@@ -3826,3 +3891,30 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
   margin:0; width:100%; font-family:var(--font-display); font-weight:900;
   font-size:var(--fs-body); color:var(--ink);
 }
+
+/* ---- §N · the name field in 2b ------------------------------------- */
+.prof-name{ width:100%; display:flex; flex-direction:column; align-items:center; gap:5px; margin-top:12px; }
+.prof-lbl--name{ margin:0; text-align:center; }
+/* the board's .prof-field, on paper: white so it reads as a field on the
+   cream, the chips' keyline, a hard shadow. 17px keeps iOS from zooming
+   the page to it. */
+.prof-field{
+  appearance:none; width:100%; margin:0; border:0; border-radius:14px;
+  padding:12px 16px; background:#fff; color:var(--ink);
+  font-family:var(--font-ui); font-size:17px; font-weight:700; line-height:1.2;
+  box-shadow:inset 0 0 0 2px rgba(19,19,16,.28), 0 3px 0 rgba(0,0,0,.2);
+  text-align:start;
+}
+.prof-field::placeholder{ color:#6B6759; font-weight:700; }
+.prof-field:focus{ outline:0; box-shadow:inset 0 0 0 2.5px var(--ink), 0 3px 0 rgba(0,0,0,.2); }
+/* THE CEILING IS IN PX WHILE THE KEYBOARD IS OPEN. The box's normal
+   max-height is 76% of .stmodal, and once `bottom` has shortened .stmodal
+   a percentage no longer tracks it (a grid item's percentage resolves
+   against the auto row, not the container — measured, not assumed). So
+   kbSync() also writes --kb-vis, the visible height in px, and the box
+   takes that less the modal's padding: fully above the keyboard, its
+   scrolling body absorbing the rest. */
+/* three classes deep on purpose: it has to outrank the profile sheet's own
+   `max-height:100%` (.stmodal[data-profile] .stmodal__box), which is what
+   lets that sheet fill the stage when no keyboard is up */
+.kb-open .stmodal .stmodal__box{ max-height:calc(var(--kb-vis, 100vh) - 2 * var(--sp-4)); }
