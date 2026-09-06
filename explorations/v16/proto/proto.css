@@ -3673,3 +3673,156 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
   .eg-cf{ display:none; }
   .eg-chip.is-bump{ animation:none; }
 }
+
+/* =====================================================================
+   §B · THE CHARACTER (2b) AND THE STICKER SHEET (2a)
+   Both live inside stickerModal()'s box, through `extra`. The sticker
+   draws the surface, the scrim and the ✕; only what is INSIDE it is
+   styled here, and it is the board's own vocabulary — die-cut white edge,
+   hard offset shadow, dashed wells, the gender chips at the board's
+   12px — re-inked for paper where the board drew it on the dark ground.
+   ===================================================================== */
+/* the HUD sticker is a button now (index.html). It keeps AS-D's 40px box
+   and gets nothing a sticker would not have: no chrome, a press. */
+.hud-you{
+  border:0; padding:0; background:none; cursor:pointer; border-radius:50%;
+  -webkit-tap-highlight-color:transparent;
+  transition:transform var(--t-press) linear;
+}
+.hud-you:active{ transform:scale(.92); }
+.hud-you:focus-visible{ outline:3px solid var(--primary); outline-offset:3px; }
+
+/* the profile sticker has no title of its own — the character is the
+   title — so the component's empty <h2> is out of the flow */
+.stmodal[data-profile] .stmodal__title{ display:none; }
+/* THE CONTENT SCROLLS, THE STICKER DOES NOT — the same rule as
+   .stmodal__body, for the same reason: the ✕ has to stay put. 2a at
+   360×640 is taller than the box's 76%, and this is what absorbs it. */
+.prof{
+  align-self:stretch; min-height:0; overflow-y:auto;
+  -webkit-overflow-scrolling:touch; overscroll-behavior:contain;
+  display:flex; flex-direction:column; align-items:center;
+  padding:2px 2px 6px;
+}
+/* 2b · the hero: the SAME round token the HUD carries, at 156px, on a
+   dashed well like 2a's, with the board's die-cut. */
+.prof-hero{ position:relative; width:176px; height:176px; display:grid; place-items:center; }
+.prof-well{ position:absolute; inset:0; border-radius:50%; border:1.5px dashed rgba(19,19,16,.32); }
+.prof-st{ position:relative; width:156px; height:156px; }
+.avs-cut{ filter:url(#dcw) drop-shadow(0 3px 0 rgba(0,0,0,.28)); }
+.prof-lbl{ margin:18px 0 0; font-size:var(--fs-meta); font-weight:700; color:var(--ink-soft); }
+.prof-gender{ display:flex; gap:9px; margin-top:9px; }
+/* the board's .gchip, as a button, on paper: white so it reads as a
+   sticker on the cream, the board's hard 3px shadow, and the board's
+   double ring when it is on. Never a colour — a voice is not a verdict. */
+.gchip{
+  appearance:none; border:0; cursor:pointer; display:inline-flex; align-items:center;
+  background:#fff; border-radius:12px; padding:9px 15px;
+  font-family:var(--font-ui); font-size:13.5px; font-weight:700; color:var(--ink);
+  box-shadow:0 3px 0 rgba(0,0,0,.3);
+  -webkit-tap-highlight-color:transparent;
+  transition:transform var(--t-press) linear, box-shadow var(--t-press) linear;
+}
+.gchip.on{ box-shadow:0 0 0 3px #FBF7EE, 0 0 0 5.5px #131310, 0 4px 0 rgba(0,0,0,.32); }
+.gchip:active{ transform:translateY(2px); box-shadow:0 1px 0 rgba(0,0,0,.3); }
+.gchip.on:active{ box-shadow:0 0 0 3px #FBF7EE, 0 0 0 5.5px #131310, 0 2px 0 rgba(0,0,0,.32); }
+/* the two doors, at the exit confirm's shared height so P-C and R-B
+   match — see .exitsheet__row for why the type sizes make them unequal */
+.prof-actions{ margin-top:20px; width:100%; display:flex; flex-direction:column; gap:10px; }
+.prof-actions > *{
+  min-height:56px; display:flex; align-items:center; justify-content:center;
+  padding-block:0; gap:8px;
+}
+.prof-swap{ font-size:19px; }
+/* R-B re-inked for paper, exactly as .exitsheet .r-b is */
+.prof-tweak{ font-size:17px; color:var(--ink); box-shadow:inset 0 0 0 2.5px rgba(19,19,16,.38); }
+.prof-tweak[disabled]{ opacity:.6; cursor:default; }
+.prof-soon{
+  font-size:11px; line-height:1; padding:3px 7px 4px; border-radius:8px;
+  background:rgba(19,19,16,.10); box-shadow:inset 0 0 0 1.5px rgba(19,19,16,.28);
+}
+
+/* 2a · the board's sheet, inside the sticker. Title and sub at the
+   modal's own sizes, in ink, because they sit on paper here rather than
+   on the dark ground the board drew them on. */
+.peel-title{
+  margin:0; padding-inline:30px; font-family:var(--font-display); font-weight:900;
+  font-size:20px; line-height:1.22; text-align:center;
+}
+.peel-sub{ margin:4px 0 0; font-size:var(--fs-meta); font-weight:700; color:var(--ink-soft); text-align:center; }
+.sheet{
+  margin-top:14px; width:100%; padding:16px 8px 12px;
+  display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:16px 8px; justify-items:center;
+  background:
+    linear-gradient(102deg,rgba(255,255,255,.5) 0 16%,rgba(255,255,255,0) 40%,
+                    rgba(255,255,255,0) 62%,rgba(255,255,255,.3) 88%),#E9ECEA;
+  border:5px solid #fff; box-shadow:0 0 0 2px var(--keyline), 0 6px 0 rgba(0,0,0,.4);
+}
+/* each sticker is a button with nothing of a button's own */
+.avp{
+  position:relative; width:100%; max-width:92px;
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  border:0; background:none; padding:0; cursor:pointer;
+  font:inherit; color:var(--ink); -webkit-tap-highlight-color:transparent;
+}
+.avp-well{
+  position:absolute; top:-5px; left:50%; translate:-50% 0;
+  width:calc(100% - 4px); max-width:88px; aspect-ratio:1;
+  border:1.5px dashed #9AA4A0; border-radius:14px;
+}
+.avp-st{
+  position:relative; z-index:2; display:block; line-height:0;
+  width:calc(100% - 14px); max-width:78px; aspect-ratio:1;
+  transition:translate 200ms var(--e-settle);
+}
+.avp-st svg{ display:block; width:100%; height:100%; }
+.avp-name{ position:relative; z-index:2; font-size:13px; font-weight:700; }
+/* the current one, mid-peel: lifted off its well, its shadow gone soft
+   and directional, the corner it is peeling from showing its back */
+.avp-peel .avp-st{ translate:6px -9px; filter:url(#dcw) drop-shadow(-6px 10px 9px rgba(0,0,0,.38)); }
+.avp-lift{
+  display:none; position:absolute; z-index:1; top:0; left:8px; width:30px; height:30px;
+  background:linear-gradient(135deg,#fff 0 48%,#D6D9D7 52%,#C2C6C4 100%);
+  border-radius:0 0 24px 0; box-shadow:-2px 3px 5px rgba(0,0,0,.22);
+}
+.avp-peel .avp-lift{ display:block; }
+.peel-back{ margin-top:8px; color:var(--ink-soft); }
+
+/* =====================================================================
+   §C · THE INVITATION, AND THE PLAYER ON THE END-GAME
+   The invitation is the profile sticker with less in it: one line, three
+   equal chips, the avatar line. Same .gchip, same paper, same ✕.
+   ===================================================================== */
+.prof--invite{ padding-top:0; }
+.inv-q{
+  margin:4px 0 0; padding-inline:30px; text-align:center;
+  font-family:var(--font-display); font-weight:900; font-size:20px; line-height:1.22;
+}
+/* three of the same size. "I'd rather not say" is an answer, so it is
+   not smaller, not lighter and not last-but-quieter. */
+.inv-row{ display:flex; gap:7px; margin-top:14px; width:100%; }
+.inv-row > .gchip{ flex:1; justify-content:center; padding-inline:6px; white-space:nowrap; }
+.inv-av{
+  margin:18px 0 2px; display:flex; align-items:center; gap:8px;
+  font-size:var(--fs-meta); font-weight:700; color:var(--ink-soft);
+}
+.inv-av__st{ width:30px; height:30px; }
+.inv-link{
+  border:0; background:none; padding:0; cursor:pointer;
+  font:inherit; color:var(--ink); text-decoration:underline; text-underline-offset:3px;
+}
+
+/* the record's head: the token, then the line */
+.eg-av{
+  width:56px; height:56px; margin:0 auto 4px; display:block; filter:url(#dcw-sm);
+  opacity:0; transform:translateY(6px);
+  transition:opacity var(--t-f5-in) var(--e-settle), transform var(--t-f5-in) var(--e-settle);
+}
+.eg-av.is-in{ opacity:1; transform:none; }
+/* the card's head: the token beside the tag, the optional name under it */
+.eg-share__head{ display:flex; align-items:center; gap:10px; }
+.eg-share__av{ width:34px; height:34px; flex:none; }
+.eg-share__name{
+  margin:0; width:100%; font-family:var(--font-display); font-weight:900;
+  font-size:var(--fs-body); color:var(--ink);
+}
