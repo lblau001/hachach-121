@@ -288,9 +288,15 @@ function topicHasProgress(id){ const p=progress[id]; if(!p||!p.issues) return fa
 function issueIsDone(topicId, issueId){ const p=progress[topicId]; return !!(p&&p.issues&&p.issues[issueId]&&p.issues[issueId].completed); }
 
 // ===== Explain sheet & glossary =====
+function sanitizeHtml(s){
+  /* allow only basic formatting tags; strip everything else */
+  const tmp=document.createElement('div');
+  tmp.textContent=s;
+  return tmp.innerHTML.replace(/&lt;(\/?(b|strong|em|i|br|p|ul|ol|li|a)(\s[^&>]*)?)&gt;/gi,'<$1>');
+}
 function openExplain(title, body, credit){
   document.getElementById('explainTitle').textContent = title;
-  document.getElementById('explainBody').innerHTML = body;
+  document.getElementById('explainBody').innerHTML = sanitizeHtml(body||'');
   document.getElementById('explainCredit').textContent = credit || '📖 מבית המגדלור';
   document.getElementById('explainOverlay').classList.add('active');
   sfxTap();
