@@ -333,7 +333,7 @@ async function loadFile(){
   try{
     const resp=await ghFetch('/repos/'+REPO+'/contents/'+FILE+'?ref='+BRANCH);
     fileSha=resp.sha;
-    const raw=atob(resp.content.replace(/\n/g,''));
+    const raw=decodeURIComponent(escape(atob(resp.content.replace(/\n/g,''))));
     const jsonStr=raw.slice('const DATA = '.length,raw.lastIndexOf(';'));
     dataObj=JSON.parse(jsonStr);
     issues={};
