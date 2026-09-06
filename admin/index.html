@@ -245,7 +245,7 @@ let currentTopic = TOPIC_ORDER[0];
       localStorage.removeItem('admin_gh_pat');
     }
     ghPat = pat;
-    document.getElementById('gate').hidden = true;
+    document.getElementById('gate').style.display = 'none';
     document.getElementById('app').classList.add('visible');
     loadFile();
   });
