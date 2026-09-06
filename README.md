@@ -3,7 +3,8 @@
 A browser game about the Knesset for first-time voters. Players predict how
 real MKs actually voted, then see the record.
 
-Live: https://romangash-star.github.io/hachach-121/
+Live old: https://romangash-star.github.io/hachach-121/
+Live new: https://romangash-star.github.io/hachach-121/explorations/v16/proto/
 
 Static site — no build step, no framework, no dependencies. Hebrew, RTL, mobile-first.
 

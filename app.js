@@ -170,18 +170,18 @@ function show(id){
   document.getElementById('bottomNav')?.classList.toggle('visible', showBars);
   document.getElementById('home')?.classList.toggle('bars-visible', showBars);
 }
-function startFast(){ initAudio(); sfxTap(); if(!player.name){ goAvatar(); } else { goHome(); } }
+function startFast(){ initAudio(); sfxTap(); trackEvent('game_start', {returning: !!player.name}); if(!player.name){ goAvatar(); } else { goHome(); } }
 function goAvatar(){ renderAvatarBuilder(); renderGender(); document.getElementById('userName').value = player.name||''; show('avatar'); }
 function confirmAvatar(){
   sfxTap();
   player.name = (document.getElementById('userName').value.trim() || g("אורח","אורחת"));
   if(!player.avatarCfg) player.avatarCfg = getDefaultCfg();
   if(!player.gender) player.gender='m';
-  saveProgress(); goHome();
+  saveProgress(); trackEvent('avatar_complete', {gender: player.gender}); goHome();
 }
-function skipAvatar(){ sfxTap(); player.name = g("אורח","אורחת"); if(!player.gender) player.gender='m'; saveProgress(); goHome(); }
+function skipAvatar(){ sfxTap(); player.name = g("אורח","אורחת"); if(!player.gender) player.gender='m'; saveProgress(); trackEvent('avatar_skip', {}); goHome(); }
 function goHome(){ renderHome(); show('home'); }
-function backToHome(){ sfxWhoosh(); goHome(); }
+function backToHome(){ sfxWhoosh(); trackEvent('back_to_home', {topic: currentTopic&&currentTopic.id, step: currentStep}); goHome(); }
 
 // ===== Avatar Builder =====
 function getDefaultCfg(){ return {skin:'#f4c9a5',hair:'short',hairColor:'#1a1a1a',clothes:'#2b4cff',eyes:'normal'}; }
@@ -361,6 +361,7 @@ function enterTopic(topicId){
   const p = progress[topicId]||{issues:{}};
   let next = tIssues.find(i=>!p.issues||!p.issues[i.id]||!p.issues[i.id].completed);
   if(!next) next = tIssues[0];
+  trackEvent('topic_open', {topic: topicId, done: topicIsDone(topicId)});
   startIssue(next);
 }
 function startIssue(issue){
@@ -478,7 +479,9 @@ function renderIssueStep(){
 function pickTF(ans){
   userTfAnswer=ans;
   if(!stepsAwarded.has(0)){awardCoins();stepsAwarded.add(0);}
-  (ans===currentIssue.tf_answer||currentIssue.tf_answer==='partial')?sfxCorrect():sfxWrong();
+  const tfCorrect = ans===currentIssue.tf_answer||currentIssue.tf_answer==='partial';
+  trackEvent('tf_answered', {issue: currentIssue.id, topic: currentTopic.id, answer: ans, correct: tfCorrect});
+  tfCorrect?sfxCorrect():sfxWrong();
   const card=document.getElementById('tfCard');
   const btns=document.querySelector('.tf-buttons');
   if(btns) btns.style.pointerEvents='none';
@@ -491,7 +494,7 @@ function pickTF(ans){
     setTimeout(()=>nextStep(), 80);
   }
 }
-function pickBill(v){ userBillVote=v; if(!stepsAwarded.has(2)){awardCoins();stepsAwarded.add(2);} sfxTap(); nextStep(); }
+function pickBill(v){ userBillVote=v; if(!stepsAwarded.has(2)){awardCoins();stepsAwarded.add(2);} trackEvent('bill_voted', {issue: currentIssue.id, topic: currentTopic.id, vote: v}); sfxTap(); nextStep(); }
 function awardCoins(){ issueCoinsEarned += COINS_PER_STEP; totalCoins += COINS_PER_STEP; sfxCoin(); updateCoinDisplays(); saveProgress(); }
 function updateCoinDisplays(){
   const ic=document.getElementById('issueCoins'); if(ic) ic.innerHTML='🪙 '+totalCoins;
@@ -512,6 +515,7 @@ function completeIssue(){
     rec.coins = issueCoinsEarned;
     rec.completedAt = Date.now();
     progress[currentTopic.id].issues[currentIssue.id] = rec;
+    trackEvent('issue_complete', {issue: currentIssue.id, topic: currentTopic.id, coins: issueCoinsEarned});
   }
   saveProgress();
 }
@@ -689,6 +693,7 @@ function openResultsModal(){
   // award coins per correct guess
   const gained = correct * COINS_PER_STEP;
   issueCoinsEarned += gained; totalCoins += gained; updateCoinDisplays(); saveProgress();
+  trackEvent('mk_guess_result', {issue: currentIssue.id, topic: currentTopic.id, score: correct, total: pols.length});
   if(correct>0) sfxCoin();
 
   // law outcome + player comparison
@@ -853,6 +858,7 @@ function revealVotes(){
 // ===== Celebration & share =====
 function openCelebration(){
   document.getElementById('celBudget').textContent = '🪙 '+totalCoins+' מטבעות';
+  trackEvent('map_complete', {total_coins: totalCoins});
   show('celebrate');
   sfxCelebrate();
   spawnConfetti();
@@ -918,10 +924,9 @@ function reportContent(){
   openExplain('🚩 דיווח על תוכן', 'תודה. בגרסה הסופית, דיווח על תוכן פוגעני יישלח אוטומטית לצוות המגדלור לבדיקה.<br><br><i>(פרוטוטייפ — מנגנון הדיווח יחובר למערכת שלכם)</i>', '🚩 מנגנון דיווח');
 }
 
-// ===== Analytics placeholder (GA4 / Google Form) =====
+// ===== Analytics (GA4 + console fallback) =====
 function trackEvent(name, params){
-  // Placeholder — wire GA4 here:
-  // if(window.gtag){ gtag('event', name, params||{}); }
+  if(window.gtag){ try{ gtag('event', name, params||{}); }catch(e){} }
   try{ console.log('[analytics]', name, params||{}); }catch(e){}
 }
 function openFeedbackForm(){
