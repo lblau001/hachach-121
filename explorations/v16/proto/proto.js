@@ -2121,15 +2121,24 @@ function stickerModal(o) {
   return m;
 }
 
-/* the law. Title is bill_title, body is bill_summary, graphic is the
-   police hat from the MANIFEST rather than a literal path — it moved to
-   assets/topics/ when the topic icons were framed and the hard-coded
-   assets/mk/ path 404'd. internal_sec's entry is the hat. */
+/* the law. Title is bill_title, body is bill_summary, graphic is THIS
+   ISSUE'S topic icon from the manifest rather than a literal path — the
+   icons moved to assets/topics/ when they were framed and the hard-coded
+   assets/mk/ path 404'd.
+   ITEM 45 · IT USED TO READ M.topics.internal_sec, FULL STOP. Not a
+   fallback and not a default — the key was hard-coded, so all 22 issues
+   opened the bill detail under the police hat whatever their topic was.
+   Fixed to the same lookup every other topic-icon site in this file
+   already uses, `M.topics[issue.topic]`, so the modal draws the icon the
+   map and the HUD are drawing for the same issue. */
 function lawModal() {
   /* 65 CSS px x DPR 3 = 195, so 256 is the right entry and 384 would be
      paying for detail no screen can show — over-target is a defect in bytes
-     the same way under-target is one in pixels. It was on the 128. */
-  const T_ = M.topics && M.topics.internal_sec;
+     the same way under-target is one in pixels. It was on the 128.
+     ITEM 9's hero is 96px wide rather than the old slot's 64, so the 256
+     is now carrying 96 x 3 = 288 — still the right entry, and the 384 is
+     still more than any screen here can show. */
+  const T_ = M.topics && M.topics[issue.topic];
   const h = T_ && (T_['256'] || T_['128']);
   return stickerModal({
     title: issue.bill_title || '',
@@ -2138,9 +2147,8 @@ function lawModal() {
     art:   h ? ROOT + h : '',
     /* ITEM 9 · the hook a per-issue graphic drops into later. It is on the
        hero, not on the modal, so whatever fills it does not have to know
-       anything about the dialog around it. See the report: this modal
-       currently renders M.topics.internal_sec for EVERY issue, which is
-       its own bug and not one this item touches. */
+       anything about the dialog around it. Until that art exists the slot
+       carries the topic icon this lookup returns. */
     heroKey: 'issue',
   });
 }
