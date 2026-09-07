@@ -1111,11 +1111,24 @@ body.no-ph .ph{ display:none !important; }
    the content that arrives on it. */
 .b3inner{ gap:var(--sp-4); text-align:center; }
 .ov--stage.is-dismissable{ cursor:pointer; }
-.b3title{ font-family:var(--font-display); font-weight:900; font-size:30px;
-  line-height:1.2; color:#F6F1E2; text-wrap:balance; margin:0; }
-.b3date{ font-size:15px; font-weight:700; color:var(--ink);
-  background:var(--paper); border-radius:var(--r-pill); padding:5px 15px; }
-.b3go{ margin-top:var(--sp-2); }
+/* ITEM 31 · BEAT 3, REBUILT. .b3title (a 30px display line), .b3date (a
+   paper chip) and .b3go (the closing hint) are retired: the screen is now
+   one sentence and one question, and nothing else is allowed on it.
+   The sentence is prose at reading size, with the DATE and the BILL NAME
+   lifted inside it — they are the two facts the beat exists to state, and
+   marking them in place keeps it one sentence instead of three stacked
+   objects. The question is the loud half, because it is the thing being
+   asked and the cascade answers it. */
+.b3say{
+  margin:0; font-size:17px; font-weight:700; line-height:1.55;
+  color:#D8D2C4; text-wrap:pretty;
+}
+.b3say__d, .b3say__t{ color:#FBF7EE; font-weight:900; }
+.b3say__d{ font-variant-numeric:tabular-nums; }
+.b3ask{
+  margin:0; font-family:var(--font-display); font-weight:900;
+  font-size:26px; line-height:1.2; color:#F6F1E2; text-wrap:balance;
+}
 .ov--collapse{ animation:ov-collapse var(--t-ov-collapse) var(--e-out) both;
   transform-origin:50% 62%; }
 @keyframes ov-collapse{
@@ -2305,6 +2318,44 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
 .d2--neutral .d2__art circle{ stroke:var(--ink); }
 .d2--claim.is-leaving{
   transition:transform var(--t-card-exit) var(--e-in), opacity 100ms linear 220ms;
+}
+
+/* =====================================================================
+   ITEM 32 · THE PRE-REVEAL SCREEN
+   A held screen between the cascade and the finale. It borrows beat 5's
+   button geometry outright — .f5acts's column and .f5go's size — so the
+   press that reveals the result sits exactly where every other advancing
+   press on this round has sat. Nothing here animates beyond the shared
+   .b5stage fade, which the global prefers-reduced-motion rule already
+   flattens along with everything else.
+   ===================================================================== */
+.prereveal{ display:flex; flex-direction:column; }
+.pr-inner{
+  flex:1; min-height:0; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:var(--sp-3);
+  text-align:center;
+}
+/* .f5acts's geometry, restated rather than shared: that class also carries
+   beat 5's re-centring behaviour, which this screen has no use for. */
+.pr-acts{
+  margin-top:auto; padding-top:12px;
+  display:flex; flex-direction:column; align-items:stretch; gap:8px; flex:none;
+}
+.pr-go{ font-size:18px; min-height:0; padding:12px 0 13px; }
+/* THE PLACEHOLDER, AND WHY IT IS NOT ph(). Same hazard treatment the .ph
+   marker draws, so it reads as placeholder copy at a glance — but it is
+   NOT hidden by body.no-ph. ph()'s marker is, and the default build sets
+   that class, which would leave this screen with two invisible strings
+   and a button. This is meant to be impossible to miss until Tamar's copy
+   replaces it. */
+.pr-ph{
+  margin:0; display:inline-block; max-width:100%;
+  background-color:var(--primary);
+  background-image:repeating-linear-gradient(45deg,#FFE03D 0 8px,var(--primary) 8px 16px);
+  color:var(--ink); border:2px dashed var(--ink); border-radius:4px;
+  padding:6px 12px 7px;
+  font-family:var(--font-display); font-weight:900; font-size:17px; line-height:1.35;
+  text-wrap:balance;
 }
 
 /* ---- the correctness chip, in the chyron slot ----------------------

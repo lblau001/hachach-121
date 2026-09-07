@@ -2571,11 +2571,24 @@ function beat2() {
            whether or not the line was there. */
       '</div>' +
     '</div>' +
+    /* ITEM 31 · BEAT 3 IS TITLE AND DATE, IN ONE SENTENCE, AND NOTHING
+       ELSE. It was a 30px display title, a date chip and a closing hint;
+       it is now the brief's two lines. The constraint is locked: no
+       summary, no sources, no tally here — bill_summary stays behind the
+       bill button at beat 2, and the tally is beat 5's.
+       The date and the title are marked inside the sentence rather than
+       set as their own blocks, so the screen reads as one statement
+       followed by one question. */
     '<div class="ovpane ovpane--bill is-below">' +
       '<div class="ov-inner b3inner">' +
-        '<p class="b3title">' + esc(issue.bill_title) + '</p>' +
-        '<span class="b3date">' + esc(issue.bill_date) + '</span>' +
-        '<p class="b3go" data-ph>' + ph('[טקסט — תמר: רמז לסגירה]') + '</p>' +
+        '<p class="b3say">' +
+          esc('בתאריך ') +                                        /* TAMAR */
+          '<b class="b3say__d">' + esc(issue.bill_date || '') + '</b>' +
+          esc(' הועלתה להצבעה הצעת החוק: ') +                      /* TAMAR */
+          '<b class="b3say__t">' + esc(issue.bill_title || '') + '</b>' +
+          esc('.') +
+        '</p>' +
+        '<p class="b3ask">' + esc('מה לדעתך הצביעו הח״כים?') + '</p>' +  /* TAMAR */
       '</div>' +
     '</div>';
   $('#stage').appendChild(ov);
@@ -2858,7 +2871,7 @@ async function verdict(guess, foot, card) {
   S.ci++;
   leaveCard();
   await wait(T.cardExit);
-  if (S.ci >= S.dealt.length) return beat5();
+  if (S.ci >= S.dealt.length) return preReveal();
   const spent = $('.deckcard.is-leaving'); if (spent) spent.remove();
   const spentStamp = $('.d2.is-leaving');  if (spentStamp) spentStamp.remove();
   await flipUp();
@@ -3022,7 +3035,7 @@ async function invResolve(pid, foot, card, btn) {
   S.ci++;
   leaveCard();
   await wait(T.cardExit);
-  return beat5();
+  return preReveal();
 }
 
 /* ---- the guess-vs-reality axis. The payload of the beat. -------------
@@ -3274,6 +3287,56 @@ function explainSplit(text) {
   if (first.length < 40 && parts.length > 1) { first += ' ' + parts[1]; rest = parts.slice(2).join(' '); }
   else rest = parts.slice(1).join(' ');
   return { first: first.trim(), rest: rest.trim() };
+}
+
+/* ===================== 4.5 · THE PRE-REVEAL =========================
+   ITEM 32. A held screen between the last MK card and the finale: the
+   cascade has ended, nothing has been revealed, and the player presses to
+   see the result. It exists so the reveal is something they ASK for
+   rather than something that arrives while the last card is still
+   leaving.
+
+   NO CONFETTI AND NO COUNT-UP. Both belong elsewhere and both are locked:
+   confetti to 8/8 map completion, the count to the finale board. This
+   screen holds still.
+
+   THE COPY IS NOT WRITTEN. Tamar has not supplied either string, so both
+   are placeholders and both are marked. They do NOT go through ph():
+   that helper's marker is hidden by body.no-ph, which is the default
+   build, and a screen whose only two strings vanish is not a placeholder
+   screen, it is an empty one with a button. .pr-ph therefore carries the
+   same hazard treatment ph() draws but is not subject to that switch —
+   it is meant to be impossible to miss and impossible to ship.
+
+   S.beat is 4.5 on purpose: exitRound() treats > 1 and < 5 as mid-round,
+   so leaving here still asks for confirmation, which is right — the
+   record is written by beat 5 and nothing is saved yet. */
+async function preReveal() {
+  S.beat = 4.5;
+  const r = $('#round'); r.innerHTML = '';
+  helper('');
+  repin();
+
+  const b = el('div', 'beat prereveal');
+  b.innerHTML =
+    '<div class="pr-inner">' +
+      '<p class="pr-ph pr-head">' + esc('[טקסט — תמר: כותרת מסך הגילוי]') + '</p>' +
+    '</div>' +
+    '<div class="pr-acts">' +
+      '<button type="button" class="p-c pr-go">' +
+        esc('[טקסט — תמר: כפתור הגילוי]') + '</button>' +
+    '</div>';
+  r.appendChild(b);
+  sizeStage();
+
+  const head = $('.pr-head', b), acts = $('.pr-acts', b);
+  head.classList.add('b5stage'); acts.classList.add('b5stage');
+  requestAnimationFrame(() => {
+    head.classList.add('is-in');
+    acts.classList.add('is-in');
+  });
+
+  pressable($('.pr-go', b)).addEventListener('click', () => beat5(), { once:true });
 }
 
 /* ===================== BEAT 5 · THE REVEAL ========================== */
