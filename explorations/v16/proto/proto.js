@@ -2071,11 +2071,31 @@ async function claimReveal(ans, card) {
    and no MK is dropped; both issues carry `spoiler_risk:true` in data.js
    and stay on her list. The treatment cannot fix that; only her copy can.  */
 function stickerModal(o) {
+  o = o || {};
+  /* ITEM 9 · THE RESERVED HERO. 96px at the top of every sticker, held
+     whether or not there is art to put in it, so the modal has one
+     silhouette instead of a tall one and a short one. It REPLACES the old
+     .stmodal__art slot rather than sitting above it — two graphics
+     stacked at the top of a 312px box is not a hero, it is a pile.
+     RESOLUTION ORDER: caller art, else the "?" fallback. `hero:false`
+     opts out entirely, which is what the two profile modals do: 2b and
+     the invitation carry their own 156px round token on a dashed well,
+     and a second hero above it would be the same pile by another route.
+     The "?" is HTML — a span with a background and rings — not SVG text,
+     so it takes the sticker construction the rest of the app uses and
+     scales with the box rather than with a viewBox. */
+  const hero = o.hero === false ? '' :
+    '<div class="sthero"' +
+      (o.heroKey ? ' data-hero="' + esc(o.heroKey) + '"' : '') + '>' +
+      (o.art
+        ? '<img class="sthero__art" src="' + o.art + '" alt="">'
+        : '<span class="sthero__q" aria-hidden="true">?</span>') +
+    '</div>';
   const m = el('div', 'stmodal');
   m.innerHTML =
     '<div class="stmodal__box" role="dialog" aria-modal="true">' +
       '<button type="button" class="stmodal__x" aria-label="סגירה">✕</button>' +
-      (o.art ? '<img class="stmodal__art" src="' + o.art + '" alt="">' : '') +
+      hero +
       '<h2 class="stmodal__title">' + esc(o.title || '') + '</h2>' +
       (o.meta ? '<p class="stmodal__meta">' + esc(o.meta) + '</p>' : '') +
       (o.body ? '<p class="stmodal__body">' + esc(o.body) + '</p>' : '') +
@@ -2116,6 +2136,12 @@ function lawModal() {
     meta:  issue.bill_date || '',
     body:  issue.bill_summary || '',
     art:   h ? ROOT + h : '',
+    /* ITEM 9 · the hook a per-issue graphic drops into later. It is on the
+       hero, not on the modal, so whatever fills it does not have to know
+       anything about the dialog around it. See the report: this modal
+       currently renders M.topics.internal_sec for EVERY issue, which is
+       its own bug and not one this item touches. */
+    heroKey: 'issue',
   });
 }
 
@@ -2173,7 +2199,7 @@ const PROF_COPY = {
 };
 
 function profileModal() {
-  const m = stickerModal({ extra: '<div class="prof" data-prof></div>' });
+  const m = stickerModal({ hero: false, extra: '<div class="prof" data-prof></div>' });
   m.dataset.profile = '';
   renderProfile(m);
   return m;
@@ -5141,7 +5167,7 @@ function maybeInvite() {
    dismiss it. */
 function inviteModal() {
   setProfile({ invited: true });
-  const m = stickerModal({ extra: '<div class="prof prof--invite" data-prof></div>' });
+  const m = stickerModal({ hero: false, extra: '<div class="prof prof--invite" data-prof></div>' });
   m.dataset.profile = '';
   const box = $('[data-prof]', m);
   box.innerHTML =

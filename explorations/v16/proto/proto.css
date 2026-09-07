@@ -2861,7 +2861,54 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
 /* the sheet is position:relative already; the title needs to clear the
    button now that it sits in the corner rather than in the flow */
 .stmodal__box{ padding-top:calc(var(--sp-4) + 8px); }
-.stmodal__art{ width:64px; height:auto; display:block; filter:url(#dcw-sm); }
+/* ITEM 9 · .stmodal__art IS RETIRED. Nothing emits the class any more —
+   the graphic it used to draw now lives inside .sthero, which reserves
+   its space whether or not there is art. The rule is removed rather than
+   left as a tombstone. */
+
+/* =====================================================================
+   ITEM 9 · THE RESERVED HERO SLOT
+   96px, HELD WHETHER OR NOT IT IS FILLED. That is the point of the item:
+   the glossary term's sticker and the bill's sticker are the same object
+   at the same height, so opening one after the other is a change of
+   content and not a change of shape. Before this, a modal with a graphic
+   and one without were 64px apart in height and read as two components.
+   16px BELOW THE TOP EDGE, which is why the box's own padding-top is
+   overridden here — the shared 24px would have put the hero at 24. The
+   ✕ is absolutely positioned and unaffected; the hero is 96px centred in
+   a 312px box, so it clears the control by ~44px on each side.
+   `:has()` rather than a modifier class on the box, matching the rule
+   directly above the old .stmodal__art that already keyed off it. */
+.stmodal__box:has(.sthero){ padding-top:16px; }
+.sthero{
+  flex:none; width:96px; height:96px;
+  display:grid; place-items:center;
+}
+/* real art fits INSIDE the reserved box rather than setting its size, so
+   a tall graphic and a wide one both come back to the same 96px slot */
+.sthero__art{
+  max-width:100%; max-height:100%; width:auto; height:auto;
+  display:block; filter:url(#dcw-sm);
+}
+/* THE FALLBACK, IN THE STICKER CONSTRUCTION EVERYTHING ELSE USES: charcoal
+   fill, 3px white die-cut, the keyline outside it, a hard offset shadow.
+   It is a span with rings, not SVG text — so the glyph is real type in
+   the display face and picks up SimplerPro rather than being a drawn
+   path that would have to be redrawn to change.
+   It is decorative and aria-hidden: the modal is announced by its title,
+   and a "?" read aloud before the title would say nothing true. */
+.sthero__q{
+  display:grid; place-items:center;
+  width:82px; height:82px; border-radius:50%;
+  background:var(--ink); color:var(--paper);
+  box-shadow:0 0 0 3px var(--edge), 0 0 0 4.6px var(--keyline),
+             0 4px 0 rgba(0,0,0,.34);
+  font-family:var(--font-display); font-weight:900;
+  font-size:46px; line-height:1;
+  /* the glyph sits high in the em box; nudge it onto the disc's centre */
+  padding-bottom:4px;
+  user-select:none;
+}
 .stmodal__title{
   margin:0; padding-inline:30px;   /* symmetric, so a centred title clears the ✕ */
   font-family:var(--font-display); font-weight:900;
@@ -2874,9 +2921,11 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
   min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch;
   overscroll-behavior:contain;
 }
-/* a glossary term has no graphic and no date, so its sticker is short —
-   the title carries the term and the body carries data.js's definition */
-.stmodal__box:not(:has(.stmodal__art)) .stmodal__title{ font-size:20px; }
+/* a glossary term has no graphic and no date, so its title carries the
+   term alone and can afford to be bigger. ITEM 9 re-points this from the
+   retired .stmodal__art to the hero's fallback: "has a hero but no real
+   art in it" is now what "has no graphic" means. */
+.stmodal__box:has(.sthero__q) .stmodal__title{ font-size:20px; }
 
 /* =====================================================================
    B2-4 · THE ASK STICKER
