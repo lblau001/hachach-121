@@ -2622,9 +2622,17 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
    already dealt underneath it — the overlay explains the thing that is
    there, rather than standing in front of an empty screen.
    ===================================================================== */
+/* ITEM 27 · OPTICALLY CENTRED, NOT GEOMETRICALLY. The block measured
+   312.6/312.6 at 390x844 — true centre — and still read low, because the
+   yellow button is the heaviest mass in the stack and sits last. The lift
+   is 16px and it is paid for with 32px of extra BOTTOM padding rather
+   than a transform: place-items:center then centres inside a content box
+   whose floor has risen, so the box moves up by half of it and the
+   entrance transform on .b1intro__box is left alone to do its own job. */
 .b1intro{
   position:absolute; inset:0; z-index:80; cursor:pointer;
-  display:grid; place-items:center; padding:var(--sp-5);
+  display:grid; place-items:center;
+  padding:var(--sp-5) var(--sp-5) calc(var(--sp-5) + 32px);
   background:rgba(20,18,15,.88);
   opacity:0; transition:opacity var(--t-ov-in) linear;
 }
@@ -2651,7 +2659,25 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
   margin:0; font-size:var(--fs-body); font-weight:700; line-height:1.5;
   color:#D8D2C4;
 }
-.b1intro__go{ min-width:170px; }
+/* ITEM 27 · THE BUTTON COMES IN TO THE PARAGRAPH'S OWN MEASURE. The two
+   already shared a 320px BOX — .p-c is width:100% and the box is at its
+   max-width — but the paragraph's widest inked line is 292.7px while the
+   button paints a solid bar plus its 4.6px keyline on each side, so it
+   read 36.5px wider than the copy above it. 284px + the 9.2px of ring is
+   293.2px of visible width: the same column, to within half a pixel.
+   Fixed rather than fluid because it is matching an inked line, and that
+   line is 292.7px at all three test widths — the paragraph wraps
+   identically at 390, 375 and 360.
+   ITEM 27 · AND THE GAP ABOVE IT OPENS. .b1intro__box's gap is 16px
+   between every child; margin-top adds 8 to this one pair only, so the
+   title-to-paragraph gap stays 16 and the paragraph-to-button gap becomes
+   24 — the 1.5x the brief asked for, applied where the eye needs the
+   break between reading and acting. */
+.b1intro__go{
+  min-width:170px;
+  max-width:284px;
+  margin-top:8px;
+}
 
 /* A7 · the avatar inside the pinned own-vote band, at the leading edge */
 .chyron-av{ flex:none; width:28px; height:28px; line-height:0; }
