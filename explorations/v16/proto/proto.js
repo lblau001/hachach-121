@@ -3268,8 +3268,23 @@ async function beat5() {
      every other block below is appended only after the count has
      settled. That ordering IS the rule, not a comment about it.
      ================================================================= */
-  const board = el('div', 'f5board b5stage' + (tally ? ' f5board--num' : ' f5board--prose'));
-  board.innerHTML = tally
+  /* THE BOARD IS NOT BUILT WHEN IT WOULD BE EMPTY, and that is a change of
+     kind rather than of degree. Without a tally the board's whole content
+     is issue.vote_result, and that field is empty on every active issue —
+     so what shipped was .f5board--prose collapsed to its own 11px/10px
+     padding: a 21px lit bar, keeping its fill, its inset hairline, its
+     extrusion and its glow, and arriving FIRST, as the peak of the beat.
+     An empty lit bar at the peak is worse than no bar.
+     There is no substitute copy and no hairline fallback: with nothing to
+     say, the board does not exist, the plate becomes the first object, and
+     the beat's own rule still holds — the loudest thing on screen is the
+     only account of the outcome there is. The placeholder branch goes with
+     it, so this beat cannot paint a hazard stripe even with ?placeholders=on. */
+  const hasBoard = !!(tally || issue.vote_result);
+  const board = hasBoard
+    ? el('div', 'f5board b5stage' + (tally ? ' f5board--num' : ' f5board--prose'))
+    : null;
+  if (board) board.innerHTML = tally
     ? '<div class="f5row">' +
         '<div class="f5cell">' +
           '<p class="f5lab">' + esc(VLABEL.for) + '</p>' +
@@ -3291,14 +3306,17 @@ async function beat5() {
         '<i class="f5bar__r"></i>' +
         '<span class="f5maj"></span>' +
         '<span class="f5majlab">' + N(MAJORITY) + '</span></div>'
-    : '<p class="f5prose">' +
-        (issue.vote_result ? esc(issue.vote_result)
-                           : ph('[טקסט — תמר: תוצאות ההצבעה]')) + '</p>';
-  b.appendChild(board);
-  requestAnimationFrame(() => { board.classList.add('is-in'); f5Place(b, board); fitBeat(); });
+    : '<p class="f5prose">' + esc(issue.vote_result) + '</p>';
+  if (board) {
+    b.appendChild(board);
+    requestAnimationFrame(() => { board.classList.add('is-in'); f5Place(b, board); fitBeat(); });
+  }
 
   if (tally) await runCount(board, tally);
-  else await step(T.f5Prose);
+  /* the prose hold is the board's own beat. With no board there is nothing
+     on screen to hold ON, so waiting here would be a pause on an empty
+     stage before the plate arrives. */
+  else if (board) await step(T.f5Prose);
 
   /* =================================================================
      BEAT 2 · THE FLIGHT, and it happens in BOTH versions.
@@ -3391,7 +3409,7 @@ async function beat5() {
      happens inside the same ~30ms as the guess line, the reading and the
      buttons, and the one eased re-centre starts immediately after it, so
      it is absorbed into the move rather than read as one. */
-  board.classList.add('is-strip');
+  if (board) board.classList.add('is-strip');
   fitBeat();
 
   /* §1.8 the SHAPE of the guess. Skipped without a cascade — there is
@@ -3470,7 +3488,7 @@ async function beat5() {
     /* PART 4 · the pulse has done its job. It ran while the board was the
        only thing on screen and while the flight landed on it; once there
        is somewhere else to go it settles to a static, quieter glow. */
-    board.classList.add('is-glow-calm');
+    if (board) board.classList.add('is-glow-calm');
     fitBeat();
 
     /* THE LAST MOTION ON THE BEAT, and it waits a frame for the beat to
@@ -3521,7 +3539,14 @@ async function beat5() {
    this replaced (442 -> 320 -> 211) stays dead: every call before the
    last still returns the same held value it always did. */
 function f5Place(b, board, final) {
-  const par = b.parentElement; if (!par || !board) return null;
+  /* `board` MAY BE NULL, and the beat still has to be placed. A round with
+     no tally and no vote_result builds no board at all (see beat5), and
+     this function early-returned on that — so padding-top was never set,
+     .is-recentring dropped .f5acts's auto margin, and the whole stack
+     collapsed to the top of the stage with 380-460px of bare ground under
+     the buttons. Only the HELD placement ever needed the board; the final
+     re-centre measures the stack's own ink and never reads it. */
+  const par = b.parentElement; if (!par) return null;
   const pcs = getComputedStyle(par);
   const avail = par.clientHeight
     - (parseFloat(pcs.paddingTop) || 0) - (parseFloat(pcs.paddingBottom) || 0);
@@ -3551,7 +3576,15 @@ function f5Place(b, board, final) {
     b.style.transition = '';
   }
 
-  const boardH  = board.offsetHeight;
+  /* THE ANCHOR IS THE BOARD WHERE THERE IS ONE AND THE FIRST BLOCK WHERE
+     THERE IS NOT — the same rhythm, not a second one. The held placement
+     centres whatever object is alone on screen when it runs, then caps it
+     by the room the content leaves; on a tally beat that object IS the
+     board, so `anchor` resolves to `board` and every figure below is
+     unchanged to the pixel. On a no-board beat it is the plate, which is
+     the block the flight lands on and the one the beat opens with. */
+  const anchor  = board || b.children[0] || null;
+  const boardH  = anchor ? anchor.offsetHeight : 0;
   const centred = Math.max(0, Math.round((avail - boardH) / 2));
   const room    = Math.max(0, avail - content);
   /* holding: centre the BOARD, but never past what the content leaves.
