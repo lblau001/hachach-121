@@ -565,7 +565,18 @@ body{
   color:var(--ink); border:2px dashed var(--ink); border-radius:4px;
   padding:2px 8px 3px; font-size:var(--fs-meta); font-weight:700; line-height:1.4;
 }
-body.no-ph [data-ph]{ display:none !important; }
+/* THE RULE MATCHED THE HOST BUT NOT THE MARKER, WHICH IS A SHIPPING BUG.
+   ph() emits `<span class="ph">…</span>` — a CLASS. `data-ph` is a separate,
+   optional ATTRIBUTE put on the HOST when hiding the marker alone would
+   leave an empty line behind (.b1hint, .b3go). Only two of the five ph()
+   call sites carry that attribute, so with DEV.ph false the other three
+   went on painting a yellow hazard stripe in production: the finale's
+   result line on all eight no-tally issues, and the cascade's guess label
+   on every card of every issue that has one.
+   Both halves are needed and they do different jobs: [data-ph] removes the
+   whole line, .ph removes just the marker. */
+body.no-ph [data-ph],
+body.no-ph .ph{ display:none !important; }
 
 
 /* =====================================================================
@@ -3113,15 +3124,31 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
   font-size:15px; color:#EFECE4;
 }
 .f5plate__slot{ flex:none; width:34px; height:34px; display:block; }
-.f5plate__t b{ font-family:var(--font-display); font-size:19px; color:#FBF7EE; margin-inline-start:6px; }
+/* 23 · the weight is STATED, not inherited from the UA's <b> default. It
+   rendered at 900 already — bold resolves upward in a two-weight family —
+   so this changes nothing on screen and everything about whether the next
+   reader can tell that 900 was the intention. */
+.f5plate__t b{ font-family:var(--font-display); font-weight:900; font-size:19px; color:#FBF7EE; margin-inline-start:6px; }
 
 /* ---- the resolution line ---- */
 .f5res{
   margin:0; text-align:center; font-family:var(--font-display); font-weight:900;
   font-size:16px; line-height:1.35; color:#EFECE4;
 }
-.f5res__you{ display:block; font-size:14px; font-weight:700; color:#E6E2D8; }
-.f5res__you b{ color:#FBF7EE; }
+/* 23 · 700 -> 400, AND THE DECLARATION FINALLY DOES SOMETHING. The family
+   ships 400 and 900 only, and CSS resolves an unavailable 700 upward, so
+   this line has been printing the Black at 14px — identical in weight to
+   the 16px/900 resolution above it. Everything else here demotes it (14px
+   against 16, #E6E2D8 against #EFECE4); the weight was the one part of
+   that intent that never landed. The real tally owns this board; the
+   player's own vote arrives quieter. */
+.f5res__you{ display:block; font-size:14px; font-weight:400; color:#E6E2D8; }
+/* 23 · the numeral stays IN the demoted line. <b> takes the UA's bold,
+   which in a 400/900 family resolves to the Black — so the figure was
+   jumping back to the weight the line had just stepped down from. It
+   keeps the brighter ink, which is what marks it as the number; the
+   weight is the parent's. */
+.f5res__you b{ font-weight:400; color:#FBF7EE; }
 
 .f5shape{ margin:0; font-size:14px; font-weight:700; color:#E6E2D8; text-align:center; }
 
