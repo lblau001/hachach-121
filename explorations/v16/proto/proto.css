@@ -1864,10 +1864,66 @@ body.no-ph .ph{ display:none !important; }
 /* the chair sits ON the letters — the two die-cut edges overlapping IS
    the composite — so the negative margin is the whole point of it. Sized
    off viewport height for the same reason the title is. */
+/* ITEM 42 · THE SHADOW'S THREE NUMBERS ARE REGISTERED PROPERTIES, and
+   they have to be. filter cannot be tweened here: the chain starts with
+   url(#dcw), and a filter list containing a url() reference interpolates
+   DISCRETELY — the shadow would jump from 4px to 10px at the midpoint
+   instead of tracking the chair, which is the one thing this effect is
+   made of. Registering the numbers gives them a type, so THEY tween and
+   the filter is simply recomputed from them each frame.
+   Initial values are the resting shadow exactly as it was, so anything
+   that does not run the float still paints the shadow it always had. */
+@property --i-chair-sy{ syntax:'<length>'; inherits:false; initial-value:4px; }
+@property --i-chair-sb{ syntax:'<length>'; inherits:false; initial-value:0px; }
+@property --i-chair-sa{ syntax:'<number>'; inherits:false; initial-value:0.3; }
+
 .i-chair{ display:block; position:relative; z-index:3;
   margin-top:clamp(-64px, -7.5vh, -40px);
   width:auto; height:clamp(150px, 36vh, 324px); aspect-ratio:278 / 324;
-  filter:url(#dcw) drop-shadow(0 4px 0 rgba(0,0,0,.3)); }
+  filter:url(#dcw) drop-shadow(0 var(--i-chair-sy) var(--i-chair-sb)
+                               rgba(0,0,0,var(--i-chair-sa))); }
+
+/* =====================================================================
+   ITEM 42 · THE INTRO CHAIR FLOATS
+   THE SHADOW STAYS ON THE GROUND. That is the whole effect and it is why
+   the offset counter-animates: the chair rises 6px and the shadow's own
+   offset grows 4 -> 10px, so its painted position never moves. A shadow
+   that rises with the object reads as the sticker being nudged; a shadow
+   that stays put reads as the object leaving the ground. It also softens
+   as it goes — blur 0 -> 2px, alpha .30 -> .22 — because a thing further
+   from its ground casts a larger, weaker shadow.
+   The 2px of blur is the one soft moment in a hard-shadow language, and
+   it is deliberate: it is transient, it is 2px, and without it the
+   shadow reads as painted on rather than cast.
+   5500ms AND IT MUST NOT BE 3500 OR A MULTIPLE OF IT. The CTA breathes
+   on 3500 (item 10); at 5500 the two realign only every 38.5s, so they
+   never settle into a shared beat and read as one mechanism. This is its
+   own literal, deliberately NOT the CTA's token.
+   `translate`, NOT `transform`. The loading beat drives this same chair
+   with an inline `transform` and a transition on it, and keeping the
+   float on a different property means the two can never clobber one
+   another whatever the ordering.
+   AMBIENT, SO IT NEVER STOPS — except that the loading beat MEASURES
+   this chair to compute its launch, and a floating chair would be
+   measured 0-6px off. loadingBeat() sets sc.dataset.loading before it
+   measures, so :not([data-loading]) grounds the chair on that same tick,
+   before the rect is read. No JS was needed and none was added.
+   ===================================================================== */
+.sc-intro:not([data-loading]) .i-chair{
+  animation:i-chair-float 5500ms ease-in-out infinite both;
+}
+@keyframes i-chair-float{
+  0%,100%{ translate:0 0;
+           --i-chair-sy:4px;  --i-chair-sb:0px; --i-chair-sa:0.30 }
+  50%    { translate:0 -6px;
+           --i-chair-sy:10px; --i-chair-sb:2px; --i-chair-sa:0.22 }
+}
+/* no float at all — not a 1ms one. `animation:none` kills the NAME, which
+   the global reduce rule's animation-duration:1ms !important cannot
+   override, so the chair simply sits still with its resting shadow. */
+@media (prefers-reduced-motion: reduce){
+  .sc-intro:not([data-loading]) .i-chair{ animation:none; }
+}
 /* §2 · A SOFT DARK LIFT BEHIND THE TAGLINE, and this is the element that
    actually needed it: measured at 360, .i-sub and .i-para both cross the
    building — the roof band and the flags — while the title clears it at
