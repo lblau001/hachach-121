@@ -2525,46 +2525,51 @@ function beat2() {
            object, not an illustration with a caption under it. */
         '<div class="b2seat">' +
           '<img class="b2chair" src="' + ROOT + (M.props.chair['900'] || M.props.chair['300']) + '" alt="">' +
+          /* ITEM 34a · THE HEADLINE SITS ON THE CHAIR, not above it. Placed
+             at 62% — the seat pan, the same anchor .b2taken uses — because
+             the illustration's tan band runs 55-70% of its height and the
+             dark pedestal begins at 75%. Sampled from the 900px source:
+             median luminance 0.269 across 60-65%, collapsing to 0.008 by
+             75-80% where the base starts. The box is held inside 74% of the
+             chair's width so it cannot reach the die-cut edge, which the
+             #dcw filter puts 5px outside the alpha.
+             ITS INK IS THE SYSTEM'S CHARCOAL, NOT PAPER. Light type on a
+             mid-tan seat does not read; this is the one place on the beat
+             where the type goes dark. */
+          '<p class="b2onchair">' + esc('אז מה באמת קורה בכנסת?') + '</p>' +  /* TAMAR */
           /* .b2taken is gone: the confirmation is no longer a chip that
              APPEARS on the chair, it is the callout that ARRIVES there
              and then leaves for the pin. .b2seat is still the anchor the
              callout is positioned from — see tachlesTransition(). */
         '</div>' +
-        /* ITEM 30 · THE SCREEN IS REBUILT IN THE BRIEF'S ORDER: headline,
-           bill name, תכלס, vote question, buttons. The translucent framing
-           banner (.b2frame) is gone and COPY.b2frame's three voice
-           variants are retired with it — this composition states the
-           conceit in the vote question instead of in a chrome strip.
-           a · THE HEADLINE, off `title` — the same short field the HUD
-           pill carries. It is framing prose, not a second display line:
-           the vote question below is the beat's one loud object, and two
-           competing headlines is what the banner already was. */
+        /* ITEM 34b · THE TITLE IS THE TAP TARGET, and the sentence is built
+           around it. The underlined run is issue.title — the short subject,
+           the same field the HUD pill carries — because that is the word
+           the player recognises. THE MODAL IS UNCHANGED: lawModal() still
+           shows bill_title and bill_summary. The two fields are not
+           swapped; the short one is the handle, the long one is inside.
+           ITEM 34c · the separate .b2bill--link line is gone; this is where
+           its job went. */
         '<p class="b2head">' +
-          esc('אז מה קורה בכנסת? הצעת חוק אמיתית לעניין ') +   /* TAMAR */
-          '<b>' + esc(issue.title || '') + '</b>' +
+          esc('הצעת חוק אמיתית לעניין ') +                     /* TAMAR */
+          '<button type="button" class="b2title-link" data-law>' +
+            esc(issue.title || '') + '</button>' +
         '</p>' +
-        /* b · the law's formal name, a real button opening the existing
-           bill-detail modal. It is a SEPARATE field from the תכלס line —
-           that is the plain-language framing, this is the legal name — so
-           it is never dug out of the other. */
-        '<button type="button" class="b2bill b2bill--link" data-law>' +
-          esc(issue.bill_title || '') + '</button>' +
-        /* c · THE תכלס LINE, TOLERANT OF A FIELD THAT DOES NOT EXIST YET.
-           issue.tachles_prompt is 0/22 today and is not in the CMS form
-           schema, so it cannot be filled by the person who owns the copy —
-           see the pipeline map. This renders the real value the moment one
-           appears and a marked placeholder until then.
-           IT DOES NOT USE ph(). That helper's marker is hidden by
-           body.no-ph, which is the default build, so the gap would ship
-           invisibly. .pr-ph draws the same hazard treatment and is not
-           subject to that switch. NOTHING IS SUBSTITUTED: bill_summary is
-           the modal's content and is not this line. */
+        /* ITEM 34d · ONE SLOT, THREE STATES, AND THE FALLBACK SHIPS.
+           tachles_prompt when it exists; otherwise the vote question, which
+           is real copy and is meant to be seen. The risk in a shipping
+           fallback is that it hides the gap — so ?placeholders=on swaps it
+           for the marked placeholder instead, which is how anyone auditing
+           content can see which issues are actually carrying a תכלס.
+           NOT ph(): body.no-ph is the default build and would erase it.
+           NOTHING IS SUBSTITUTED — bill_summary is the modal's content and
+           never this line. */
         (issue.tachles_prompt
-          ? '<p class="b2tachles">' + esc(issue.tachles_prompt) + '</p>'
-          : '<p class="b2tachles pr-ph">' +
-              esc('[טקסט — תמר: תכלס]') + '</p>') +
-        /* d · the ask. This is the beat's loud object. */
-        '<p class="b2q">' + esc('כח״כ ה-121 — מה אתה היית מצביע?') + '</p>' +  /* TAMAR */
+          ? '<p class="b2q">' + esc(issue.tachles_prompt) + '</p>'
+          : DEV.ph
+            ? '<p class="b2q pr-ph">' + esc('[טקסט — תמר: תכלס]') + '</p>'
+            : '<p class="b2q">' +
+                esc('כח״כ ה-121 — מה אתה היית מצביע?') + '</p>') +  /* TAMAR */
         '<div class="v-a-row b2votes">' +
           /* the label is its own span so the transition can hide THIS
              copy of the word the instant the flying one leaves — two of

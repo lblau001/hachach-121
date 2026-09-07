@@ -1027,6 +1027,30 @@ body.no-ph .ph{ display:none !important; }
    reads as a bug — so it is height-capped against the viewport and the
    cap is what shrinks on a short phone, never the crop. */
 .b2seat{ position:relative; flex:none; display:grid; place-items:center; }
+/* ITEM 34a · THE HEADLINE, ON THE CHAIR. Positioned from the same 62%
+   anchor .b2taken uses, which is the seat pan in the illustration. The
+   band is chosen from the source pixels, not by eye: sampling the 900px
+   master, the tan runs 55-70% of the height at 93-95% of its width, and
+   the dark pedestal takes over at 75% where the opaque width collapses to
+   60% and the median luminance falls to 0.008. Centring the box on 62%
+   keeps it clear of the base at every size.
+   74% WIDTH, so the line cannot reach the die-cut edge — the #dcw filter
+   dilates the alpha by 5px, so the visible edge is outside the box the
+   percentage is measured against, and the text needs to stop well before
+   both. text-wrap:balance rather than nowrap: at 360 this is two lines and
+   two even lines sit on the seat better than one clipped one.
+   DARK, NOT PAPER. Every other string on this beat is near-white; this one
+   is on mid-tan and has to invert. See the report for the measured
+   contrast against the pixels actually under it. */
+.b2onchair{
+  position:absolute; left:50%; top:62%; z-index:2; margin:0;
+  width:74%;
+  transform:translate(-50%,-50%) rotate(-2.5deg);
+  font-family:var(--font-display); font-weight:900;
+  font-size:clamp(17px, 2.4vh, 21px); line-height:1.14;
+  color:#131310; text-align:center; text-wrap:balance;
+  pointer-events:none;
+}
 .b2chair{
   display:block; flex:none;
   /* was clamp(96px, 23vh, 196px) — at that size it read as an icon beside
@@ -1094,27 +1118,24 @@ body.no-ph .ph{ display:none !important; }
   font-size:17px; font-weight:700; line-height:1.5;
   color:#D8D2C4; text-align:center; text-wrap:pretty;
 }
-/* the issue's own subject, lifted inside the sentence rather than set on
-   its own line — the same treatment beat 3 gives the date and bill name */
-.b2head b{ color:#FBF7EE; font-weight:900; }
-
-/* c · the תכלס line when the field is populated. When it is not, the same
-   element also carries .pr-ph and takes that hazard treatment instead —
-   see the placeholder note in proto.js. */
-.b2tachles{
-  margin:0; max-width:32ch;
-  font-size:17px; font-weight:700; line-height:1.5;
-  color:#EFECE4; text-align:center; text-wrap:pretty;
+/* ITEM 34b · THE TAP TARGET IS THE TITLE, INSIDE THE SENTENCE. It is a
+   real button, not a styled span, so it carries the control's semantics —
+   but it has to sit in the run of text without breaking it, hence the
+   inline box, the inherited type and the baseline alignment. The underline
+   and the 78% white are what .b2bill--link used to carry; that rule is
+   retired and this replaces it. */
+.b2title-link{
+  appearance:none; border:0; background:none; cursor:pointer;
+  font:inherit; font-weight:900; color:#FBF7EE;
+  text-decoration:underline; text-underline-offset:3px;
+  padding:0; margin:0; display:inline;
 }
-/* the placeholder state must not inherit the populated colour, and it is
-   centred in the column like everything else on the beat */
-.b2tachles.pr-ph{ align-self:center; color:var(--ink); }
 
 .b2q{ font-family:var(--font-display); font-weight:900;
   font-size:clamp(21px, 3.2vh, 26px); line-height:1.1; text-wrap:balance;
   color:#EFECE4; text-align:center; margin:0; }
-.b2bill{ font-size:15px; font-weight:700; line-height:1.45; color:#D8D2C4;
-  text-align:center; max-width:30ch; margin:0; }
+/* ITEM 34c · .b2bill is retired — the bill name is no longer its own
+   line; the tap target is the title inside .b2head. See .b2title-link. */
 /* §3.2 .b2consent IS GONE from the markup — "את התוצאה נגלה בסוף ›" was
    a promise about a beat five screens away, printed under the question
    being asked now. The rule is kept as a tombstone rather than deleted so
@@ -2538,19 +2559,11 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
 /* the secondary way out, under the primary */
 .b5back{ margin-top:8px; }
 
-/* A7 · the law name, small and underlined, under the tachles prompt.
-   §3.2 IT WAS RENDERING GREY, and not by anyone's choice: .b2bill sets
-   #D8D2C4, and this rule — later in the file, same specificity — then
-   overwrote it with `color:inherit`, which resolved to the pane's own
-   muted body colour. It is a tap target under the question and it has to
-   look like one, so it now sets its colour outright at 78% white. The
-   underline and the tap target are unchanged. */
-.b2bill--link{
-  appearance:none; border:0; background:none; cursor:pointer;
-  font:inherit; color:rgba(255,255,255,.78); text-decoration:underline;
-  text-underline-offset:3px; padding:2px 0;
-}
-.b2bill.b2bill--link{ color:rgba(255,255,255,.78); }
+/* ITEM 34c · .b2bill--link IS RETIRED, both rules. The law name is no
+   longer a line of its own under the question — the tap target is the
+   title inside .b2head now, and .b2title-link carries the underline and
+   the control semantics it used to. Removed rather than left as a
+   tombstone: nothing emits either class any more. */
 /* =====================================================================
    B3-3 · THE DIE-CUT STICKER MODAL
    One component, two contents: the law (title + date + summary + the
