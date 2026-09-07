@@ -427,11 +427,53 @@ body{
 /* §B the topic title. flex:1 so it centres between the chip and the
    avatar whatever their widths, and truncates rather than wrapping the
    HUD onto a second line. */
+/* ITEM 28 · VARIANT C, ported from explorations/v22/hud-title.html.
+   The round's title stops being bare 15px ink on the dot grid and becomes
+   a white pill with a leading art slot.
+
+   GEOMETRY COMES FROM THE COIN PILL AS IT MEASURES IN THIS FILE, not from
+   the board's --pill-h:35px. The board redefines .h-a for its own page;
+   here .h-a is 36px tall (5px + a 17px line box + 6px), radius 999px —
+   see the §3 note below, this file already matches the shipped app's coin
+   chip — with a 2px keyline at .55 and a 3px extrusion. All four are
+   restated here rather than inherited, because .h-a's height is a
+   CONSEQUENCE of 17px type and this pill carries 15px type: matching by
+   padding would have made it shorter, and the brief forbids resizing the
+   title. So the height is explicit and the other three are copied.
+
+   flex:0 1 auto, not flex:1 — the pill hugs its content and shrinks only
+   when .hud-mid runs out of room, so a short title gets a short pill
+   instead of a full-width bar with the text floating in the middle. */
 .hud-topic{
-  flex:1; min-width:0; text-align:center;
-  font-family:var(--font-display); font-weight:900; font-size:15px;
-  color:#D8D2C4; line-height:1;
-  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  flex:0 1 auto; min-width:0; max-width:100%;
+  display:inline-flex; align-items:center; gap:8px;
+  height:36px;
+  padding-inline:7px 13px;
+  border-radius:999px;
+  background:var(--paper); color:var(--ink);
+  font-family:var(--font-display); font-weight:900; font-size:15px; line-height:1;
+  box-shadow:0 0 0 2px var(--keyline), 0 3px 0 rgba(0,0,0,.34);
+}
+/* the TITLE is what truncates, not the pill: the pill never grows past
+   the room .hud-mid gives it, the type never shrinks and never wraps.
+   A long title losing its tail is the accepted cost of variant C. */
+.hud-topic__t{
+  min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+/* ITEM 28 · THE ART SLOT, placeholder until the real per-issue art lands.
+   It is the die-cut treatment the rest of the system uses — charcoal
+   fill, a 2px white edge, the keyline outside it — at the board's 20x20.
+   THE HOOK IS data-issue-icon AND IT CARRIES THE ISSUE ID. A per-issue
+   rule can drop art in later without touching the markup or this rule:
+       .hud-topic__slot[data-issue-icon="r1"]{ background-image:url(...) }
+   and every issue without one keeps this shared fallback. background is
+   written as a shorthand with center/cover so such a rule only has to
+   supply the image. */
+.hud-topic__slot{
+  flex:none; width:20px; height:20px; border-radius:4px;
+  background:#2B2926 center/cover no-repeat;
+  border:2px solid var(--edge);
+  box-shadow:0 0 0 1.5px var(--keyline);
 }
 .hud-coins{ direction:ltr; }
 .hud-coins .coin-glyph{ color:var(--primary); font-size:13px; line-height:1; }
@@ -444,7 +486,16 @@ body{
    avatar swaps for the ✕. */
 .hud-right{ flex:none; width:40px; height:40px; display:grid; place-items:center; }
 .hud-right > [hidden]{ display:none; }
-.hud-x{ font-size:17px; line-height:1; }
+/* ITEM 28 · THE CLOSE IS A CIRCLE, diameter = the title pill's height, so
+   the row reads as two pills and a disc cut to one measure. Its keyline
+   and extrusion are .ib-b's own and are untouched.
+   THE 40px SLOT AROUND IT IS NOT CHANGED — .hud-right still reserves
+   40x40, which is what holds the strip at today's height whether the slot
+   is showing the 40px avatar or this 36px disc. See .hud-right. */
+.hud-x{
+  width:36px; height:36px; border-radius:50%;
+  font-size:17px; line-height:1;
+}
 
 /* =====================================================================
    B5-1 · THE EXIT CONFIRM, BUILT AND CENTRED

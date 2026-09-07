@@ -5583,8 +5583,14 @@ function startRound(issueId) {
      inside the round is which of its issues they are in. data.js carries
      both a short `title` (חוק הגיוס) and a long `bill_title` (החלת דין
      רציפות על חוק הגיוס) — the short one is the header, per A5. */
+  /* ITEM 28 · variant C's markup. The slot is first so RTL renders it on
+     the right, leading the title, and it carries the issue id as its hook
+     so per-issue art can be attached in CSS alone. esc() on the title
+     because it is data.js content going through innerHTML. */
   const t = $('#hudTopic');
-  if (t) t.textContent = issue.title || issue.bill_title || '';
+  if (t) t.innerHTML =
+    '<i class="hud-topic__slot" data-issue-icon="' + esc(issue.id) + '" aria-hidden="true"></i>' +
+    '<span class="hud-topic__t">' + esc(issue.title || issue.bill_title || '') + '</span>';
   showScreen('round');
   beat1();
   sizeStage();
