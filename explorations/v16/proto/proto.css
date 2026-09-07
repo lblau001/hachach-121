@@ -12,6 +12,25 @@
   src:url('../../../fonts/SimplerPro_HLAR-Black.woff2') format('woff2');
   font-weight:900; font-style:normal; font-display:block;
 }
+/* 13b · THE REGULAR IS DECLARED AND LOADED, AND NOTHING IS WIRED TO IT YET.
+   Until now the family shipped one face, so every `font-weight` under 900
+   that named SimplerPro was answered by the Black — there was no lighter
+   face to pick. There is now, at 400.
+   THIS IS INERT ON EVERY EXISTING SCREEN, and that is checked rather than
+   assumed: every rule in this file and in hachach.css that reads
+   --font-display sets font-weight:900 in the same declaration, so nothing
+   currently resolves to the new face. Body copy is untouched for a
+   different reason — --font-ui does not name SimplerPro at all, it is
+   system-ui — which is the finding item 13 reports.
+   font-display:swap, not the Black's `block`: the Black carries the title
+   and a swap there would flash a system face through the display type,
+   but nothing is set in this face yet, so swap costs nothing and is the
+   safer default for the body copy it exists to become. */
+@font-face{
+  font-family:'SimplerPro';
+  src:url('../../../fonts/SimplerPro_HLAR-Regular.woff2') format('woff2');
+  font-weight:400; font-style:normal; font-display:swap;
+}
 
 /* ---------------------------------------------------------------------
    THE TWO OVERRIDDEN TOKENS, and why.
@@ -848,7 +867,16 @@ body.no-ph [data-ph]{ display:none !important; }
    ===================================================================== */
 .ov--stage{
   position:absolute; inset:0; z-index:9;
-  display:grid; place-items:center;
+  /* THE TRACK IS CAPPED AT THE PADDED BOX, and that one declaration is the
+     whole beat-2 clipping fix. An implicit `display:grid` track is sized to
+     MAX-CONTENT, and .b2votes below asks for --card-w (340px, hachach.css)
+     — so on any stage narrower than 372px the track grew to 340, the pane
+     and the vote row grew with it, and the 12px of overflow all landed on
+     the RTL end: at 360 the נגד chip sat 4px from the screen edge instead
+     of 16 and its 4.6px keyline was cut. minmax(0,1fr) makes the track the
+     content box, so --card-w's own max-width:100% can finally bite.
+     Nothing changes at 375 or 390, where 340 already fitted. */
+  display:grid; place-items:center; grid-template-columns:minmax(0,1fr);
   padding:calc(18px + env(safe-area-inset-top)) 16px
           calc(16px + env(safe-area-inset-bottom));
   /* softer than beat 3's: what is behind it — the answer just given and
@@ -864,7 +892,12 @@ body.no-ph [data-ph]{ display:none !important; }
    from BELOW, and the blur behind them does not move, blink or restart.
    Two overlays doing this were two blurs and the seam read as a load. */
 .ovpane{
+  /* the same cap one level down: .ovpane is itself a grid whose item is
+     .ov-inner, so without this the max-content track re-inflates to 340
+     under a correctly-sized parent and the row overflows anyway. Both
+     levels or neither. */
   grid-area:1 / 1; width:100%; display:grid; place-items:center;
+  grid-template-columns:minmax(0,1fr);
   transition:transform var(--t-ov-swap) var(--e-settle),
              opacity   var(--t-ov-swap) var(--e-settle);
 }
