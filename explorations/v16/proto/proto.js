@@ -702,11 +702,12 @@ function paintHudAvatar() { const h = $('#hudAvatar'); if (h) h.innerHTML = avat
    are visible inside any round: the beat-2 framing line, the tap hint,
    and the exit confirm's question. */
 const COPY = {
-  b2frame: {
-    p: 'זו הצעת חוק אמיתית. כח״כ ה-121, אתם מצביעים במליאה — ואז נראה איך הצביעו האחרים.',    /* TAMAR */
-    m: 'זו הצעת חוק אמיתית. כח״כ ה-121, אתה מצביע במליאה — ואז נראה איך הצביעו האחרים.',      /* TAMAR */
-    f: 'זו הצעת חוק אמיתית. כח״כית ה-121, את מצביעה במליאה — ואז נראה איך הצביעו האחרים.',    /* TAMAR */
-  },
+  /* ITEM 30 · b2frame IS RETIRED. Its three voice variants went with the
+     translucent banner beat 2 no longer carries; the conceit they carried
+     ("כח״כ ה-121") is now in the vote question itself. Removed rather than
+     left dangling, so nothing reads a slot that no longer paints — but
+     noted here because those were three of Tamar's approved strings and
+     this is where they were. */
   tapNext: {
     p: 'הקישו להמשך',                                                /* TAMAR */
     m: 'הקש להמשך',                                                  /* TAMAR */
@@ -2529,35 +2530,41 @@ function beat2() {
              and then leaves for the pin. .b2seat is still the anchor the
              callout is positioned from — see tachlesTransition(). */
         '</div>' +
-        /* §2 · THE FRAMING LINE, and it is the first and only place the
-           121st-MK conceit is stated in words. Until now the bill arrived
-           with no introduction at all: the player was asked בעד או נגד on
-           legislation they had never been shown. This is the Zeigarnik
-           consent line the research asked for and that was never built —
-           it says what the thing is (a real bill), who the player is in
-           the room (the 121st member), and what they get for answering
-           (they find out how the others voted).
-           IT IS CHROME, NOT CARD CONTENT. It sits above the prompt inside
-           the beat's own pane, at the chyron's weight rather than a
-           footnote's — see .b2frame. The law modal is untouched and still
-           carries bill_summary on a tap; this is the default-visible
-           framing, that is the detail on request. */
-        '<p class="b2frame">' +
-          esc(t('b2frame')) +                              /* TAMAR · COPY.b2frame */
+        /* ITEM 30 · THE SCREEN IS REBUILT IN THE BRIEF'S ORDER: headline,
+           bill name, תכלס, vote question, buttons. The translucent framing
+           banner (.b2frame) is gone and COPY.b2frame's three voice
+           variants are retired with it — this composition states the
+           conceit in the vote question instead of in a chrome strip.
+           a · THE HEADLINE, off `title` — the same short field the HUD
+           pill carries. It is framing prose, not a second display line:
+           the vote question below is the beat's one loud object, and two
+           competing headlines is what the banner already was. */
+        '<p class="b2head">' +
+          esc('אז מה קורה בכנסת? הצעת חוק אמיתית לעניין ') +   /* TAMAR */
+          '<b>' + esc(issue.title || '') + '</b>' +
         '</p>' +
-        /* A7 · THE PROMPT IS TAMAR'S, from the sheet's תכלס- בגדול column.
-           It replaces our generic "איך הייתם מצביעים?" with the issue's
-           own framing — "פטור משירות עבור החרדים - בעד או נגד?" — so the
-           question names the thing being voted on. Falls back to the old
-           line only if the field is empty, which it is on none of the
-           eleven active issues. */
-        '<p class="b2q">' + esc(issue.tachles_prompt || 'איך הייתם מצביעים?') + '</p>' +
-        /* A7 · the law's name, small and tappable, opening the modal. It is
-           a SEPARATE field from the prompt — the prompt is the plain-language
-           question, this is the bill's formal name — so it is never dug out
-           of the prompt text. */
+        /* b · the law's formal name, a real button opening the existing
+           bill-detail modal. It is a SEPARATE field from the תכלס line —
+           that is the plain-language framing, this is the legal name — so
+           it is never dug out of the other. */
         '<button type="button" class="b2bill b2bill--link" data-law>' +
           esc(issue.bill_title || '') + '</button>' +
+        /* c · THE תכלס LINE, TOLERANT OF A FIELD THAT DOES NOT EXIST YET.
+           issue.tachles_prompt is 0/22 today and is not in the CMS form
+           schema, so it cannot be filled by the person who owns the copy —
+           see the pipeline map. This renders the real value the moment one
+           appears and a marked placeholder until then.
+           IT DOES NOT USE ph(). That helper's marker is hidden by
+           body.no-ph, which is the default build, so the gap would ship
+           invisibly. .pr-ph draws the same hazard treatment and is not
+           subject to that switch. NOTHING IS SUBSTITUTED: bill_summary is
+           the modal's content and is not this line. */
+        (issue.tachles_prompt
+          ? '<p class="b2tachles">' + esc(issue.tachles_prompt) + '</p>'
+          : '<p class="b2tachles pr-ph">' +
+              esc('[טקסט — תמר: תכלס]') + '</p>') +
+        /* d · the ask. This is the beat's loud object. */
+        '<p class="b2q">' + esc('כח״כ ה-121 — מה אתה היית מצביע?') + '</p>' +  /* TAMAR */
         '<div class="v-a-row b2votes">' +
           /* the label is its own span so the transition can hide THIS
              copy of the word the instant the flying one leaves — two of

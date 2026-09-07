@@ -1079,19 +1079,39 @@ body.no-ph .ph{ display:none !important; }
    the bill link (15px at 78% white) and clearly under the prompt
    (22-29px display), because it introduces the question rather than being
    it. Two lines at 360px; measured, not assumed. */
-.b2frame{
-  margin:0; align-self:stretch;
-  padding:9px 12px 10px;
-  border-radius:var(--r-chip);
-  border-inline-start:3px solid #37C4FF;
-  background:rgba(16,14,11,.42);
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.09);
-  font-size:14.5px; font-weight:700; line-height:1.4;
-  color:#EFECE4; text-align:start; text-wrap:pretty;
+/* ITEM 30 · .b2frame IS GONE. The translucent strip with the cyan leading
+   edge is what this composition replaces: it was a second headline above
+   the question, and the 121st-MK conceit it carried is now in the vote
+   question itself. The rule is removed rather than left as a tombstone
+   because nothing emits the class any more.
+
+   THE BEAT HAS ONE LOUD OBJECT. Headline, bill button and תכלס are all
+   reading-size; .b2q is the only display line, and it sits directly above
+   the buttons it is asking about. Two competing headlines is exactly what
+   the banner was. */
+.b2head{
+  margin:0; max-width:32ch;
+  font-size:17px; font-weight:700; line-height:1.5;
+  color:#D8D2C4; text-align:center; text-wrap:pretty;
 }
+/* the issue's own subject, lifted inside the sentence rather than set on
+   its own line — the same treatment beat 3 gives the date and bill name */
+.b2head b{ color:#FBF7EE; font-weight:900; }
+
+/* c · the תכלס line when the field is populated. When it is not, the same
+   element also carries .pr-ph and takes that hazard treatment instead —
+   see the placeholder note in proto.js. */
+.b2tachles{
+  margin:0; max-width:32ch;
+  font-size:17px; font-weight:700; line-height:1.5;
+  color:#EFECE4; text-align:center; text-wrap:pretty;
+}
+/* the placeholder state must not inherit the populated colour, and it is
+   centred in the column like everything else on the beat */
+.b2tachles.pr-ph{ align-self:center; color:var(--ink); }
 
 .b2q{ font-family:var(--font-display); font-weight:900;
-  font-size:clamp(22px, 3.4vh, 29px); line-height:1.08; text-wrap:balance;
+  font-size:clamp(21px, 3.2vh, 26px); line-height:1.1; text-wrap:balance;
   color:#EFECE4; text-align:center; margin:0; }
 .b2bill{ font-size:15px; font-weight:700; line-height:1.45; color:#D8D2C4;
   text-align:center; max-width:30ch; margin:0; }
