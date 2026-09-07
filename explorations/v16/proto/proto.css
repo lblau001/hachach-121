@@ -1026,31 +1026,49 @@ body.no-ph .ph{ display:none !important; }
    THE CHAIR IS NEVER CROPPED — it is the game's emblem and a cut one
    reads as a bug — so it is height-capped against the viewport and the
    cap is what shrinks on a short phone, never the crop. */
-.b2seat{ position:relative; flex:none; display:grid; place-items:center; }
-/* ITEM 34a · THE HEADLINE, ON THE CHAIR. Positioned from the same 62%
-   anchor .b2taken uses, which is the seat pan in the illustration. The
-   band is chosen from the source pixels, not by eye: sampling the 900px
-   master, the tan runs 55-70% of the height at 93-95% of its width, and
-   the dark pedestal takes over at 75% where the opaque width collapses to
-   60% and the median luminance falls to 0.008. Centring the box on 62%
-   keeps it clear of the base at every size.
-   74% WIDTH, so the line cannot reach the die-cut edge — the #dcw filter
-   dilates the alpha by 5px, so the visible edge is outside the box the
-   percentage is measured against, and the text needs to stop well before
-   both. text-wrap:balance rather than nowrap: at 360 this is two lines and
-   two even lines sit on the seat better than one clipped one.
-   DARK, NOT PAPER. Every other string on this beat is near-white; this one
-   is on mid-tan and has to invert. See the report for the measured
-   contrast against the pixels actually under it. */
-.b2onchair{
-  position:absolute; left:50%; top:62%; z-index:2; margin:0;
-  width:74%;
-  transform:translate(-50%,-50%) rotate(-2.5deg);
+/* ITEM 36 · THE SEAT RESERVES THE TAPE'S DEPTH, AND THEN SOME. The tape is
+   absolutely positioned so it contributes no height of its own; this
+   margin is the only thing holding .b2head off it.
+   THE BOARD'S 40px IS NOT ENOUGH — measured, the line lands at -0.9px,
+   i.e. printing 1px INTO the tape rather than under it. 61px puts the gap
+   at 20.1px. The extra over a plain 16 is paid to the tape's own 3px
+   extrusion, which sits below its box and eats into any gap measured to
+   it: 20.1 measured reads as ~17 of actual air, which clears the beat's
+   own 12.9-16px column rhythm instead of competing with it. */
+.b2seat{ position:relative; flex:none; display:grid; place-items:center;
+  margin-bottom:61px; }
+/* ITEM 36 · VARIANT E, ported from explorations/v23/b2-headline.html.
+   .b2onchair is retired: the headline is no longer type on the cushion,
+   it is a KRAFT TAPE running edge to edge behind the chair's foot.
+
+   WHY IT IS STILL A CHILD OF .b2seat. The tape is positioned off the
+   seat's own box — top:calc(100% - 5px) drops its top edge 5px above the
+   seat's bottom, so the foot's die-cut overlaps the tape's top and the
+   thing reads as passing BEHIND the chair rather than under it. Anchoring
+   it to the pane instead would have to re-derive the chair's foot on every
+   viewport, which is exactly what the board avoided.
+   THE OVERRUN IS THE POINT. 440px fixed against a 390 or 360 stage, so the
+   tape leaves the screen on both sides and has no visible ends — the torn
+   clip-path is for the top and bottom edges, not the ends. Nothing scrolls:
+   html and body are position:fixed with overflow:hidden, and .stage clips.
+   THE GAP BELOW IT IS OURS, NOT THE BOARD'S. See .b2seat's margin. */
+.b2tape{
+  position:absolute; z-index:0; left:50%; top:calc(100% - 5px);
+  width:440px; margin:0;
+  transform:translateX(-50%) rotate(-1.5deg);
+  padding:14px 0 13px;
+  background:var(--card-surface); color:var(--ink);
   font-family:var(--font-display); font-weight:900;
-  font-size:clamp(17px, 2.4vh, 21px); line-height:1.14;
-  color:#131310; text-align:center; text-wrap:balance;
+  font-size:26px; line-height:1; white-space:nowrap; text-align:center;
+  box-shadow:0 3px 0 rgba(0,0,0,.30), inset 0 0 0 1px rgba(0,0,0,.10);
+  clip-path:polygon(0 0,100% 0,99.4% 18%,100% 36%,99.3% 54%,100% 72%,99.4% 90%,99.7% 100%,
+                    0 100%,.6% 84%,0 66%,.7% 48%,0 30%,.5% 12%);
   pointer-events:none;
 }
+/* the chair paints IN FRONT of the tape — that overlap is the whole
+   illusion. .b2tape is z-index:0, so the chair only needs to be raised
+   into the same stacking context to sit above it. */
+.b2chair{ position:relative; z-index:1; }
 .b2chair{
   display:block; flex:none;
   /* was clamp(96px, 23vh, 196px) — at that size it read as an icon beside

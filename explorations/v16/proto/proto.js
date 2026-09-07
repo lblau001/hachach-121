@@ -2525,18 +2525,15 @@ function beat2() {
            object, not an illustration with a caption under it. */
         '<div class="b2seat">' +
           '<img class="b2chair" src="' + ROOT + (M.props.chair['900'] || M.props.chair['300']) + '" alt="">' +
-          /* ITEM 34a · THE HEADLINE SITS ON THE CHAIR, not above it. Placed
-             at 62% — the seat pan, the same anchor .b2taken uses — because
-             the illustration's tan band runs 55-70% of its height and the
-             dark pedestal begins at 75%. Sampled from the 900px source:
-             median luminance 0.269 across 60-65%, collapsing to 0.008 by
-             75-80% where the base starts. The box is held inside 74% of the
-             chair's width so it cannot reach the die-cut edge, which the
-             #dcw filter puts 5px outside the alpha.
-             ITS INK IS THE SYSTEM'S CHARCOAL, NOT PAPER. Light type on a
-             mid-tan seat does not read; this is the one place on the beat
-             where the type goes dark. */
-          '<p class="b2onchair">' + esc('אז מה באמת קורה בכנסת?') + '</p>' +  /* TAMAR */
+          /* ITEM 36 · VARIANT E · THE HEADLINE IS A KRAFT TAPE BEHIND THE
+             CHAIR'S FOOT, not type on the cushion. It is still a child of
+             .b2seat because it is positioned off the seat's own box —
+             top:calc(100% - 5px) puts its top edge just under the chair, so
+             the foot's die-cut overlaps it and the tape reads as passing
+             BEHIND the chair. The chair takes a z-index above it for that
+             to hold; see .b2tape and .b2chair.
+             The copy is unchanged from item 34. */
+          '<p class="b2tape">' + esc('אז מה באמת קורה בכנסת?') + '</p>' +  /* TAMAR */
           /* .b2taken is gone: the confirmation is no longer a chip that
              APPEARS on the chair, it is the callout that ARRIVES there
              and then leaves for the pin. .b2seat is still the anchor the
