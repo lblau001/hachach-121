@@ -50,6 +50,7 @@ const T = {
   press:     ms('--t-press'),
   stamp:     ms('--t-stamp'),
   stampDrop: ms('--t-stamp-drop'),
+  stampDropMk: ms('--t-stamp-drop-mk'),  /* ITEM 7 · contact on an MK card */
   stampBleed:ms('--t-stamp-bleed'),
   flip:      ms('--t-flip'),
   swipe:     ms('--t-swipe'),
@@ -1302,6 +1303,9 @@ function wirePeel(card) {
     if (cov.dataset.done) return;
     cov.dataset.done = '1';
     cov.disabled = true;
+    /* the hint has been taken; it must not still be wiggling under the
+       peel it just asked for */
+    cov.classList.remove('is-nudging');
     if (reduced) { cov.remove(); chip.classList.add('is-open'); return; }
     /* 1 · the sheet lifts from the leading edge and curls as it goes,
            uncovering the party line behind it */
@@ -1344,7 +1348,27 @@ async function flipUp() {
   }
   setPile(i + 1);
   await wait(T.cardFlip);
+  /* ITEM 6 · THE TAPE'S AFFORDANCE NUDGE. The cover says מפלגה and is a
+     button, but nothing on a still card says it can be taken off. Two
+     small wiggles 400ms after the turn settles is the smallest thing
+     that reads as "this moves" without reading as an error state.
+     HERE, NOT AT DEAL. The class is added after the flip has been
+     awaited, so the 400ms in the CSS is measured from the card being
+     settled rather than from it starting to turn.
+     ONCE PER CARD is structural, not a flag: every card is a fresh node
+     and the class is added exactly once, on the frame it settles. */
+  nudgeCover(d);
   return $('.mf-b', d);
+}
+/* prefers-reduced-motion SKIPS IT ENTIRELY — the class is never added, so
+   there is no 1ms stub of it either. The global reduce rule only shortens
+   animations, and an affordance hint that fires in 1ms is worse than one
+   that does not fire: it is a flicker with no meaning. */
+function nudgeCover(card) {
+  if (!card) return;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const cov = $('.pcov', card);
+  if (cov && !cov.dataset.done) cov.classList.add('is-nudging');
 }
 /* the resolved card is swiped off the stack. The stamp rides with it —
    it is parented to .cardwrap, not to the card, so it has to be told. */
@@ -1867,6 +1891,9 @@ async function claimReveal(ans, card) {
   mark.classList.add('d2--neutral', 'd2--claim');
   wrap.appendChild(mark);
   card.classList.add('is-stamped');
+  /* ITEM 7 DELIBERATELY DOES NOT REACH HERE. The claim stamp keeps its
+     190ms fall and its 1.8/1.06 landing; only the MK card's stamp was
+     asked to land harder. Its contact stays --t-stamp-drop. */
   inkBleed();
   setTimeout(() => buzz(25), T.stampDrop);
 
@@ -2861,11 +2888,12 @@ async function verdict(guess, foot, card) {
   const mark = stamp(ok);
   $('.cardwrap').appendChild(mark);
   card.classList.add('is-stamped');
-  inkBleed();
-  /* §5 25ms AT CONTACT, not when the stamp is appended: --t-stamp-drop is
-     the frame the disc actually hits the card, and the jolt is keyed to
-     the same number. The buzz and the hit are one event or neither. */
-  setTimeout(() => buzz(25), T.stampDrop);
+  inkBleed(T.stampDropMk);
+  /* §5 25ms AT CONTACT, not when the stamp is appended: --t-stamp-drop-mk
+     is the frame the disc actually hits the card, and the jolt is keyed to
+     the same number. The buzz and the hit are one event or neither.
+     ITEM 7 moved that frame 190 -> 200ms, so all three moved together. */
+  setTimeout(() => buzz(25), T.stampDropMk);
 
   const table = COIN_TABLES[DEV.coins];
   /* §4 THE COINS LEAVE THE STAMP. Fired after the stamp has fully landed
@@ -3032,8 +3060,10 @@ async function invResolve(pid, foot, card, btn) {
   const mark = stamp(ok);
   $('.cardwrap').appendChild(mark);
   card.classList.add('is-stamped');
-  inkBleed();
-  setTimeout(() => buzz(25), T.stampDrop);
+  /* ITEM 7 · the inverted round stamps the same MK card with the same
+     disc, so it lands on the same 200ms contact as the cascade's. */
+  inkBleed(T.stampDropMk);
+  setTimeout(() => buzz(25), T.stampDropMk);
 
   /* the floor plus the decaying bonus, paid from the stamp like every
      other cascade award — and shown for the first time here */
@@ -3204,7 +3234,12 @@ function stamp(ok, override) {
    viewBox units and #ink-h in CSS px, so the same rupture is 2.2 there and
    2.2 * 1.9 here — the disc and the word break up at one rate. */
 const INK_PX = 190 / 100;              /* .d2 is 190px; the viewBox is 100 */
-function inkBleed() {
+/* ITEM 7 · `drop` IS THE CONTACT TIME, and it has to be a parameter rather
+   than a constant: the claim stamp still falls for 190ms and the cascade's
+   now falls for 200, and the ink has to rupture on whichever frame the
+   disc it belongs to actually hits. Defaulting to T.stampDrop keeps every
+   existing caller on the claim's clock. */
+function inkBleed(drop) {
   const d = $('#inkDisp'), h = $('#inkDispH');
   d.setAttribute('scale', 0);
   h.setAttribute('scale', 0);
@@ -3216,7 +3251,7 @@ function inkBleed() {
       h.setAttribute('scale', (2.2 * INK_PX * k).toFixed(2));
       if (k < 1) requestAnimationFrame(tick);
     })(t0);
-  }, T.stampDrop);
+  }, drop == null ? T.stampDrop : drop);
 }
 
 /* ===== THE SEAT GRID · v20 option 4 ==================================

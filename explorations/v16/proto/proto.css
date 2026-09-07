@@ -246,6 +246,14 @@
   --t-card-flip:   450ms;
   --t-card-exit:   320ms;
 
+  /* ITEM 7 · CONTACT ON AN MK CARD. hachach.css's --t-stamp-drop (190ms)
+     still describes the CLAIM stamp's fall, which this item does not
+     touch; the cascade's fall is now 200ms and everything keyed to the
+     moment of contact — the jolt, the 25ms buzz, the ink rupture — reads
+     this instead. The code's own rule is that the buzz and the hit are
+     one event or neither, so they cannot be allowed to drift apart. */
+  --t-stamp-drop-mk: 200ms;
+
   /* §F the strip, played rather than stated: lock -> hold -> the MK's
      token appears in the PLAYER'S slot -> the fill travels to the truth,
      distance-proportional on one easing -> the stamp lands after it. */
@@ -708,12 +716,16 @@ body.no-ph .ph{ display:none !important; }
    the player saw a card back the instant the stamp landed.
    The jolt is kept — it is the card taking the hit — but it now carries
    the face's rotation with it. */
+/* ITEM 7 · 3px -> 5px, AND THE DELAY IS NOW THE NEW FALL. The jolt has to
+   fire on the frame the disc hits, and the fall grew 190 -> 200ms, so the
+   delay is written out rather than left on --t-stamp-drop, which still
+   describes hachach.css's 190ms fall for anything else using it. */
 .deckcard > .mf-b.is-stamped{
-  animation:d2-jolt-face 120ms var(--e-land) var(--t-stamp-drop) both;
+  animation:d2-jolt-face 120ms var(--e-land) 200ms both;
 }
 @keyframes d2-jolt-face{
   0%,100%{ transform:rotateY(180deg) translateY(0) }
-  40%    { transform:rotateY(180deg) translateY(3px) }
+  40%    { transform:rotateY(180deg) translateY(5px) }
 }
 
 /* §1 THE CARD BACK. One illustration, identical on every back and on
@@ -2381,6 +2393,45 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
   100% { transform:scale(1) }
 }
 .d2--claim .d2__word{ font-size:39px; }
+/* =====================================================================
+   ITEM 7 · THE MK-CARD STAMP LANDS HARDER
+   Scale 1.8 -> 2.2 on the drop, overshoot 1.06 -> 1.10, and a rotation
+   snap from -6deg that resolves on the same frame the scale does. 360ms
+   end to end, which is the stated ceiling.
+   THE FINAL ANGLE IS 0deg. .d2 carries no rotation in any rule — I
+   checked all 15 of them — so "snap to the stamp's final angle" is a
+   snap to square. The rotation is written explicitly at every frame from
+   the landing on, because a transform list that drops rotate() midway
+   would interpolate from "no rotation" and re-introduce the wobble the
+   snap just resolved.
+   :not(.d2--claim) IS LOAD-BEARING. The beat-1 claim stamp is the same
+   .d2 element with its own box, position and d2-claim-land; it is not
+   part of this item and must keep its 1.8/1.06/340ms landing. Excluding
+   it here is what stops this rule reaching it.
+   THE LOCKED RULE IS UNTOUCHED: the disc's landing position is set by
+   top/left, which this does not go near. Scale 2.2 makes the disc larger
+   WHILE FALLING, about the same centre; where it comes to rest is
+   unchanged. See the report's settled frame on edelstein.
+   ===================================================================== */
+.d2:not(.d2--claim){
+  animation-name:d2-land-mk;
+  animation-duration:360ms;
+  animation-timing-function:linear;
+}
+@keyframes d2-land-mk{
+  /*    0 -> 200ms   scale 2.2 -> 1, rotate -6 -> 0, ACCELERATING */
+  0%   { transform:scale(2.2) rotate(-6deg); opacity:0;
+         animation-timing-function:cubic-bezier(.5,0,.75,.2) }
+  5.5% { opacity:1;
+         animation-timing-function:cubic-bezier(.5,0,.75,.2) }
+  /*  200 -> 268ms   the rebound off the card */
+  55.6%{ transform:scale(1) rotate(0deg);
+         animation-timing-function:cubic-bezier(.25,.9,.35,1) }
+  /*  268 -> 360ms   and the settle */
+  74.4%{ transform:scale(1.1) rotate(0deg);
+         animation-timing-function:cubic-bezier(.35,0,.45,1) }
+  100% { transform:scale(1) rotate(0deg) }
+}
 /* ACHROMATIC. .d2 normally mixes --d2-ink at --verdict-wash over the
    card; the claim stamp mixes INK instead, so the disc is a neutral
    wash and the word is the only thing it says. Correctness is .cmark's
@@ -2962,7 +3013,38 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
 /* the label goes as soon as the sheet starts moving — type sliding under
    a clip reads as a wipe, which is the one thing this must not look like */
 .pcov.is-peeling .pcov__lab{ animation:peel-lab 180ms linear both; }
+
 @keyframes peel-lab{ to{ opacity:0 } }
+
+/* =====================================================================
+   ITEM 6 · THE AFFORDANCE NUDGE
+   Two wiggles, 400ms after the card settles, then it rests. It is a hint
+   that the sheet is liftable, so it has to be small enough to read as
+   paper shifting and not as something wrong: 2 degrees and 2px, which at
+   this chip's size is about a millimetre of travel.
+   TWO ITERATIONS OF ONE 180ms CYCLE, not one 360ms keyframe — so the
+   ease-in-out applies to EACH wiggle, and each one accelerates out of
+   rest and decelerates back into it. One long curve over both would give
+   a fast middle and two slow ends, which reads as a wobble rather than
+   as two taps.
+   NEVER LOOPS. Two iterations, `both` fill, and the class is added once
+   per card by nudgeCover() — there is no interval and nothing to stop.
+   STANDING BEHAVIOUR, EVERY ROUND. Nothing here is conditioned on the
+   round being inverted; the tape covers the party on every card that
+   has one. */
+.pcov.is-nudging{ animation:pcov-nudge 180ms ease-in-out 400ms 2 both; }
+@keyframes pcov-nudge{
+  0%  { transform:none }
+  25% { transform:rotate(2deg) translateX(2px) }
+  75% { transform:rotate(-2deg) translateX(-2px) }
+  100%{ transform:none }
+}
+/* skipped entirely, not shortened — see nudgeCover(), which does not add
+   the class at all. This is the belt to that braces: if the class ever
+   arrives by another route, it still does nothing here. */
+@media (prefers-reduced-motion: reduce){
+  .pcov.is-nudging{ animation:none; }
+}
 
 /* 2 · THE DISCARD. It leaves on an arc — left, down and turning — on an
    accelerating curve, so it reads as dropped rather than slid or faded.
