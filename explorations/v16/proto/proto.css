@@ -41,6 +41,30 @@
    stays the handoff file.
    --------------------------------------------------------------------- */
 :root{
+  /* ---- 21 · THE BODY TOKEN, AND WHY IT IS NOT --font-ui ---------------
+     --font-ui is not a body-prose token. hachach.css defines it once and
+     this file's very first rule is `body{ font-family:var(--font-ui) }`,
+     so it is the app's DEFAULT face — on the intro alone 25 of 35 painted
+     elements resolve through it, and its other readers are a text input
+     (.prof-field), a chip (.gchip), a sticker label (.bopt-lbl) and the
+     share card. Repointing it at SimplerPro would have re-set the whole
+     app, so item 21's second branch applies: a separate token, wired to
+     the named elements only.
+     The system stack is kept behind SimplerPro exactly as it was, so a
+     failed font load degrades to today's rendering rather than to serif. */
+  --font-body: 'SimplerPro', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+
+  /* ---- 22 · THE BODY INK, LIFTED OFF --ink-faint ----------------------
+     #BEB9AC measured 4.41 against the lightest dot of the grid (#4D4C48),
+     under the 4.5 AA floor for body text. This is +3 per channel — the
+     smallest lift that clears it with a margin rather than by 0.007.
+     It is a NEW token rather than a change to --ink-faint, because
+     --ink-faint has seven readers and three of them (.b5-a2 .b5count,
+     .b5link.is-missing, .eg-stat__sub) are not in item 21's set —
+     .eg-stat__sub sits on a card, where the ground is not the dot grid
+     and the ratio was never in question. */
+  --ink-body: #C1BCAF;
+
   --t-flip:   380ms;   /* was 260ms — mid of the measured 300-500 band   */
   --t-finale: 850ms;   /* was 620ms — the round's one held beat          */
 
@@ -854,7 +878,11 @@ body.no-ph [data-ph]{ display:none !important; }
 
 /* out of flow so unwritten copy must not be
    able to cost the card 40px when the placeholders are switched on */
+/* 21 · in the set and switched, though it renders nothing today: it is a
+   data-ph placeholder and body.no-ph hides it. Wired now so it comes back
+   in the body face rather than in the app default. */
 .b1hint{ position:absolute; left:0; right:0; bottom:0; z-index:10;
+  font-family:var(--font-body); font-weight:400;
   text-align:center; margin:0; pointer-events:none; }
 
 /* =====================================================================
@@ -1679,9 +1707,26 @@ body.no-ph [data-ph]{ display:none !important; }
 .i-sub{ margin:clamp(10px,2.4vh,20px) 0 0; font-size:clamp(21px,3.1vh,26px);
   font-weight:700; color:#EFECE4; position:relative; z-index:4; flex:none;
   text-shadow:0 1px 5px rgba(0,0,0,.82), 0 2px 16px rgba(0,0,0,.62); }
+/* 21 · THE STANDFIRST INHERITED --font-ui FROM body AND NAMED NO FAMILY,
+   so switching it means stating one. 700 -> 400 for the same reason as
+   .eg-eyebrow: 700 would resolve to the Black. The colour is NOT touched
+   by item 22 — #EFECE4 measures 7.31:1 on the lightest dot, comfortably
+   over the 4.5 floor, and --ink-body (4.56) would DARKEN it. */
+/* 25 · EMPHASIS WITHOUT WEIGHT. This line carries the game's positioning
+   and it sits over the illustration, where the ground is busiest. It was
+   system-ui 700; item 21 moved it to SimplerPro, and the family has no
+   500/600/700 to fall back on, so the two levers left are SIZE and INK.
+   Size: the clamp is raised a step rather than replaced, so the short
+   phones keep a floor that fits — 19px at 390x844 (was 16), 16px at 667
+   and 640 (was ~14.6). The 1.62 ratio is unchanged.
+   Ink: #EFECE4 -> #FBF7EE, the system's own paper white, which is what the
+   display type on this screen already uses. NOT 900 — the title and the
+   CTA are both 900 and a third would flatten the hierarchy, which is why
+   this is a size-and-ink change and not a weight one. */
 .i-para{ margin:clamp(6px,1.2vh,10px) 0 0; max-width:30ch;
-  font-size:clamp(14px,1.9vh,16px); font-weight:700;
-  line-height:1.5; color:#EFECE4; position:relative; z-index:4; flex:none;
+  font-family:var(--font-body);
+  font-size:clamp(16px,2.3vh,19px); font-weight:400;
+  line-height:1.62; color:#FBF7EE; position:relative; z-index:4; flex:none;
   text-shadow:0 1px 5px rgba(0,0,0,.82), 0 2px 16px rgba(0,0,0,.62); }
 .i-stage{ position:absolute; left:-16px; right:-16px; bottom:-12px; top:0;
   z-index:1; pointer-events:none; overflow:hidden; }
@@ -2273,8 +2318,19 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
   -webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 34px),transparent 100%);
           mask-image:linear-gradient(to bottom,#000 calc(100% - 34px),transparent 100%);
 }
+/* 24 · THE LARGEST BLOCK OF BODY COPY IN THE APP, ONTO THE BODY FACE.
+   It inherited --font-ui from body and named no family, so it was still
+   system-ui 700 after item 21 switched the other seven. Same token and the
+   same line-height treatment: 1.5 -> 1.6, because SimplerPro's em box is
+   23/17 of the font size against system-ui's 20/17 — at 15.5px that is a
+   20.97px box where the old leading assumed 18.24px.
+   THE WEIGHT HAD TO MOVE TOO, and not as a style choice: the family ships
+   400 and 900 only, and CSS resolves an unavailable 700 UPWARD — leaving
+   700 here would have printed the Black at 15.5px across the whole
+   explanation. See the item 23 audit. */
 .creveal__text{
-  margin:0; font-size:15.5px; font-weight:700; line-height:1.5;
+  margin:0; font-family:var(--font-body);
+  font-size:15.5px; font-weight:400; line-height:1.6;
   color:#EFECE4; text-align:start; text-wrap:pretty;
 }
 /* §0/§3 · הלאה goes back INSIDE the sheet with the structure, but not back
@@ -3527,8 +3583,13 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
 
 /* ---- type ---------------------------------------------------------- */
 .eg-eyebrow{
-  margin:0; font-family:var(--font-ui); font-size:var(--fs-meta);
-  font-weight:700; letter-spacing:.08em; color:var(--ink-faint);
+  /* 21 · 400, not the 700 it carried in system-ui. The family ships two
+     faces, 400 and 900, and CSS font matching answers a 700 request from
+     ABOVE first — so leaving 700 here would have printed the Black and
+     made the eyebrow HEAVIER than before, which is the opposite of the
+     change. Same reasoning on .eg-clear and .i-para. */
+  margin:0; font-family:var(--font-body); font-size:var(--fs-meta);
+  font-weight:400; letter-spacing:.08em; color:var(--ink-body);
 }
 .eg-h1{
   margin:0; font-family:var(--font-display); font-weight:900;
@@ -3542,8 +3603,15 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
 }
 .eg-h2.is-in{ opacity:1; transform:none; }
 .eg-sub, .eg-lede{
-  margin:0; font-family:var(--font-ui); font-size:var(--fs-body);
-  color:var(--ink-faint); line-height:1.45;
+  /* 1.45 -> 1.6, AND THE REASON IS THE DESCENT, NOT THE X-HEIGHT.
+     Measured at 17px: SimplerPro's Hebrew glyphs are SHORTER than
+     system-ui's (ascent 8.82 vs 10.13) but its font bounding box is
+     TALLER — descent 7 against 4, so a 23px em box against 20px. At the
+     old 1.45 (24.65px) that left 1.65px of leading where system-ui had
+     4.65px, and the two lines of the lede closed up. 1.6 (27.2px) puts
+     the leading back at 4.2px, near the value the line was tuned to. */
+  margin:0; font-family:var(--font-body); font-size:var(--fs-body);
+  color:var(--ink-body); line-height:1.6;
 }
 .eg-lede{ opacity:0; transform:translateY(6px); padding:0 6px;
   transition:opacity var(--t-f5-in) var(--e-settle), transform var(--t-f5-in) var(--e-settle); }
@@ -3587,8 +3655,8 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
 
 /* ---- the allocation ------------------------------------------------ */
 .eg-left{
-  margin:0; font-family:var(--font-ui); font-size:var(--fs-body);
-  color:var(--ink-faint);
+  margin:0; font-family:var(--font-body); font-size:var(--fs-body);
+  color:var(--ink-body); line-height:1.6;
 }
 .eg-left b{ font-family:var(--font-display); font-weight:900; color:var(--primary);
   font-variant-numeric:tabular-nums; }
@@ -3687,8 +3755,8 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
 .eg-acts.is-in{ opacity:1; transform:none; }
 .eg-acts .eg-go{ opacity:1; transform:none; }
 .eg-clear{
-  border:0; background:none; color:var(--ink-faint);
-  font-family:var(--font-ui); font-size:var(--fs-meta); font-weight:700;
+  border:0; background:none; color:var(--ink-body);
+  font-family:var(--font-body); font-size:var(--fs-meta); font-weight:400;
   padding:8px; cursor:pointer; text-decoration:underline; text-underline-offset:3px;
 }
 .map-done{
