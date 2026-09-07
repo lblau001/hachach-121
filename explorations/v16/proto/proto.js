@@ -2132,14 +2132,26 @@ function stickerModal(o) {
    already uses, `M.topics[issue.topic]`, so the modal draws the icon the
    map and the HUD are drawing for the same issue. */
 function lawModal() {
-  /* 65 CSS px x DPR 3 = 195, so 256 is the right entry and 384 would be
-     paying for detail no screen can show — over-target is a defect in bytes
-     the same way under-target is one in pixels. It was on the 128.
-     ITEM 9's hero is 96px wide rather than the old slot's 64, so the 256
-     is now carrying 96 x 3 = 288 — still the right entry, and the 384 is
-     still more than any screen here can show. */
+  /* ITEM 46 · THE 576, CHOSEN ON CACHING RATHER THAN ON SIZE. The 256 was
+     picked against a 65px target, where 65 x DPR 3 = 195; item 45's band
+     changed that target, and at 96 tall the wide icons were being served
+     at 1.74-2.53x — under 2x on the police hat.
+     THE 384 WOULD HAVE BEEN A THIRD COPY OF A PICTURE ALREADY IN CACHE.
+     claimArt() loads T_['576'] for the issue's topic at beat 1, and 20 of
+     the 22 issues have no issue art of their own, so that fallback fires
+     and the 576 is already fetched one beat before the player can open
+     this modal. Asking for the 384 here would download a second size of
+     the same illustration — the map node has already taken the 256 — to
+     get a WORSE result than the file sitting in cache.
+     So: 0 marginal bytes on 20 of 22 issues, and every topic clears 3x
+     (3.92x on the widest, 6.00x on the narrowest) rather than the 384's
+     2.61x floor. The two that do pay are s1 and s2, which have issue art
+     at beat 1 and therefore never warm it; they share the internal_sec
+     topic, so the second of them is cached by the first.
+     384 then 256 stay underneath as fallbacks, so a topic missing the
+     576 still draws rather than rendering an empty hero. */
   const T_ = M.topics && M.topics[issue.topic];
-  const h = T_ && (T_['256'] || T_['128']);
+  const h = T_ && (T_['576'] || T_['384'] || T_['256']);
   return stickerModal({
     title: issue.bill_title || '',
     meta:  issue.bill_date || '',
