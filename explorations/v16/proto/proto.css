@@ -1896,10 +1896,20 @@ body.no-ph .ph{ display:none !important; }
    display type on this screen already uses. NOT 900 — the title and the
    CTA are both 900 and a third would flatten the hierarchy, which is why
    this is a size-and-ink change and not a weight one. */
+/* ITEM 41 · 1.62 -> 1.4, AND ONLY HERE. The 1.62 came from the body-face
+   work, where it paid for SimplerPro's 7px descent against system-ui's
+   4px — and it was tuned at 17px on the allocation screen, which runs
+   many lines. This is two short centred lines at 19px, where the same
+   ratio buys 30.8px of leading and the gap between the rows starts
+   reading as a space rather than as a paragraph.
+   SCOPE IS THIS SELECTOR. --font-body's own line-height is untouched and
+   so are the other seven elements switched in item 21; their 1.6 was
+   measured against their own sizes and none of them is two centred lines
+   at 19px. */
 .i-para{ margin:clamp(6px,1.2vh,10px) 0 0; max-width:30ch;
   font-family:var(--font-body);
   font-size:clamp(16px,2.3vh,19px); font-weight:400;
-  line-height:1.62; color:#FBF7EE; position:relative; z-index:4; flex:none;
+  line-height:1.4; color:#FBF7EE; position:relative; z-index:4; flex:none;
   text-shadow:0 1px 5px rgba(0,0,0,.82), 0 2px 16px rgba(0,0,0,.62); }
 .i-stage{ position:absolute; left:-16px; right:-16px; bottom:-12px; top:0;
   z-index:1; pointer-events:none; overflow:hidden; }
@@ -1948,6 +1958,58 @@ body.no-ph .ph{ display:none !important; }
 .i-cta{ margin:clamp(30px,calc(4vh + 12px),46px) 0 clamp(0px,calc(2.4vh - 12px),8px);
   width:280px; font-size:clamp(21px,3.1vh,26px);
   position:relative; z-index:6; flex:none; }
+
+/* =====================================================================
+   ITEM 10 · THE CTA BREATHES
+   ARRIVAL FIRST, THEN INVITATION. 1200ms of stillness before the first
+   fire, so the screen is read before anything on it asks for a tap; then
+   every 3500ms, which is long enough that the button is at rest almost
+   all the time and the motion is an event rather than a texture.
+   THE SHADOW TRAVELS WITH IT, AND THAT IS THE WHOLE EFFECT. A scale with
+   a fixed shadow reads as a CSS pulse — the object grows but stays stuck
+   to the page. Moving the hard offset 4 -> 6px says the sticker lifted
+   off the ground, which is the one thing that makes it physical. If the
+   shadow ever stops moving, the effect is dead and should be removed
+   rather than kept.
+   The 3-4.6px edge and keyline rings are re-stated at every keyframe
+   because box-shadow interpolates as a LIST: drop a layer at one frame
+   and the whole stack animates from nothing.
+   TRANSFORM ONLY otherwise. No margin, no padding, no width — the button
+   is in a centred flex column and any box change would move the
+   paragraph above it.
+   NO GLOW, NO HALO, NO SWEEP. The warm yellow-cream is the S-1 finale
+   board's alone, and a diagonal sweep on a die-cut object reads as a
+   loading skeleton.
+   ===================================================================== */
+.i-cta.is-breathing{
+  transform-origin:center;
+  animation:i-cta-breathe 3500ms linear 1200ms infinite both;
+}
+@keyframes i-cta-breathe{
+  /* 0 -> 420ms · out */
+  0%      { transform:scale(1) rotate(0deg);
+            box-shadow:0 0 0 3px var(--edge), 0 0 0 4.6px var(--keyline),
+                       0 var(--z-press) 0 var(--primary-base);
+            animation-timing-function:cubic-bezier(.2,.8,.2,1) }
+  /* 420 -> 720ms · back */
+  12%     { transform:scale(1.035) rotate(-0.8deg);
+            box-shadow:0 0 0 3px var(--edge), 0 0 0 4.6px var(--keyline),
+                       0 calc(var(--z-press) + 2px) 0 var(--primary-base);
+            animation-timing-function:ease-in-out }
+  /* 720 -> 3500ms · at rest, waiting */
+  20.571% { transform:scale(1) rotate(0deg);
+            box-shadow:0 0 0 3px var(--edge), 0 0 0 4.6px var(--keyline),
+                       0 var(--z-press) 0 var(--primary-base) }
+  100%    { transform:scale(1) rotate(0deg);
+            box-shadow:0 0 0 3px var(--edge), 0 0 0 4.6px var(--keyline),
+                       0 var(--z-press) 0 var(--primary-base) }
+}
+/* NO ANIMATION AT ALL, not a 1ms one. The global reduce rule shortens
+   animations; an invitation that fires in 1ms every 3500ms is a flicker.
+   startBreath() also refuses to add the class — this is the backstop. */
+@media (prefers-reduced-motion: reduce){
+  .i-cta.is-breathing{ animation:none; }
+}
 
 /* ---- the display title, letter by letter --------------------------
    Each glyph is its own <svg><text>, which is how the white cut can

@@ -4534,7 +4534,25 @@ function renderIntro() {
      flowmap still shows Intro -> Character -> Map; it is superseded, and a
      stub in between would be a screen we know is wrong. */
   pressable($('.i-cta', r)).addEventListener('click', () => loadingBeat(goMap));
+  startBreath($('.i-cta', r));
   showScreen('intro');
+}
+/* ITEM 10 · THE BREATHING CTA, armed here and disarmed on contact.
+   prefers-reduced-motion GETS NO ANIMATION AT ALL, which is why this is a
+   branch and not only a media query: the global reduce rule shortens
+   animations to 1ms, and a 1ms scale firing every 3500ms is a flicker
+   with no meaning. The button simply sits at its rest state.
+   IT STOPS ON pointerdown, NOT ON click. The invitation has been accepted
+   the moment the finger lands; carrying on through the press would have
+   the button breathing under the tap that answered it. `once` makes the
+   stop permanent — nothing re-arms it, because the screen is rebuilt from
+   scratch on every entry. */
+function startBreath(cta) {
+  if (!cta) return;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  cta.classList.add('is-breathing');
+  cta.addEventListener('pointerdown',
+    () => cta.classList.remove('is-breathing'), { once:true });
 }
 
 /* ===================== §1 · THE LOADING BEAT ========================
