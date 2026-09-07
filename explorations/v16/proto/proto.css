@@ -998,8 +998,15 @@ body.no-ph .ph{ display:none !important; }
 .ovpane--vote.is-above{ transform:translateY(-44px); opacity:0; pointer-events:none; }
 .ovpane--bill.is-below{ transform:translateY( 44px); opacity:0; pointer-events:none; }
 
+/* ITEM 38 · --ovgap NAMES THE COLUMN GAP so the two rules around .b2q can
+   subtract it. The gap itself is unchanged and still applies between every
+   child; variant D's 26-above / 12-below are absolute figures, and the only
+   way to state an absolute gap inside a flex column whose gap is vh-based
+   is to cancel the gap out on the one pair that needs it. Same trick as the
+   board, which calls the variable --gap. */
 .ov-inner{ display:flex; flex-direction:column; align-items:center;
-  gap:clamp(8px, 1.6vh, 16px); width:100%; max-width:358px; }
+  --ovgap:clamp(8px, 1.6vh, 16px);
+  gap:var(--ovgap); width:100%; max-width:358px; }
 /* align-items:center on a flex column shrink-wraps every child, so the
    vote row was 219px of a 326px line. The board writes width:100% here. */
 .ov-inner .v-a-row{ width:100%; }
@@ -1016,9 +1023,15 @@ body.no-ph .ph{ display:none !important; }
    the question — one undifferentiated block. This is on top of the gap,
    so the space before the buttons roughly doubles while the copy above
    stays as tight as it was. */
+/* ITEM 38 · THE GAP BELOW THE QUESTION IS 12px FLAT. It was the column gap
+   plus clamp(10px,2.2vh,22px) — 32px at 844 — which put the question nearer
+   the title line above it (13.5) than the buttons below it. It is the
+   question the buttons answer, so it groups with them: 26 above, 12 below.
+   The margin goes negative at tall viewports (12 - 13.5 = -1.5) and that is
+   correct — it is cancelling the column gap, not pulling the row up. */
 .ov-inner .b2votes{
   width:var(--card-w); max-width:100%;
-  margin-top:clamp(10px, 2.2vh, 22px);
+  margin-top:calc(12px - var(--ovgap));
 }
 .b2votes .v-a{ min-height:60px; font-size:var(--fs-action); }
 /* §4 THE SEAT. The chair and the confirmation share one positioning
@@ -1149,9 +1162,19 @@ body.no-ph .ph{ display:none !important; }
   padding:0; margin:0; display:inline;
 }
 
+/* ITEM 38 · VARIANT D, from explorations/v24/b2-question.html.
+   FLAT 30px, NOT A CLAMP. The clamp resolved 26px at 844 and bottomed out
+   at its 21px floor by 640, so the question shrank while the tape stayed
+   26 — and this beat repeats 22 times, where a size that moves between
+   rounds reads as a rendering wobble rather than as design. One size.
+   30px OUTRANKING THE 26px TAPE IS THE POINT, not an oversight: the tape
+   asks the framing question, this line asks the one the buttons answer.
+   NO PANEL, TINT, STROKE OR OUTLINE — board variants E and F were built
+   and rejected; F reads as a fourth button above the three. */
 .b2q{ font-family:var(--font-display); font-weight:900;
-  font-size:clamp(21px, 3.2vh, 26px); line-height:1.1; text-wrap:balance;
-  color:#EFECE4; text-align:center; margin:0; }
+  font-size:30px; line-height:1.1; text-wrap:balance;
+  color:#FBF7EE; text-align:center; margin:0;
+  margin-top:calc(26px - var(--ovgap)); max-width:100%; }
 /* ITEM 34c · .b2bill is retired — the bill name is no longer its own
    line; the tap target is the title inside .b2head. See .b2title-link. */
 /* §3.2 .b2consent IS GONE from the markup — "את התוצאה נגלה בסוף ›" was
