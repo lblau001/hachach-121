@@ -89,6 +89,7 @@ const T = {
   f5BnrOut:  ms('--t-f5-bnr-out'),
   claimHold: ms('--t-claim-hold'),
   claimBeat: ms('--t-claim-beat'),
+  claimLift: ms('--t-claim-lift'),   /* ITEM 2 · the reveal's reflow, played */
   seatFill:  ms('--t-seat-fill'),
   seatCross: ms('--t-seat-cross'),
   markGap:   ms('--t-mark-gap'),
@@ -1754,7 +1755,49 @@ async function commitClaim(ans, card, dir) {
   }
   /* the card gives up room for the panel: the art yields, the claim does
      not. See .b1card.is-revealing. */
+  /* ITEM 2 · THE LIFT IS PLAYED, NOT SNAPPED, and it is a FLIP because the
+     move is a REFLOW: .is-revealing hides the two answer buttons and frees
+     the claim's flex, so the claim's box lands 163.6px higher on the very
+     next frame (measured, s1 at 390x844: 576.6 -> 413.0). There is no
+     from-value for CSS to interpolate against, so the positions are read
+     before the class, re-read after it, and the difference is applied as
+     an inverse transform that is then released — layout is final the whole
+     time and only the paint moves.
+     TRANSFORM, NOT LAYOUT, which is what keeps the measuring routines
+     honest: sizeStage() reads offsetHeight and f5Place()/fitBeat() read
+     scrollHeight, none of which a transform touches. The one reader that
+     WOULD see it is claimReveal()'s panel cap, which measures
+     .b1claim's bounding rect — and that runs after --t-claim-beat (400ms),
+     140ms after this settles, so it never reads mid-transition.
+     The art is included for completeness and in practice does not move
+     (224.5 -> 224.5): only the claim does. */
+  const flip = ['.b1art', '.b1claim']
+    .map(sel => $(sel, card))
+    .filter(Boolean)
+    .map(n => ({ n, y: n.getBoundingClientRect().top }));
   card.classList.add('is-revealing');
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const moved = flip.filter(f => {
+      f.dy = f.y - f.n.getBoundingClientRect().top;
+      return Math.abs(f.dy) > 0.5;
+    });
+    if (moved.length) {
+      moved.forEach(f => {
+        f.n.style.transition = 'none';
+        f.n.style.transform  = 'translateY(' + f.dy.toFixed(1) + 'px)';
+      });
+      void card.offsetHeight;                    /* commit the inverse */
+      moved.forEach(f => {
+        f.n.style.transition = 'transform ' + T.claimLift + 'ms ' + CLAIM_LIFT_EASE;
+        f.n.style.transform  = '';
+      });
+      /* the inline styles come off once it has landed, so nothing on this
+         card carries a stale transition into the exit throw */
+      setTimeout(() => moved.forEach(f => {
+        f.n.style.transition = ''; f.n.style.transform = '';
+      }), T.claimLift + 40);
+    }
+  }
 
   /* §1.1 step 2 · the beat. The answer is registered and NOTHING moves:
      no stamp yet, no panel, no exit. --t-claim-beat is ~400ms. */
@@ -1792,9 +1835,16 @@ async function commitClaim(ans, card, dir) {
    `partial` resolves as correct and prints חלקית — the player cannot be
    wrong about a claim the data calls partly true. Unreachable across all
    11 active issues; kept because tf_answer is Tamar's field, not ours. */
+/* ITEM 2 · the lift's own duration and curve. Named here rather than
+   inlined so the JS-driven move is as findable as the CSS ones. */
+const CLAIM_LIFT_EASE = 'cubic-bezier(.2,.8,.2,1)';
+
+/* ITEM 3 · both marks gain the exclamation. הופתעתם is the surprise the
+   locked rule asks for — something that happened TO the player — and the
+   mark is what keeps it an event rather than a label. */
 const CLAIM_MARK = {                      /* TAMAR */
-  ok:  'צדקתם',
-  bad: 'הופתעתם',
+  ok:  'צדקתם!',
+  bad: 'הופתעתם!',
 };
 
 async function claimReveal(ans, card) {

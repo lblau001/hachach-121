@@ -205,6 +205,10 @@
      land as its own event before the verdict arrives on top of it — with
      no gap the stamp reads as part of the tap. */
   --t-claim-beat: 400ms;
+  /* ITEM 2 · the claim's reflow at the answer, played rather than snapped.
+     260ms sits inside --t-claim-beat's 400ms hold, so the move has landed
+     before claimReveal() measures the claim's box for the panel cap. */
+  --t-claim-lift: 260ms;
   /* §6c · the seat fill. 2.15s of travel plus a 340ms stop on the seat
      that crosses 61 — about 2.5s end to end, at the top of the brief's
      1.8-2.5s window because the majority beat is time the eye spends on
@@ -2206,9 +2210,17 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
    Opacity is up by 20ms so the disc is never a ghost mid-fall. The card's
    3px jolt is hachach.css's own d2-jolt at --t-stamp-drop, so it fires on
    the frame the disc hits. */
+/* ITEM 4 · +15%, AND THE CLASS WAS ALREADY SPLIT. .d2--claim carries its
+   own box and position; the MK-card stamp stays on bare .d2 at its 190px
+   --d2-size and top:430px, so nothing here reaches it. 136 -> 156px and
+   the word 34 -> 39px, both x1.15, so the disc and its lettering grow
+   together rather than the word floating in a bigger circle.
+   IT STILL CLEARS THE CLAIM. The disc is pinned by top/left, so the extra
+   20px grows down and right from a corner that overhangs the card — see
+   the report's measured gap to .b1claim. */
 .d2--claim{
   top:20px; left:-26px; z-index:12;
-  width:136px; height:136px;
+  width:156px; height:156px;
   animation:d2-claim-land var(--t-stamp) linear both;
 }
 @keyframes d2-claim-land{
@@ -2222,7 +2234,7 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
          animation-timing-function:cubic-bezier(.35,0,.45,1) }
   100% { transform:scale(1) }
 }
-.d2--claim .d2__word{ font-size:34px; }
+.d2--claim .d2__word{ font-size:39px; }
 /* ACHROMATIC. .d2 normally mixes --d2-ink at --verdict-wash over the
    card; the claim stamp mixes INK instead, so the disc is a neutral
    wash and the word is the only thing it says. Correctness is .cmark's
