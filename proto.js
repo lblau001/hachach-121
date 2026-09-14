@@ -2068,7 +2068,15 @@ function clearIntroSeen() {
    game rather than on the player — nobody is being marked, something is
    being shown. No "correct", no "score", no second person singular
    imperative that sounds like an exam instruction.
-   Two lines at 393px, three at 360px. */
+   THREE LINES, AND THE VIEWPORT DOES NOT COME INTO IT. This said "Two
+   lines at 393px, three at 360px" and that was wrong before Tamar's
+   revision as well as after: .b1intro__box is a fixed 200px, so the
+   measure never varies with the viewport and the count is the same at
+   390, 375 and 360. The old body ran TWO lines at all three; this one
+   runs three, because the forced <br> after the first comma leaves
+   "נחשו אם המשפט הבא נכון או לא נכון," too long for 200px and it wraps.
+   THE BOX GROWS 25.5px AND SPLITS IT, so the button moves down 12.7 and
+   the heading up 12.7 -- symmetric, because the box is centred. */
 /* §1 · THE OLD FRAMING WAS FACTUALLY WRONG and Tamar caught it. It said
    "נציג לכם טענה על הכנסת" — a claim ABOUT THE KNESSET — and the claims
    are not that. r1's is a demographic statistic about haredi conscription
@@ -2085,7 +2093,7 @@ function clearIntroSeen() {
    THE CTA IS UNTOUCHED. She did not change it. */
 const INTRO_B1 = {
   title: 'אמת או שקר?',                                          /* TAMAR · T15 */
-  body:  'נחשו אם המשפט הבא נכון, אחר כך תגלו את התשובה',        /* TAMAR · T15 */
+  body:  'נחשו אם המשפט הבא נכון או לא נכון, אח"כ תגלו את התשובה',   /* TAMAR */
   cta:   'הבנתי',                                                 /* TAMAR */
 };
 
@@ -8614,7 +8622,7 @@ function onMapSettled(m, fn) {
    characters run four lines in this 244px column and two lines hold 68. */
 const MAP_INTRO_COPY = {                                              /* TAMAR */
   title: 'אז איך זה עובד?',                                          /* TAMAR · T16 */
-  line: 'היכנסו לנושא במפת הנושאים, ענו על השאלות, המשיכו להתקדם במשחק לאורך מפת הנושאים ולצבור מטבעות',
+  line: 'הכנסו לנושא הראשון במפה, ענו על השאלות והמשיכו להתקדם במשחק לאורך מפת הנושאים ולצבור מטבעות',            /* TAMAR */
   go:   'מתחילים',
 };
 function seenMapIntro() {
