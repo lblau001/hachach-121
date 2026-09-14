@@ -973,8 +973,15 @@ body{
    growing the lift it is defined by not having. */
 .rs__go:active{ background:rgba(19,19,16,.09); box-shadow:inset 0 0 0 3.5px var(--ink); }
 
-/* the quiet door in 2b that opens all of the above */
-.prof-reset{
+/* the quiet door in 2b that opens all of the above — and, since 2d, the
+   INFO DOOR beside it. ONE RULE AND TWO SELECTORS RATHER THAN A COPY:
+   the two are the same control in the same stack and the only thing that
+   may ever distinguish them is where they sit, so a second rule with the
+   same declarations would be a drift waiting to happen. Neither is a
+   button in the visual sense — שמור is the one primary on this sheet and
+   a third bordered control here would compete with it. */
+.prof-reset,
+.prof-info{
   align-self:center; margin-top:2px;
   border:0; background:none; color:var(--ink-soft); cursor:pointer;
   font-family:var(--font-body); font-size:var(--fs-meta); font-weight:400;
@@ -7562,6 +7569,23 @@ body.no-ph .map-restart .ph{ display:inline-block !important; }
 .stmodal[data-profile] .stmodal__title{ display:none; }
 /* the profile sheet is sized to FIT (see .prof-hero), so the 76% ceiling
    the law modal wants would only clip it; it may use the whole area */
+/* 2d · AND THE ROW HAS TO BE DEFINITE FOR THAT 100% TO MEAN ANYTHING.
+   .stmodal is a grid whose single row is auto, so the track sizes to the
+   box and `max-height:100%` then resolves against the box's own height —
+   circular, and a no-op. It has never shown, because until 2d no profile
+   content came near the ceiling: 2b is 523px tall in a 608px area at the
+   360x640 floor. The credits list is 1148px of rows, and measured before
+   this line the box went to 1296 — past the stage, with the title and
+   the חזרה pushed off it and .info never scrolling, because there was no
+   constraint for it to overflow.
+   minmax(0,1fr) makes the track the AREA and lets the item be smaller
+   than its content, which is what the 100% was always written to mean.
+   SCOPED TO [data-profile] ON PURPOSE. The law and glossary stickers cap
+   at 76% and resolve it the same circular way; they are not this task,
+   they have their own scroller in .stmodal__body, and widening this to
+   every .stmodal would change three surfaces to fix one. Left alone,
+   deliberately, not missed. */
+.stmodal[data-profile]{ grid-template-rows:minmax(0, 1fr); }
 .stmodal[data-profile] .stmodal__box{ max-height:100%; }
 /* THE CONTENT SCROLLS, THE STICKER DOES NOT — the same rule as
    .stmodal__body, for the same reason: the ✕ has to stay put. 2a at
@@ -7701,6 +7725,37 @@ button.prof-hero:focus-visible{ outline:3px solid var(--primary); outline-offset
   min-height:52px; display:flex; align-items:center; justify-content:center;
   padding-block:0; gap:8px;
 }
+/* ...AND THE TWO QUIET LINKS ARE OUT OF IT, DELIBERATELY AND IN THE OPEN.
+   The rule above says what it is for in its own comment — "so P-C and
+   R-B match" — and it is about the two BUTTONS. `> *` swept the links up
+   with them, which gave an underlined 14px/400 link a 52px box. Two of
+   them stacked then read as two controls holding their distance rather
+   than two quiet doors.
+   ITEM 16 IS THE REASON THIS IS WRITTEN LOUDLY AND NOT AS A BARE LINE.
+   `.prof-tweak{ min-height:46px }` sat further down this file at the
+   same specificity and silently undid the 52 for one of the pair; that
+   was a defect and it was removed. This is the opposite case — an
+   exemption that is MEANT — so it is higher specificity, it is
+   immediately under the rule it modifies, and it names both elements
+   rather than reaching them through a selector that might one day catch
+   a third.
+
+   44 AND NOT 0, WHICH IS THE TRAP HERE. `> *` also sets padding-block:0,
+   which overrides these links' own 8px — so min-height:0 does not leave
+   a 38px link, it leaves the bare line box at 20px. That is a worse
+   defect than the 54px this exemption exists to remove. 44 is the app's
+   own floor (.bnav is 44, .stmodal__x is a 46px target) and the flex
+   centring above puts the text in the middle of it; each link then
+   settles at 46, the floor plus the underline's descent.
+
+   WHY IT IS WORTH 16px. 2d's door took 2b from 524 to 586 in the 608 the
+   360x640 floor has, and 22px of slack is less than
+   env(safe-area-inset-bottom) on any notched phone. .prof would then
+   scroll — and .prof has overflow-y:auto WITHOUT .scrolls, so that
+   scroll is dead under a finger; see the rule at the top of this file.
+   54 -> 46 on both links gives 586 -> 570, and the floor 22 -> 38. */
+.prof-actions > .prof-info,
+.prof-actions > .prof-reset{ min-height:44px; }
 /* the one primary. Everything on this sheet applied the moment it was
    tapped; this closes, and its copy is the player's model, not the code's. */
 .prof-save{ font-size:19px; }
@@ -7872,6 +7927,69 @@ button.prof-hero:focus-visible{ outline:3px solid var(--primary); outline-offset
 .bnav:active{ transform:translateY(2px); box-shadow:0 0 0 2px var(--keyline), 0 1px 0 rgba(0,0,0,.34); }
 .bnav--last{ background:var(--primary); }
 .bnav__chev{ display:block; flex:none; }
+
+/* =====================================================================
+   §2d · THE INFO SCREEN — CREDITS, METHOD, ABOUT
+   The builder's silhouette with the hero taken out: a pinned title, ONE
+   scroller, a pinned foot. .prof stops being the scroller for exactly
+   the reason .prof--bld gives — the way back must not scroll away — and
+   .info is the single overflow container in the chain.
+
+   .info CARRIES .scrolls IN THE MARKUP. That class is the only place
+   touch-action is handed back (see the top of this file); without it
+   this list would scroll in Chrome and be dead under a finger on the
+   phone, which is the silent failure the rule was written after.
+   ===================================================================== */
+.prof--info{ overflow:hidden; }
+.info{
+  margin-top:10px; width:100%; min-height:0; flex:1 1 auto;
+  text-align:start;
+}
+.info-sec + .info-sec{ margin-top:18px; }
+/* the section rule is the sticker's own dashed idiom, not a new line
+   weight — see .prof-well and .explain-sheet's .credit for the same
+   dashed hairline doing the same job */
+.info-h{
+  margin:0 0 8px; font-family:var(--font-display); font-weight:900;
+  font-size:15px; line-height:1.25;
+  padding-bottom:6px; border-bottom:1.5px dashed rgba(19,19,16,.18);
+}
+.info-p{ margin:0; font-size:var(--fs-meta); font-weight:700; line-height:1.55; }
+.info-list{ margin:0; padding:0; list-style:none; }
+/* NO SEPARATOR BETWEEN ROWS. 34 of them with a rule each is a table, and
+   the pair of lines already groups: the name is 700 ink, the credit 400
+   soft, and the gap between rows is larger than the gap inside one. */
+.info-row + .info-row{ margin-top:10px; }
+.info-who{ margin:0; display:flex; align-items:baseline; gap:6px; flex-wrap:wrap; }
+.info-name{ font-size:var(--fs-meta); font-weight:700; line-height:1.4; }
+.info-party{ font-size:11.5px; font-weight:400; color:var(--ink-soft); }
+/* THE CREDIT LINE COLLAPSES WHILE IT IS EMPTY. Every row is empty today
+   — MK_CREDITS ships with four blank fields per person — and an empty
+   <p> holding a line box would put a ghost gap under all 34 names. It
+   is :empty and not display:none on a flag so that the moment ONE field
+   of ONE row is filled in, that row's line appears on its own. */
+.info-cr{
+  margin:1px 0 0; display:flex; align-items:baseline; gap:6px; flex-wrap:wrap;
+  font-size:11.5px; font-weight:400; line-height:1.45; color:var(--ink-soft);
+}
+.info-cr:empty{ display:none; }
+/* the separator is drawn between items rather than typed into the
+   strings: a credit is three independent fields and any of the three
+   may be absent, so nothing may own a leading or trailing bullet */
+.info-cr > * + *::before{ content:'·'; margin-inline-end:6px; opacity:.55; }
+.info-src, .info-lic{ color:var(--ink-soft); text-underline-offset:2px; }
+/* THE FOOT HOLDS ONE CONTROL, SO IT MUST NOT INHERIT .bnav's flex:1.
+   The builder's prev is half a row because it has a next beside it;
+   alone, flex:1 stretched חזרה to the full width and it read as the
+   loudest thing on a screen whose whole job is to be read, not acted on.
+   THE WIDTH IS THE BUILDER'S OWN, TO THE PIXEL: two .bnav at flex:1 with
+   .bfoot's 8px gap are each calc(50% - 4px), so that is the basis rather
+   than a round 50% that would sit 4px wider than the control it is
+   matching. It keeps the START position too — the physical RIGHT in this
+   RTL document, which is where the builder's back is and where the
+   reader came from. See .bnav and the chevron comment in proto.js. */
+.info-foot{ margin-top:12px; width:100%; }
+.info-foot .bnav{ flex:0 1 calc(50% - 4px); }
 
 /* =====================================================================
    §C · THE INVITATION, AND THE PLAYER ON THE END-GAME
