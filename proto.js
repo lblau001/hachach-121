@@ -1510,7 +1510,15 @@ function coinDelta(n) {
   coinDeltaEl.classList.add('is-on');
 }
 
-function award(n, from, snd) {
+/* `onDone` IS THE LANDING, AND IT IS THE SAME LANDING coinDelta USES.
+   Both branches below already know the moment the coins are actually in:
+   the last token's onLand, and the last frame of the count-up when there
+   are no tokens. This hands that moment out rather than letting a caller
+   guess it from a timer -- beat 5's sticker has to outlive its own coins,
+   and the only honest way to know when they have arrived is to be told.
+   It is optional and it is called exactly once; every existing caller
+   passes nothing and is unaffected. */
+function award(n, from, snd, onDone) {
   if (!n) return;
   /* SOUND · ONCE PER AWARD, AT SPAWN. award() is already called at
      T.stampLand — 360ms, the stamp's own landing — so this IS that mark,
@@ -1543,7 +1551,8 @@ function award(n, from, snd) {
               /* THE COUNT-UP IS THIS BRANCH'S LANDING. There are no tokens
                  to arrive, so the moment the coins are "in" is the moment
                  the number stops moving -- countCoins' own last frame. */
-              countCoins(out, from0, wallet, T.coin, () => { if (!isFinale) coinDelta(n); });
+              countCoins(out, from0, wallet, T.coin,
+                         () => { if (!isFinale) coinDelta(n); if (onDone) onDone(); });
               chip.classList.add('is-awarding');
               setTimeout(() => chip.classList.remove('is-awarding'), T.coin); return; }
 
@@ -1566,7 +1575,10 @@ function award(n, from, snd) {
       /* ONCE PER AWARD, NOT ONCE PER TOKEN. onLand runs 3-5 times -- the
          chip pops on every one of them, deliberately -- but the delta is
          the award's total and is stated when the award is fully paid. */
-      if (landed === pts.length && !isFinale) coinDelta(n);
+      if (landed === pts.length) {
+        if (!isFinale) coinDelta(n);
+        if (onDone) onDone();
+      }
     };
   });
 }
@@ -6887,23 +6899,78 @@ async function coinMoment(b, topicsWas) {
   const total = (S.coins || 0) + now;
 
   const coin = el('div', 'f5coin');
-  /* placed under the board rather than after it — it is out of flow now,
-     so it needs to be told where the board's bottom is. */
-  const bd = $('.f5board', b);
-  if (bd) coin.style.top = (bd.offsetTop + bd.offsetHeight + 26) + 'px';
   coin.innerHTML =
     '<span class="f5coin__n">+' + N(now) + '</span>' +
     '<p class="f5coin__sub">' + parts.join(' + ') + '</p>' +
     '<p class="f5coin__tot">' + esc('הסוגיה הזו: ') + N(total) + ' ●</p>'; /* TAMAR */
-  b.appendChild(coin);
-  requestAnimationFrame(() => { coin.classList.add('is-in'); });
+  /* IN FLOW, AND BEFORE .f5acts. It was position:absolute at the board's
+     bottom + 26px, which is a y computed from the board ALONE while the
+     result text sits in flow 11px under it -- so ~122px of a 113.5px
+     sticker landed on .f5outcome at z-index 3 and made both unreadable.
+     Nothing reserved its space because nothing could: an out-of-flow box
+     is invisible to the column that has to make room for it.
+     IT FITS. Measured at all three profiles, reading the column with
+     flex:none as f5Place() does -- .b5fit is flex:1, so a naive
+     scrollHeight returns the container height and says nothing: the
+     column is 393px without the sticker and 517px with it, against
+     782 / 605 / 578 of room. The tightest is 360x640 with 61px to spare,
+     so fitBeat() never scales the beat.
+     +150 IS NOT THE TALLER CASE. The caption does not wrap at any of the
+     three widths, so the column is 517px at both values and only the
+     number pill widens, 105.7 -> 126.8px.
+     BEFORE .f5acts, NOT APPENDED. .f5acts carries margin-top:auto and
+     .b5fit is flex:1, so the actions stay pinned to the bottom and the
+     sticker eats the slack above them instead of pushing them off. It
+     also has to land above the second .f5outcome that the .f5late branch
+     appends after this moment. */
+  const acts = $('.f5acts', b);
+  if (acts) b.insertBefore(coin, acts); else b.appendChild(coin);
+  /* the same arrival every other block in this beat gets: the class on
+     the next frame, then re-centre and re-fit. Skipping these is what
+     would leave the stack uncentred now that it is one block taller. */
+  const board0 = $('.f5board', b);
+  requestAnimationFrame(() => {
+    coin.classList.add('is-in');
+    f5Place(b, board0);
+    fitBeat();
+  });
+  /* THE HOLD STARTS AFTER THE FADE, NOT AT APPEND. It used to start on
+     the same tick as appendChild, so the 500ms hold and the 300ms
+     fade-in overlapped and the sticker was fully opaque for 185ms --
+     long enough to notice, nowhere near long enough to read a number AND
+     the caption under it, which is why .f5coin__sub has never been
+     legible. 300 in, then a clear 900 of stillness. */
+  if (!reducedCoin()) await wait(T.f5In);
   await wait(T.f5CoinHold);
   /* N2a · the finale's coin, named here and only here. The amount `now`
      is passed as it always was and is not consulted by the sound. */
-  award(now, coin, 'coinFinale');   /* the flight leaves FROM the sticker */
+  /* AND IT STAYS UP UNTIL ITS OWN COINS HAVE LANDED. .is-out used to be
+     added on the line after award(), so the sticker began dissolving on
+     the frame the coins left it and was gone ~230-310ms BEFORE they
+     arrived -- the object they visibly came from vanishing mid-flight.
+     award()'s onDone is the real arrival (the last token's onLand, or
+     the end of the count-up when there is no flight), so this waits for
+     it rather than for a timer that only approximates it. */
+  await new Promise(done => award(now, coin, 'coinFinale', done));
   coin.classList.add('is-out');
   await wait(T.f5CoinOut);
   coin.remove();
+  /* the stack is one block shorter again, so it is re-centred once more
+     rather than left sitting high for the rest of the beat */
+  f5Place(b, board0);
+  fitBeat();
+}
+
+/* REDUCED MOTION KEEPS THE TIME AND DROPS THE MOVEMENT. The fades are
+   motion and they go; the 900ms of stillness is READING TIME and it
+   stays. Reduce is a request to stop things moving, not a request to be
+   given less time to read them -- shortening the dwell here would be
+   answering a motion preference with a legibility cost. The CSS side
+   holds the sticker at full opacity with no transition; this is the JS
+   side of the same decision, and it is why the fade-in wait above is
+   skipped rather than the hold. */
+function reducedCoin() {
+  return matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
 /* ---- PART 2 · everything the player skips, behind one tap, IN THE

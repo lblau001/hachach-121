@@ -180,7 +180,11 @@
   --t-f5-prose:     800ms;   /* the twin's peak, before the flight     */
   --t-f5-gap:       400ms;   /* between two beats of the sequence      */
   --t-f5-flight:    700ms;
-  --t-f5-coin-hold: 500ms;   /* the sticker alone before it flies      */
+  /* 900, and it starts AFTER the 300ms fade-in rather than at append --
+     the two used to overlap and left 185ms of stable sticker, which is
+     not time to read a number and its caption. Reading time, not motion:
+     reduced motion keeps this and drops the fades. */
+  --t-f5-coin-hold: 900ms;   /* the sticker still, before it flies     */
   --t-f5-coin-out:  300ms;
   --t-f5-in:        300ms;   /* a block arriving                       */
   --t-f5-bnr-out:   250ms;   /* the emptied banner leaving              */
@@ -5967,8 +5971,12 @@ body.no-ph .f5more .ph{ display:inline-block !important; }
    its real settle, which is exactly the double move Part 3 forbids. It
    is absolutely placed under the board instead, so it can be as large as
    it likes and move nothing. */
+/* IN FLOW. position:absolute / left:50% / translate / z-index are gone --
+   see coinMoment(). The element is a flex child of .b5fit now, so it is
+   full width and align-items:center below does the centring that left:50%
+   and the translate used to do. Nothing is painted over anything, so the
+   board, the result text and the total line cannot be covered. */
 .f5coin{
-  position:absolute; left:50%; translate:-50% 0; z-index:3;
   display:flex; flex-direction:column; align-items:center;
   opacity:0; transform:scale(.9) rotate(-3deg);
   transition:opacity var(--t-f5-in) linear, transform var(--t-f5-in) var(--e-land);
@@ -5976,6 +5984,23 @@ body.no-ph .f5more .ph{ display:inline-block !important; }
 .f5coin.is-in{ opacity:1; transform:scale(1) rotate(-3deg); }
 .f5coin.is-out{ opacity:0; transform:scale(.94) rotate(-3deg);
   transition:opacity var(--t-f5-coin-out) linear, transform var(--t-f5-coin-out) var(--e-in); }
+/* REDUCE DROPS THE FADES AND KEEPS THE DWELL. The sticker is present at
+   full opacity from the frame it is appended and simply disappears when
+   the class comes off; the 900ms of stillness coinMoment() holds for is
+   untouched, because that is reading time and not motion. The global
+   reduce rule already flattens transition-duration to 1ms with its own
+   !important, so a plain `transition:none` here LOSES to it and would be
+   a declaration that reads as doing something it does not -- hence
+   transition-duration:0s !important, which actually wins. 1ms and 0s are
+   indistinguishable to the eye; the point is that the rule and its
+   comment agree. The transform is cancelled too, so the scale and the
+   -3deg do not run. !important on .is-out's opacity because the base rule
+   sets opacity:1 at equal specificity and would otherwise hold it up. */
+@media (prefers-reduced-motion: reduce){
+  .f5coin{ opacity:1; transform:none; transition-duration:0s !important; }
+  .f5coin.is-in{ opacity:1; transform:none; }
+  .f5coin.is-out{ opacity:0 !important; transform:none; transition-duration:0s !important; }
+}
 .f5coin__n{
   font-family:var(--font-display); font-weight:900; font-size:34px; direction:ltr;
   color:#131310; background:var(--primary); padding:10px 20px 12px; border-radius:16px;
