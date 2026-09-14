@@ -1418,6 +1418,37 @@ function sfxCard() {
   sfx(n);
 }
 
+/* THE 121ST VOTE IS TWO OBJECTS, FIRED TOGETHER. The player's chip lands
+   INTO the chamber's thunk: count_vote is the chip being set down and
+   count_land is the tally settling, and hearing them as one event is the
+   point -- the moment gets the weight of the count's own landing without
+   the player becoming the chamber.
+
+   IT DOES NOT REPLACE count_vote WITH THE TALLY'S SOUND, and that is the
+   whole care here. SFX_SRC's note on `vote` rules out "a third cut of the
+   tally": count_tick and count_land come from one spin-board take and
+   correlate at r=0.36, so painting the player with either would make the
+   chamber and the player the same object. Layering keeps both recordings
+   and both meanings -- the distinction survives, the moment gets heavier.
+
+   WHY THIS WAS THE FIX AND NOT A LEVEL CHANGE. count_vote is not quiet:
+   at RMS -27.19 it is ~4.5dB ABOVE count_tick and only 1.5dB under
+   count_land. It was the FIFTH thing on a frame that also carries
+   is-mine, is-up, is-plus1, paintBar() and buzz(), so nothing on that
+   frame read as the moment. Weight, not volume.
+
+   BOTH AT t=0, NO SCHEDULED OFFSET. Every other layered sound in this set
+   bakes its offset into the file -- stamp.wav carries its own 190ms
+   between knock and press, stamp_wrong.wav carries 185ms of leading
+   silence -- precisely so no offset lives in a scheduling call that can
+   drift. This adds none. Measured: the two transients do not coincide, so
+   the sample-summed peak is -5.09 dBFS with 5.09dB of headroom, against a
+   naive peak-on-peak worst case of +0.60 that would have clipped. */
+function sfxVote() {
+  sfx('vote');
+  sfx('land');
+}
+
 /* ===================== COINS · §0.3 and §4 =========================
    THE WALLET OUTLIVES THE ROUND. S.coins is the round's own tally and is
    reset by newRound(); the number in the HUD is the player's total across
@@ -6754,7 +6785,7 @@ function tickVote(board, tally) {
     nBox.classList.add('is-mine');
     nEl.textContent = String(to);
     paintBar();
-    sfx('vote');                    /* SOUND · motion is off, sound is not */
+    sfxVote();                      /* SOUND · motion is off, sound is not */
     return Promise.resolve();
   }
 
@@ -6810,8 +6841,10 @@ function tickVote(board, tally) {
       buzz('the121st');
       /* SOUND · THE 121ST VOTE, in the silence the beat leaves for it.
          Everything about the +1 already fires on one frame on purpose;
-         this is the fifth thing on that frame. */
-      sfx('vote');
+         this is the fifth thing on that frame -- which is why it is
+         sfxVote() and not sfx('vote'): see there for why the chip is
+         layered into the chamber's thunk rather than made louder. */
+      sfxVote();
       setTimeout(() => {
         /* THE WINDOWS DO NOT SURVIVE THE BEAT. The settled numeral is the
            single text node it was before the tick, so nothing downstream
