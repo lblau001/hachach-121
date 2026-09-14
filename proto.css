@@ -1316,12 +1316,61 @@ body.no-ph .ph{ display:none !important; }
    arbitrary whatever the origin is. What IS worth having is one
    declaration covering both, so they take the same one. */
 :root{
-  --cardback-scale:1.3;
-  --cardback-pattern:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2256%22%20height%3D%2248%22%20viewBox%3D%220%200%2056%2048%22%20shape-rendering%3D%22crispEdges%22%3E%3Crect%20x%3D%220%22%20y%3D%220%22%20width%3D%2256%22%20height%3D%2248%22%20fill%3D%22%23C4B48F%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%224%22%20width%3D%2256%22%20height%3D%227%22%20fill%3D%22%23A18A68%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%2211%22%20width%3D%2256%22%20height%3D%222%22%20fill%3D%22%238A7553%22%2F%3E%3Crect%20x%3D%223%22%20y%3D%2213%22%20width%3D%228%22%20height%3D%2226%22%20fill%3D%22%23BAA981%22%2F%3E%3Crect%20x%3D%229%22%20y%3D%2213%22%20width%3D%222%22%20height%3D%2226%22%20fill%3D%22%239C8763%22%2F%3E%3Crect%20x%3D%2217%22%20y%3D%2213%22%20width%3D%228%22%20height%3D%2226%22%20fill%3D%22%23BAA981%22%2F%3E%3Crect%20x%3D%2223%22%20y%3D%2213%22%20width%3D%222%22%20height%3D%2226%22%20fill%3D%22%239C8763%22%2F%3E%3Crect%20x%3D%2231%22%20y%3D%2213%22%20width%3D%228%22%20height%3D%2226%22%20fill%3D%22%23BAA981%22%2F%3E%3Crect%20x%3D%2237%22%20y%3D%2213%22%20width%3D%222%22%20height%3D%2226%22%20fill%3D%22%239C8763%22%2F%3E%3Crect%20x%3D%2245%22%20y%3D%2213%22%20width%3D%228%22%20height%3D%2226%22%20fill%3D%22%23BAA981%22%2F%3E%3Crect%20x%3D%2251%22%20y%3D%2213%22%20width%3D%222%22%20height%3D%2226%22%20fill%3D%22%239C8763%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%2239%22%20width%3D%2256%22%20height%3D%225%22%20fill%3D%22%23A18A68%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%2244%22%20width%3D%2256%22%20height%3D%222%22%20fill%3D%22%238A7553%22%2F%3E%3C%2Fsvg%3E");
+  /* 1.25, NOT 1.3, AND THE .05 IS ARITHMETIC RATHER THAN TASTE. The tile
+     has to land on whole CSS pixels or every repeat starts at a
+     fractional device position: that needs 56*s and 48*s both integral,
+     so s = k/8, and 1.25 -> 70 x 60 is the step next to 1.3 that
+     qualifies (1.375 -> 77 x 66 is the next one up and drops the bore
+     under two columns). It is visually the same card: 19.4 columns
+     across 340px against 1.3's 18.7, and the aperture holds 2.17 columns
+     against 2.10.
+     IT IS NOT A COMPLETE FIX ON ITS OWN, which is why the split below
+     exists. --card-scale is Math.min(1, avail / natural) off the viewport
+     height, so at 360x640 and 375x667 it is 0.7177 and 0.7613 and a whole
+     CSS tile is fractional in device pixels again. Whole pixels only hold
+     where --card-scale is exactly 1. */
+  --cardback-scale:1.25;
+  /* THE PATTERN IS TWO LAYERS BECAUSE OF WHERE THE SEAM WAS. iOS Safari
+     showed faint vertical hairlines at tile pitch, full card height,
+     which Chrome does not -- and the geometry says why. The columns never
+     cross a tile's x edge (x 0..3 and 53..56 are ground) but the roof
+     slab, its shadow, the base and its shadow all span x 0..56 and do. So
+     a sub-pixel gap at that boundary cuts four DARK full-width bands per
+     row and the light ground beneath shows through as a hairline. The y
+     boundary has nothing crossing it -- which is exactly why the seams
+     were vertical only, and that asymmetry is what identified the cause.
+
+     SO THE BANDS COME OFF THE TILE. They are a gradient at 100% width
+     repeating only in y: a layer that never tiles horizontally cannot
+     have a vertical tile boundary to leak at, at any DPR and any
+     --card-scale. The columns keep their tile, and a gap there is
+     invisible because the layer is transparent on both sides of the
+     boundary. Per edge, nothing opaque crosses anything:
+       columns, x edge   transparent 0..3 and 53..56
+       columns, y edge   transparent 0..13 and 39..48
+       bands,   x edge   does not exist -- the layer is 100% wide
+       bands,   y edge   transparent 0..8.33% and 95.83..100%
+     That is structural, not a tuned number, which is the point: the tuned
+     number could only ever be right on one viewport.
+
+     THE BAND STOPS ARE THE TILE'S OWN 48 UNITS AS PERCENTAGES -- 4/48,
+     11/48, 13/48, 39/48, 44/48, 46/48 -- so the two layers stay in step
+     if the unit is ever retuned. crispEdges stays on the columns; a
+     gradient has no equivalent and does not need one, its stops are
+     already hard. */
+  --cardback-cols:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2256%22%20height%3D%2248%22%20viewBox%3D%220%200%2056%2048%22%20shape-rendering%3D%22crispEdges%22%3E%3Crect%20x%3D%223%22%20y%3D%2213%22%20width%3D%228%22%20height%3D%2226%22%20fill%3D%22%23BAA981%22%2F%3E%3Crect%20x%3D%229%22%20y%3D%2213%22%20width%3D%222%22%20height%3D%2226%22%20fill%3D%22%239C8763%22%2F%3E%3Crect%20x%3D%2217%22%20y%3D%2213%22%20width%3D%228%22%20height%3D%2226%22%20fill%3D%22%23BAA981%22%2F%3E%3Crect%20x%3D%2223%22%20y%3D%2213%22%20width%3D%222%22%20height%3D%2226%22%20fill%3D%22%239C8763%22%2F%3E%3Crect%20x%3D%2231%22%20y%3D%2213%22%20width%3D%228%22%20height%3D%2226%22%20fill%3D%22%23BAA981%22%2F%3E%3Crect%20x%3D%2237%22%20y%3D%2213%22%20width%3D%222%22%20height%3D%2226%22%20fill%3D%22%239C8763%22%2F%3E%3Crect%20x%3D%2245%22%20y%3D%2213%22%20width%3D%228%22%20height%3D%2226%22%20fill%3D%22%23BAA981%22%2F%3E%3Crect%20x%3D%2251%22%20y%3D%2213%22%20width%3D%222%22%20height%3D%2226%22%20fill%3D%22%239C8763%22%2F%3E%3C%2Fsvg%3E");
+  --cardback-bands:linear-gradient(to bottom,
+    transparent 0 8.3333%, #A18A68 8.3333% 22.9167%, #8A7553 22.9167% 27.0833%,
+    transparent 27.0833% 81.25%, #A18A68 81.25% 91.6667%, #8A7553 91.6667% 95.8333%,
+    transparent 95.8333% 100%);
 }
 .cardback{
-  background:var(--cardback-pattern) center repeat, #C4B48F;
-  background-size:calc(56px * var(--cardback-scale)) calc(48px * var(--cardback-scale));
+  background:var(--cardback-cols) center repeat,
+             var(--cardback-bands) center repeat-y,
+             #C4B48F;
+  background-size:calc(56px * var(--cardback-scale)) calc(48px * var(--cardback-scale)),
+                  100% calc(48px * var(--cardback-scale)),
+                  auto;
   border:var(--card-border) solid var(--edge-warm);
   box-shadow:0 0 0 2px var(--keyline), var(--shadow-card);
   overflow:hidden;
@@ -2726,8 +2775,12 @@ body.no-ph .ph{ display:none !important; }
    The offsets start one step deeper than they did, because the face-down
    .deckcard now occupies the slot the first pile back used to. */
 .pile i{
-  background:var(--cardback-pattern) center repeat, #C4B48F;
-  background-size:calc(56px * var(--cardback-scale)) calc(48px * var(--cardback-scale));
+  background:var(--cardback-cols) center repeat,
+             var(--cardback-bands) center repeat-y,
+             #C4B48F;
+  background-size:calc(56px * var(--cardback-scale)) calc(48px * var(--cardback-scale)),
+                  100% calc(48px * var(--cardback-scale)),
+                  auto;
 }
 .pile i:nth-last-child(1){ transform:translate(3px,-17px) rotate(1.7deg); }
 .pile i:nth-last-child(2){ transform:translate(2px,-22px) rotate(1.4deg); }
