@@ -10920,14 +10920,20 @@ fetch('explorations/v16/prototype/manifest.json')
         .filter(k => !(M.politicians && M.politicians[k]));
       if (missing.length) console.warn('[mk] no portrait for: ' + missing.join(', '));
     } catch (e) { /* a warn may never be the thing that breaks a load */ }
-    /* THE CARD BACK'S ARTWORK, from the manifest like every other asset —
-       props.card_back, added to make_manifest.py when the set was
-       reframed. The literal is a fallback for a manifest generated before
-       that entry existed; it is not the path in use. */
-    const back = (M.props.card_back && (M.props.card_back.file || M.props.card_back['390']))
-               || 'assets/card_background.webp';
-    document.documentElement.style.setProperty('--cardback-art',
-      'url("' + ROOT + back + '")');
+    /* THE CARD BACK IS NO LONGER AN ASSET, so nothing is read for it here.
+       It used to take props.card_back off the manifest and write it into
+       --cardback-art; it is a tiling SVG pattern in proto.css now, for the
+       reason given at §1 THE CARD BACK -- an illustration cannot survive
+       being read through a 38px hole, and a texture can.
+       props.card_back IS DELIBERATELY LEFT IN THE MANIFEST. It is still
+       emitted by make_manifest.py and still names assets/card_background
+       .webp, and neither is touched: that is Roman's data path and
+       removing the entry would be editing generated output that would
+       simply come back. It is inert as far as this app is concerned, and
+       the asset is no longer fetched -- which is also 765KB off the first
+       load, the figure 560062a cut it down to.
+       IF THE BACK IS EVER AN IMAGE AGAIN, this is where it would be read;
+       the manifest entry is intact and waiting. */
     sizeStage(); boot(); })
   .catch(() => {
     /* THE FAILURE HAS TO BE VISIBLE. #round now lives inside a screen that
