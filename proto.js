@@ -3661,24 +3661,37 @@ function renderProfile(m) {
          name, I want to keep it" — not the code's. It was סגור for one
          device round and read as a second ✕ with no confirm. */
       '<button type="button" class="p-c prof-save" data-close>' + esc(PROF_COPY.save) + '</button>' +
-      /* 2d · THE INFO DOOR, AND IT IS A LINK FOR THE SAME REASON THE
-         RESET IS. שמור is the only primary on this sheet; a third
-         bordered control in this stack would compete with it and read
-         as a third thing the sheet is for. It sits ABOVE the reset
-         because the reset is destructive and stays last — the quiet
-         position is shared, the bottom of it is not. */
-      '<button type="button" class="prof-info" data-info>' +
-        esc(INFO_COPY.door) + '</button>' +
-      /* T35 · v30c · THE RESET DOOR, NOW BELOW THE PRIMARY. It sat between
-         the builder's door and שמור, which put a destructive link above
-         the one button on the sheet that is safe to press — the quiet
-         thing was in the loud position and the player read past it to
-         reach שמור. Last is where it belongs: it is not one of the two
-         things this sheet is for. Still a link and not a button, so שמור
-         remains the only primary; it opens a confirm and never resets on
-         its own. */
-      '<button type="button" class="prof-reset" data-reset>' +
-        esc(PROF_COPY.reset) + '</button>' +
+      /* THE TWO QUIET DOORS SHARE ONE ROW, AND THE ROW IS A WRAPPER.
+         .prof-actions is a flex COLUMN and has to stay one — the two
+         controls above it are full-width and stacked by design — so the
+         pair gets its own flex row inside it rather than the column
+         changing direction under all four.
+         DOM ORDER IS THE ORDER THEY HAD STACKED. In an RTL row the first
+         child lays out at the physical RIGHT, so info-then-reset here is
+         קרדיטים ומידע on the right and להתחיל מחדש on the left, which is
+         top-then-bottom read the way this document reads. Nothing about
+         their meaning changed with the axis. */
+      '<div class="prof-quiet">' +
+        /* 2d · THE INFO DOOR, AND IT IS A LINK FOR THE SAME REASON THE
+           RESET IS. שמור is the only primary on this sheet; a third
+           bordered control here would compete with it and read as a
+           third thing the sheet is for. It comes FIRST — the reset is
+           destructive and keeps the end of the row, as it kept the
+           bottom of the column. */
+        '<button type="button" class="prof-info" data-info>' +
+          esc(INFO_COPY.door) + '</button>' +
+        /* T35 · v30c · THE RESET DOOR, AFTER THE PRIMARY. It sat between
+           the builder's door and שמור, which put a destructive link above
+           the one button on the sheet that is safe to press — the quiet
+           thing was in the loud position and the player read past it to
+           reach שמור. Below both, and now beside the other quiet door,
+           is where it belongs: it is not one of the two things this
+           sheet is for. Still a link and not a button, so שמור remains
+           the only primary; it opens a confirm and never resets on its
+           own. */
+        '<button type="button" class="prof-reset" data-reset>' +
+          esc(PROF_COPY.reset) + '</button>' +
+      '</div>' +
     '</div>';
   const paint = () => $$('.gchip', box).forEach(c => {
     const on = c.dataset.g === PROFILE.gender;

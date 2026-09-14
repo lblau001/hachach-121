@@ -7725,37 +7725,59 @@ button.prof-hero:focus-visible{ outline:3px solid var(--primary); outline-offset
   min-height:52px; display:flex; align-items:center; justify-content:center;
   padding-block:0; gap:8px;
 }
-/* ...AND THE TWO QUIET LINKS ARE OUT OF IT, DELIBERATELY AND IN THE OPEN.
+/* ...AND THE QUIET PAIR IS OUT OF IT, DELIBERATELY AND IN THE OPEN.
    The rule above says what it is for in its own comment — "so P-C and
-   R-B match" — and it is about the two BUTTONS. `> *` swept the links up
-   with them, which gave an underlined 14px/400 link a 52px box. Two of
-   them stacked then read as two controls holding their distance rather
-   than two quiet doors.
+   R-B match" — and it is about the two BUTTONS. The links are neither,
+   and they now sit inside .prof-quiet rather than directly in the
+   column, so `> *` reaches the ROW and not them: the row takes the
+   flex, the centring and the padding-block:0 above, and only its
+   min-height is overridden here.
    ITEM 16 IS THE REASON THIS IS WRITTEN LOUDLY AND NOT AS A BARE LINE.
    `.prof-tweak{ min-height:46px }` sat further down this file at the
    same specificity and silently undid the 52 for one of the pair; that
    was a defect and it was removed. This is the opposite case — an
    exemption that is MEANT — so it is higher specificity, it is
-   immediately under the rule it modifies, and it names both elements
-   rather than reaching them through a selector that might one day catch
-   a third.
+   immediately under the rule it modifies, and it names the row rather
+   than reaching it through a selector that might one day catch a third.
 
-   44 AND NOT 0, WHICH IS THE TRAP HERE. `> *` also sets padding-block:0,
-   which overrides these links' own 8px — so min-height:0 does not leave
-   a 38px link, it leaves the bare line box at 20px. That is a worse
-   defect than the 54px this exemption exists to remove. 44 is the app's
-   own floor (.bnav is 44, .stmodal__x is a 46px target) and the flex
-   centring above puts the text in the middle of it; each link then
-   settles at 46, the floor plus the underline's descent.
+   44 IS THE FLOOR AND IT IS THE LINKS' FLOOR, NOT THE ROW'S DECORATION.
+   `> *` also sets padding-block:0, so a row left at its content height
+   would give each link the bare line box at 18px. 44 is this app's own
+   minimum (.bnav is 44, .stmodal__x is a 46px target); the row carries
+   it and .prof-quiet below pays for it in the links' own padding, so
+   the hit area belongs to the control and not to the gap beside it. */
+.prof-actions > .prof-quiet{ min-height:44px; }
 
-   WHY IT IS WORTH 16px. 2d's door took 2b from 524 to 586 in the 608 the
-   360x640 floor has, and 22px of slack is less than
-   env(safe-area-inset-bottom) on any notched phone. .prof would then
-   scroll — and .prof has overflow-y:auto WITHOUT .scrolls, so that
-   scroll is dead under a finger; see the rule at the top of this file.
-   54 -> 46 on both links gives 586 -> 570, and the floor 22 -> 38. */
-.prof-actions > .prof-info,
-.prof-actions > .prof-reset{ min-height:44px; }
+/* THE PAIR, SIDE BY SIDE. It was a stack of two 44px links, 8px of gap
+   and 2px of margin apiece — 98px of column for two short strings, on a
+   sheet whose 360x640 floor had 38px of slack left after 2d's door went
+   in. One row is 44, which is 56px back off the box (570 -> 514) and
+   takes the floor's slack to 94.
+   MEASURE THIS WITH offsetHeight, NEVER getBoundingClientRect. The box
+   is rotate(-1.4deg), so a rect reads a 44px link as 46 and a 260px row
+   as 50 tall, and two items side by side come back 3px apart in y when
+   they are exactly level. Every figure in this block is layout px.
+   THE GAP IS 28 AND IT IS DOING A JOB. Two underlined strings at the
+   same weight, the same colour and the same size read as one control if
+   they are close; with each link's own 8px of inline padding the ink is
+   44px apart — measured — which is wider than either word-space in
+   either string.
+   Not a divider between them: a rule would make the pair a unit, which
+   is the opposite of what the distance is for.
+   CENTRED AS A PAIR, so neither is the one that "starts" the row. The
+   column above centres its own full-width controls, and this keeps the
+   sheet's one vertical axis rather than hanging a quiet link off an
+   edge nothing else aligns to.
+   THE BLOCK PADDING IS THE TAP TARGET, AND IT IS 13 BECAUSE THE LINE
+   BOX IS 18. 13 + 18 + 13 is 44 per link, so each one is its own
+   44-high target and the row is not one wide target with two labels in
+   it. (12 was the first guess, against a line box assumed to be 20; it
+   measured 42.) Inline stays the 8px .prof-reset already had. */
+.prof-quiet{ gap:28px; }
+.prof-quiet > .prof-info,
+.prof-quiet > .prof-reset{
+  align-self:auto; margin-top:0; padding-block:13px;
+}
 /* the one primary. Everything on this sheet applied the moment it was
    tapped; this closes, and its copy is the player's model, not the code's. */
 .prof-save{ font-size:19px; }
