@@ -7879,13 +7879,42 @@ async function loadingExit(sc, chair, bar, dx, dy, k, done) {
    the window opens parked low and why the first incomplete node lands in
    the lower third rather than in the middle.
    ===================================================================== */
-/* the board's own serpentine, as fractions of the path's width so it
-   holds its shape at 375 and at 430. PathMap puts the eight centres at
-   275 · 227 · 131 · 83 · 131 · 227 · 275 · 227 across 358px. */
-const NODE_SERPENTINE = [.7682, .6341, .3659, .2318, .3659, .6341, .7682, .6341];
-/* the board drew eight; the sheet leaves six. Taking the first N keeps the
-   board's own x positions and its single S-curve rather than inventing a
-   new serpentine for every count. */
+/* v40 · VARIANT 6b. One full sine period spread over five steps, as
+   fractions of the path's width so it holds its shape at 360, 375 and 390:
+
+       x(i) = .5 - .215 * sin(i * 72deg)
+
+   Amplitude .215, so the extremes sit at .2955 and .7045 and the swing is
+   symmetric about the centreline. NODE 0 AND NODE 5 ARE BOTH DEAD CENTRE,
+   which is the point of it: sin is zero at 0deg and again at 360deg, so
+   the run opens on the centreline and closes back on it rather than
+   arriving at the foot off to one side.
+
+   CHOSEN FOR PEAK-BAND CLEARANCE. The previous serpentine put node 0 at
+   .7682 and node 3 at .2318 -- mirrored, and both close enough to the
+   edge that the current node's glow overhung #mapwin at its 1.16 pulse
+   peak (measured 3.5px at 360). .215 pulls the whole swing inside that
+   band. The measured clearance for this array is in the report; it is a
+   consequence of the amplitude and is the number to re-check if the
+   amplitude is ever retuned.
+
+   WHAT REPLACED WHAT. The old array was PathMap's eight centres --
+   275 · 227 · 131 · 83 · 131 · 227 · 275 · 227 across 358px -- a cosine
+   the board had been drawn from. It is gone, and so is the "the board
+   drew eight; the sheet leaves six" note under it: this generator is not
+   the board's and taking the first N of it is no longer a quotation.
+
+   THE ARRAY IS EIGHT LONG AND THE GENERATOR'S PERIOD IS FIVE, which is a
+   mismatch worth stating rather than leaving to be discovered. Entries 6
+   and 7 continue the formula (i=6 -> .2955, i=7 -> .3736, the same values
+   as i=1 and i=2), so every index the modulo can reach up to 7 is the
+   function's own value. At i=8 the wrap returns .5 where the formula
+   wants .6264. That is unreachable today -- data.js yields six topics --
+   and it is why the length is kept at eight rather than cut to five: the
+   shape of this declaration is unchanged, only its values. If the topic
+   count ever passes eight, cut the array to one period and this is
+   seamless again. */
+const NODE_SERPENTINE = [.5000, .2955, .3736, .6264, .7045, .5000, .2955, .3736];
 const NODE_X = i => NODE_SERPENTINE[i % NODE_SERPENTINE.length];
 
 /* the map's geometry lives in proto.css with everything else, so JS reads
