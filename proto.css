@@ -4016,6 +4016,66 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
 .hud-coins.is-landing{ animation:coin-land 180ms var(--e-out); }
 @keyframes coin-land{ 0%,100%{transform:none} 40%{transform:scale(1.09)} }
 
+/* ---- THE DELTA LABEL, the amount the counter is too fast to state ----
+   THE DRIFT IS THE POINT, not decoration. A number that fades in place
+   blinks; one that rises off the counter reads as coming OFF it, which is
+   what makes it a payment rather than a notification. 10px over 800ms.
+
+   GOLD, NEVER WHITE. --primary is the system's only yellow and every
+   other gold in the app resolves to it, so the colour alone says "coins"
+   before the glyph is read; white here would read as a system message.
+   The coin ART averages #E0B030, and matching that literally was the
+   other candidate -- rejected because a flat fill of an average goes dull
+   at 15px, where the art reads as gold only because it carries its own
+   shading.
+
+   THE PILL'S OWN TYPE, one step down: --font-display at 900, tabular, so
+   it belongs to the extruded language rather than sitting on it as a thin
+   caption. The two shadows are lift, not an outline -- the label crosses
+   the chyron and the card, so it cannot rely on the charcoal behind it.
+
+   translateX(-50%) IS IN EVERY KEYFRAME. `left` is the pill's centre, so
+   the centring lives in the transform -- and a keyframe that restated
+   only translateY would drop the -50% and snap the label half its width
+   to the right on the first frame. */
+.coin-delta{
+  position:absolute; z-index:1; pointer-events:none;
+  opacity:0; white-space:nowrap;
+  /* font-style IS NOT DECORATIVE HERE. The node is an <i> -- the same tag
+     .coin-t uses, chosen so this carries no semantics for a screen reader
+     -- and <i> defaults to italic. The pill's own number is upright, and a
+     synthetically slanted numeral beside an upright one reads as a
+     different typeface rather than as the same one. */
+  font-style:normal;
+  font-family:var(--font-display); font-weight:900; font-size:15px; line-height:1;
+  font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1;
+  color:var(--primary);
+  text-shadow:0 1px 3px rgba(0,0,0,.85), 0 2px 10px rgba(0,0,0,.7);
+  transform:translate(-50%, 0);
+}
+.coin-delta.is-on{ animation:coin-delta 800ms var(--e-out) both; }
+@keyframes coin-delta{
+  0%   { opacity:0; transform:translate(-50%, 2px) }
+  15%  { opacity:1; transform:translate(-50%, 0) }
+  70%  { opacity:1; transform:translate(-50%, -7px) }
+  100% { opacity:0; transform:translate(-50%, -10px) }
+}
+/* THE LABEL STILL APPEARS UNDER REDUCED MOTION -- it is information, and
+   the brief asks for it to stay readable. What goes is the DRIFT: it
+   holds still, sits at full opacity for most of its life, then fades.
+   !important ON THE DURATION because the global reduce rule is
+   `*{ animation-duration:1ms !important }` (see the foot of this file),
+   and 1ms here would not be a calmer label, it would be a flash nobody
+   could read. .coin-delta outranks `*`, so this wins. Same technique as
+   .sh-spin, and for the same reason. */
+@media (prefers-reduced-motion: reduce){
+  .coin-delta.is-on{ animation:coin-delta-still 800ms linear both !important; }
+  @keyframes coin-delta-still{
+    0%,75% { opacity:1; transform:translate(-50%, 0) }
+    100%   { opacity:0; transform:translate(-50%, 0) }
+  }
+}
+
 /* =====================================================================
    A6 · THE CLAIM RESOLVES ON THE SPOT
    A full-screen surface over everything: the verdict stamp alone first,
