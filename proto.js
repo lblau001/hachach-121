@@ -3414,6 +3414,96 @@ const PROF_COPY = {
   rsCoin: 'מטבעות',                     /* TAMAR · cost chip unit */
 };
 
+/* =====================================================================
+   THE INFO SURFACE · 2d. A FOURTH CONTENT FOR THE PROFILE STICKER.
+   Photo credits, methodology and the NGO's about-text, reached from a
+   quiet link at the foot of 2b and returned from by the same חזרה the
+   builder's first axis uses.
+
+   IT IS NOT A SHEET. The prototype has no bottom-sheet idiom — every
+   dismissible surface in it is the centred die-cut sticker — and the
+   one real bottom sheet in this repo (.explain-sheet, styles/issue.css)
+   belongs to the SHIPPED app. Porting that shape here would have been a
+   second sheet idiom, not reuse. It is the THIRD thing .prof swaps to
+   — 2a, 2c and this — through the same stickerSwap() the other two use.
+
+   EVERY STRING BELOW IS A PLACEHOLDER. The chrome is Tamar's to write.
+   The CREDITS ARE NOT COPY and carry no TAMAR mark: a photographer's
+   name, a licence identifier and a URL are legal text, and normalising
+   any of the three would be a defect rather than an edit. */
+const INFO_COPY = {
+  door:    'קרדיטים ומידע',        /* TAMAR · PLACEHOLDER · the quiet link at the foot of 2b */
+  title:   'קרדיטים ומידע',        /* TAMAR · PLACEHOLDER · 2d's own title */
+  credits: 'קרדיטים לתמונות',      /* TAMAR · PLACEHOLDER · section 1 */
+  method:  'איך בנינו את המשחק',   /* TAMAR · PLACEHOLDER · section 2 */
+  about:   'מי אנחנו',             /* TAMAR · PLACEHOLDER · section 3 */
+  source:  'מקור',                 /* TAMAR · PLACEHOLDER · the label on a credit's source link */
+  /* the two prose sections are structure today: one placeholder line
+     each, so the shape is visible and the length is not pretended at */
+  methodBody: 'כאן ייכתב הסבר על אופן איסוף הנתונים ובחירת הסוגיות.',   /* TAMAR · PLACEHOLDER */
+  aboutBody:  'כאן ייכתב הטקסט על העמותה.',                             /* TAMAR · PLACEHOLDER */
+};
+
+/* THE PHOTO CREDITS, KEYED BY THE ART INDEX'S OWN ID.
+   34 ROWS, NOT 29. The roster in data.js deals 28 of these people; the
+   manifest holds art for 34, and all 34 .webp sets are served out of
+   assets/mk/. A CC BY obligation attaches to what is DISTRIBUTED, not
+   to what a player happens to be dealt, so the list is the art index.
+   Six of these are people the game no longer deals — edelstein, galant,
+   gantz, lahav, michaeli, silman — and one person it DOES deal, taha,
+   has no art at all and is correctly absent: there is no photograph to
+   credit. See the manifest's `fallback` block for what he draws instead.
+
+   NAME AND PARTY ARE NOT HERE. They are read from M.politicians at
+   render time, so this object cannot drift from the art index on the
+   two fields the index already owns. The Hebrew name in each trailing
+   comment is a TRANSCRIPTION of M.politicians[key].name as it stood on
+   14 Sep 2026, kept only so the object can be filled in without holding
+   the manifest open beside it. It is an editing aid and nothing reads
+   it; the manifest is the truth on screen.
+
+   FOUR FIELDS, ALL EMPTY TODAY. author is the photographer, source the
+   page the file came from, licence the identifier as the licence states
+   it ("CC BY-SA 3.0", not a translation of it), licenceUrl the deed. A
+   row renders whatever of the four it has and nothing for what it does
+   not, so a half-filled row is visibly half-filled rather than wrong. */
+const MK_CREDITS = {
+  abbas:         { author:'', source:'', licence:'', licenceUrl:'' },   /* מנסור עבאס */
+  ben_ari_m:     { author:'', source:'', licence:'', licenceUrl:'' },   /* מירב בן-ארי */
+  ben_gvir:      { author:'', source:'', licence:'', licenceUrl:'' },   /* איתמר בן-גביר */
+  cohen_m:       { author:'', source:'', licence:'', licenceUrl:'' },   /* מירב כהן */
+  deri:          { author:'', source:'', licence:'', licenceUrl:'' },   /* אריה דרעי */
+  edelstein:     { author:'', source:'', licence:'', licenceUrl:'' },   /* יולי אדלשטיין */
+  eisenkot:      { author:'', source:'', licence:'', licenceUrl:'' },   /* גדי איזנקוט */
+  elharrar:      { author:'', source:'', licence:'', licenceUrl:'' },   /* קארין אלהרר */
+  elkin:         { author:'', source:'', licence:'', licenceUrl:'' },   /* זאב אלקין */
+  gafni:         { author:'', source:'', licence:'', licenceUrl:'' },   /* משה גפני */
+  galant:        { author:'', source:'', licence:'', licenceUrl:'' },   /* יואב גלנט */
+  gantz:         { author:'', source:'', licence:'', licenceUrl:'' },   /* בני גנץ */
+  goldknopf:     { author:'', source:'', licence:'', licenceUrl:'' },   /* יצחק גולדקנופ */
+  gotliv:        { author:'', source:'', licence:'', licenceUrl:'' },   /* טלי גוטליב */
+  kariv:         { author:'', source:'', licence:'', licenceUrl:'' },   /* גלעד קריב */
+  katz:          { author:'', source:'', licence:'', licenceUrl:'' },   /* ישראל כץ */
+  lahav:         { author:'', source:'', licence:'', licenceUrl:'' },   /* יוראי להב-הרצנו */
+  lapid:         { author:'', source:'', licence:'', licenceUrl:'' },   /* יאיר לפיד */
+  lazimi:        { author:'', source:'', licence:'', licenceUrl:'' },   /* נעמה לזימי */
+  levin:         { author:'', source:'', licence:'', licenceUrl:'' },   /* יריב לוין */
+  liberman:      { author:'', source:'', licence:'', licenceUrl:'' },   /* אביגדור ליברמן */
+  michaeli:      { author:'', source:'', licence:'', licenceUrl:'' },   /* מרב מיכאלי */
+  netanyahu:     { author:'', source:'', licence:'', licenceUrl:'' },   /* בנימין נתניהו */
+  odeh:          { author:'', source:'', licence:'', licenceUrl:'' },   /* איימן עודה */
+  ohanah:        { author:'', source:'', licence:'', licenceUrl:'' },   /* אמיר אוחנה */
+  saar:          { author:'', source:'', licence:'', licenceUrl:'' },   /* גדעון סער */
+  seglovitch:    { author:'', source:'', licence:'', licenceUrl:'' },   /* יואב סגלוביץ */
+  silman:        { author:'', source:'', licence:'', licenceUrl:'' },   /* עידית סילמן */
+  smotrich:      { author:'', source:'', licence:'', licenceUrl:'' },   /* בצלאל סמוטריץ' */
+  son_harmelech: { author:'', source:'', licence:'', licenceUrl:'' },   /* לימור סון הר-מלך */
+  strook:        { author:'', source:'', licence:'', licenceUrl:'' },   /* אורית סטרוק */
+  sukot:         { author:'', source:'', licence:'', licenceUrl:'' },   /* צבי סוכות */
+  tamno:         { author:'', source:'', licence:'', licenceUrl:'' },   /* פנינה תמנו-שטה */
+  troper:        { author:'', source:'', licence:'', licenceUrl:'' },   /* חילי טרופר */
+};
+
 /* ===== P2 · ONE HEIGHT TRANSITION FOR EVERY STICKER CONTENT SWAP =======
    stickerSwap(m, paint) — the ONLY way a .stmodal should change what is
    inside it. Not a profile helper: it takes the modal and a function that
@@ -3523,7 +3613,7 @@ function profileModal() {
    plural) and the way back to it has to be one tap too. */
 function renderProfile(m) {
   const box = $('[data-prof]', m);
-  box.classList.remove('prof--bld');
+  box.classList.remove('prof--bld', 'prof--info');
   const has = presets().length > 0;
   /* THE HERO IS THE DOOR TO 2a. A 132px button — the whole token, not
      just the chip — labelled with the board's shipped string, and a
@@ -3571,6 +3661,14 @@ function renderProfile(m) {
          name, I want to keep it" — not the code's. It was סגור for one
          device round and read as a second ✕ with no confirm. */
       '<button type="button" class="p-c prof-save" data-close>' + esc(PROF_COPY.save) + '</button>' +
+      /* 2d · THE INFO DOOR, AND IT IS A LINK FOR THE SAME REASON THE
+         RESET IS. שמור is the only primary on this sheet; a third
+         bordered control in this stack would compete with it and read
+         as a third thing the sheet is for. It sits ABOVE the reset
+         because the reset is destructive and stays last — the quiet
+         position is shared, the bottom of it is not. */
+      '<button type="button" class="prof-info" data-info>' +
+        esc(INFO_COPY.door) + '</button>' +
       /* T35 · v30c · THE RESET DOOR, NOW BELOW THE PRIMARY. It sat between
          the builder's door and שמור, which put a destructive link above
          the one button on the sheet that is safe to press — the quiet
@@ -3598,6 +3696,11 @@ function renderProfile(m) {
     () => stickerSwap(m, () => renderBuilder(m)));
   const rs = $('[data-reset]', box);
   if (rs) pressable(rs).addEventListener('click', () => resetConfirm());
+  /* 2d goes through stickerSwap like every other content change in this
+     sticker, so the box eases between 2b's height and the info screen's
+     rather than jumping. See the P2 block above stickerSwap(). */
+  pressable($('[data-info]', box)).addEventListener('click',
+    () => stickerSwap(m, () => renderInfo(m)));
   pressable($('[data-close]', box)).addEventListener('click', () => $('.stmodal__x', m).click());
   const nm = $('#profName', box);
   nm.addEventListener('input', () => setProfile({ name: cleanName(nm.value) }));
@@ -3620,7 +3723,7 @@ function renderSheet(m) {
      play is not on this sheet — so none carries the mark until one is
      picked, and picking it is what retires the build (below) */
   const cur = PROFILE.cfg ? null : currentPreset();
-  box.classList.remove('prof--bld');
+  box.classList.remove('prof--bld', 'prof--info');
   box.innerHTML =
     '<h2 class="peel-title">' + esc(PROF_COPY.swap) + '</h2>' +
     '<p class="peel-sub">' + esc(PROF_COPY.sub) + '</p>' +
@@ -3754,6 +3857,7 @@ function renderBuilder(m) {
   const preview = (c, g) => roundShell(buildAvatar(c, g));
 
   /* the grid is the one thing that may scroll here, never the hero */
+  box.classList.remove('prof--info');
   box.classList.add('prof--bld');
   box.innerHTML =
     '<h2 class="peel-title bld-title">' + esc(editing ? PROF_COPY.edit : PROF_COPY.build) + '</h2>' +
@@ -3859,6 +3963,88 @@ function renderBuilder(m) {
   };
   paintHero();
   paintSheet();
+}
+
+/* 2d. THE INFO SCREEN. Three sections in one scroller, under a pinned
+   title and over a pinned חזרה — the builder's silhouette exactly, and
+   for the builder's reason (see .prof--bld): while this is showing,
+   .prof stops being the scroller and ONE inner container owns the
+   overflow, so the title and the way back cannot scroll away.
+
+   THE SCROLLER CARRIES .scrolls, WHICH IS NOT OPTIONAL. html and body
+   are touch-action:none and .scrolls is the only place the pan gesture
+   is handed back; a new overflow container without it scrolls from
+   script and is dead under a finger, which is the silent failure the
+   rule at the top of proto.css was written after. .prof's own
+   overflow-y:auto is a safety net that is documented as never engaging,
+   and this screen deliberately does not make it engage. */
+function renderInfo(m) {
+  const box = $('[data-prof]', m);
+  box.classList.remove('prof--bld');
+  box.classList.add('prof--info');
+
+  /* THE LIST IS THE ART INDEX, NOT THE ROSTER. M.politicians is what
+     ships out of assets/mk/; MK_CREDITS is looked up BY the index's key
+     rather than iterated itself, so a person with art and no credit row
+     still appears — an empty row is a visible gap, a missing row is an
+     invisible one, and only one of those gets filled in.
+     THE FALLBACK IS MK_CREDITS' OWN KEYS, for the one frame before the
+     manifest fetch lands. The modal cannot be opened that early today —
+     boot() runs off the same .then() — so this is a guard, not a path. */
+  const art = (M && M.politicians) || {};
+  const ids = Object.keys(art).length ? Object.keys(art) : Object.keys(MK_CREDITS);
+
+  const link = (href, label, cls) =>
+    '<a class="' + cls + '" href="' + esc(href) + '" target="_blank" rel="noopener">' +
+      esc(label) + '</a>';
+
+  const rows = ids.map(id => {
+    const a = art[id] || {}, c = MK_CREDITS[id] || {};
+    /* WHATEVER OF THE FOUR THIS ROW HAS, AND NOTHING FOR WHAT IT HAS
+       NOT. The licence is a link when there is a deed to point at and
+       plain text when there is only an identifier — never the other way
+       round, and never a bare URL standing in for the name of a licence. */
+    const cr =
+      (c.author  ? '<span class="info-by">' + esc(c.author) + '</span>' : '') +
+      (c.source  ? link(c.source, INFO_COPY.source, 'info-src') : '') +
+      (c.licence ? (c.licenceUrl ? link(c.licenceUrl, c.licence, 'info-lic')
+                                 : '<span class="info-lic">' + esc(c.licence) + '</span>') : '');
+    return '<li class="info-row">' +
+        '<p class="info-who">' +
+          '<span class="info-name">' + esc(a.name || id) + '</span>' +
+          (a.party ? '<span class="info-party">' + esc(a.party) + '</span>' : '') +
+        '</p>' +
+        '<p class="info-cr">' + cr + '</p>' +
+      '</li>';
+  }).join('');
+
+  box.innerHTML =
+    '<h2 class="peel-title">' + esc(INFO_COPY.title) + '</h2>' +
+    '<div class="info scrolls">' +
+      '<section class="info-sec">' +
+        '<h3 class="info-h">' + esc(INFO_COPY.credits) + '</h3>' +
+        '<ul class="info-list">' + rows + '</ul>' +
+      '</section>' +
+      '<section class="info-sec">' +
+        '<h3 class="info-h">' + esc(INFO_COPY.method) + '</h3>' +
+        '<p class="info-p">' + esc(INFO_COPY.methodBody) + '</p>' +
+      '</section>' +
+      '<section class="info-sec">' +
+        '<h3 class="info-h">' + esc(INFO_COPY.about) + '</h3>' +
+        '<p class="info-p">' + esc(INFO_COPY.aboutBody) + '</p>' +
+      '</section>' +
+    '</div>' +
+    /* THE SAME FOOT THE BUILDER'S FIRST AXIS DRAWS: one .bnav--prev
+       carrying CHEV_R and PROF_COPY.back. Not a second string and not a
+       second control — back out of a profile sub-screen is one thing,
+       and it should look like one thing wherever the player met it. */
+    '<div class="bfoot info-foot">' +
+      '<button type="button" class="bnav bnav--prev" data-info-back>' +
+        CHEV_R + esc(PROF_COPY.back) + '</button>' +
+    '</div>';
+
+  pressable($('[data-info-back]', box)).addEventListener('click',
+    () => stickerSwap(m, () => renderProfile(m)));
 }
 /* THE CHEVRONS ARE DRAWN, NOT TYPED. › and ‹ are bidi-mirrored glyphs:
    in this RTL document a typed › renders pointing LEFT, so the back
