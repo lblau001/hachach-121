@@ -3698,9 +3698,18 @@ body.no-ph .ph{ display:none !important; }
 
 /* =====================================================================
    ITEM 43 · THE SUGGESTED FIRST NODE
-   Item 10's breathing sticker, on a map disc: the same 3500ms cycle, the
-   same 1.035 / -0.8deg, the same shadow travelling 2px out and back with
-   it. Only the shadow's construction differs, because .node-face's
+   Item 10's breathing sticker, on a map disc, RETIMED: a continuous
+   1400ms cycle to 1.05, with the same shadow travelling 2px out and back
+   with it. It was a 3500ms cycle that reached 1.035 / -0.8deg by 12% and
+   then held still from 20.571% to 100% -- a blip followed by a 2.8s wait,
+   which is long enough that a player arriving on the map reads the node
+   as static and never sees it move. It breathes continuously now, eased
+   in and out at both ends, and the rotate is gone: a tilt plus a scale on
+   an extruded disc reads as a wobble, and the lift is the part doing the
+   work. THE SHADOW STILL TRAVELS 2px, which is what makes it read as the
+   disc lifting off the page rather than as a zoom -- the correct feel for
+   an object the whole app builds out of extrusions.
+   Only the shadow's construction differs, because .node-face's
    extrusion is --node-depth on --node-base rather than the CTA's
    --z-press on --primary-base — and the shadow has to be restated at
    every frame, or the frames that omit it interpolate from "no shadow"
@@ -3719,25 +3728,24 @@ body.no-ph .ph{ display:none !important; }
    just closed and the map should be still for a moment before anything
    on it moves. */
 .node-face.is-breathing{
-  animation:node-breathe 3500ms linear 1200ms infinite both;
+  /* ease-in-out on the SHORTHAND, which applies per interval -- so it
+     eases out to the peak and eases back, rather than easing once across
+     the whole cycle. That is why there are no per-keyframe
+     animation-timing-function declarations here any more. */
+  animation:node-breathe 1400ms ease-in-out 1200ms infinite both;
 }
 @keyframes node-breathe{
-  /* 0 -> 420ms · out */
-  0%      { transform:scale(1) rotate(0deg);
-            box-shadow:0 var(--node-depth) 0 0 var(--node-base),
-                       0 0 0 1.5px rgba(0,0,0,.42);
-            animation-timing-function:cubic-bezier(.2,.8,.2,1) }
-  /* 420 -> 720ms · back */
-  12%     { transform:scale(1.035) rotate(-0.8deg);
-            box-shadow:0 calc(var(--node-depth) + 2px) 0 0 var(--node-base),
-                       0 0 0 1.5px rgba(0,0,0,.42);
-            animation-timing-function:ease-in-out }
-  /* 720 -> 3500ms · at rest, waiting */
-  20.571% { transform:scale(1) rotate(0deg);
+  /* THE SHADOW IS RESTATED AT BOTH ENDS, and that is not redundancy: a
+     keyframe that omits box-shadow interpolates from "no shadow", and the
+     disc's extrusion blinks once per cycle. Two keyframes, two full
+     shadows. */
+  /* 0 -> 700ms · out */
+  0%,100% { transform:scale(1);
             box-shadow:0 var(--node-depth) 0 0 var(--node-base),
                        0 0 0 1.5px rgba(0,0,0,.42) }
-  100%    { transform:scale(1) rotate(0deg);
-            box-shadow:0 var(--node-depth) 0 0 var(--node-base),
+  /* 700 -> 1400ms · back */
+  50%     { transform:scale(1.05);
+            box-shadow:0 calc(var(--node-depth) + 2px) 0 0 var(--node-base),
                        0 0 0 1.5px rgba(0,0,0,.42) }
 }
 /* NO ANIMATION AT ALL, not a 1ms one — item 10's argument verbatim, and
@@ -3828,8 +3836,64 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
   left:50%; top:calc(var(--node-face-y) + var(--node-face) / 2);
   width:150px; height:150px; margin:-75px 0 0 -75px;
   border-radius:50%; pointer-events:none;
-  background:radial-gradient(circle,
-    rgba(255,255,255,.34) 0%, rgba(255,255,255,.16) 42%, rgba(255,255,255,0) 70%);
+  /* THE FALLOFF REACHES THE BOX EDGE, and that is the whole fix. The
+     stops used to be 0 / 42% / 70%, which put BOTH of the alpha-carrying
+     stops behind the disc and killed the gradient before it cleared the
+     node's own progress ring: measured, the disc covers the inner 59.2%
+     of this box at rest and 51% at the 1.16 peak, and the ring runs from
+     72.7% to 86% (62.6% to 74.1% at peak). So the only glow that ever
+     rendered was a ~10px annulus between the disc edge and the ring's
+     inner edge, at 0.109 alpha falling to 0.042 -- on ground measured at
+     #D65D2C, because .stage's gradient is anchored at 50% 108% and does
+     not scroll, so the map's first node parks about 70% down the viewport
+     on the ORANGE end rather than the red one. White has its worst
+     contrast there.
+     RAISING THE ALPHAS WAS THE OTHER CANDIDATE AND IT IS THE WRONG ONE:
+     it brightens a band that is mostly occluded and still stops short of
+     the ring. Pushing the falloff out moves the glow into the clear
+     ground beyond the ring, where there is room for it -- same alphas,
+     about 2x the peak visible value over roughly 10x the area.
+     THE EXTENT IS closest-side, AND THAT IS A BUG FIX, not a tuning
+     choice. `radial-gradient(circle, ...)` defaults to FARTHEST-CORNER,
+     so in a 150px box 100% means 106.1px, not 75px. The stops were
+     written as if 100% were the box rim; it is not. The rim sits at
+     75/106.1 = 70.7% of the gradient, where this curve still carries
+     real alpha -- and border-radius:50% then cuts it there, dead flat.
+     That is a hard-edged disc, which is exactly how it read on device:
+     "a colored disc with an edge". No number of stops could have fixed
+     it, because the banding was never the problem -- the CLIP was.
+     closest-side makes 100% mean the box rim, so the curve reaches zero
+     exactly where the element stops painting and there is nothing to cut.
+
+     THE CURVE IS FLATTER FOR IT -- (1 - t^2), not (1 - t^2)^2. Pulling
+     the extent in from 106px to 75px shortens the ramp, and the squared
+     curve over the shorter ramp went thin: the disc already covers the
+     inner 51% at the 1.16 peak, so all the light lives in the outer
+     half. The linear-in-t^2 form keeps the annulus between the disc and
+     the ring bright while still landing on zero at the rim.
+
+     AND IT IS BLURRED, 12px. The gradient alone leaves a soft but real
+     terminal slope at the rim; 12px of blur dissolves it and lets the
+     light read as light rather than as a plate. This was measured both
+     ways at 12/14/16 -- the three are within a token of each other, and
+     12 is where the gain is already fully paid for.
+
+     THE CLIP IS SOLVED BY THE EXTENT, NOT BY THE BLUR RADIUS. #mapwin
+     resolves to overflow-x:auto and there is NO way around that: with
+     overflow-y:auto, `visible` on x computes to auto and `clip` computes
+     to hidden, so overflow-clip-margin never applies either. Verified in
+     Chrome, all five combinations. The fix is that closest-side puts
+     alpha 0 at the box rim, so the only thing the blur can smear past
+     the window edge is already-dark -- the foot node at 360 overhangs by
+     3.5px of near-zero light. Moving the glow out of the scroller, or
+     scrolling a different element, are the only other options and both
+     restructure the map. */
+  background:radial-gradient(circle closest-side,
+    rgba(242,179,60,0.720) 0%, rgba(242,179,60,0.716) 7%, rgba(242,179,60,0.706) 14%, rgba(242,179,60,0.688) 21%,
+    rgba(242,179,60,0.664) 28%, rgba(242,179,60,0.632) 35%, rgba(242,179,60,0.587) 43%, rgba(242,179,60,0.540) 50%,
+    rgba(242,179,60,0.486) 57%, rgba(242,179,60,0.425) 64%, rgba(242,179,60,0.357) 71%, rgba(242,179,60,0.271) 79%,
+    rgba(242,179,60,0.187) 86%, rgba(242,179,60,0.097) 93%, rgba(242,179,60,0.000) 100%);
+  filter:blur(12px);
   animation:node-pulse 3400ms var(--e-settle) infinite alternate;
 }
 @keyframes node-pulse{
