@@ -3698,9 +3698,18 @@ body.no-ph .ph{ display:none !important; }
 
 /* =====================================================================
    ITEM 43 · THE SUGGESTED FIRST NODE
-   Item 10's breathing sticker, on a map disc: the same 3500ms cycle, the
-   same 1.035 / -0.8deg, the same shadow travelling 2px out and back with
-   it. Only the shadow's construction differs, because .node-face's
+   Item 10's breathing sticker, on a map disc, RETIMED: a continuous
+   1400ms cycle to 1.05, with the same shadow travelling 2px out and back
+   with it. It was a 3500ms cycle that reached 1.035 / -0.8deg by 12% and
+   then held still from 20.571% to 100% -- a blip followed by a 2.8s wait,
+   which is long enough that a player arriving on the map reads the node
+   as static and never sees it move. It breathes continuously now, eased
+   in and out at both ends, and the rotate is gone: a tilt plus a scale on
+   an extruded disc reads as a wobble, and the lift is the part doing the
+   work. THE SHADOW STILL TRAVELS 2px, which is what makes it read as the
+   disc lifting off the page rather than as a zoom -- the correct feel for
+   an object the whole app builds out of extrusions.
+   Only the shadow's construction differs, because .node-face's
    extrusion is --node-depth on --node-base rather than the CTA's
    --z-press on --primary-base — and the shadow has to be restated at
    every frame, or the frames that omit it interpolate from "no shadow"
@@ -3719,25 +3728,24 @@ body.no-ph .ph{ display:none !important; }
    just closed and the map should be still for a moment before anything
    on it moves. */
 .node-face.is-breathing{
-  animation:node-breathe 3500ms linear 1200ms infinite both;
+  /* ease-in-out on the SHORTHAND, which applies per interval -- so it
+     eases out to the peak and eases back, rather than easing once across
+     the whole cycle. That is why there are no per-keyframe
+     animation-timing-function declarations here any more. */
+  animation:node-breathe 1400ms ease-in-out 1200ms infinite both;
 }
 @keyframes node-breathe{
-  /* 0 -> 420ms · out */
-  0%      { transform:scale(1) rotate(0deg);
-            box-shadow:0 var(--node-depth) 0 0 var(--node-base),
-                       0 0 0 1.5px rgba(0,0,0,.42);
-            animation-timing-function:cubic-bezier(.2,.8,.2,1) }
-  /* 420 -> 720ms · back */
-  12%     { transform:scale(1.035) rotate(-0.8deg);
-            box-shadow:0 calc(var(--node-depth) + 2px) 0 0 var(--node-base),
-                       0 0 0 1.5px rgba(0,0,0,.42);
-            animation-timing-function:ease-in-out }
-  /* 720 -> 3500ms · at rest, waiting */
-  20.571% { transform:scale(1) rotate(0deg);
+  /* THE SHADOW IS RESTATED AT BOTH ENDS, and that is not redundancy: a
+     keyframe that omits box-shadow interpolates from "no shadow", and the
+     disc's extrusion blinks once per cycle. Two keyframes, two full
+     shadows. */
+  /* 0 -> 700ms · out */
+  0%,100% { transform:scale(1);
             box-shadow:0 var(--node-depth) 0 0 var(--node-base),
                        0 0 0 1.5px rgba(0,0,0,.42) }
-  100%    { transform:scale(1) rotate(0deg);
-            box-shadow:0 var(--node-depth) 0 0 var(--node-base),
+  /* 700 -> 1400ms · back */
+  50%     { transform:scale(1.05);
+            box-shadow:0 calc(var(--node-depth) + 2px) 0 0 var(--node-base),
                        0 0 0 1.5px rgba(0,0,0,.42) }
 }
 /* NO ANIMATION AT ALL, not a 1ms one — item 10's argument verbatim, and
