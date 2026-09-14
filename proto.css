@@ -1246,16 +1246,82 @@ body.no-ph .ph{ display:none !important; }
   40%    { transform:rotateY(180deg) translateY(5px) }
 }
 
-/* §1 THE CARD BACK. One illustration, identical on every back and on
-   every pile card, at FULL STRENGTH — the previous treatment greyed it,
-   dropped it to 20% and multiplied it into the kraft, which was far too
-   faint to read as a card back at all.
-   BOTTOM-ANCHORED AND COVERED. The art is 1536x2752 (0.558) against a
-   340x620 card (0.548), so `cover` crops a sliver — and anchoring the
-   bottom takes that sliver off the EMPTY SKY at the top, keeping the
-   building and the flags at its foot, which is the part worth seeing. */
+/* §1 THE CARD BACK IS A TEXTURE NOW, NOT AN ILLUSTRATION, and the reason
+   is the hole. A card back is read in fragments -- the deck edge, the
+   sliver under the active card, and since T60 a 38px aperture punched
+   through the face -- and through 38px an illustration is an
+   unresolvable piece of a picture. A texture has the property an
+   illustration cannot: any 38px of it reads like the whole of it.
+
+   WHAT IT REPLACES. One photograph of a building, bottom-anchored and
+   `cover`-cropped so the crop fell on empty sky rather than on the flags
+   at its foot. The art was re-cut to 1038x1860 in 560062a (DPR3, first
+   load 1795KB -> 765KB); the note here said 1536x2752 for a long time
+   after that and was wrong. Both are gone with the illustration -- the
+   ratio reasoning went with them, because a tile has no crop.
+
+   A STENCILLED COLONNADE, STRAIGHT ON. No shear, no rotation, five tones
+   all pulled off the card's own paper and not one of them a colour:
+     #C4B48F  the tile ground, the paper itself
+     #A18A68  roof slab and base plinth
+     #8A7553  the shadow each of those throws
+     #BAA981  the column face
+     #9C8763  the shadow strip down each column's right edge
+
+   IT TILES IN BOTH AXES AND THE NUMBERS ARE WHY. 56x48. Columns 8 wide at
+   x = 3, 17, 31, 45, so the internal gaps are 6, 6, 6 and the 3px at each
+   edge sums to the same 6. Vertically the 2px of ground under the base
+   shadow plus the 4px above the roof slab is that 6 again. Verified in a
+   7.5 x 5.4 tile field rather than assumed.
+
+   A DATA URI, NOT AN SVG <pattern> AND NOT GRADIENTS. Gradients would
+   need a stack of repeating-linear-gradients kept mutually seamless by
+   hand, which is the kind of thing that drifts silently; thirteen rects
+   say it once. <pattern> is unnecessary because the SVG IS one tile and
+   background-repeat does the tiling -- which also makes background-size
+   the scale control. crispEdges so the bands stay hard at the sizes this
+   is actually read at rather than antialiasing to mush inside the bore.
+
+   --cardback-scale SHIPS AT 1.3, AND THE UNIT IS STILL 56x48 -- the
+   variable scales the tile, so the geometry above is unchanged and this
+   is a nudge rather than a redraw.
+   1.0 WAS TOO TIGHT FOR THE REAL CARD. At 340px wide the unscaled tile
+   puts 24.3 columns across the card, a column-and-gap every 14px, which
+   is a pitch the eye integrates into a stripe field instead of resolving
+   into columns -- it read as corduroy, not architecture. 1.3 brings it to
+   18.7 columns at a 19.6px pitch and drops the band rows from 12.9 to
+   9.9, which is where the storeys separate.
+   THE TRADE IS THE APERTURE, and it is worth naming because it is the
+   thing the texture exists for. A 38px bore holds 2.7 columns at 1.0 and
+   2.1 at 1.3; past about 1.4 it holds under two, and "any 38px of it
+   reads like the whole" starts to go. 1.3 is the largest step that still
+   keeps two columns and a band in the hole.
+
+   CENTRED, NOT ORIGIN-ANCHORED. `top left` tiled from the card's corner,
+   so the left and top edges fell on a clean tile boundary and the whole
+   remainder was dumped on the right and the bottom -- at 340x620 and the
+   56x48 unit that is 0px of crop on two edges against 4px and 44px on the
+   other two. `center` splits it: 30px each side, 46px top and bottom. The
+   pattern has no focal point, so there is nothing to lose by moving the
+   origin and a lopsided frame to gain by not.
+
+   .cardback AND .pile i SHARE THIS, and they should: the deck edges and
+   the card back are the same surface seen two ways, and they have always
+   been declared together, and measuring says keep it that way. A leaf is
+   not the sliver it looks like: at 390x844 it is a 353x627 box showing a
+   44px band along its top edge and 16px down its right -- most of a tile
+   row, not a few pixels. So the centring is not irrelevant there, it just
+   is not better or worse: the leaf is translated and rotated a couple of
+   degrees either way, so which slice of the tile lands in that band is
+   arbitrary whatever the origin is. What IS worth having is one
+   declaration covering both, so they take the same one. */
+:root{
+  --cardback-scale:1.3;
+  --cardback-pattern:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2256%22%20height%3D%2248%22%20viewBox%3D%220%200%2056%2048%22%20shape-rendering%3D%22crispEdges%22%3E%3Crect%20x%3D%220%22%20y%3D%220%22%20width%3D%2256%22%20height%3D%2248%22%20fill%3D%22%23C4B48F%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%224%22%20width%3D%2256%22%20height%3D%227%22%20fill%3D%22%23A18A68%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%2211%22%20width%3D%2256%22%20height%3D%222%22%20fill%3D%22%238A7553%22%2F%3E%3Crect%20x%3D%223%22%20y%3D%2213%22%20width%3D%228%22%20height%3D%2226%22%20fill%3D%22%23BAA981%22%2F%3E%3Crect%20x%3D%229%22%20y%3D%2213%22%20width%3D%222%22%20height%3D%2226%22%20fill%3D%22%239C8763%22%2F%3E%3Crect%20x%3D%2217%22%20y%3D%2213%22%20width%3D%228%22%20height%3D%2226%22%20fill%3D%22%23BAA981%22%2F%3E%3Crect%20x%3D%2223%22%20y%3D%2213%22%20width%3D%222%22%20height%3D%2226%22%20fill%3D%22%239C8763%22%2F%3E%3Crect%20x%3D%2231%22%20y%3D%2213%22%20width%3D%228%22%20height%3D%2226%22%20fill%3D%22%23BAA981%22%2F%3E%3Crect%20x%3D%2237%22%20y%3D%2213%22%20width%3D%222%22%20height%3D%2226%22%20fill%3D%22%239C8763%22%2F%3E%3Crect%20x%3D%2245%22%20y%3D%2213%22%20width%3D%228%22%20height%3D%2226%22%20fill%3D%22%23BAA981%22%2F%3E%3Crect%20x%3D%2251%22%20y%3D%2213%22%20width%3D%222%22%20height%3D%2226%22%20fill%3D%22%239C8763%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%2239%22%20width%3D%2256%22%20height%3D%225%22%20fill%3D%22%23A18A68%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%2244%22%20width%3D%2256%22%20height%3D%222%22%20fill%3D%22%238A7553%22%2F%3E%3C%2Fsvg%3E");
+}
 .cardback{
-  background:var(--cardback-art) bottom center / cover no-repeat, #C4B48F;
+  background:var(--cardback-pattern) center repeat, #C4B48F;
+  background-size:calc(56px * var(--cardback-scale)) calc(48px * var(--cardback-scale));
   border:var(--card-border) solid var(--edge-warm);
   box-shadow:0 0 0 2px var(--keyline), var(--shadow-card);
   overflow:hidden;
@@ -2399,6 +2465,138 @@ body.no-ph .ph{ display:none !important; }
     0 1px 0 rgba(255,255,255,.45),         /* the lit edge of the paper   */
     0 2px 3px rgba(0,0,0,.2);              /* and that edge's own depth   */
 }
+/* T60 · EXPERIMENT · THE REAL CUT -- ADDITIVE, AND REMOVABLE AS ONE BLOCK.
+   Nothing above is edited. .gx-punch keeps its fill gradient and T56's
+   tuned inset profile exactly as shipped; the fill is suppressed here,
+   through the new class, so reverting this experiment is deleting this
+   block and punchCut() rather than reconstructing the disc.
+
+   THE MASK IS GATED ON THE PUNCH BEING PRESENT, via :has(). That is what
+   lets claimLift() stay untouched: it removes the punch and nothing else,
+   and the hole closes on its own because the selector stops matching. No
+   teardown to write, nothing to keep in step, and no way for a face to be
+   left holed after its punch has gone.
+
+   transparent -> #000 over half a pixel rather than a hard stop: a mask
+   edge with no feather crawls at 38px.
+
+   THE FILL IS NOT REMOVED, IT IS MADE TRANSLUCENT. An early pass used
+   background:none and read as a flat cutout; the bore below is T56's
+   gradient shape rebuilt in ALPHA, so the backing shows through it but
+   arrives modelled. Its tuning is ground-dependent and is set there, not
+   here. */
+/* THE EDGE IS NOT A PERFECT CIRCLE, and it is a UNION OF THREE DISCS
+   rather than a wave. A sine round the rim reads as a decorative scallop
+   -- worse than a perfect circle -- so this is two deviations at
+   arbitrary angles and nothing else:
+       main  r=18.00 at ( 0.0,  0.0)
+       lobe1 r=15.95 at (+2.4, -1.8)  reach 18.95px = +0.95px at  +37deg
+       lobe2 r=15.90 at (-1.6, +2.6)  reach 18.95px = +0.95px at -122deg
+   EVERY REACH IS <= 19.00px, AND THAT IS A HARD CONSTRAINT, not a taste.
+   .gx-punch is 38px, so the bore paints to r=19 and no further. The first
+   cut had lobes reaching 20.50 and 20.05 -- 1.5px and 1.05px of HOLE with
+   no bore over it, showing raw backing. On paper that is a light crescent
+   at +37deg, upper-right, which is also where the bore gradient is
+   darkest: the most visible place on the whole element to leak. It was
+   NOT mask-composite misbehaving -- reproduced in Chrome against an r=19
+   reference ring, the union is exactly right and the bore is simply too
+   small for it. Any future change to these numbers has to keep the
+   reaches under the punch's radius.
+   0.95px on an 18px base: enough that it stops reading as a die-punch,
+   not enough to point at. HARD-CODED, SO IT IS THE SAME SHAPE
+   EVERY PUNCH -- a hole that changed between cards would read as a bug,
+   and there is no random() anywhere near this.
+   OUTWARD ONLY. The union is never smaller than 19px, so the cut never
+   pinches inside the punch and the centre cannot move: delta stays (0,0).
+   mask-composite:intersect, because a pixel is hidden if ANY layer hides
+   it -- so intersecting the masks UNIONS the holes. */
+.cardwrap:has(> .gx-punch.is-cut) .mf-b.has-cut{
+  -webkit-mask-image:
+    radial-gradient(circle at var(--cut-x) var(--cut-y), transparent 18px, #000 18.6px),
+    radial-gradient(circle at calc(var(--cut-x) + 2.4px) calc(var(--cut-y) - 1.8px),
+      transparent 15.95px, #000 16.55px),
+    radial-gradient(circle at calc(var(--cut-x) - 1.6px) calc(var(--cut-y) + 2.6px),
+      transparent 15.9px, #000 16.5px);
+  mask-image:
+    radial-gradient(circle at var(--cut-x) var(--cut-y), transparent 18px, #000 18.6px),
+    radial-gradient(circle at calc(var(--cut-x) + 2.4px) calc(var(--cut-y) - 1.8px),
+      transparent 15.95px, #000 16.55px),
+    radial-gradient(circle at calc(var(--cut-x) - 1.6px) calc(var(--cut-y) + 2.6px),
+      transparent 15.9px, #000 16.5px);
+  -webkit-mask-composite:source-in;
+  mask-composite:intersect;
+}
+/* THE BORE IS A TRANSLUCENT WASH NOW, not a removed fill. T56's gradient
+   SHAPE is reinstated in alpha over whatever shows through -- dark at the
+   occluded top, warm and lifted at the lit far wall -- so the backing is
+   still visible but modelled. background:none read as a flat cutout,
+   which is the "weak against paper" complaint.
+
+   THE TWO GROUNDS NEED OPPOSITE TREATMENTS, and this is the measured
+   reason there are two pairs rather than one compromise:
+     paper #C4B48F  bare mean 173, L .4636 -- 107 levels to darken into
+     floor #403E3A  bare mean  61, L .0484 --  38 levels, and you cannot
+                    darken below black, so a subtractive-only bore caps at
+                    ~20 levels of range there however hard it is pushed.
+   The range on the floor has to come from LIFTING the far wall, which is
+   what T56 did originally: #A89070 is lighter than the fill it sat in.
+   Hence --bore-far .18 on paper against .62 on the floor -- a 3.4x
+   difference, and a difference of direction, not of strength.
+     paper  top #181611 (20.8) -> bottom #BFAE89 (167.3)  range 146.5
+     floor  top #141413 (19.6) -> bottom #80715B (110.9)  range  91.3
+   T56's shipped profile on the old opaque fill was range 116, mid 58.
+   Paper clears it; the floor does not, and the floor is the open one. */
+.gx-punch.is-cut{
+  --bore-top:.88; --bore-far:.18;                 /* over the deck's paper */
+  background:radial-gradient(110% 110% at 50% 100%,
+    rgba(168,144,112,var(--bore-far)) 0%,
+    rgba(0,0,0,calc(var(--bore-top) * .40)) 34%,
+    rgba(0,0,0,calc(var(--bore-top) * .80)) 70%,
+    rgba(0,0,0,var(--bore-top)) 100%);
+  /* THE PAPER'S OWN THICKNESS, CATCHING THE LIGHT. Offset right-and-up, so
+     the hairline lands on the LOWER-LEFT inner wall -- the lit cut face,
+     given the light this design already assumes from the upper left. Zero
+     blur, so it stays a hairline and follows the bore's edge instead of
+     sitting on it as a separate arc. This is the cross-section of the
+     sheet, and it is what makes the hole read as going THROUGH the paper
+     rather than being drawn on it.
+     IT CARRIES THE DEPTH NOW, SO THE INSETS COME BACK. The near wall goes
+     .70 -> .60 and the rim .62 -> .55: with a lit edge doing the work,
+     leaving both at full strength had them competing, and the bore read
+     heavier without reading deeper.
+
+     .78 AND NOT .38, AND THE REASON IS WHAT EACH ONE SITS ON. The outer
+     lip this replaces -- `0 1px 0 rgba(255,255,255,.45)` -- was painted on
+     the CARD SURFACE, mean 173, so it landed at an absolute 210 and read
+     as a bright line. This hairline is painted on the BORE'S LOWER-LEFT
+     INNER WALL, and that wall is dark: the lit far wall of the gradient is
+     at the bottom CENTRE (50% 100%), not at the lower left, so the ground
+     under this shadow is about 51. At .38 it composited to 129 -- a bigger
+     RELATIVE lift than the outer lip's, and still far too dim to read as a
+     highlight, because what makes a highlight read is absolute brightness,
+     not local contrast. .78 lands it at 210, the same absolute value the
+     outer lip had. Same brightness, physically right surface. */
+  box-shadow:
+    inset 1px -1px 0 rgba(255,255,255,.78), /* the lit cut face, lower-left */
+    inset 0 4px 5px rgba(0,0,0,.60),        /* the occluded near wall       */
+    inset 0 0   0 1px rgba(0,0,0,.55);      /* the cut rim                  */
+  /* NO OUTER SHADOW, AND BOTH OF THEM HAD TO GO. `0 2px 3px rgba(0,0,0,.2)`
+     put a soft shadow on the card's own surface below the hole, and
+     `0 1px 0 rgba(255,255,255,.45)` put a lit lip under it -- the two
+     halves of the extruded-object idiom this file uses everywhere else.
+     They are correct for a DISC sitting on the card and impossible for a
+     CUT: a hole casts nothing onto the sheet it is cut into, and there is
+     no lower lip to catch light. Together they said "raised object" while
+     the bore said "hole", and the raised reading wins because a shadow on
+     the surface is the stronger cue.
+     THE DISC KEEPS BOTH. This rule restates box-shadow in full rather than
+     editing the base .gx-punch declaration above, so the unbacked claim
+     card -- which falls back to the filled disc -- still gets its lit lip
+     and its cast shadow, exactly as shipped. */
+}
+/* the last cascade card: nothing behind it but #403E3A and the dot grid */
+.gx-punch.is-cut.on-floor{ --bore-top:.68; --bore-far:.62; }
+
 .gx-punch__lab{
   position:absolute; bottom:calc(100% + 3px); left:50%; transform:translateX(-50%);
   white-space:nowrap; font-size:9px; line-height:1;
@@ -2528,7 +2726,8 @@ body.no-ph .ph{ display:none !important; }
    The offsets start one step deeper than they did, because the face-down
    .deckcard now occupies the slot the first pile back used to. */
 .pile i{
-  background:var(--cardback-art) bottom center / cover no-repeat, #C4B48F;
+  background:var(--cardback-pattern) center repeat, #C4B48F;
+  background-size:calc(56px * var(--cardback-scale)) calc(48px * var(--cardback-scale));
 }
 .pile i:nth-last-child(1){ transform:translate(3px,-17px) rotate(1.7deg); }
 .pile i:nth-last-child(2){ transform:translate(2px,-22px) rotate(1.4deg); }

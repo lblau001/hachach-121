@@ -5334,7 +5334,78 @@ function gxMark(cx, track) {
   m.style.left = ((cx - wr.x) / sc).toFixed(2) + 'px';
   m.style.top  = ((tr.y + tr.height / 2 - wr.y) / sc).toFixed(2) + 'px';
   wrap.appendChild(m);
+  punchCut(wrap, cx, tr.y + tr.height / 2, sc, m);
   return m;
+}
+
+/* T60 · EXPERIMENT · THE REAL CUT. Additive and removable: this function,
+   its one call above, and one CSS block are the whole of it. Nothing here
+   edits the disc -- .gx-punch's fill gradient and T56's tuned inset
+   profile are untouched in the file, and the fill is suppressed through
+   the new .is-cut class instead, so reverting is deleting rather than
+   reconstructing.
+
+   THE CUT IS ON THE FACE, NOT ON THE PUNCH. .gx-punch is a SIBLING of the
+   card on .cardwrap -- parented there because .mf-b carries overflow:
+   hidden -- so masking the punch itself would only reveal the card face
+   beneath it. The mask goes on the face; the punch stays on top and keeps
+   being the bore.
+
+   ONE SELECTOR FOR BOTH SURFACES. The claim card is `mf-b b1card`, so it
+   IS an .mf-b; the cascade face is .deckcard > .mf-b. `.mf-b.has-cut`
+   reaches both without forking anything.
+
+   MEASURED FROM THE FACE'S OWN RECT, not from .cardwrap's, so whatever
+   offset or transform the face carries is already in the subtraction. The
+   /sc is T58's conversion and is kept for the same reason: rects are
+   POST-scale viewport pixels and custom properties are read as PRE-scale
+   layout pixels, and --card-scale is exactly 1.0000 at 844 tall, which is
+   where that difference is invisible.
+
+   SUPPRESSED WHEN THERE IS NOTHING BEHIND, which is one rule covering two
+   cases rather than two special cases. A cut to bare stage is not a hole.
+     · the claim card on a round with no MK data -- S.dealt.length is 0, so
+       beat 1 appends the card alone and the file says it "stands alone
+       over the ground" by design;
+     · the LAST cascade card -- flipUp() only builds a next card while
+       i + 1 < S.dealt.length, so the final card has no paper under it.
+   Both fall back to the filled disc, untouched. */
+function punchCut(wrap, vx, vy, sc, m) {
+  const owner = $('.deckcard.is-current', wrap) || $('.b1card', wrap);
+  if (!owner) return;
+  const face = owner.classList.contains('b1card') ? owner : $('.mf-b', owner);
+  if (!face) return;
+  /* THE TWO BARE-GROUND CASES ARE NOT THE SAME CASE, and only one of them
+     is a reason to refuse the cut.
+       · THE CLAIM CARD WITH NO DECK is a data artifact: S.dealt.length is
+         0, beat 1 appends the card alone, and the file says it "stands
+         alone over the ground" by design. A hole there exposes an absence
+         rather than a depth, so it keeps the filled disc.
+       · THE LAST CASCADE CARD is a normal moment every run reaches --
+         flipUp() only builds a next card while i + 1 < S.dealt.length, and
+         setPile() drops to zero leaves -- so the ground behind it IS the
+         floor: #403E3A with .stage::before's dot grid, five transparent
+         levels below .cardwrap. That is the surface the cards rest on and
+         it is exactly what a hole in the last card should show. It also
+         happens to be one of the two moments T55 named as the reason to
+         build a real cut at all.
+     So the refusal is scoped to the claim card rather than to "nothing
+     behind". */
+  const isClaim = owner.classList.contains('b1card');
+  const backed = [...wrap.querySelectorAll('.deckcard, .b1card')].some(n => n !== owner);
+  if (isClaim && !backed) return;
+  const fr = face.getBoundingClientRect();
+  face.style.setProperty('--cut-x', ((vx - fr.x) / sc).toFixed(2) + 'px');
+  face.style.setProperty('--cut-y', ((vy - fr.y) / sc).toFixed(2) + 'px');
+  face.classList.add('has-cut');
+  m.classList.add('is-cut');
+  /* WHICH GROUND THE BORE IS OVER, which is the same question `backed`
+     already answered. Backed = the deck's #C4B48F paper; unbacked = the
+     last cascade card, over #403E3A and the dot grid. The two need
+     OPPOSITE treatments, not two strengths of one: paper has 107 levels
+     of range to darken into, the floor has 38 and has to be LIFTED at the
+     far wall instead. See the two --bore- pairs in proto.css. */
+  m.classList.toggle('on-floor', !backed);
 }
 
 /* the strip, played out. Every duration is a token; see :root. */
@@ -10849,14 +10920,20 @@ fetch('explorations/v16/prototype/manifest.json')
         .filter(k => !(M.politicians && M.politicians[k]));
       if (missing.length) console.warn('[mk] no portrait for: ' + missing.join(', '));
     } catch (e) { /* a warn may never be the thing that breaks a load */ }
-    /* THE CARD BACK'S ARTWORK, from the manifest like every other asset —
-       props.card_back, added to make_manifest.py when the set was
-       reframed. The literal is a fallback for a manifest generated before
-       that entry existed; it is not the path in use. */
-    const back = (M.props.card_back && (M.props.card_back.file || M.props.card_back['390']))
-               || 'assets/card_background.webp';
-    document.documentElement.style.setProperty('--cardback-art',
-      'url("' + ROOT + back + '")');
+    /* THE CARD BACK IS NO LONGER AN ASSET, so nothing is read for it here.
+       It used to take props.card_back off the manifest and write it into
+       --cardback-art; it is a tiling SVG pattern in proto.css now, for the
+       reason given at §1 THE CARD BACK -- an illustration cannot survive
+       being read through a 38px hole, and a texture can.
+       props.card_back IS DELIBERATELY LEFT IN THE MANIFEST. It is still
+       emitted by make_manifest.py and still names assets/card_background
+       .webp, and neither is touched: that is Roman's data path and
+       removing the entry would be editing generated output that would
+       simply come back. It is inert as far as this app is concerned, and
+       the asset is no longer fetched -- which is also 765KB off the first
+       load, the figure 560062a cut it down to.
+       IF THE BACK IS EVER AN IMAGE AGAIN, this is where it would be read;
+       the manifest entry is intact and waiting. */
     sizeStage(); boot(); })
   .catch(() => {
     /* THE FAILURE HAS TO BE VISIBLE. #round now lives inside a screen that
