@@ -3852,9 +3852,48 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
      it brightens a band that is mostly occluded and still stops short of
      the ring. Pushing the falloff out moves the glow into the clear
      ground beyond the ring, where there is room for it -- same alphas,
-     about 2x the peak visible value over roughly 10x the area. */
-  background:radial-gradient(circle,
-    rgba(255,255,255,.34) 0%, rgba(255,255,255,.16) 70%, rgba(255,255,255,0) 100%);
+     about 2x the peak visible value over roughly 10x the area.
+     THE EXTENT IS closest-side, AND THAT IS A BUG FIX, not a tuning
+     choice. `radial-gradient(circle, ...)` defaults to FARTHEST-CORNER,
+     so in a 150px box 100% means 106.1px, not 75px. The stops were
+     written as if 100% were the box rim; it is not. The rim sits at
+     75/106.1 = 70.7% of the gradient, where this curve still carries
+     real alpha -- and border-radius:50% then cuts it there, dead flat.
+     That is a hard-edged disc, which is exactly how it read on device:
+     "a colored disc with an edge". No number of stops could have fixed
+     it, because the banding was never the problem -- the CLIP was.
+     closest-side makes 100% mean the box rim, so the curve reaches zero
+     exactly where the element stops painting and there is nothing to cut.
+
+     THE CURVE IS FLATTER FOR IT -- (1 - t^2), not (1 - t^2)^2. Pulling
+     the extent in from 106px to 75px shortens the ramp, and the squared
+     curve over the shorter ramp went thin: the disc already covers the
+     inner 51% at the 1.16 peak, so all the light lives in the outer
+     half. The linear-in-t^2 form keeps the annulus between the disc and
+     the ring bright while still landing on zero at the rim.
+
+     AND IT IS BLURRED, 12px. The gradient alone leaves a soft but real
+     terminal slope at the rim; 12px of blur dissolves it and lets the
+     light read as light rather than as a plate. This was measured both
+     ways at 12/14/16 -- the three are within a token of each other, and
+     12 is where the gain is already fully paid for.
+
+     THE CLIP IS SOLVED BY THE EXTENT, NOT BY THE BLUR RADIUS. #mapwin
+     resolves to overflow-x:auto and there is NO way around that: with
+     overflow-y:auto, `visible` on x computes to auto and `clip` computes
+     to hidden, so overflow-clip-margin never applies either. Verified in
+     Chrome, all five combinations. The fix is that closest-side puts
+     alpha 0 at the box rim, so the only thing the blur can smear past
+     the window edge is already-dark -- the foot node at 360 overhangs by
+     3.5px of near-zero light. Moving the glow out of the scroller, or
+     scrolling a different element, are the only other options and both
+     restructure the map. */
+  background:radial-gradient(circle closest-side,
+    rgba(242,179,60,0.720) 0%, rgba(242,179,60,0.716) 7%, rgba(242,179,60,0.706) 14%, rgba(242,179,60,0.688) 21%,
+    rgba(242,179,60,0.664) 28%, rgba(242,179,60,0.632) 35%, rgba(242,179,60,0.587) 43%, rgba(242,179,60,0.540) 50%,
+    rgba(242,179,60,0.486) 57%, rgba(242,179,60,0.425) 64%, rgba(242,179,60,0.357) 71%, rgba(242,179,60,0.271) 79%,
+    rgba(242,179,60,0.187) 86%, rgba(242,179,60,0.097) 93%, rgba(242,179,60,0.000) 100%);
+  filter:blur(12px);
   animation:node-pulse 3400ms var(--e-settle) infinite alternate;
 }
 @keyframes node-pulse{
