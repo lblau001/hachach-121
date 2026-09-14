@@ -1462,6 +1462,54 @@ const coinCount = n => Math.max(3, Math.min(5, Math.round(n / 25) + 2));
    a recorded NEVER. The axis is WHICH MOMENT, never HOW MUCH. If a future
    change writes `if (n > ...)` anywhere near this line, that change is
    wrong. */
+/* ---- THE DELTA LABEL ------------------------------------------------
+   A "+N" that rises off the coin pill and fades. The counter itself ticks
+   too fast to read as an amount -- it is a running total changing, not a
+   payment -- so this is the only place the app ever states what a single
+   award was worth.
+
+   IT FIRES ON THE LANDING, NEVER ON THE AWARD. award() is called at the
+   stamp's landing and the tokens are still ~530-610ms out at that point;
+   a number that appears while the coins are mid-flight is announcing a
+   payment that has not arrived. The two call sites below are the two
+   moments coins actually finish: the LAST token's onLand, and the end of
+   the count-up on the branch that has no tokens at all.
+
+   ONE ELEMENT, REUSED -- it REPLACES, it does not stack. The cascade
+   waits T.stampLand + T.flip = 740ms between cards and this label runs
+   800ms, so a second award can land while the first label is still up.
+   Stacking would need vertical offsets from a pill whose bottom is 2px
+   off the HUD's own bottom edge, which puts the second label on the
+   chyron and a third on the card; queueing would hold the number past the
+   coins it belongs to, which is the one thing this must not do. The pill
+   carries the running total and reconciles anything the eye misses.
+
+   IT LIVES IN #coinfly, which is inset:0, z-index 60, pointer-events:none
+   -- "over everything, out of every layout", which is why this cannot
+   shift the pill or the HUD by construction. A pseudo-element on the pill
+   would have ridden .hud-coins' own coin-land transform and bumped with
+   it rather than floating free of it. */
+let coinDeltaEl = null;
+function coinDelta(n) {
+  if (!n) return;
+  const layer = $('#coinfly'), chip = $('.hud-coins');
+  if (!layer || !chip) return;
+  const box = layer.getBoundingClientRect(), p = chip.getBoundingClientRect();
+  /* the pill has to be laid out to be measured; if it is not, there is
+     nothing to centre on and the label is simply skipped */
+  if (!p.width) return;
+  if (!coinDeltaEl || !coinDeltaEl.isConnected) {
+    coinDeltaEl = el('i', 'coin-delta');
+    layer.appendChild(coinDeltaEl);
+  }
+  coinDeltaEl.innerHTML = '+' + N(n);
+  coinDeltaEl.style.left = (p.left + p.width / 2 - box.left).toFixed(1) + 'px';
+  coinDeltaEl.style.top  = (p.bottom - box.top + 4).toFixed(1) + 'px';
+  /* restart: a live label is re-aimed and re-run rather than joined */
+  coinDeltaEl.classList.remove('is-on'); void coinDeltaEl.offsetWidth;
+  coinDeltaEl.classList.add('is-on');
+}
+
 function award(n, from, snd) {
   if (!n) return;
   /* SOUND · ONCE PER AWARD, AT SPAWN. award() is already called at
@@ -1473,6 +1521,13 @@ function award(n, from, snd) {
      an award with no origin pays as a plain count-up with no tokens at
      all, and it still gets its one sound. */
   sfx(snd || 'coin');
+  /* NO PILL LABEL ON THE FINALE. beat 5 prints its own "+N" on the coin
+     sticker and holds it there, then flies the coins FROM that sticker --
+     so a second +N at the pill restates a number still on screen, which
+     reads as a double-count rather than as feedback. `snd` already names
+     which moment this is, so the test is the moment and not the amount --
+     see the NOTHING READS `n` rule above. */
+  const isFinale = snd === 'coinFinale';
   const chip = $('.hud-coins'), out = $('#coinNum');
   if (S) S.coins += n;             /* the round's own tally; null on the map */
 
@@ -1485,7 +1540,10 @@ function award(n, from, snd) {
      still mid-flight when the tab closes is worth exactly what the
      counter had already paid in. See THE SAVE. */
   if (!pts) { const from0 = wallet; wallet += n; saveState();
-              countCoins(out, from0, wallet, T.coin);
+              /* THE COUNT-UP IS THIS BRANCH'S LANDING. There are no tokens
+                 to arrive, so the moment the coins are "in" is the moment
+                 the number stops moving -- countCoins' own last frame. */
+              countCoins(out, from0, wallet, T.coin, () => { if (!isFinale) coinDelta(n); });
               chip.classList.add('is-awarding');
               setTimeout(() => chip.classList.remove('is-awarding'), T.coin); return; }
 
@@ -1505,17 +1563,22 @@ function award(n, from, snd) {
       saveState();
       chip.classList.remove('is-landing'); void chip.offsetWidth;
       chip.classList.add('is-landing');    /* a small pop PER arrival */
+      /* ONCE PER AWARD, NOT ONCE PER TOKEN. onLand runs 3-5 times -- the
+         chip pops on every one of them, deliberately -- but the delta is
+         the award's total and is stated when the award is fully paid. */
+      if (landed === pts.length && !isFinale) coinDelta(n);
     };
   });
 }
 
 /* the plain count-up, for an award with no origin */
-function countCoins(out, from, to, dur) {
+function countCoins(out, from, to, dur, done) {
   const t0 = performance.now();
   (function tick(now) {
     const k = Math.min(1, (now - t0) / dur);
     out.textContent = Math.round(from + (to - from) * (1 - Math.pow(1 - k, 3)));
-    if (k < 1) requestAnimationFrame(tick); else out.textContent = to;
+    if (k < 1) requestAnimationFrame(tick);
+    else { out.textContent = to; if (done) done(); }
   })(t0);
 }
 
