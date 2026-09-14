@@ -3836,8 +3836,25 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
   left:50%; top:calc(var(--node-face-y) + var(--node-face) / 2);
   width:150px; height:150px; margin:-75px 0 0 -75px;
   border-radius:50%; pointer-events:none;
+  /* THE FALLOFF REACHES THE BOX EDGE, and that is the whole fix. The
+     stops used to be 0 / 42% / 70%, which put BOTH of the alpha-carrying
+     stops behind the disc and killed the gradient before it cleared the
+     node's own progress ring: measured, the disc covers the inner 59.2%
+     of this box at rest and 51% at the 1.16 peak, and the ring runs from
+     72.7% to 86% (62.6% to 74.1% at peak). So the only glow that ever
+     rendered was a ~10px annulus between the disc edge and the ring's
+     inner edge, at 0.109 alpha falling to 0.042 -- on ground measured at
+     #D65D2C, because .stage's gradient is anchored at 50% 108% and does
+     not scroll, so the map's first node parks about 70% down the viewport
+     on the ORANGE end rather than the red one. White has its worst
+     contrast there.
+     RAISING THE ALPHAS WAS THE OTHER CANDIDATE AND IT IS THE WRONG ONE:
+     it brightens a band that is mostly occluded and still stops short of
+     the ring. Pushing the falloff out moves the glow into the clear
+     ground beyond the ring, where there is room for it -- same alphas,
+     about 2x the peak visible value over roughly 10x the area. */
   background:radial-gradient(circle,
-    rgba(255,255,255,.34) 0%, rgba(255,255,255,.16) 42%, rgba(255,255,255,0) 70%);
+    rgba(255,255,255,.34) 0%, rgba(255,255,255,.16) 70%, rgba(255,255,255,0) 100%);
   animation:node-pulse 3400ms var(--e-settle) infinite alternate;
 }
 @keyframes node-pulse{
