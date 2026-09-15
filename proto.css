@@ -196,6 +196,13 @@
      describing nothing else that runs. */
   --t-f5-board:     320ms;   /* the board rises to its final position   */
   --t-f5-panel:      80ms;   /* one step of the panels' stagger         */
+  /* HOW FAR INTO THE BOARD'S RISE THE FIRST PANEL ENTERS. The group used
+     to start on the same frame as the move, so the rise and the arrival
+     read as two things that happened at once. Held back by a third of
+     --t-f5-board the card arrives while the board is still travelling,
+     and the rise reads as the board making room for it — cause rather
+     than coincidence. 320 / 3, rounded to the nearest 10. */
+  --t-f5-lead:      107ms;
   /* ITEM 11 · the 121st vote, in the order it happens. */
   --t-f5-hold:      500ms;   /* a · the record, alone and readable      */
   --t-f5-tick-at:   120ms;   /* c · after the token has settled         */
@@ -774,11 +781,27 @@ body{
    than a thing in the world, and giving it the sticker treatment would
    put a fourth object in a corner that is currently empty.
    ===================================================================== */
+/* THE TOGGLE'S TWO NUMBERS, NAMED, because a second thing needs them:
+   --sound-toggle-clearance below is the room the rest of the app has to
+   leave in this corner, and it is that room ONLY because the toggle is
+   this size at this inset. Deriving the clearance from the same two
+   tokens is what stops the two drifting — move the toggle and the
+   clearance moves with it. The values are unchanged: 44 and 14. */
+:root{ --snd-size:44px; --snd-inset:14px; }
+/* WHAT EVERY SCROLLING SURFACE UNDER THE TOGGLE HAS TO CLEAR: the glyph's
+   box, the inset it floats at, and the device's own bottom inset under
+   both. Defined once here and read by .mapwin and .creveal__scroll.
+   BEAT 5 IS NOT ONE OF THEM, and deliberately: it does not scroll, it is
+   scaled to fit, and its content therefore cannot reach this corner —
+   measured clearances are in the report and fitBeat() carries the note.
+   .bgrid is not one either; the toggle is behind the modal there. */
+:root{ --sound-toggle-clearance:
+  calc(var(--snd-size) + var(--snd-inset) + env(safe-area-inset-bottom)); }
 .snd-t{
   position:absolute; z-index:12;
   left:calc(12px + env(safe-area-inset-left));
-  bottom:calc(14px + env(safe-area-inset-bottom));
-  width:44px; height:44px;          /* the target; the glyph inside is 20 */
+  bottom:calc(var(--snd-inset) + env(safe-area-inset-bottom));
+  width:var(--snd-size); height:var(--snd-size);   /* target; glyph is 20 */
   margin:0; padding:0; border:0; background:none;
   display:grid; place-items:center;
   color:#FFFFFF; opacity:.7;
@@ -3875,10 +3898,17 @@ body.no-ph .ph{ display:none !important; }
    THE FIX is to give the map back the padding on all four sides, not
    just two. The HUD floats over it at z-index 12, which it already did. */
 .sc-map{ min-height:0; }
+/* THE SOUND TOGGLE'S CORNER, RESERVED. The map is the one surface the
+   toggle floats over for its whole life, and the path runs to the
+   window's floor — so the last node's label could sit under the glyph at
+   a viewport that happened to end there. The room is padding INSIDE the
+   scroll, not a shorter window: the ribbon still bleeds to the edge and
+   the scroll simply has somewhere further to go. */
 .mapwin{
   position:relative; flex:1; min-height:0;
   margin:calc(-10px - env(safe-area-inset-top)) -16px
          calc(-12px - env(safe-area-inset-bottom));
+  padding-bottom:var(--sound-toggle-clearance);
 }
 /* the HUD and the jump button keep their inset — only the SURFACE bleeds */
 /* v30c · THE SAFE-AREA INSET MOVED TO THE BAR. This rule gave the pill
@@ -4887,9 +4917,14 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
   transition:opacity var(--t-flip) var(--e-out), transform var(--t-flip) var(--e-settle);
 }
 .creveal__exp.is-in{ opacity:1; transform:none; }
+/* THE SAME CORNER, ON THE ONE OTHER SURFACE THAT SCROLLS UNDER THE
+   TOGGLE. The claim reveal's explanation panel is inside the round, where
+   the toggle is shown on every beat but 2 — so its last line could land
+   behind the glyph. Same token, same reason; see :root. */
 .creveal__scroll{
   min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch;
   overscroll-behavior:contain;
+  padding-bottom:var(--sound-toggle-clearance);
   /* THE SCROLLBAR IS DRAWN OUT, NOT LEFT TO THE PLATFORM. On the two
      engines this ships to it is an overlay bar — no width, invisible at
      rest — so hiding it costs nothing and removes the one place a stray
@@ -6344,9 +6379,11 @@ body.no-ph .f5res .ph{ display:inline-block !important; }
    two things on the surface. Alone on the surface a capsule reads as the
    beat's ACTION — and the beat's action is the yellow CTA directly
    below it, so two filled controls in a row would compete for the same
-   press. Underlined display text is the same register as .f5back, which
-   is the other non-primary way off this screen, and it cannot be
-   mistaken for the CTA at any size.
+   press. Underlined display text is the quietest register on this
+   surface — it was chosen against .f5back, the outlined secondary that
+   used to sit below it, and it holds now that .f5back is gone: the only
+   filled control on the beat is the CTA, and this cannot be mistaken for
+   it at any size.
    THE BUTTON IS THE WHOLE PLATE. It keeps <button> — it opens a dialog
    and navigates nowhere, so it is not an <a> — and takes the surface's
    own padding as its own, so the entire lit block is the tap target and
@@ -6421,24 +6458,16 @@ body.no-ph .f5res .ph{ display:inline-block !important; }
 .f5acts{ margin-top:auto; padding-top:0; display:flex; flex-direction:column;
   align-items:stretch; gap:8px; flex:none; }
 .f5go{ font-size:18px; min-height:0; padding:12px 0 13px; }
-/* T34 · A SECONDARY BUTTON, NOT A TERTIARY LINK. It was a 15px underlined
-   text link, centred, 109x41 — under the 44px target minimum and reading
-   as an afterthought next to a full-width yellow primary. Now it is the
-   same width and the same shape as the primary, outlined rather than
-   filled.
-   THE STROKE IS NEUTRAL INK ON PURPOSE. Lime and magenta code
-   correctness in this game and nothing else; this is navigation, so the
-   outline is the paper-on-ink white the rest of the dark surfaces use.
-   IT STILL LOSES TO THE YELLOW, WHICH IS THE POINT: the primary is a
-   solid #FFD60A field carrying 18px ink at the darkest value on the
-   screen, this is 15px at #D8D2C4 on nothing. Figures in the report. */
-.f5back{
-  align-self:stretch; cursor:pointer; background:none;
-  border:2px solid rgba(255,255,255,.30); border-radius:12px;
-  font-family:var(--font-display); font-weight:900; font-size:15px; color:#D8D2C4;
-  padding:12px 0 13px; text-decoration:none;
-}
-.f5back:active{ background:rgba(255,255,255,.06); }
+/* T34 / T34b ARE GONE WITH THE BUTTON THEY DESCRIBED. .f5back was beat
+   5's secondary — חזרה למפה beside לסוגיה הבאה — and it is removed from
+   beat5() rather than restyled: the round chrome's ✕ already reaches the
+   map from that beat with no confirm and nothing discarded, so the row
+   carried two controls to one place. Nothing renders the class any more,
+   so the rule goes with it rather than sitting here as an orphan the
+   next reader has to prove dead. The reasoning T34 and T34b carried —
+   why a secondary outline must not borrow lime or magenta, and that the
+   primary's ring and extrusion are its hierarchy rather than its height —
+   is preserved in the report and in the commit that removed it. */
 
 /* ---- PART 2 · the disclosure's own surfaces are GONE. .f5scrim,
    .f5sheet, .f5grab, .f5sheet__body and .f5close went with moreSheet();
