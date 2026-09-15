@@ -8191,13 +8191,30 @@ const EXIT_COPY = {
 
 function exitRound() {
   const midRound = S && S.beat > 1 && S.beat < 5;
-  /* quiet: leaving a round is never the moment for the invitation */
+  /* `quiet` MEANS ABANDONED, AND BEAT 5 IS NOT ABANDONED. It suppresses
+     maybeInvite() on arrival — goMap()'s own note says why: "an arrival
+     by abandoning a round is not a moment to ask anything." But this
+     function passed it on EVERY path, because its only test is midRound,
+     and beat 5 fails that test for the opposite reason to beat 1: not
+     because nothing has happened yet, but because everything has. A
+     player who finishes a round and takes the ✕ has completed it —
+     PROGRESS and saveState() ran long before this control existed.
+     WHY IT MATTERS NOW. maybeInvite() needs topicsDone() >= 1, so it can
+     only ever fire on an arrival that FOLLOWS a finished beat 5. While
+     .f5back existed there was one path from that beat carrying no quiet
+     and the invitation could still fire; with .f5back removed every
+     remaining path is this one, and a `quiet` here would have deleted a
+     once-ever modal from the game silently. The flag now says what its
+     own comment always claimed it said.
+     WHAT THIS DOES NOT DECIDE: whether the invitation should fire at all,
+     or what it asks. That is content and it is Tamar's. This restores
+     the mechanism and changes nothing about the sheet itself. */
   /* FIXED, and not here: the stranded beat-2 surface this function used
      to carry a KNOWN-NOT-FIXED note about is gone with endRound(), which
      goMap() runs on the way out. Nothing about leaving a round is
      special-cased in this function any more — it decides whether to ask,
      and the teardown belongs to the door, not to the confirm. */
-  if (!midRound) return goMap({ quiet: true });
+  if (!midRound) return goMap({ quiet: S && S.beat < 5 });
 
   confirmSheet({
     q: t('exitQ'), note: EXIT_COPY.note, go: EXIT_COPY.go, stay: EXIT_COPY.stay,
