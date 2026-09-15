@@ -6279,6 +6279,14 @@ body.no-ph .f5res .ph{ display:inline-block !important; }
 }
 .f5coin__sub{ margin:9px 0 0; font-size:13px; color:#D8D2C4; text-align:center; }
 .f5coin__tot{ margin:3px 0 0; font-size:12px; font-weight:700; color:#8E897C; text-align:center; }
+/* T43 · the coin on this line is the IMAGE now, not a ● — see COIN_GLYPH
+   in proto.js for why and for where the 12 comes from. Size and baseline
+   only; .hud-coins sets its own 13 in a flex row, and this one sits in
+   running text, so it needs inline-block and a measured vertical-align
+   where the HUD needed neither. */
+.f5coin__tot .coin-glyph{
+  width:12px; height:12px; display:inline-block; vertical-align:-0.125em;
+}
 
 /* ---- the buttons. Last, and nothing lands after them. ---- */
 /* T34 · the 12px padding-top is gone: it was the stack-to-actions gap by
