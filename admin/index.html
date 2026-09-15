@@ -140,11 +140,21 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);direction:rt
 .gloss-def{font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:400px}
 
 /* POLITICIANS */
-.pol-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.pol-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
 .pol-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px;display:flex;gap:12px;align-items:flex-start}
-.pol-avatar{font-size:28px;flex-shrink:0;width:44px;text-align:center}
-.pol-fields{flex:1;display:flex;flex-direction:column;gap:6px}
+.pol-photo-wrap{width:56px;height:56px;flex-shrink:0;border-radius:6px;overflow:hidden;background:var(--surface-hi);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;transition:border-color .15s}
+.pol-photo-wrap:hover{border-color:var(--accent)}
+.pol-photo-wrap img{width:100%;height:100%;object-fit:cover;object-position:top}
+.pol-photo-emoji{font-size:26px;line-height:1;user-select:none}
+.pol-photo-overlay{position:absolute;inset:0;background:rgba(0,82,255,.6);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;font-size:11px;font-weight:700;color:#fff;text-align:center;line-height:1.2;padding:4px}
+.pol-photo-wrap:hover .pol-photo-overlay{opacity:1}
+.pol-fields{flex:1;display:flex;flex-direction:column;gap:5px;min-width:0}
 .pol-key{font-family:var(--mono);font-size:10px;color:var(--text-muted)}
+.pol-photo-row{display:flex;gap:4px;align-items:center;margin-top:2px}
+.pol-photo-url{flex:1;font-size:11px;padding:4px 6px;color:var(--text-dim)}
+.pol-upload-status{font-size:11px;font-weight:600;color:var(--success);opacity:0;transition:opacity .2s;white-space:nowrap}
+.pol-upload-status.visible{opacity:1}
+.pol-upload-status.err{color:var(--danger)}
 
 /* STATUS BAR */
 .statusbar{background:var(--surface);border-top:1px solid var(--border);padding:5px 20px;display:flex;align-items:center;gap:10px;font-size:11px;color:var(--text-muted);flex-shrink:0}
@@ -726,7 +736,35 @@ document.getElementById('saveNewPolBtn').addEventListener('click',()=>{
   errEl.textContent='';
 });
 
+/* ── PHOTO UPLOAD ── */
+async function uploadPolPhoto(key, file){
+  const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace('jpeg','jpg');
+  const path='photos/politicians/'+key+'.'+ext;
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=async()=>{
+      const b64=reader.result.split(',')[1];
+      try{
+        let sha;
+        try{ const ex=await ghFetch('/repos/'+REPO+'/contents/'+path+'?ref='+BRANCH); sha=ex.sha; }catch(e){}
+        const body={message:'CMS: תמונה לח"כ '+(dataObj.politicians[key]?.name||key),content:b64,branch:BRANCH};
+        if(sha) body.sha=sha;
+        await ghFetch('/repos/'+REPO+'/contents/'+path,{method:'PUT',body:JSON.stringify(body)});
+        const url='https://raw.githubusercontent.com/'+REPO+'/'+BRANCH+'/'+path;
+        resolve(url);
+      }catch(err){ reject(err); }
+    };
+    reader.onerror=reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 /* ── POLITICIANS ── */
+function polPhotoHtml(pol){
+  if(pol.photo) return '<img src="'+esc(pol.photo)+'" alt="'+esc(pol.name||'')+'" loading="lazy"><div class="pol-photo-overlay">החלף תמונה</div>';
+  return '<span class="pol-photo-emoji">'+esc(pol.avatar||'👤')+'</span><div class="pol-photo-overlay">הוסף תמונה</div>';
+}
+
 function renderPoliticians(){
   const grid=document.getElementById('pol-grid');
   grid.innerHTML='';
@@ -734,38 +772,75 @@ function renderPoliticians(){
     const card=document.createElement('div');
     card.className='pol-card';
     card.innerHTML=
-      '<div class="pol-avatar">'+esc(pol.avatar||'👤')+'</div>'+
+      '<div class="pol-photo-wrap" title="לחץ להעלאת תמונה">'+polPhotoHtml(pol)+'</div>'+
+      '<input type="file" accept="image/*" class="pol-file-inp" style="display:none">'+
       '<div class="pol-fields">'+
       '<span class="pol-key">'+key+'</span>'+
-      '<input class="form-input" data-pf="name" data-key="'+key+'" value="'+esc(pol.name||'')+'" placeholder="שם" style="margin-bottom:4px">'+
-      '<input class="form-input" data-pf="party" data-key="'+key+'" value="'+esc(pol.party||'')+'" placeholder="סיעה" style="margin-bottom:4px">'+
-      '<div style="display:flex;gap:6px">'+
-      '<input class="form-input" data-pf="avatar" data-key="'+key+'" value="'+esc(pol.avatar||'')+'" placeholder="🙂" maxlength="4" style="width:60px">'+
+      '<input class="form-input" data-pf="name" data-key="'+key+'" value="'+esc(pol.name||'')+'" placeholder="שם" style="margin-bottom:3px">'+
+      '<input class="form-input" data-pf="party" data-key="'+key+'" value="'+esc(pol.party||'')+'" placeholder="סיעה" style="margin-bottom:3px">'+
+      '<div style="display:flex;gap:5px;margin-bottom:3px">'+
+      '<input class="form-input" data-pf="avatar" data-key="'+key+'" value="'+esc(pol.avatar||'')+'" placeholder="🙂" maxlength="4" style="width:56px" title="אמוג׳י (גיבוי אם אין תמונה)">'+
       '<input class="form-input ltr" data-pf="mk_id" data-key="'+key+'" type="number" value="'+(pol.mk_id||'')+'" placeholder="MK ID" style="flex:1">'+
       '</div>'+
-      '<div style="display:flex;gap:6px;margin-top:6px">'+
+      '<div class="pol-photo-row">'+
+      '<input class="form-input pol-photo-url" data-pf="photo" data-key="'+key+'" value="'+esc(pol.photo||'')+'" placeholder="https://… (URL תמונה)" title="URL תמונה">'+
+      '<span class="pol-upload-status" id="upl-'+key+'"></span>'+
+      '</div>'+
+      '<div style="display:flex;gap:5px;margin-top:5px">'+
       '<button class="btn btn-primary btn-sm" data-save-pol="'+key+'">✓ עדכן</button>'+
+      '<button class="btn btn-ghost btn-sm pol-upload-btn" title="העלה תמונה לרפו">📷 העלה</button>'+
       '<button class="btn btn-danger btn-sm" data-del-pol="'+key+'">✕ מחק</button>'+
       '</div>'+
-      '<span class="save-status" id="pst-'+key+'"></span>'+
       '</div>';
+
+    /* click photo wrap or upload btn → file picker */
+    const fileInp=card.querySelector('.pol-file-inp');
+    const openPicker=()=>fileInp.click();
+    card.querySelector('.pol-photo-wrap').addEventListener('click',openPicker);
+    card.querySelector('.pol-upload-btn').addEventListener('click',openPicker);
+
+    fileInp.addEventListener('change',async()=>{
+      const file=fileInp.files[0];
+      if(!file) return;
+      const st=document.getElementById('upl-'+key);
+      st.textContent='מעלה…'; st.className='pol-upload-status visible';
+      try{
+        const url=await uploadPolPhoto(key,file);
+        dataObj.politicians[key].photo=url;
+        card.querySelector('[data-pf="photo"]').value=url;
+        card.querySelector('.pol-photo-wrap').innerHTML=polPhotoHtml(dataObj.politicians[key]);
+        markDirty();
+        st.textContent='✓ הועלה'; st.className='pol-upload-status visible';
+        setTimeout(()=>{ st.className='pol-upload-status'; },3000);
+      }catch(err){
+        st.textContent='שגיאה: '+err.message; st.className='pol-upload-status visible err';
+        setTimeout(()=>{ st.className='pol-upload-status'; },5000);
+      }
+      fileInp.value='';
+    });
+
     card.querySelector('[data-save-pol]').addEventListener('click',()=>{
       card.querySelectorAll('[data-pf]').forEach(inp=>{
         const field=inp.dataset.pf;
-        dataObj.politicians[key][field] = field==='mk_id' ? (parseInt(inp.value)||0) : inp.value;
+        if(field==='mk_id') dataObj.politicians[key][field]=parseInt(inp.value)||0;
+        else if(field==='photo'){ if(inp.value.trim()) dataObj.politicians[key][field]=inp.value.trim(); else delete dataObj.politicians[key][field]; }
+        else dataObj.politicians[key][field]=inp.value;
       });
       markDirty();
-      card.querySelector('.pol-avatar').textContent=dataObj.politicians[key].avatar||'👤';
+      card.querySelector('.pol-photo-wrap').innerHTML=polPhotoHtml(dataObj.politicians[key]);
       const st=document.getElementById('pst-'+key);
-      st.textContent='✓';st.className='save-status visible';
-      setTimeout(()=>{ st.className='save-status'; },2000);
+      if(!st){ /* inject if missing */ const s=document.createElement('span'); s.className='save-status'; s.id='pst-'+key; card.querySelector('.pol-fields').appendChild(s); }
+      const stEl=document.getElementById('pst-'+key);
+      if(stEl){ stEl.textContent='✓'; stEl.className='save-status visible'; setTimeout(()=>{ stEl.className='save-status'; },2000); }
     });
+
     card.querySelector('[data-del-pol]').addEventListener('click',()=>{
-      if(confirm('מחק את החכ"מ "'+pol.name+'" ('+key+')?')){
+      if(confirm('מחק את הח"כ "'+pol.name+'" ('+key+')?')){
         delete dataObj.politicians[key];
         markDirty(); renderPoliticians();
       }
     });
+
     grid.appendChild(card);
   });
   document.getElementById('pol-count').textContent=Object.keys(dataObj.politicians||{}).length;
