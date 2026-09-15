@@ -11069,7 +11069,6 @@ const SH_COPY = {
   outOf:    'מתוך',                                         /* TAMAR */
   surprised:'פעמים שהכנסת הפתיעה אותי',                     /* TAMAR */
   most:     'הכי הרבה הקצאתי ל',                            /* TAMAR */
-  more:     'עוד',                              /* "עוד N" — in words, never "+N" */ /* TAMAR */
   share:    'שיתוף',                                        /* TAMAR */
   save:     'שמירה לגלריה',                                 /* TAMAR */
   sharing:  'מכינים את הכרטיס…',                            /* TAMAR */
@@ -11122,17 +11121,27 @@ let SH_BUSY = false;
 
 /* ---- the pills: what the card is allowed to say ---------------------
    cardTopics() is the gate (see it). Ordered by allocation, highest
-   first; the free-text row rides along since 09 Sep. Three pills, then
-   "עוד N" IN WORDS — a leading "+" is a bidi neutral and renders as "5+",
-   which reads as "5 or more". */
-const SH_PILL_CAP = 3;
+   first; the free-text row rides along since 09 Sep.
+
+   T-A · NO CAP, AND NO "עוד N". The cap showed three pills and counted
+   the rest, which meant the card a player shares said less about them
+   the more they had to say — somebody who spread their allocation over
+   six topics got the same three names as somebody who picked three, plus
+   a chip reading "עוד 3" that names nobody. The allocation IS the
+   self-portrait; withholding most of it to protect the layout was the
+   wrong trade.
+
+   THE TIERS ALREADY HANDLED THIS. tier d's own comment called itself the
+   "7-8" step — it was written for the uncapped case and then never
+   reached, because the cap capped n at 4. The worst case is 7 (six
+   topics plus the free-text row) and cardTopics() filters v > 0, so
+   seven is a hard ceiling rather than an estimate. */
 function shPills() {
   const all = cardTopics(99);
-  const shown = all.slice(0, SH_PILL_CAP);
-  return { shown, more: all.length - shown.length, total: all.length };
+  return { shown: all, total: all.length };
 }
 /* the pill block's scale steps down as it grows — the v29e tiers, which
-   with the cap only ever reach b on 9:16 and c on 4:5 */
+   now reach d on both ratios at the 7-pill worst case */
 function shTier(n, aspect) {
   if (aspect === '45') return n <= 1 ? 'a' : n <= 3 ? 'b' : n <= 5 ? 'c' : 'd';
   return n <= 2 ? 'a' : n <= 4 ? 'b' : n <= 6 ? 'c' : 'd';
@@ -11140,7 +11149,7 @@ function shTier(n, aspect) {
 const shNum = v => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 function shPillsHTML(aspect) {
   const p = shPills();
-  const n = p.shown.length + (p.more ? 1 : 0);
+  const n = p.shown.length;
   if (!n) return '';
   let h = '<div class="ec-pills" data-t="' + shTier(n, aspect) + '">';
   p.shown.forEach(x => {
@@ -11159,7 +11168,6 @@ function shPillsHTML(aspect) {
              '<img class="coin-t ec-pill__coin" src="' + SH_SRC.coin + '" alt="" aria-hidden="true"></span>' +
          '</span>';
   });
-  if (p.more) h += '<span class="ec-pill ec-pill--more">' + esc(SH_COPY.more) + ' ' + p.more + '</span>';
   return h + '</div>';
 }
 

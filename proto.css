@@ -8712,9 +8712,6 @@ button.prof-hero:focus-visible{ outline:3px solid var(--primary); outline-offset
    own ✎ — marked as authored without being dressed as a ninth topic */
 .ec-pill--free{ background:var(--kraft); }
 .ec-pill__g{ opacity:.55; flex:none; }
-/* "עוד N" — an outline, not an object; it counts what is not shown */
-.ec-pill--more{ background:transparent; color:var(--ink-faint);
-                box-shadow:inset 0 0 0 4px currentColor; }
 /* tier a · 1-2 topics — full size, one per row */
 .ec-pills[data-t="a"]{ gap:18px; }
 .ec-pills[data-t="a"] .ec-pill{ font-size:54px; padding:20px 34px; gap:24px; }
@@ -8741,5 +8738,4 @@ button.prof-hero:focus-visible{ outline:3px solid var(--primary); outline-offset
 .ec-d-in .ec-pills[data-t="c"] .ec-pill{ box-shadow:0 0 0 3px var(--edge),0 0 0 5px var(--keyline),0 6px 0 rgba(0,0,0,.38); }
 .ec-d-in .ec-pills[data-t="d"] .ec-pill{ box-shadow:0 0 0 3px var(--edge),0 0 0 5px var(--keyline),0 5px 0 rgba(0,0,0,.38); }
 .ec-d-in .ec-pill--free{ background:var(--kraft-deep); }
-.ec-d-in .ec-pill--more{ box-shadow:inset 0 0 0 4px currentColor; }
 /* @ec-end */
