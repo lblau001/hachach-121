@@ -1004,6 +1004,49 @@ function t(key) {
   return (PROFILE.gender && c[PROFILE.gender]) || c.p;
 }
 
+/* =====================================================================
+   THE VOTE COUNT, AND THE ONE PLACE IT IS READ FROM.
+   tally_for / tally_against are the CMS's own fields — the two numeric
+   inputs on the issue form in admin/index.html, the only vote counts a
+   person can edit. issue._tally is NOT read anywhere any more: it was
+   the field the game rendered while the CMS wrote the other two, which
+   is how the board came to disagree with the record on six issues and
+   show a fossil on a seventh. A field nothing writes must not be a
+   field something reads. See the audit; _tally is now inert in data.js
+   and wants removing from the export, which is Roman's to do.
+
+   "HAS A TALLY" IS NOT "BOTH NUMBERS ARE TRUTHY", AND A BOYCOTT IS WHY.
+   A motion can carry with ZERO votes against — an opposition that walks
+   out rather than voting produces exactly that, and it is a documented
+   outcome, not a gap. A truthy test drops such an issue to prose and
+   hides a real vote; a `!== undefined` test alone lets an unfilled 0/0
+   draw an empty 0—0 bar, which asserts a vote nobody cast. So the test
+   is: both fields present and numeric, and AT LEAST ONE SIDE non-zero.
+   NO ISSUE IS IN THAT STATE TODAY and the branch is written anyway. It
+   came up over a1: Tamar reads the result as 59 with the opposition
+   boycotting, the Knesset page behind voteId 44946 gives 53/48, and the
+   two may be different votes on the same bill — unresolved as of 15 Sep
+   and not decided here. data.js is the source; if 59/0 lands, the board
+   draws it with no further change.
+     59 / 0   -> a tally. Somebody voted. Draws a bar, counts to 59 and 0.
+     0 / 59   -> the same, mirrored.
+     0 / 0    -> not a tally. No vote has been recorded; nothing is drawn.
+     absent   -> not a tally, and indistinguishable from 0/0 on purpose.
+   0/0 IS NOT A VOTE WHERE NOBODY VOTED — that is not a thing that
+   happens — so it can only mean "not entered yet", and it degrades to
+   the prose board exactly as an absent field does.
+
+   IT RETURNS THE SHAPE runCount() ALREADY TAKES, {for, against}, so the
+   board, the count-up, the +1 for the player's own vote and the majority
+   marker are all untouched by this change. */
+function issueTally(iss) {
+  if (!iss) return null;
+  const f = iss.tally_for, a = iss.tally_against;
+  if (!Number.isFinite(f) || !Number.isFinite(a)) return null;
+  if (f <= 0 && a <= 0) return null;
+  return { for: f, against: a };
+}
+
 /* ---- the initials badge. First letter of each part of the SHIPPED
         name, so it cannot drift from it. NEVER another MK's face. ---- */
 function initials(name) {
@@ -3305,8 +3348,8 @@ function stickerModal(o) {
 /* T5b · THE OUTCOME SENTENCE COMES OFF THE BILL SUMMARY BEFORE IT IS SHOWN.
    bill_summary is a CONTEXT field with an OUTCOME sentence welded onto the
    end of it on some issues — s1 finishes "עבר 61 מול 55." and its own
-   _tally is {for:61, against:55}, the exact pair the finale board counts up
-   to. The modal opens at beat 2. Left whole, the field hands the player the
+   tally_for/tally_against are 61 and 55, the exact pair the finale board
+   counts up to. The modal opens at beat 2. Left whole, the field hands the player the
    answer two beats before the cascade asks for it, which is the locked
    "crowd data never appears between the player's own vote and the reveal".
    The split is here rather than in data.js because the field is Tamar's to
@@ -6523,7 +6566,7 @@ async function beat5() {
   r.appendChild(outer);
   repin();
 
-  const tally  = issue._tally || null;
+  const tally  = issueTally(issue);   /* tally_for/tally_against — see issueTally() */
   let outcome  = null;                 /* the shared outcome surface */
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const step = ms => wait(reduced ? 0 : ms);
@@ -6540,11 +6583,15 @@ async function beat5() {
      ================================================================= */
   /* THE BOARD IS NOT BUILT WHEN IT WOULD BE EMPTY, and that is a change of
      kind rather than of degree. Without a tally the board's whole content
-     is issue.vote_result, and that field is empty on every active issue —
-     so what shipped was .f5board--prose collapsed to its own 11px/10px
-     padding: a 21px lit bar, keeping its fill, its inset hairline, its
-     extrusion and its glow, and arriving FIRST, as the peak of the beat.
-     An empty lit bar at the peak is worse than no bar.
+     is issue.vote_result — and when this was written that field was empty
+     on every active issue, so what shipped was .f5board--prose collapsed
+     to its own 11px/10px padding: a 21px lit bar, keeping its fill, its
+     inset hairline, its extrusion and its glow, and arriving FIRST, as
+     the peak of the beat. An empty lit bar at the peak is worse than no
+     bar. vote_result IS POPULATED ON ALL SIXTEEN ISSUES TODAY, so the
+     empty case is no longer reachable from the data — the guard stays
+     because it is about what the board does with nothing, not about how
+     many issues currently have something.
      There is no substitute copy and no hairline fallback: with nothing to
      say, the board does not exist, the plate becomes the first object, and
      the beat's own rule still holds — the loudest thing on screen is the
@@ -7156,10 +7203,11 @@ function runCount(board, tally) {
    scale.
 
    IT DERIVES FROM THE SAME PLACE THE COUNT DOES. `tally` is the object
-   beat5() reads out of issue._tally and hands to runCount() — one source,
-   passed in, never re-read from the DOM and never a second field name. If
-   the CMS reconciliation moves the board onto tally_for/tally_against,
-   beat5()'s single read moves with it and this follows for free. Reading
+   beat5() gets from issueTally() and hands to runCount() — one source,
+   passed in, never re-read from the DOM and never a second field name.
+   The CMS reconciliation this comment anticipated has happened: the board
+   reads tally_for/tally_against now, beat5()'s single read moved with it,
+   and this followed for free exactly as written. Reading
    the numeral's own text back off the screen would have been the other
    option and it is worse: it makes the animation depend on a rendering
    rather than on the record.
@@ -7604,8 +7652,8 @@ const RECORD = {};
                         denominator that is not re-derived later
      cf              whether the one celebration has been spent
    The surprise count is (claim ? 0 : 1) + (cards - hits), summed. The
-   alignment record compares `pos` to _tally, which lives in data.js and
-   is therefore never stored.
+   alignment record compares `pos` to the issue's tally_for/tally_against,
+   which live in data.js and are therefore never stored.
 
    WHAT IS DELIBERATELY NOT STORED. No timings. No per-MK answer history:
    WHICH member was missed is answer history, the counts are the beat's
@@ -9285,9 +9333,11 @@ function inviteModal() {
 
    THREE THINGS DEGRADE rather than block, and every one of them is a
    CONTENT gap in data.js, not a broken beat:
-     · no _tally (e2 b2 g1 g2 a2 v2 s2 m1) — beat 5 already drops the
-       count and the "with your vote" line and marks the missing figure;
-       see the tally guard there.
+     · no vote count (v2 alone today — a committee decision with no
+       plenum vote) — beat 5 drops the count and the "with your vote"
+       line and shows the outcome prose instead; see issueTally(). The
+       list is not written out here because it moves whenever someone
+       fills a tally in the CMS.
      · tf_answer "partial" (v1) — already treated as correct, so the claim
        cannot be scored against the player.
      · no issue artwork (14 of 16) — beat 1 falls back to the topic's own
@@ -9337,12 +9387,17 @@ function openTopic(topicId) {
    about the game never lying about its own numbers.
 
    THE ALIGNMENT DENOMINATOR IS THE ISSUES THAT CARRY A VOTE COUNT, and
-   it is small on purpose: only 4 of the 11 active issues have _tally, so
-   only 4 have a documented outcome to compare a position against. The
-   alternative — inferring a direction from some other field — would
+   it is whatever that number happens to be — NOT A FIGURE WRITTEN DOWN
+   HERE. It used to read "only 4 of the 11 active issues have _tally",
+   which was wrong twice over by the time anyone checked: there are 16
+   active issues, and the count moves every time someone fills a tally in
+   the CMS. It is 15 of 16 today (v2 is a committee decision with no
+   plenum vote and correctly has none). The rule is the durable thing:
+   an issue counts here when issueTally() gives it numbers, and the COPY
+   says what the denominator is rather than asserting a constant.
+   The alternative — inferring a direction from some other field — would
    invent an outcome the data does not state, on a product whose whole
-   credibility is documented votes. So the number stays 4 and the COPY
-   says what the 4 is.
+   credibility is documented votes.
    AN ABSTENTION IS COUNTED AND NEVER MATCHES. Dropping נמנע from the
    denominator would make it move per player and the sentence stop being
    checkable; keeping it is also just true — an abstention is not a vote
@@ -9361,7 +9416,7 @@ function endStats() {
     asked   += 1 + (r.cards || 0);
     correct += (r.claim ? 1 : 0) + (r.hits || 0);
     const iss = DATA.issues.find(i => i.id === id);
-    const tal = iss && iss._tally;
+    const tal = issueTally(iss);      /* the same one test beat 5 uses */
     if (tal && r.pos) {
       alignOf++;
       const majority = tal.for > tal.against ? 'for' : 'against';

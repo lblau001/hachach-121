@@ -750,9 +750,20 @@ function openResultsModal(){
 
 function tall_against(t){ return t.against; }
 function billOutcome(){
-  // from stored data if available
-  if(currentIssue._tally) return currentIssue._tally;
-  return null;
+  // tally_for/tally_against are the CMS's own fields — the two numeric
+  // inputs on the issue form — and the only vote counts a person edits.
+  // This read _tally, which the CMS never wrote, so the banner showed a
+  // frozen figure while the record said something else. _tally is read
+  // nowhere now. Mirrors issueTally() in proto.js; keep the two in step.
+  // "has a tally" is NOT "both numbers truthy": a motion can carry with
+  // ZERO against when the opposition boycotts, which is a documented
+  // outcome rather than a gap. Both fields present and numeric, and at
+  // least one side non-zero. 0/0 means "not entered yet" — no vote has
+  // nobody on both sides — and returns null.
+  const f = currentIssue.tally_for, a = currentIssue.tally_against;
+  if(!Number.isFinite(f) || !Number.isFinite(a)) return null;
+  if(f<=0 && a<=0) return null;
+  return {for:f, against:a};
 }
 
 function closeResultsModal(){
