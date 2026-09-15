@@ -6982,11 +6982,23 @@ async function beat5() {
     pressable(go).addEventListener('click', () => endGame());
     acts.appendChild(go);
   } else if (next) {
+    /* ONE BUTTON HERE TOO, AND THE SECOND ONE IS GONE RATHER THAN MOVED.
+       חזרה למפה sat beside לסוגיה הבאה on this branch only — the first
+       issue of a topic, six rounds of twelve; the last-issue and gameDone
+       branches have always been single. It was removed because it was a
+       SECOND CONTROL TO THE SAME PLACE WITH THE SAME EFFECT: the round
+       chrome's ✕ runs exitRound(), which on beat 5 fails its
+       `beat > 1 && beat < 5` test and returns goMap() immediately — no
+       confirm, nothing discarded, because PROGRESS and saveState() have
+       already run by the time this row is built. Two doors, one room.
+       AND IT BOUGHT THE BOTTOM CORNER BACK. The row is 63.5px shorter, so
+       the settled stack clears the sound toggle at 375x667 where the
+       two-button row overlapped it by 31px — measured, see the report.
+       A4's rule is unchanged and is what makes the ✕ sufficient: on the
+       final reveal everything has been answered, so it leaves at once. */
     const go = el('button', 'p-c f5go', 'לסוגיה הבאה ›');            /* TAMAR */
     pressable(go).addEventListener('click', () => startRound(next.id));
-    const back = el('button', 'f5back', 'חזרה למפה');                /* TAMAR */
-    pressable(back).addEventListener('click', () => goMap());
-    acts.append(go, back);
+    acts.appendChild(go);
   } else {
     const go = el('button', 'p-c f5go', 'חזרה למפה ›');              /* TAMAR */
     pressable(go).addEventListener('click', () => goMap());
