@@ -3705,14 +3705,25 @@ const INFO_COPY = {
 };
 
 /* THE PHOTO CREDITS, KEYED BY THE ART INDEX'S OWN ID.
-   34 ROWS, NOT 29. The roster in data.js deals 28 of these people; the
+   34 ROWS, NOT 29. The roster in data.js deals 29 of these people; the
    manifest holds art for 34, and all 34 .webp sets are served out of
    assets/mk/. A CC BY obligation attaches to what is DISTRIBUTED, not
    to what a player happens to be dealt, so the list is the art index.
-   Six of these are people the game no longer deals — edelstein, galant,
-   gantz, lahav, michaeli, silman — and one person it DOES deal, taha,
-   has no art at all and is correctly absent: there is no photograph to
-   credit. See the manifest's `fallback` block for what he draws instead.
+   FIVE of these are people the game no longer deals — edelstein, gantz,
+   lahav, michaeli, silman — and two people it DOES deal, taha and
+   gila_gamliael, have no art at all and are correctly absent: there is
+   no photograph to credit. See the manifest's `fallback` block for what
+   they draw instead.
+   IT WAS SIX UNTIL galant BECAME gallant. data.js spells him with two
+   Ls and the art was cut with one, so the key in the art index resolved
+   to nobody in the roster and his card fell through to an initials
+   badge. The art is re-cut from the 1360x2048 master under the roster's
+   own spelling, and the one-L set — mk_galant_{128,400,644}.webp and
+   the galant.webp master — is DELETED rather than left beside it. Four
+   files served out of assets/mk/ under a key this index does not carry
+   is the one state this list exists to make impossible: undeletable by
+   the credits screen because it cannot see them, and still distributed.
+   Git has them if a re-cut is ever needed.
 
    NAME AND PARTY ARE NOT HERE. They are read from M.politicians at
    render time, so this object cannot drift from the art index on the
@@ -3738,7 +3749,7 @@ const MK_CREDITS = {
   elharrar:      { author:'', source:'', licence:'', licenceUrl:'' },   /* קארין אלהרר */
   elkin:         { author:'', source:'', licence:'', licenceUrl:'' },   /* זאב אלקין */
   gafni:         { author:'', source:'', licence:'', licenceUrl:'' },   /* משה גפני */
-  galant:        { author:'', source:'', licence:'', licenceUrl:'' },   /* יואב גלנט */
+  gallant:       { author:'', source:'', licence:'', licenceUrl:'' },   /* יואב גלנט */
   gantz:         { author:'', source:'', licence:'', licenceUrl:'' },   /* בני גנץ */
   goldknopf:     { author:'', source:'', licence:'', licenceUrl:'' },   /* יצחק גולדקנופ */
   gotliv:        { author:'', source:'', licence:'', licenceUrl:'' },   /* טלי גוטליב */

@@ -99,14 +99,14 @@
       "hi_px": 1204,
       "dpr": 3.0
     },
-    "galant": {
+    "gallant": {
       "name": "יואב גלנט",
       "party": "הליכוד",
-      "400": "assets/mk/mk_galant_400.webp",
-      "128": "assets/mk/mk_galant_128.webp",
-      "hi": "assets/mk/mk_galant_644.webp",
-      "hi_px": 644,
-      "dpr": 1.61
+      "400": "assets/mk/mk_gallant_400.webp",
+      "128": "assets/mk/mk_gallant_128.webp",
+      "hi": "assets/mk/mk_gallant_1204.webp",
+      "hi_px": 1204,
+      "dpr": 3.0
     },
     "gantz": {
       "name": "בני גנץ",
