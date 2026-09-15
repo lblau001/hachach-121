@@ -7231,6 +7231,19 @@ body.no-ph .f5res .ph{ display:inline-block !important; }
 .eg-left b{ font-family:var(--font-display); font-weight:900; color:var(--primary);
   font-variant-numeric:tabular-nums; }
 .eg-left.is-spent{ color:var(--primary); }
+/* T43 · the coin on the allocation's spent line is the IMAGE now, not a
+   ● — see COIN_GLYPH_EG in proto.js. 16 because .eg-left is 17px type and
+   the glyph advanced 15.3 here, against 12/11.41 on beat 5's
+   .f5coin__tot; the vertical-align is measured the same way and puts the
+   image's centre within 0.1px of where the glyph's box centre sat.
+   KEYED ON THE MODIFIER, NOT ON .eg-left, so the size travels with the
+   constant that emits it rather than with the one container it happens to
+   sit in today — the same shape .coin-t--eg already uses. It does NOT
+   take .is-spent's gold: the coin is a drawn object at every site and has
+   never been tinted by the text colour around it. */
+.coin-glyph--eg{
+  width:16px; height:16px; display:inline-block; vertical-align:-0.2em;
+}
 
 /* IT CARRIES .scrolls IN THE MARKUP — see egBeat3(). overflow-y is
    declared in both places and is the same value in both; the rest of what
