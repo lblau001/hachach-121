@@ -6178,13 +6178,25 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
    string lands, the ph() call goes and this rule goes with it. */
 body.no-ph .f5res .ph{ display:inline-block !important; }
 .f5res .ph{ font-family:var(--font-ui); }
-/* T34b · THE THIRD AND LAST EXCEPTION, for the same reason as the other
-   two. The board's one line IS the button; hiding its marker does not
-   leave a cosmetic gap, it leaves a control with nothing written on it
-   and no way to know the door is there. Scoped to .f5more so no other
-   placeholder is affected, and it goes when Tamar's two strings land. */
-body.no-ph .f5more .ph{ display:inline-block !important; }
-.f5more .ph{ font-family:var(--font-ui); font-size:12px; padding:2px 7px 3px; }
+/* T34b's no-ph EXCEPTION FOR .f5more IS GONE, and it went the way its own
+   comment said it would — "it goes when Tamar's two strings land".
+   It read `body.no-ph .f5more .ph{ display:inline-block !important }`
+   plus a type rule beside it, and it existed because the board's one
+   line IS the button: hiding a placeholder there left a control with
+   nothing written on it. The cost was that an editorial note to Tamar
+   was the one placeholder in the app guaranteed to reach players, on
+   seven of sixteen issues.
+   IT CANNOT MATCH ANYTHING NOW. .f5more's only content is f5LineHtml(),
+   which returns esc() of a plain string constant — esc() turns `<` into
+   `&lt;`, so no <span class="ph"> can reach that button by any path.
+   .f5res ABOVE IS ALSO DEAD AND IS LEFT STANDING DELIBERATELY. Its own
+   ITEM 51A comment in proto.js still says "ph() is used for the marker's
+   treatment", but the line it describes has been two esc()'d strings —
+   ההצעה עברה. / ההצעה לא עברה. — since Tamar's copy landed, so that rule
+   matches nothing either. It is out of scope for the pass that removed
+   .f5more's, and it is reported rather than swept up: deleting a rule is
+   cheap, and deciding that a beat-5 surface no longer needs one is
+   Lion's. .map-restart below is the one exception still doing a job. */
 .f5res__you{ display:block; font-size:14px; font-weight:400; color:#E6E2D8; }
 /* 23 · the numeral stays IN the demoted line. <b> takes the UA's bold,
    which in a 400/900 family resolves to the Black — so the figure was

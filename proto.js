@@ -6035,37 +6035,36 @@ function isVideoLink(l) {
   try { h = new URL(l.url).hostname; } catch (e) { return false; }
   return VIDEO_HOST.test(h);
 }
-/* `links` is further_links PLUS the synthesised Knesset row, so the
-   Knesset-only case is read off further_links rather than off the merged
-   list — otherwise "one link" and "one link that this function put there
-   itself" are indistinguishable. */
-function readKind(iss, links) {
-  if (!links.length) return 'none';
-  const fl = iss.further_links || [];
-  if (fl.some(isVideoLink)) return 'video';
-  return fl.length ? 'article' : 'knesset';
-}
-/* TWO OF THE FOUR ARE PLACEHOLDERS AND THEY LOOK LIKE IT.
-   ph()'s hazard fill, in the [טקסט — תמר: …] form the pre-round sheet
-   already uses, and the text describes the BRANCH rather than proposing
-   copy for it — nothing here is a guess at what the line should say.
-   body.no-ph is the default build and hides .ph, which would leave the
-   board with an empty button, so beat 5's line takes the same narrowly
-   scoped exception .f5res and .pr-ph already take. When Tamar's two
-   strings land, both ph() calls go and the CSS exception goes with
-   them. */
-const F5_LINE = {
-  video:   'לסרטונים ועוד מידע על הנושא',   /* TAMAR · shipped, and now only where it is true */
-  none:    'עוד על ההצבעה',                 /* TAMAR · shipped; v2 and s2, nothing behind the door but the explanation */
-  article: null,                             /* TAMAR — placeholder, see below */
-  knesset: null,                             /* TAMAR — placeholder, see below */
-};
-const F5_LINE_PH = {
-  article: '[טקסט — תמר: כתבות בלבד, אין סרטון]',        /* TAMAR — placeholder */
-  knesset: '[טקסט — תמר: רק ההצבעה באתר הכנסת]',        /* TAMAR — placeholder */
-};
-function f5LineHtml(kind) {
-  return F5_LINE[kind] ? esc(F5_LINE[kind]) : ph(F5_LINE_PH[kind]);
+/* THE PLACEHOLDER BRANCH IS GONE, AND IT SHOULD NEVER HAVE EXISTED.
+   Two of the four kinds rendered ph()'s hazard fill — [טקסט — תמר:
+   כתבות בלבד, אין סרטון] and [טקסט — תמר: רק ההצבעה באתר הכנסת] — and
+   because the board's one line IS the button, hiding them would have
+   left a control with nothing written on it. So proto.css carved
+   `body.no-ph .f5more .ph` out of the default build's no-ph rule, and an
+   EDITORIAL NOTE TO TAMAR became the one placeholder in the app
+   guaranteed to reach players. It shipped on seven of sixteen issues:
+   b1 g1 g2 (articles only) and e1 v1 s1 m1 (the Knesset page only).
+   An internal TODO with a render path is the defect. There is no
+   fallback here now, and no branch that could grow one back.
+
+   ONE STRING FOR EVERY ISSUE THAT HAS LINKS. The old `video` copy
+   promised סרטונים on all three link kinds once the placeholders were
+   filled, and it was already a lie on the seven above. This says what is
+   true of all eleven without naming what is behind the door.
+
+   `none` KEEPS ITS OWN SHIPPED STRING. v2 and s2 have no links at all —
+   the door opens onto the explanation and nothing else — so עוד על
+   ההצבעה is both accurate and Tamar's, and is not replaced.
+
+   readKind() WENT WITH THE TABLE. It existed to pick between four
+   strings and there are two, split on a test it does not take part in:
+   links.length. isVideoLink()/VIDEO_HOST STAY — moreModal still reads
+   them per link for the ▶ / 🔗 icon (T34c), which is a different
+   question asked of a different object. */
+const F5_LINE      = 'למידע נוסף לחצו כאן';   /* TAMAR · every issue that has links behind the door */
+const F5_LINE_NONE = 'עוד על ההצבעה';        /* TAMAR · shipped; v2 and s2, nothing behind the door but the explanation */
+function f5LineHtml(hasLinks) {
+  return esc(hasLinks ? F5_LINE : F5_LINE_NONE);
 }
 
 /* ===================== 4.5 · THE PRE-REVEAL =========================
@@ -6773,16 +6772,15 @@ async function beat5() {
   if (issue.knesset_url) links.push({ label:'ההצבעה באתר הכנסת', url:issue.knesset_url }); /* TAMAR */
   const hasMore = !!(full || terms.length || links.length);
 
-  /* T34b · THE LINE NOW SAYS WHAT THE ISSUE ACTUALLY HAS. It was one
-     test — links.length — and it was wrong on SEVEN of the sixteen: four
-     issues carry only the Knesset vote page and three carry only
-     articles, and all seven were offering the player a video. See
-     readKind(). */
+  /* T34b · THE LINE SAYS WHAT IS TRUE OF EVERY ISSUE THAT HAS LINKS.
+     It was one test — links.length — then four, and the four-way split
+     is gone again: the two strings differ on whether there is anything
+     behind the door BUT the explanation, which is links.length and
+     nothing finer. See F5_LINE. */
   if (hasMore) {
-    const kind = readKind(issue, links);
     const read = el('div', 'f5read f5surf b5stage f5late');
     read.innerHTML =
-      '<button type="button" class="f5more">' + f5LineHtml(kind) + '</button>';
+      '<button type="button" class="f5more">' + f5LineHtml(!!links.length) + '</button>';
     b.appendChild(read);
     late.push(read);
     pressable($('.f5more', read)).addEventListener('click',
