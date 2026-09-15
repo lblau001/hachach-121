@@ -8190,14 +8190,6 @@ const nextTopicIdx = () => TOPICS().findIndex(t => !topicDone(t.id));
 /* the guard matters: an empty topic list is not a finished game, and
    TOPICS() is derived from data.js, which can be re-cut under us. */
 const gameDone = () => TOPICS().length > 0 && nextTopicIdx() < 0;
-/* T35 · THE MAP'S RESTART LABEL IS NOT WRITTEN YET, and it is the one
-   label in the app where the wrong word is actively dangerous: on a
-   finished map, a centre button reads as "play again" and this one wipes
-   the run. So it ships as a marked placeholder rather than as a guess —
-   the alternatives, and the plural/gendered question, are in the report
-   for Tamar. Same [טקסט — תמר: …] form and the same no-ph exception as
-   beat 5's line. */
-const MAP_RESTART_PH = '[טקסט — תמר: מחיקה והתחלה מחדש]';   /* TAMAR — placeholder */
 /* the soft nudge, and the only ordering the map has. No lock follows it. */
 const currentIdx = () => {
   const i = nextTopicIdx();
@@ -8830,8 +8822,17 @@ function renderMap() {
          there is one definition of what a wipe is and one sheet asking
          for it — never a second modal. */
       (gameDone()
+        /* T35 · THE LABEL IS WRITTEN NOW, AND IT IS NOT THE WARNING.
+           It shipped as a marked placeholder because the wrong word here
+           is actively dangerous — on a finished map a centre button reads
+           as "play again" and this one wipes the run. The answer is not a
+           scarier button; it is that the button names the ACTION and
+           resetConfirm() carries the cost. PROF_COPY.rsNote already says
+           "כל מה שצברתם יימחק ולא ניתן יהיה לשחזר אותו", one tap away and
+           before anything is destroyed, so putting מחיקה on the face
+           would be the same warning twice and the quieter of the two. */
         ? '<button type="button" class="map-restart" id="maprestart">' +
-            ph(MAP_RESTART_PH) + '</button>'
+            esc('להתחיל מחדש') + '</button>'                          /* TAMAR */
         : '') +
       /* v30c · SUPPRESSED ON A FINISHED MAP, and it is a suppression
          rather than a restack. The jump exists to return the player to

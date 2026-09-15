@@ -6437,7 +6437,14 @@ body.no-ph .f5res .ph{ display:inline-block !important; }
    matches nothing either. It is out of scope for the pass that removed
    .f5more's, and it is reported rather than swept up: deleting a rule is
    cheap, and deciding that a beat-5 surface no longer needs one is
-   Lion's. .map-restart below is the one exception still doing a job. */
+   Lion's.
+   T45 · AND .map-restart IS NO LONGER THE EXCEPTION. This block used to
+   end "the one exception still doing a job", pointing at the no-ph rule
+   that kept the map's restart marker visible while its label was an
+   unwritten placeholder. Tamar's string landed — the button reads
+   להתחיל מחדש — so ph() is gone from that button and both of its .ph
+   rules went with it, exactly as their own comment said they would.
+   Every no-ph exception in this file is now dead; none is load-bearing. */
 .f5res__you{ display:block; font-size:14px; font-weight:400; color:#E6E2D8; }
 /* 23 · the numeral stays IN the demoted line. <b> takes the UA's bold,
    which in a 400/900 family resolves to the Black — so the figure was
@@ -7864,11 +7871,6 @@ body.no-ph .f5res .ph{ display:inline-block !important; }
   min-height:44px; display:flex; align-items:center; justify-content:center;
 }
 .map-restart:active{ background:rgba(251,247,238,.10); }
-/* the marker would be hidden by the default build's body.no-ph, and an
-   unlabelled pill on a finished map is worse than a marked one. Scoped
-   here, and it goes when Tamar's string lands — same shape as .f5more's. */
-body.no-ph .map-restart .ph{ display:inline-block !important; }
-.map-restart .ph{ font-family:var(--font-ui); font-size:11px; padding:1px 6px 2px; }
 
 /* ---- the confetti ---------------------------------------------------
    CSS keyframes, not a rAF loop: it is decoration, it must cost nothing,
