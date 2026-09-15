@@ -6663,7 +6663,8 @@ async function beat5() {
         '<span class="f5majlab">' + N(MAJORITY) + '</span>' +
         (mySide === 'maj'
           ? '<span class="f5slot f5slot--maj" id="f5slot"></span>' : '') +
-        '</div>'
+        '</div>' +
+      (issue.vote_result ? '<p class="f5prose f5prose--below">' + esc(issue.vote_result) + '</p>' : '')
     : '<p class="f5prose">' + esc(issue.vote_result) + '</p>';
   if (board) {
     b.appendChild(board);
