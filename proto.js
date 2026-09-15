@@ -9994,7 +9994,30 @@ const egStep = ms => wait(egReduced() ? 0 : ms);
    in THE SAVE. ?reset clears the store and therefore re-arms it, which
    is correct: that flag exists to hand a demo a clean first run.
    ===================================================================== */
-const EG_CONFETTI_N = 34;
+/* T-D · 64, NOT 34, AND MEASURED BEFORE IT WAS RAISED. The cost of a
+   piece is entirely in its creation — once it exists, egFall is
+   translate3d + opacity on a will-change'd 8x12 box, which is the
+   compositor's work and not the main thread's. So the only number that
+   moves with N is the one-time build, measured here over 7 runs per
+   value on the real loop:
+
+       34 -> 1.6ms median   48 -> 3.8ms   64 -> 6.0ms (max 8.4)
+       96 -> 9.0ms median but a 31.4ms outlier   128 -> 12.3ms
+
+   96 is where the outliers start, so the ceiling is below it. 64 is
+   roughly double the density for ~4ms more main-thread work, spent at
+   the one moment in the app where a dropped frame is cheapest: the
+   screen has just settled and nothing is being read yet.
+
+   NO SECOND BURST, AND THE REASON IS THE TEARDOWN. Splitting into two
+   waves would halve the spike, but every piece already carries its own
+   0-620ms delay, so the stagger it would buy is already there. What it
+   would also buy is a hazard: a wave at +250ms with the existing
+   delay+duration maximum finishes at 250+620+2400 = 3270ms, past the
+   3200ms cleanup below, and the last pieces would be cut mid-fall. The
+   single burst's own worst case is 620+2400 = 3020ms, which is why that
+   3200 is the number it is. Raising N does not move it. */
+const EG_CONFETTI_N = 64;
 /* v30c · THE HOST IS AN ARGUMENT NOW. Screen 1 is an overlay rather than
    a beat on #scEnd, so the layer the pieces fall into is not always the
    one #egFx names — and two elements carrying that id, even for the
