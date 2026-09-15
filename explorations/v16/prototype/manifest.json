@@ -117,6 +117,15 @@
       "hi_px": 684,
       "dpr": 1.7
     },
+    "gila_gamliael": {
+      "name": "גילה גמליאל",
+      "party": "הליכוד",
+      "400": "assets/mk/mk_gila_gamliael_400.webp",
+      "128": "assets/mk/mk_gila_gamliael_128.webp",
+      "hi": "assets/mk/mk_gila_gamliael_1204.webp",
+      "hi_px": 1204,
+      "dpr": 3.0
+    },
     "goldknopf": {
       "name": "יצחק גולדקנופ",
       "party": "יהדות התורה",

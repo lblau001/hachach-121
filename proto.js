@@ -3705,15 +3705,19 @@ const INFO_COPY = {
 };
 
 /* THE PHOTO CREDITS, KEYED BY THE ART INDEX'S OWN ID.
-   34 ROWS, NOT 29. The roster in data.js deals 29 of these people; the
-   manifest holds art for 34, and all 34 .webp sets are served out of
+   35 ROWS, NOT 30. The roster in data.js deals 30 of these people; the
+   manifest holds art for 35, and all 35 .webp sets are served out of
    assets/mk/. A CC BY obligation attaches to what is DISTRIBUTED, not
    to what a player happens to be dealt, so the list is the art index.
    FIVE of these are people the game no longer deals — edelstein, gantz,
-   lahav, michaeli, silman — and two people it DOES deal, taha and
-   gila_gamliael, have no art at all and are correctly absent: there is
-   no photograph to credit. See the manifest's `fallback` block for what
-   they draw instead.
+   lahav, michaeli, silman — and one person it DOES deal, taha, has no
+   art at all and is correctly absent: there is no photograph to credit.
+   See the manifest's `fallback` block for what he draws instead.
+   gila_gamliael IS THAT SPELLING ON PURPOSE. It reads like a typo for
+   gamliel and it is not: it is the roster's own key, confirmed, and the
+   art is cut to match it rather than to match how the name is spelled.
+   Her master arrived named gamliel_q92.webp, which matches neither —
+   the key is what the index is keyed by, so the key is what won.
    IT WAS SIX UNTIL galant BECAME gallant. data.js spells him with two
    Ls and the art was cut with one, so the key in the art index resolved
    to nobody in the roster and his card fell through to an initials
@@ -3751,6 +3755,7 @@ const MK_CREDITS = {
   gafni:         { author:'', source:'', licence:'', licenceUrl:'' },   /* משה גפני */
   gallant:       { author:'', source:'', licence:'', licenceUrl:'' },   /* יואב גלנט */
   gantz:         { author:'', source:'', licence:'', licenceUrl:'' },   /* בני גנץ */
+  gila_gamliael: { author:'', source:'', licence:'', licenceUrl:'' },   /* גילה גמליאל */
   goldknopf:     { author:'', source:'', licence:'', licenceUrl:'' },   /* יצחק גולדקנופ */
   gotliv:        { author:'', source:'', licence:'', licenceUrl:'' },   /* טלי גוטליב */
   kariv:         { author:'', source:'', licence:'', licenceUrl:'' },   /* גלעד קריב */
