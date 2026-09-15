@@ -512,6 +512,29 @@ let machineMs = 0;
 const wait = n => { machineMs += n; return new Promise(r => setTimeout(r, n)); };
 const ph = t => '<span class="ph">' + esc(t) + '</span>';
 const N  = n => '<span class="num">' + n + '</span>';
+/* T43 · THE COIN IS THE IMAGE, AT EVERY SITE — and this was the last one
+   in the round still drawn as a character. .f5coin__tot ended with a
+   literal ●, which is the thing T43 took out of the HUD pill and the
+   three CSS discs: "a second coin drawn a second way would be a second
+   currency", and a text bullet is a third way again. Same file, same
+   markup the HUD emits (index.html, .hud-coins .coin-glyph), so there is
+   one drawing behind the currency.
+   SIZED FROM WHAT THE GLYPH OCCUPIED, the way T43 sized the HUD's: the ●
+   advanced 11.41px on this line's 12px type, so the coin is 12 square —
+   the advance rounded up to the line, a coin being round. The line gets
+   NARROWER by ~1px on the +150 case (96.67 -> 95.64 measured), so nothing
+   can be pushed or wrapped by this.
+   vertical-align IS MEASURED, NOT GUESSED: -0.125em puts the image's
+   centre within 0.1px of where the glyph's box centre sat. */
+const COIN_GLYPH =
+  '<img class="coin-glyph" src="assets/coin_128.webp" alt="" aria-hidden="true" width="12" height="12">';
+/* the same coin on the end-game's allocation line, which sets 17px type
+   against beat 5's 12 — see the call site for why that makes it 16 and
+   not 12. Two constants rather than one parameterised helper: there are
+   exactly two inline sites, each with a fixed size measured off the type
+   it sits in, and a size argument would invite a third that was guessed. */
+const COIN_GLYPH_EG =
+  '<img class="coin-glyph coin-glyph--eg" src="assets/coin_128.webp" alt="" aria-hidden="true" width="16" height="16">';
 
 /* ---- glossary. Terms are marked INLINE where they already occur; no
         definition panel, and nothing is manufactured to hold one. ---- */
@@ -7400,7 +7423,16 @@ async function coinMoment(b, topicsWas) {
   coin.innerHTML =
     '<span class="f5coin__n">+' + N(now) + '</span>' +
     '<p class="f5coin__sub">' + parts.join(' + ') + '</p>' +
-    '<p class="f5coin__tot">' + esc('הסוגיה הזו: ') + N(total) + ' ●</p>'; /* TAMAR */
+    /* הסבב הזה, NOT הסוגיה הזו. On a topic-completing round `total`
+       includes the 100 topic bonus, which is payment for finishing TWO
+       issues rather than this one — so the old label was wrong on exactly
+       the rounds that read +150. The round is the true unit for both
+       cases (the topic bonus IS earned in this round), and it is already
+       the caption's own word one line up: הסבב, or הסבב + הנושא. The two
+       lines agree now instead of contradicting each other. Label only —
+       nothing about what `total` sums has changed. */
+    '<p class="f5coin__tot">' + esc('הסבב הזה: ') + N(total) +        /* TAMAR */
+      ' ' + COIN_GLYPH + '</p>';
   /* IN FLOW, AND BEFORE .f5acts. It was position:absolute at the board's
      bottom + 26px, which is a y computed from the board ALONE while the
      result text sits in flow 11px under it -- so ~122px of a 113.5px
@@ -10588,7 +10620,17 @@ function egPaint() {
       ? esc('אין מטבעות לחלוקה')                                        /* TAMAR */
       : left > 0
         ? esc('נותרו לחלוקה ') + '<b>' + N(left) + '</b> ' + esc('מטבעות') /* TAMAR */
-        : esc(t('egAllSpent')) + ' ●';                                  /* TAMAR · T25 */
+        /* T43 · THE LAST LITERAL ● IN THE APP, and it rendered to players:
+           this line is what the allocation screen says once everything is
+           placed. Same image the HUD and beat 5 draw — see COIN_GLYPH —
+           so the currency has one drawing behind it and T43 is closed.
+           16, NOT COIN_GLYPH's 12, BECAUSE THE TYPE IS NOT THE SAME.
+           .eg-left is 17px where .f5coin__tot is 12, and the ● advanced
+           15.3px here against 11.41 there. Sized by T43's own rule — the
+           advance rounded up, squared, a coin being round — which gives
+           16 on this line and 12 on that one. The line goes 190.3 -> 191
+           wide, and is one line at all three profiles either way. */
+        : esc(t('egAllSpent')) + ' ' + COIN_GLYPH_EG;                   /* TAMAR · T25 */
     L.classList.toggle('is-spent', wallet > 0 && left <= 0);
   }
   $('#egChips') && $$('.eg-chip', $('#egChips')).forEach(b => {

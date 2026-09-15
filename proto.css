@@ -6279,6 +6279,14 @@ body.no-ph .f5res .ph{ display:inline-block !important; }
 }
 .f5coin__sub{ margin:9px 0 0; font-size:13px; color:#D8D2C4; text-align:center; }
 .f5coin__tot{ margin:3px 0 0; font-size:12px; font-weight:700; color:#8E897C; text-align:center; }
+/* T43 · the coin on this line is the IMAGE now, not a ● — see COIN_GLYPH
+   in proto.js for why and for where the 12 comes from. Size and baseline
+   only; .hud-coins sets its own 13 in a flex row, and this one sits in
+   running text, so it needs inline-block and a measured vertical-align
+   where the HUD needed neither. */
+.f5coin__tot .coin-glyph{
+  width:12px; height:12px; display:inline-block; vertical-align:-0.125em;
+}
 
 /* ---- the buttons. Last, and nothing lands after them. ---- */
 /* T34 · the 12px padding-top is gone: it was the stack-to-actions gap by
@@ -7223,6 +7231,19 @@ body.no-ph .f5res .ph{ display:inline-block !important; }
 .eg-left b{ font-family:var(--font-display); font-weight:900; color:var(--primary);
   font-variant-numeric:tabular-nums; }
 .eg-left.is-spent{ color:var(--primary); }
+/* T43 · the coin on the allocation's spent line is the IMAGE now, not a
+   ● — see COIN_GLYPH_EG in proto.js. 16 because .eg-left is 17px type and
+   the glyph advanced 15.3 here, against 12/11.41 on beat 5's
+   .f5coin__tot; the vertical-align is measured the same way and puts the
+   image's centre within 0.1px of where the glyph's box centre sat.
+   KEYED ON THE MODIFIER, NOT ON .eg-left, so the size travels with the
+   constant that emits it rather than with the one container it happens to
+   sit in today — the same shape .coin-t--eg already uses. It does NOT
+   take .is-spent's gold: the coin is a drawn object at every site and has
+   never been tinted by the text colour around it. */
+.coin-glyph--eg{
+  width:16px; height:16px; display:inline-block; vertical-align:-0.2em;
+}
 
 /* IT CARRIES .scrolls IN THE MARKUP — see egBeat3(). overflow-y is
    declared in both places and is the same value in both; the rest of what
