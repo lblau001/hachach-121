@@ -505,16 +505,65 @@ const N  = n => '<span class="num">' + n + '</span>';
 
 /* ---- glossary. Terms are marked INLINE where they already occur; no
         definition panel, and nothing is manufactured to hold one. ---- */
+/* ONE PASS OVER THE TEXT, AND THAT IS THE WHOLE POINT OF THE SHAPE.
+   This was a loop: each term ran its own .replace() over the string the
+   PREVIOUS term had already written markup into, guarded by
+   `out.indexOf('data-gt="' + t) >= 0` — "have I marked this term yet".
+
+   THE GUARD MISSES A SHORT TERM THAT IS A SUFFIX OF A LONGER ONE.
+   Sorting longest-first wraps `ייצוג בבג"ץ` before `בג"ץ` is tried, and
+   emits data-gt="ייצוג בבג&quot;ץ". The guard then asks whether
+   `data-gt="בג&quot;ץ` appears — it does NOT, because after `data-gt="`
+   comes ייצוג — so the guard passes, and .replace() takes the FIRST
+   occurrence of בג&quot;ץ in the string, which is now the one INSIDE
+   that attribute. Output:
+
+     data-gt="ייצוג ב<span class="gt" data-gt="בג&quot;ץ">בג&quot;ץ</span>"
+
+   — a span opened inside an attribute value. Both terms are in the CMS
+   today and the pair has never co-occurred in a rendered field, so it
+   has never fired; it fires the first time Tamar writes that phrase.
+
+   THE GUARD IS NOT THE BUG AND A BETTER GUARD IS NOT THE FIX. The bug
+   is that the function RE-SCANS ITS OWN OUTPUT, so every term is free to
+   match inside markup an earlier term emitted. Any indexOf test only
+   moves the hole. One alternation regex, one left-to-right pass:
+   String.replace never re-examines what it has already emitted, so a
+   term CANNOT land inside another term's markup. The class of failure is
+   gone rather than patched. Do not "simplify" this back into a loop.
+
+   THE TWO PROPERTIES THE OLD LOOP HAD ARE BOTH KEPT, deliberately:
+     · LONGEST FIRST. The sort is now the alternation ORDER — a regex
+       tries branches left to right at each position, so the long term
+       wins wherever both could start. Same precedence, no sort at call
+       time.
+     · FIRST OCCURRENCE ONLY, ONCE PER TERM. `.replace(str, …)` replaced
+       one occurrence and the guard blocked a second; `seen` is that,
+       said once. A repeat match returns itself untouched.
+   Byte-identical output to the old path on every string in data.js
+   today — data-gt keeps the ESCAPED form, which the parser decodes back
+   to the key, exactly as before. */
+const RX_META = /[.*+?^${}()|[\]\\]/g;
+let GT_RE = null;
 function markGlossary(text) {
-  let out = esc(text);
-  Object.keys(DATA.glossary || {})
-    .sort((a, b) => b.length - a.length)
-    .forEach(term => {
-      const t = esc(term);
-      if (out.indexOf(t) < 0 || out.indexOf('data-gt="' + t) >= 0) return;
-      out = out.replace(t, '<span class="gt" data-gt="' + t + '">' + t + '</span>');
-    });
-  return out;
+  const out = esc(text);
+  if (GT_RE === null) {
+    const terms = Object.keys(DATA.glossary || {})
+      .sort((a, b) => b.length - a.length)
+      .map(t => esc(t).replace(RX_META, '\\$&'));
+    /* no terms is a real state — a data.js with no glossary marks
+       nothing rather than building an empty alternation that matches
+       at every position */
+    GT_RE = terms.length ? new RegExp(terms.join('|'), 'g') : false;
+  }
+  if (!GT_RE) return out;
+  const seen = new Set();
+  GT_RE.lastIndex = 0;
+  return out.replace(GT_RE, m => {
+    if (seen.has(m)) return m;
+    seen.add(m);
+    return '<span class="gt" data-gt="' + m + '">' + m + '</span>';
+  });
 }
 
 /* ---- AV-3, the player's avatar sticker. Round, faceless, no name
@@ -2323,12 +2372,6 @@ function beat1() {
 
   wireSwipe(card, $('.b1target', card), $('.b1prev', card));
 
-  card.addEventListener('click', e => {
-    const t = e.target.closest('.gt'); if (!t) return;
-    e.stopPropagation();
-    glossModal(t.dataset.gt);
-  });
-
   /* B1-2 THEN B2-4, IN THAT ORDER. On a player's first ever issue the
      full-screen overlay comes up over the dealt card and the sticker
      waits behind it; the slap is the first thing that happens after the
@@ -2864,12 +2907,6 @@ async function claimReveal(ans, card) {
 
   requestAnimationFrame(() => panel.classList.add('is-in'));
 
-  panel.addEventListener('click', e => {
-    const t = e.target.closest('.gt'); if (!t) return;
-    glossModal(t.dataset.gt);
-  });
-
-
   /* ---- 5 · הלאה SENDS THE CARD AWAY -------------------------------
      The throw the answer used to trigger happens here instead, and it
      carries the stamp and the panel with it — they are the card's, not
@@ -3353,6 +3390,69 @@ function glossOpts(term) {
 }
 function glossModal(term) {
   return stickerModal(glossOpts(term));
+}
+
+/* =====================================================================
+   ONE DELEGATED LISTENER FOR EVERY GLOSSARY TERM, ANYWHERE.
+   It replaces three hand-attached handlers — the beat-1 claim card, the
+   beat-3 reveal panel and moreModal — and it exists because those three
+   were never the whole set. markGlossary() is called at SIX sites and
+   .gt styling is global, so lawModal()'s bill_summary and both
+   tachles_prompt calls in .b2q rendered underlined terms that nothing
+   listened for: decorated, never openable. FIVE terms were dead that way
+   — קואליציה, טעמי דת, בית משפט העליון, מעצר מנהלי and יועמ"ש — while
+   בג"ץ opened from `tf` and did nothing from `bill_summary`, same
+   codepoints, same data-gt, different surface.
+   קריאה טרומית IS NOT ONE OF THEM AND THIS CANNOT REACH IT. Its only
+   occurrence is s2's final sentence, "עברה בקריאה טרומית 55 מול 10.",
+   which billContext() strips before the bill sheet is drawn (T5b) so the
+   outcome is not handed to the player two beats early. The term is never
+   rendered anywhere, so there is nothing to tap; it is a content gap,
+   and the fix for it is to use the phrase somewhere reachable.
+
+   THE REAL DEFECT WAS STRUCTURAL: decoration and wiring were separate
+   passes with nothing connecting them, so a new caller of markGlossary()
+   got the underline for free and the behaviour never. This closes that —
+   a surface added after today is wired the moment it renders a .gt, and
+   there is no second place to remember.
+
+   #stage IS THE HOST, and it covers everything: stickerModal() appends
+   its box to $('#stage'), and all four screens plus every .ov overlay
+   are inside it (index.html). The only two nodes appended to body
+   instead are #coinfly and the share-download anchor, neither of which
+   renders text. Nothing between a .gt and #stage listens for click —
+   all 63 click listeners in this file are on specific controls — so
+   nothing is intercepted on the way up, and the beat-1 handler's old
+   e.stopPropagation() protected nothing and is not reproduced. The
+   card's own gesture wiring is pointerdown/move/up only: a tap on a term
+   ends below the 110px threshold and snaps back unscored, exactly as it
+   did before.
+
+   PUSH INSIDE A STICKER, OPEN STANDALONE OUTSIDE ONE. This is the T34
+   rule, applied where T34 could not reach. Calling glossModal() from
+   inside lawModal() would drop a SECOND .stmodal on the stage — two
+   boxes, two scrims, and a ✕ that closes only the top one — which is the
+   exact defect T34 removed from moreModal, reintroduced on the surface
+   this change exists to fix. closest('.stmodal') is the whole test.
+   .b2q is an .ovpane and not a sticker, so a term there opens standalone:
+   there is nothing to push into.
+
+   DEPTH STAYS CAPPED AT ONE and this does not lift the cap. stickerPush
+   refuses a second push, and glossOpts() renders the definition through
+   `body` — escaped by stickerFill — so a glossary sticker carries no .gt
+   markers and offers no further door. Verified empirically, not taken on
+   the comment's word: a pushed definition contains zero .gt.
+
+   ONE LISTENER, INSTALLED ONCE, NEVER REMOVED. #stage outlives every
+   screen, so there is nothing to tear down and no way to double-bind. */
+function wireGlossary() {
+  $('#stage').addEventListener('click', e => {
+    const t = e.target.closest('.gt');
+    if (!t || !t.dataset.gt) return;
+    const m = t.closest('.stmodal');
+    if (m) stickerPush(m, glossOpts(t.dataset.gt));
+    else   glossModal(t.dataset.gt);
+  });
 }
 
 /* ===== §B · 2b THE CHARACTER, 2a THE STICKER SHEET ==================
@@ -7340,13 +7440,17 @@ function moreModal(text, terms, links) {
      definition is the SAME surface showing different content now: one
      box on screen at every depth, a back control top-left while there is
      somewhere to go back to, and the box easing between the two heights
-     rather than jumping. One listener, two selectors, as before. */
+     rather than jumping.
+     THE .gt ARM OF THIS LISTENER IS GONE, and the rule it discovered is
+     not: wireGlossary() on #stage makes the same push for a term tapped
+     in ANY open sticker, this one included. What stays here is the CHIP,
+     which is this modal's own object — .f5chip is built by moreModal and
+     exists nowhere else, so there is nothing to delegate. */
   m.addEventListener('click', e => {
     const c = e.target.closest('.f5chip');
-    const g = c ? null : e.target.closest('.gt');
-    if (!c && !g) return;
+    if (!c) return;
     e.stopPropagation();
-    stickerPush(m, glossOpts(c ? c.dataset.term : g.dataset.gt));
+    stickerPush(m, glossOpts(c.dataset.term));
   });
   return m;
 }
@@ -11069,6 +11173,9 @@ function boot() {
     profileModal();
   });
   pressable($('#hudX')).addEventListener('click', exitRound);
+  /* the one glossary listener, on #stage, before any screen is built —
+     see wireGlossary() for why it is delegated and why #stage */
+  wireGlossary();
   $('#coinNum').textContent = wallet;
   /* §7 the deep-link. `round` drops straight in without a map behind it,
      which is what makes it useful in a meeting; `map` and `intro` build
