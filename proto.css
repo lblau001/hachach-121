@@ -452,6 +452,20 @@
 
   /* ---- motion the map and the award add ----------------------------- */
   --t-node-press:  80ms;    /* board: transform+box-shadow, linear        */
+  /* THE TOPIC CLOSING ON THE MAP. Three parts of one moment; the
+     timeline they describe is written out at sealTopicNode().
+     --t-node-still is the pause after the map stops moving, at a tenth of
+     breatheFirstNode's 1200ms, which is an ambient nudge after a modal
+     and a different job. --t-node-close is --t-flip's 380: a ring closing
+     is a card turning, not --t-resolve's 450, which is reserved for the
+     weightier "a moment". --t-node-seal is avp-pop's own 180, because the
+     check landing here is the same event as the check landing on an
+     avatar tile and should not be a second number.
+     220 + 380 + 180 = 780, under --t-finale's 850. The round's own held
+     beat stays the longest single thing in the app. */
+  --t-node-still:  220ms;
+  --t-node-close:  380ms;
+  --t-node-seal:   180ms;
   --t-screen:      300ms;   /* map -> round. Under the brief's 350ms cap. */
   --t-coin-fly:    450ms;   /* one token, spawn to chip                   */
   --t-coin-stagger: 40ms;   /* between tokens                            */
@@ -3959,6 +3973,61 @@ body.no-ph .ph{ display:none !important; }
    as --tc; nothing reads them here. Presentation only, as briefed. */
 .seg-off{ stroke:rgba(24,20,16,.42); }
 .seg-on { stroke:var(--paper); }
+
+/* =====================================================================
+   THE TOPIC CLOSING · the held state and its release
+   The node is rendered COMPLETE by nodeHTML() and held back here, so the
+   DOM is truthful from the first frame: the aria-label already says
+   "2 מתוך 2", the status line already says הושלם, and a reload
+   mid-animation is a non-event rather than a state to recover from.
+   data-close is the three-value attribute sealTopicNode() drives.
+
+   THE TRANSITION IS ON .seg, NOT ON THE HELD RULE, and it has to be:
+   a transition declared under [data-close="held"] would be gone from the
+   element the instant the attribute changed, and the stroke would snap.
+   Declaring it on the segment is safe because a fresh render has no
+   previous value to animate FROM -- the only time a .seg stroke ever
+   changes on a live element is this moment.
+
+   :last-of-type IS THE LAST SEGMENT. nodeHTML() emits one <circle> per
+   segment in k order and they are the only circles inside the <g>, so
+   the last of type is k = n-1 -- the segment the closing issue filled.
+   ===================================================================== */
+.node .seg{ transition:stroke var(--t-node-close) var(--e-out); }
+.node[data-close="held"] .seg:last-of-type{ stroke:rgba(24,20,16,.42); }
+
+/* SCOPED TO .node, AND THAT IS LOAD-BEARING. .node-check is a shared base
+   class: .avp-check wears it on the avatar picker and .bopt-check on the
+   builder, both with their own is-pop. Neither ever sits inside a .node,
+   so scoping here is what keeps this moment out of two other components.
+   HELD FOR BOTH `held` AND `ring` -- the bare [data-close] attribute
+   selector -- so the check stays down for the whole of the ring's fill
+   and lands after it, rather than appearing the moment the ring is
+   released. The ring closing is what causes the check. */
+.node[data-close] .node-check{ opacity:0; transform:scale(.4); }
+.node[data-close="seal"] .node-check{
+  animation:node-seal var(--t-node-seal) var(--e-land) both;
+}
+/* avp-pop's shape, and deliberately NOT avp-pop itself: that keyframe is
+   shared by the picker and the builder, and its `to` sets no opacity
+   because nothing is holding those at 0. Here the hold is an attribute
+   that outlives the animation by a frame, so `to` has to restate
+   opacity:1 or the check would blink out on the last frame. Same 180ms,
+   same .4 -> 1.12 -> 1, same --e-land. */
+@keyframes node-seal{
+  from{ transform:scale(.4); opacity:0 }
+  60% { transform:scale(1.12); opacity:1 }
+  to  { transform:none; opacity:1 }
+}
+@media (prefers-reduced-motion: reduce){
+  /* sealTopicNode() never writes the attribute under reduce, so there is
+     nothing here to suppress; this is the belt to that braces, and it
+     kills the HELD state rather than the duration -- a 1ms fill is a
+     flash, and a node that arrives already complete is the whole point. */
+  .node[data-close] .seg:last-of-type{ stroke:var(--paper); }
+  .node[data-close] .node-check{ opacity:1; transform:none; animation:none; }
+  .node .seg{ transition:none; }
+}
 
 /* T44 · §1 DELETED HERE. It described the disc as carrying the raw topic
    hue with the base a 78% multiply of it — a treatment that was built and

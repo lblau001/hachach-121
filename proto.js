@@ -127,6 +127,11 @@ const T = {
   egFlyFade:   ms('--t-eg-fly-fade'),
   egPulse:     ms('--t-eg-pulse'),
   nodePress:   ms('--t-node-press'),
+  /* the topic-closing moment on the map — see sealTopicNode() for the
+     timeline these three describe and why it totals 780 */
+  nodeStill:   ms('--t-node-still'),
+  nodeClose:   ms('--t-node-close'),
+  nodeSeal:    ms('--t-node-seal'),
   screen:      ms('--t-screen'),
   mapIn:       ms('--t-map-in'),
   gateHint:  ms('--gate-hint'),
@@ -7771,6 +7776,27 @@ let SND_DONE_FIRED = false;     /* SOUND · once per session, on top of `cf` */
    wireMap() already does it. */
 let MAP_PARK_TOPIC = null;
 
+/* THE SAME SIGNAL, ONE HOP FURTHER, because the park and the moment are
+   needed at two different instants. wireMap() runs synchronously inside
+   renderMap(), which is where the scroll has to be set (see the park);
+   the moment cannot start until the map has stopped moving, which is
+   ~260ms later at onMapSettled. So wireMap() hands the id over and spends
+   MAP_PARK_TOPIC, and the settle hook spends this.
+
+   IT IS A SECOND FLAG RATHER THAN A LATER CLEAR, and that is the whole
+   reason it exists. Moving MAP_PARK_TOPIC's clear to onMapSettled would
+   have been one line fewer and would have broken the one-arrival
+   guarantee: the nodes are wired and tappable the instant wireMap()
+   returns, so a player who opens a topic inside that ~260ms window would
+   leave the flag set and fire it on the NEXT arrival.
+
+   STALENESS IS STILL IMPOSSIBLE, by the same argument as MAP_PARK_TOPIC:
+   wireMap() runs on EVERY arrival and assigns this unconditionally, so a
+   normal arrival overwrites it with null. It is not in saveState() for
+   the reason given above -- a reload constructs both null and the map
+   renders settled, with no moment to play and nothing left over. */
+let MAP_STAGE_TOPIC = null;
+
 /* ITEM 43 · THE MAP'S FIRST ARRIVAL, ONCE EVER. It goes in the save
    rather than in a key of its own — SEEN_KEY predates the save and is
    stranded there; anything added now belongs with progress and profile so
@@ -8780,7 +8806,25 @@ function tintBase(hex) {
      ring, so this is what the node is positioned by */
   const fcy = parseFloat(CSVAR('--node-face-y')) + parseFloat(CSVAR('--node-face')) / 2;
 
+  /* THE ONE THING THIS FUNCTION KNOWS ABOUT THE MOMENT, and it is an
+     attribute rather than four branches. The completed node renders
+     COMPLETE here -- ring, check, status line and aria-label all exactly
+     as they are on any other arrival -- and data-close holds it back
+     VISUALLY until sealTopicNode() releases it. Branching this function's
+     four completion-derived values instead (the segment class, the
+     aria-label's `N מתוך 2`, the check's presence and statusLine()) would
+     have left the label and the status line saying something untrue for
+     the length of the animation, on the one screen that announces
+     nothing to begin with, and would have made a mid-animation reload a
+     state to reason about rather than a non-event.
+     IT CANNOT REACH THE OTHER FIVE: the test is this topic's own id.
+     NOT UNDER REDUCED MOTION -- the attribute is never written, so there
+     is no held state to release and the node simply arrives complete.
+     The CSS carries a backstop for the same rule. */
+  const closing = t.id === MAP_PARK_TOPIC &&
+                  !matchMedia('(prefers-reduced-motion: reduce)').matches;
   return '<div class="' + cls + '" data-topic="' + esc(t.id) + '" data-i="' + i + '" ' +
+      (closing ? 'data-close="held" ' : '') +
       'style="left:calc(' + (NODE_X(i) * 100).toFixed(2) + '% - ' + G.c + 'px);top:' +
       (cy - fcy) + 'px;--tc:' + t.color +
       ';--tc-face:' + t.color +
@@ -8909,6 +8953,11 @@ function wireMap(cur, h) {
      carries resolves to -1 and falls through to the normal park, which is
      the same answer a null gives. */
   const pi = MAP_PARK_TOPIC ? TOPICS().findIndex(t => t.id === MAP_PARK_TOPIC) : -1;
+  /* AND THE HAND-OVER TO THE MOMENT, which needs the same id ~260ms later
+     than the park does. Assigned UNCONDITIONALLY -- a normal arrival puts
+     null here -- which is what keeps the moment a one-arrival thing by the
+     same construction the park uses. See MAP_STAGE_TOPIC. */
+  MAP_STAGE_TOPIC = MAP_PARK_TOPIC;
   MAP_PARK_TOPIC = null;
   const parkY = pi >= 0 ? nodeY(pi, h) : curY;
   const done = $('#mapdone');
@@ -9045,6 +9094,14 @@ function goMap(o) {
      to open on top of an existing .stmodal. Ordered explicitly so that
      stays true if either condition is ever relaxed. */
   onMapSettled(m, () => {
+    /* THE MOMENT GOES FIRST, and the ordering is explicit for the reason
+       ITEM 43 states one line down: the two cannot collide today --
+       sealTopicNode() needs a topic that just closed and maybeMapIntro()
+       only ever fires on a first arrival, where nothing has -- but that
+       is a fact about the data, not a contract, and maybeMapIntro()
+       returns early out of this callback. Anything after that line is
+       skipped whenever the sticker shows. */
+    sealTopicNode();
     if (maybeMapIntro()) return;
     if (!(o && o.quiet)) maybeInvite();
   });
@@ -9370,6 +9427,64 @@ function mapIntroModal() {
    or not anything downstream stops the event.
    prefers-reduced-motion: the sticker still shows and nothing breathes.
    The class is never added, exactly as startBreath() does it. */
+/* ===== THE TOPIC CLOSING, ON THE MAP =================================
+   The node that just closed is rendered COMPLETE and held back by
+   data-close (see nodeHTML); this is the release, and it is the whole of
+   the moment. Three values, one attribute, one timeline:
+
+     held  0ms    the last ring segment is the unplayed colour and the
+                  check is down at scale(.4), opacity 0
+     ring  220ms  the segment is released and transitions to --paper over
+                  --t-node-close; the check stays down
+     seal  600ms  the check pops
+     off   780ms  the attribute goes and the node is simply itself
+
+   220ms OF STILLNESS FIRST, because the map has only just stopped moving
+   -- the same reason breatheFirstNode() waits, at a tenth of its 1200ms,
+   which is an ambient nudge after a modal and not this.
+   780ms TOTAL, against --t-finale's 850. The round's own held beat stays
+   the longest single thing in the app; a node closing is not allowed to
+   out-weigh it.
+
+   IT ANIMATES THE NODE THAT CLOSED AND NOTHING ELSE. §3.1 is free choice
+   -- no locks, no prerequisites -- and §3.3's argument for the current
+   node's pulse applies here in reverse: this must not touch the next
+   node's geometry or emphasis, so it does not touch the next node at
+   all. No pulse, no sequencing, nothing that says "now play that one".
+   The moment points backwards, at what the player already did.
+
+   NO SOUND. Every file in SFX_SRC is spoken for and complete.wav is the
+   8/8 celebration, reserved. This is silent and does not ask for a new
+   asset.
+
+   A TAP CANCELS IT, the way breatheFirstNode()'s does -- and more cleanly
+   than there, because the settled visual IS the DOM's own state: dropping
+   the attribute lands on the right frame rather than on a half-state. */
+function sealTopicNode() {
+  const id = MAP_STAGE_TOPIC;
+  MAP_STAGE_TOPIC = null;              /* spent on arrival, whatever follows */
+  if (!id) return;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const map = $('#scMap'); if (!map) return;
+  /* the guard every other settle-hook callback carries: the player may
+     have opened a topic inside the arrival window */
+  if ($('#stage').dataset.screen !== 'map') return;
+  const node = $('.node[data-topic="' + id + '"]', map);
+  if (!node || node.dataset.close !== 'held') return;
+
+  const timers = [];
+  const stop = () => {
+    timers.forEach(clearTimeout);
+    delete node.dataset.close;
+    map.removeEventListener('pointerdown', stop, true);
+  };
+  timers.push(setTimeout(() => { node.dataset.close = 'ring'; }, T.nodeStill));
+  timers.push(setTimeout(() => { node.dataset.close = 'seal'; },
+                         T.nodeStill + T.nodeClose));
+  timers.push(setTimeout(stop, T.nodeStill + T.nodeClose + T.nodeSeal));
+  map.addEventListener('pointerdown', stop, true);
+}
+
 function breatheFirstNode() {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const map = $('#scMap'); if (!map) return;
