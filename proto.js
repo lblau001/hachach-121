@@ -11080,8 +11080,15 @@ const SH_COPY = {
   failed:   'לא הצלחנו',                                    /* TAMAR */
   back:     'חזרה למפה',                                    /* TAMAR */
   card:     'כרטיס',                                        /* TAMAR */
-  a916:     '9:16',
-  a45:      '4:5',
+  /* T-B · THE RATIO NAMES THE DESTINATION, NOT THE ARITHMETIC. "9:16" and
+     "4:5" are what the file is; סטורי and פוסט are what the player is
+     about to do with it, and that is the choice actually being made. The
+     drawn rectangle beside each label still carries the true proportion —
+     .sh-tgm--916 is 9x16 and .sh-tgm--45 is 13x16 — so the ratio is not
+     lost, it has stopped being the label. Order is unchanged: story
+     first, post second. */
+  a916:     'סטורי',                                        /* TAMAR */
+  a45:      'פוסט',                                         /* TAMAR */
 };
 /* S2 plane and D1 tray, as picked on the v29f board. Trailing — last in
    the DOM, so RTL puts them at the physical left edge. */
