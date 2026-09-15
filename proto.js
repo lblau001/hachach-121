@@ -3705,14 +3705,29 @@ const INFO_COPY = {
 };
 
 /* THE PHOTO CREDITS, KEYED BY THE ART INDEX'S OWN ID.
-   34 ROWS, NOT 29. The roster in data.js deals 28 of these people; the
-   manifest holds art for 34, and all 34 .webp sets are served out of
+   35 ROWS, NOT 30. The roster in data.js deals 30 of these people; the
+   manifest holds art for 35, and all 35 .webp sets are served out of
    assets/mk/. A CC BY obligation attaches to what is DISTRIBUTED, not
    to what a player happens to be dealt, so the list is the art index.
-   Six of these are people the game no longer deals — edelstein, galant,
-   gantz, lahav, michaeli, silman — and one person it DOES deal, taha,
-   has no art at all and is correctly absent: there is no photograph to
-   credit. See the manifest's `fallback` block for what he draws instead.
+   FIVE of these are people the game no longer deals — edelstein, gantz,
+   lahav, michaeli, silman — and one person it DOES deal, taha, has no
+   art at all and is correctly absent: there is no photograph to credit.
+   See the manifest's `fallback` block for what he draws instead.
+   gila_gamliael IS THAT SPELLING ON PURPOSE. It reads like a typo for
+   gamliel and it is not: it is the roster's own key, confirmed, and the
+   art is cut to match it rather than to match how the name is spelled.
+   Her master arrived named gamliel_q92.webp, which matches neither —
+   the key is what the index is keyed by, so the key is what won.
+   IT WAS SIX UNTIL galant BECAME gallant. data.js spells him with two
+   Ls and the art was cut with one, so the key in the art index resolved
+   to nobody in the roster and his card fell through to an initials
+   badge. The art is re-cut from the 1360x2048 master under the roster's
+   own spelling, and the one-L set — mk_galant_{128,400,644}.webp and
+   the galant.webp master — is DELETED rather than left beside it. Four
+   files served out of assets/mk/ under a key this index does not carry
+   is the one state this list exists to make impossible: undeletable by
+   the credits screen because it cannot see them, and still distributed.
+   Git has them if a re-cut is ever needed.
 
    NAME AND PARTY ARE NOT HERE. They are read from M.politicians at
    render time, so this object cannot drift from the art index on the
@@ -3738,8 +3753,9 @@ const MK_CREDITS = {
   elharrar:      { author:'', source:'', licence:'', licenceUrl:'' },   /* קארין אלהרר */
   elkin:         { author:'', source:'', licence:'', licenceUrl:'' },   /* זאב אלקין */
   gafni:         { author:'', source:'', licence:'', licenceUrl:'' },   /* משה גפני */
-  galant:        { author:'', source:'', licence:'', licenceUrl:'' },   /* יואב גלנט */
+  gallant:       { author:'', source:'', licence:'', licenceUrl:'' },   /* יואב גלנט */
   gantz:         { author:'', source:'', licence:'', licenceUrl:'' },   /* בני גנץ */
+  gila_gamliael: { author:'', source:'', licence:'', licenceUrl:'' },   /* גילה גמליאל */
   goldknopf:     { author:'', source:'', licence:'', licenceUrl:'' },   /* יצחק גולדקנופ */
   gotliv:        { author:'', source:'', licence:'', licenceUrl:'' },   /* טלי גוטליב */
   kariv:         { author:'', source:'', licence:'', licenceUrl:'' },   /* גלעד קריב */
@@ -8174,14 +8190,6 @@ const nextTopicIdx = () => TOPICS().findIndex(t => !topicDone(t.id));
 /* the guard matters: an empty topic list is not a finished game, and
    TOPICS() is derived from data.js, which can be re-cut under us. */
 const gameDone = () => TOPICS().length > 0 && nextTopicIdx() < 0;
-/* T35 · THE MAP'S RESTART LABEL IS NOT WRITTEN YET, and it is the one
-   label in the app where the wrong word is actively dangerous: on a
-   finished map, a centre button reads as "play again" and this one wipes
-   the run. So it ships as a marked placeholder rather than as a guess —
-   the alternatives, and the plural/gendered question, are in the report
-   for Tamar. Same [טקסט — תמר: …] form and the same no-ph exception as
-   beat 5's line. */
-const MAP_RESTART_PH = '[טקסט — תמר: מחיקה והתחלה מחדש]';   /* TAMAR — placeholder */
 /* the soft nudge, and the only ordering the map has. No lock follows it. */
 const currentIdx = () => {
   const i = nextTopicIdx();
@@ -8814,8 +8822,17 @@ function renderMap() {
          there is one definition of what a wipe is and one sheet asking
          for it — never a second modal. */
       (gameDone()
+        /* T35 · THE LABEL IS WRITTEN NOW, AND IT IS NOT THE WARNING.
+           It shipped as a marked placeholder because the wrong word here
+           is actively dangerous — on a finished map a centre button reads
+           as "play again" and this one wipes the run. The answer is not a
+           scarier button; it is that the button names the ACTION and
+           resetConfirm() carries the cost. PROF_COPY.rsNote already says
+           "כל מה שצברתם יימחק ולא ניתן יהיה לשחזר אותו", one tap away and
+           before anything is destroyed, so putting מחיקה on the face
+           would be the same warning twice and the quieter of the two. */
         ? '<button type="button" class="map-restart" id="maprestart">' +
-            ph(MAP_RESTART_PH) + '</button>'
+            esc('להתחיל מחדש') + '</button>'                          /* TAMAR */
         : '') +
       /* v30c · SUPPRESSED ON A FINISHED MAP, and it is a suppression
          rather than a restack. The jump exists to return the player to
