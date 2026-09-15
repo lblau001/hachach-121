@@ -90,6 +90,7 @@ const T = {
   f5Recentre:ms('--t-f5-recentre'),
   f5Board:   ms('--t-f5-board'),    /* ITEM 8 · the board's move up      */
   f5Panel:   ms('--t-f5-panel'),    /* ITEM 8 · one step of the stagger  */
+  f5Lead:    ms('--t-f5-lead'),     /* how far into the rise index 0 lands */
   f5Hold:    ms('--t-f5-hold'),     /* ITEM 11a · the record, alone      */
   f5TickAt:  ms('--t-f5-tick-at'),  /* ITEM 11c · after the token lands  */
   f5Tick:    ms('--t-f5-tick'),     /* ITEM 11d · the +1                 */
@@ -410,6 +411,19 @@ function fitBeat() {
      bottom of a short phone while believing it had fitted. */
   const avail = par.clientHeight
     - (parseFloat(pcs.paddingTop) || 0) - (parseFloat(pcs.paddingBottom) || 0);
+  /* THE SOUND TOGGLE'S CORNER IS NOT RESERVED HERE, AND THAT IS A
+     MEASURED DECISION RATHER THAN AN OVERSIGHT. Every surface the toggle
+     floats over gives it room with --sound-toggle-clearance — but those
+     scroll, and this beat does not: it is scaled to fit. Subtracting the
+     toggle's 58px footprint from `avail` cost 9.6% of scale at 375x667
+     and turned a round that fitted exactly (605 of 605) into
+     scale(0.9041). It bought nothing: the beat cannot overrun the corner,
+     because the same fitBeat() that would have paid for the room is what
+     keeps the content inside the box in the first place, and the buttons
+     settle clear of the glyph on every viewport — see the gap figures in
+     the report. Do not add the subtraction back without re-measuring the
+     gap; a 9.6% shrink of the whole beat is a large price for a collision
+     that is not there. */
   /* ITEM 8 · MEASURE THE PADDING IT IS GOING TO HAVE, NOT THE ONE IT IS
      PASSING THROUGH. scrollHeight includes padding-top, and on the finale
      that padding is the board's move — 315px easing to 128. Called on the
@@ -6607,6 +6621,11 @@ function armGate(b) {
    coins arrive only after it has settled.                             */
 async function beat5() {
   S.beat = 5;
+  /* T26's call, for the second exclusion. The router only syncs on a
+     SCREEN change and this is a beat change inside one, so the beat that
+     hides the toggle has to say so itself — exactly as beat2() does, and
+     beat3() undoes. See sndToggleShown(). */
+  syncSndToggle('round');
   const r = $('#round'); r.innerHTML = '';
   /* PART 3 · THE FINALE TAKES THE SPACE THE ROUND'S CHROME WAS HOLDING.
      The banner's slot, the helper line and .round's own top padding are
@@ -6630,6 +6649,12 @@ async function beat5() {
 
   const tally  = issueTally(issue);   /* tally_for/tally_against — see issueTally() */
   let outcome  = null;                 /* the shared outcome surface */
+  /* THE LATE GROUP IS DECLARED HERE, NOT BESIDE THE MOVE, because two of
+     its members are built long before it: the prose board lands with the
+     tally and the outcome is assembled the moment the count resolves.
+     They take their step of the stagger like every other panel; only the
+     list has to outlive them. */
+  const late = [];
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const step = ms => wait(reduced ? 0 : ms);
 
@@ -6730,13 +6755,23 @@ async function beat5() {
      the same innerHTML, so the two have always appeared together; holding
      the prose back would be a change to the beat's chronology, which is
      §S-1's and not this fix's to make. */
+  /* IT LEADS THE POST-COUNT GROUP, and it is appended HERE rather than
+     after the count on purpose. .f5late's contract is that the panels go
+     into the DOM before the board's move and are held at opacity 0, so
+     the measurement the move is based on already includes them — see the
+     note on .f5late in proto.css. Appending this one late would measure a
+     stack it is not in and then grow it. What moved is not the append, it
+     is the ARRIVAL: no is-in here, it takes index 0 of the stagger.
+     f5Place()/fitBeat() still run on the frame it lands, because the held
+     placement has to account for the space it now reserves. */
   const proseBd = (tally && issue.vote_result)
-    ? el('div', 'f5prosebd f5surf b5stage',
+    ? el('div', 'f5prosebd f5surf b5stage f5late',
          '<p class="f5prose f5prose--below">' + esc(issue.vote_result) + '</p>')
     : null;
   if (proseBd) {
     b.appendChild(proseBd);
-    requestAnimationFrame(() => { proseBd.classList.add('is-in'); f5Place(b, board); fitBeat(); });
+    late.push(proseBd);
+    requestAnimationFrame(() => { f5Place(b, board); fitBeat(); });
   }
 
   if (tally) await runCount(board, tally);
@@ -6838,7 +6873,15 @@ async function beat5() {
         '<b>' + N(mine.against + '—' + mine.for) + '</b></span>';
     outcome.appendChild(res);
     b.appendChild(outcome);
-    requestAnimationFrame(() => { outcome.classList.add('is-in'); f5Place(b, board); fitBeat(); });
+    /* IT JOINS THE STAGGER RATHER THAN ARRIVING ON ITS OWN. It used to add
+       is-in here, one frame after its append, which put it on screen
+       before the board had begun to move and left the group with two
+       entrances instead of one. Folding it in costs nothing: the append,
+       and so its position in the column and in the move's measurement, is
+       exactly where it was. */
+    outcome.classList.add('f5late');
+    late.push(outcome);
+    requestAnimationFrame(() => { f5Place(b, board); fitBeat(); });
   }
 
   /* the record is written before the coins, because both finishing
@@ -6892,8 +6935,9 @@ async function beat5() {
      nothing moves after the measurement.
      ================================================================= */
   /* the blocks that arrive behind the board's move, in the order they
-     take their step of the stagger. */
-  const late = [];
+     take their step of the stagger — declared at the top of the beat, see
+     there. By this point it already holds the prose board and the
+     outcome. */
   /* NO fitBeat() WHILE THE BLOCKS GO IN, and that is not tidying. Each
      call measures the stack against a padding-top that is still the
      board's PRE-move 315px, so the moment the reading and the buttons
@@ -7040,8 +7084,16 @@ async function beat5() {
        without this the panels would still appear 80ms apart with the
        motion stripped out — a flicker rather than an arrival. */
     const stagger = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+    /* THE WHOLE CHAIN IS HELD BACK BY --t-f5-lead, so index 0 enters a
+       third of the way into the board's rise rather than on the same
+       frame as it. See the token for why. The step between panels is
+       unchanged at --t-f5-panel.
+       REDUCED MOTION DROPS THE LEAD WITH THE STEPS, which is the same
+       reason the steps go: the global rule flattens durations and leaves
+       delays alone, so a surviving 107ms lead would be a held blank frame
+       before everything appeared at once. One branch takes both. */
     late.forEach((n, i) => {
-      if (stagger) n.style.transitionDelay = (i * T.f5Panel) + 'ms';
+      if (stagger) n.style.transitionDelay = (T.f5Lead + i * T.f5Panel) + 'ms';
     });
     requestAnimationFrame(() => {
       late.forEach(n => n.classList.add('is-in'));
@@ -7054,7 +7106,8 @@ async function beat5() {
          life. One call after the last panel has arrived, and the scale
          reflects the layout that actually ended up on screen. */
       setTimeout(fitBeat,
-        T.f5Board + (late.length - 1) * T.f5Panel + T.f5In + 40);
+        T.f5Board + (stagger ? T.f5Lead : 0) +
+        (late.length - 1) * T.f5Panel + T.f5In + 40);
     });
   }));
 }
@@ -9435,7 +9488,31 @@ function buildSndToggle() {
    4 and 5, which is every other surface that has it. */
 function sndToggleShown(screen) {
   if (screen !== 'map' && screen !== 'round') return false;
-  return !(S && S.beat === 2);
+  /* BEAT 5 IS THE SECOND EXCLUSION, AND IT IS GEOMETRY RATHER THAN
+     TASTE. .snd-t is absolute to .stage, so its offset is measured from
+     the PADDING box; .b5fit's floor is the CONTENT box, 12px + the
+     device inset higher. The toggle is 44px tall sitting 14px up, so its
+     hit area reaches 46px above that floor — at every viewport and every
+     inset, because the inset moves both boxes by the same amount. It is
+     a constant, not a clearance that a bigger number would solve.
+     THE GUTTER CANNOT HOLD IT. Clearing the content would mean putting
+     the toggle's top at the content floor, i.e. bottom:(12px + inset) -
+     44px — negative on any device with less than a 32px inset. There is
+     no position for it on this beat that is out of the way.
+     THE ALTERNATIVE WAS MEASURED AND REFUSED. Raising .b5fit's floor by
+     the toggle's footprint clears it everywhere — every gap positive,
+     free at 390x844 and 430x932 — but costs 5.5% of scale at 375x667 on
+     three of the six issues and 9.6% on g2, and it needs fitBeat() to
+     subtract the same reserve. Beat 5 is the one screen that is scaled
+     rather than scrolled, so that cost lands on the numerals, the result
+     line and the CTA. Paying it to keep a control that ships OFF, on one
+     beat of five, was the wrong trade against the date. The figures are
+     in the report; if playtesting shows players reaching for mute during
+     this beat, that is the fix and it is already measured.
+     IT IS NOT STRANDED, for the same reason beat 2's exclusion is not:
+     the map and beats 1, 3 and 4 all carry it, and the round is a
+     minute long. */
+  return !(S && (S.beat === 2 || S.beat === 5));
 }
 
 function syncSndToggle(screen) {

@@ -196,6 +196,13 @@
      describing nothing else that runs. */
   --t-f5-board:     320ms;   /* the board rises to its final position   */
   --t-f5-panel:      80ms;   /* one step of the panels' stagger         */
+  /* HOW FAR INTO THE BOARD'S RISE THE FIRST PANEL ENTERS. The group used
+     to start on the same frame as the move, so the rise and the arrival
+     read as two things that happened at once. Held back by a third of
+     --t-f5-board the card arrives while the board is still travelling,
+     and the rise reads as the board making room for it — cause rather
+     than coincidence. 320 / 3, rounded to the nearest 10. */
+  --t-f5-lead:      107ms;
   /* ITEM 11 · the 121st vote, in the order it happens. */
   --t-f5-hold:      500ms;   /* a · the record, alone and readable      */
   --t-f5-tick-at:   120ms;   /* c · after the token has settled         */
@@ -774,11 +781,27 @@ body{
    than a thing in the world, and giving it the sticker treatment would
    put a fourth object in a corner that is currently empty.
    ===================================================================== */
+/* THE TOGGLE'S TWO NUMBERS, NAMED, because a second thing needs them:
+   --sound-toggle-clearance below is the room the rest of the app has to
+   leave in this corner, and it is that room ONLY because the toggle is
+   this size at this inset. Deriving the clearance from the same two
+   tokens is what stops the two drifting — move the toggle and the
+   clearance moves with it. The values are unchanged: 44 and 14. */
+:root{ --snd-size:44px; --snd-inset:14px; }
+/* WHAT EVERY SCROLLING SURFACE UNDER THE TOGGLE HAS TO CLEAR: the glyph's
+   box, the inset it floats at, and the device's own bottom inset under
+   both. Defined once here and read by .mapwin and .creveal__scroll.
+   BEAT 5 IS NOT ONE OF THEM, and deliberately: it does not scroll, it is
+   scaled to fit, and its content therefore cannot reach this corner —
+   measured clearances are in the report and fitBeat() carries the note.
+   .bgrid is not one either; the toggle is behind the modal there. */
+:root{ --sound-toggle-clearance:
+  calc(var(--snd-size) + var(--snd-inset) + env(safe-area-inset-bottom)); }
 .snd-t{
   position:absolute; z-index:12;
   left:calc(12px + env(safe-area-inset-left));
-  bottom:calc(14px + env(safe-area-inset-bottom));
-  width:44px; height:44px;          /* the target; the glyph inside is 20 */
+  bottom:calc(var(--snd-inset) + env(safe-area-inset-bottom));
+  width:var(--snd-size); height:var(--snd-size);   /* target; glyph is 20 */
   margin:0; padding:0; border:0; background:none;
   display:grid; place-items:center;
   color:#FFFFFF; opacity:.7;
@@ -3875,10 +3898,17 @@ body.no-ph .ph{ display:none !important; }
    THE FIX is to give the map back the padding on all four sides, not
    just two. The HUD floats over it at z-index 12, which it already did. */
 .sc-map{ min-height:0; }
+/* THE SOUND TOGGLE'S CORNER, RESERVED. The map is the one surface the
+   toggle floats over for its whole life, and the path runs to the
+   window's floor — so the last node's label could sit under the glyph at
+   a viewport that happened to end there. The room is padding INSIDE the
+   scroll, not a shorter window: the ribbon still bleeds to the edge and
+   the scroll simply has somewhere further to go. */
 .mapwin{
   position:relative; flex:1; min-height:0;
   margin:calc(-10px - env(safe-area-inset-top)) -16px
          calc(-12px - env(safe-area-inset-bottom));
+  padding-bottom:var(--sound-toggle-clearance);
 }
 /* the HUD and the jump button keep their inset — only the SURFACE bleeds */
 /* v30c · THE SAFE-AREA INSET MOVED TO THE BAR. This rule gave the pill
@@ -4887,9 +4917,14 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
   transition:opacity var(--t-flip) var(--e-out), transform var(--t-flip) var(--e-settle);
 }
 .creveal__exp.is-in{ opacity:1; transform:none; }
+/* THE SAME CORNER, ON THE ONE OTHER SURFACE THAT SCROLLS UNDER THE
+   TOGGLE. The claim reveal's explanation panel is inside the round, where
+   the toggle is shown on every beat but 2 — so its last line could land
+   behind the glyph. Same token, same reason; see :root. */
 .creveal__scroll{
   min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch;
   overscroll-behavior:contain;
+  padding-bottom:var(--sound-toggle-clearance);
   /* THE SCROLLBAR IS DRAWN OUT, NOT LEFT TO THE PLATFORM. On the two
      engines this ships to it is an overlay bar — no width, invisible at
      rest — so hiding it costs nothing and removes the one place a stray
