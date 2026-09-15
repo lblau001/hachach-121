@@ -113,9 +113,9 @@
       "party": "המחנה הממלכתי",
       "400": "assets/mk/mk_gantz_400.webp",
       "128": "assets/mk/mk_gantz_128.webp",
-      "hi": "assets/mk/mk_gantz_684.webp",
-      "hi_px": 684,
-      "dpr": 1.7
+      "hi": "assets/mk/mk_gantz_1204.webp",
+      "hi_px": 1204,
+      "dpr": 3.0
     },
     "gila_gamliael": {
       "name": "גילה גמליאל",
