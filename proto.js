@@ -2291,9 +2291,20 @@ function firstRunIntro(done) {
   let gone = false;
   const close = () => {
     if (gone) return; gone = true;
+    removeEventListener('keydown', onKey);
     o.classList.remove('is-in'); o.classList.add('is-out');
     setTimeout(() => { o.remove(); done(); }, T.ovCollapse);
   };
+  /* ESCAPE, AND IT IS THE SAME TWO LINES THE OTHER THREE DIALOGS CARRY —
+     resetConfirm(), stickerModal() and confirmSheet(). This box declares
+     role="dialog" aria-modal="true" like they do, and was the only one of
+     the four that did not answer Escape: dismissal was the CTA and the
+     ground and nothing else. Routed through close() rather than removing
+     the node directly, so the is-out transition and done() still run
+     whichever way the player leaves — the ITEM 43 rule, one hook fired on
+     every way out. */
+  const onKey = e => { if (e.key === 'Escape') close(); };
+  addEventListener('keydown', onKey);
   /* the whole surface is the dismiss, the CTA included — pressable() only
      to give the button the same 10ms tick every other control has */
   pressable($('.b1intro__go', o));
@@ -10718,6 +10729,10 @@ const SH_COPY = {
   sharing:  'מכינים את הכרטיס…',                            /* TAMAR */
   saving:   'שומרים…',                                      /* TAMAR */
   copied:   'הועתק',                                        /* TAMAR */
+  /* the failed branch of the same pair. A share that fails silently is
+     indistinguishable from a dead button, so it says so in the button it
+     came from — the same surface and the same 1600ms as `copied`. */
+  failed:   'לא הצלחנו',                                    /* TAMAR */
   back:     'חזרה למפה',                                    /* TAMAR */
   card:     'כרטיס',                                        /* TAMAR */
   a916:     '9:16',
@@ -10988,8 +11003,15 @@ async function shRun(btn, other, busyLabel, fn) {
   other.disabled = false;
   SH_BUSY = false;
   /* the clipboard fallback is the one outcome the player cannot see
-     happen, so it says so, briefly, in the button it came from */
+     happen, so it says so, briefly, in the button it came from.
+     A FAILURE IS THE SECOND SUCH OUTCOME, and it was falling through to
+     the bare `else`: the spinner stopped, the label came back, and
+     nothing had happened — the same frame a dead button renders. It gets
+     the identical treatment rather than a new one, because it is the same
+     problem. 'cancelled' and 'shared'/'saved' still take the else: the
+     first is the player closing the sheet, the other two are visible. */
   if (r === 'copied') { lab.textContent = SH_COPY.copied; setTimeout(() => { lab.textContent = label0; }, 1600); }
+  else if (r === 'failed') { lab.textContent = SH_COPY.failed; setTimeout(() => { lab.textContent = label0; }, 1600); }
   else lab.textContent = label0;
 }
 

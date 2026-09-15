@@ -1974,6 +1974,33 @@ body.no-ph .ph{ display:none !important; }
   font:inherit; font-weight:900; color:#FBF7EE;
   text-decoration:underline; text-underline-offset:3px;
   padding:0; margin:0; display:inline;
+  /* the ::after below is absolute and needs a containing block. On an
+     inline box this changes no geometry: position:relative does not
+     establish a new formatting context for text, and the line it sits in
+     is laid out exactly as before. */
+  position:relative;
+}
+/* THE TARGET, GROWN WITHOUT GROWING THE SENTENCE. The link measured
+   86x26 in the running app and is the only route to the law modal from
+   beat 2 — but it is a word inside a running line, so padding is not
+   available: any block padding here would push the line box and reflow
+   the paragraph ITEM 34b built to read as prose.
+   THE TECHNIQUE IS ALREADY IN THIS FILE TWICE — .pcov::after and
+   .hud-x::after — and it is the same trick both times: an absolutely
+   positioned pseudo contributes nothing to layout, so the hit area grows
+   and not one glyph moves.
+   -10px BLOCK, AND THE 10 IS MEASURED RATHER THAN ASSUMED. The obvious
+   number is 9 — 26 + 18 = 44 — but the link's box is not 26. font:inherit
+   gives it the sentence's 17px at a 1.5 leading, so the line box is
+   25.5px, identical at 390, 375 and 360 (checked at all three). 9 either
+   side lands on 43.5 and misses the minimum by half a pixel; 10 lands on
+   45.5 and clears it. Do not "tidy" this back to 9.
+   -6px INLINE: the sentence's own words sit either side of this link, so
+   the inline bleed is kept small deliberately — enough to forgive a
+   thumb that lands just off the word, not enough to start eating the
+   taps that belong to the text around it. It paints nothing. */
+.b2title-link::after{
+  content:""; position:absolute; inset:-10px -6px;
 }
 
 /* ITEM 38 · VARIANT D, from explorations/v24/b2-question.html.
@@ -4226,9 +4253,14 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
    it would move that pill off centre for nothing. */
 .map-bar.has-restart{ padding-left:66px; }
 
+/* min-height:44 — measured 163x36 in the running app, 8 under this file's
+   own stated minimum. Already flex with align-items:center, so the arrow
+   and the label stay on their shared centre line and the asymmetric
+   7px/8px block padding — which is doing optical work on the glyph — is
+   left exactly as it was. */
 .map-jump{
   position:relative; z-index:1;
-  display:flex; align-items:center; gap:7px;
+  display:flex; align-items:center; gap:7px; min-height:44px;
   padding:7px 15px 8px; border:0; cursor:pointer;
   border-radius:999px; background:var(--paper); color:var(--ink);
   font-family:var(--font-display); font-weight:900; font-size:14px;
@@ -5504,9 +5536,18 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
    text child left they describe nothing, and .pcov__face is already
    display:grid place-items:center, which is what centres the label. This
    is the rule exactly as it stood before the arrow. */
+/* --ink-soft, NOT #6B6350, AND IT IS A CONTRAST FIX RATHER THAN A TONE
+   PREFERENCE. #6B6350 measured 3.64:1 against the sheet's kraft
+   (#D8C9A8) in the running app; 11px is small text and wants 4.5.
+   --ink-soft (#4A4436) is already the token for exactly this job and
+   measures 5.91:1 on the same ground, so the fix costs no new value.
+   The label is on every MK card — five a round, twenty-two rounds — so
+   this is the most-repeated piece of type in the build.
+   NOTHING MOVES: colour only. The 11px, the 900 and the letter-spacing
+   are untouched, and .pcov's own geometry is not in this rule. */
 .pcov__lab{
   font-family:var(--font-display); font-weight:900; font-size:11px;
-  line-height:1; color:#6B6350; letter-spacing:.01em;
+  line-height:1; color:var(--ink-soft); letter-spacing:.01em;
 }
 /* THE CURL, and this is what gives it thickness. It rides the peeling
    edge: a narrow strip whose gradient runs light on the outer face to
@@ -6337,10 +6378,23 @@ body.no-ph .f5res .ph{ display:inline-block !important; }
 }
 .stmodal__box .f5links{ margin-top:12px; }
 .stmodal__box .f5link{ color:#2B2926; }
-.f5links{ display:flex; flex-direction:column; gap:4px; }
+/* THE TWO SOURCE LINKS ARE TAP TARGETS, AND THEY WERE 28 AND 30 TALL
+   FOUR PIXELS APART — measured in the running app. Two adjacent targets
+   that size, that close, is the geometry a mis-tap comes from, and these
+   two are the documented vote and the explainer: the build's whole claim
+   to being about real Knesset votes rather than about a quiz.
+   11px OF BLOCK PADDING, NOT A min-height. The two links do not have the
+   same content box — they measured 28 and 30 tall on 3px of padding, so
+   22 and 24 — and 11 either side puts the shorter one exactly on 44 and
+   the taller on 46. Padding rather than a min-height keeps the rule one
+   number that can be read against the box it pads, and keeps both links
+   growing together if the type ever changes.
+   THE GAP GOES 4 -> 8 for the same reason the padding grew: 44px targets
+   with a 4px gutter still read as one block to a thumb. */
+.f5links{ display:flex; flex-direction:column; gap:8px; }
 .f5link{
   font-size:14px; font-weight:700; color:#EFECE4; text-decoration:underline;
-  text-underline-offset:3px; display:flex; gap:7px; align-items:center; padding:3px 0;
+  text-underline-offset:3px; display:flex; gap:7px; align-items:center; padding:11px 0;
 }
 .f5link.is-missing{ opacity:.5; text-decoration:none; }
 .f5close{
@@ -7740,9 +7794,14 @@ button.prof-hero:focus-visible{ outline:3px solid var(--primary); outline-offset
 /* the board's .gchip, as a button, on paper: white so it reads as a
    sticker on the cream, the board's hard 3px shadow, and the board's
    double ring when it is on. Never a colour — a voice is not a verdict. */
+/* min-height:44 — measured 123x37 in the running app, against the 44 this
+   file names as its own minimum at .prof-quiet. The chip is already
+   inline-flex with align-items:center, so the label stays centred and the
+   9px/15px padding is untouched: the box grows 7px downward-and-up around
+   type that does not move. */
 .gchip{
   appearance:none; border:0; cursor:pointer; display:inline-flex; align-items:center;
-  background:#fff; border-radius:12px; padding:9px 15px;
+  background:#fff; border-radius:12px; padding:9px 15px; min-height:44px;
   font-family:var(--font-ui); font-size:13.5px; font-weight:700; color:var(--ink);
   box-shadow:0 3px 0 rgba(0,0,0,.3);
   -webkit-tap-highlight-color:transparent;
