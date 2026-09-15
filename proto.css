@@ -6191,6 +6191,22 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
   font-size:19px; line-height:1.35; color:#EFECE4; text-align:start;
 }
 
+/* 15px, AND THE STEP IS THE POINT. .f5prose is 19px because on a
+   prose-only board the paragraph IS the content — the only account of the
+   outcome that issue has — and display type is right there. Under a tally
+   it is the explanation and not the headline: the numerals lead at 74px,
+   the result line states what happened at 16, and this supports them.
+   MEASURED AGAINST .f5res, WHICH IS THE LINE IT SITS NEAREST. That is
+   16px/900, and the prose reads one step under it rather than three steps
+   over it. 15 rather than 16 is not a tone choice: at 16 only three of
+   the twelve issues fit beat 5 at 360x640 without fitBeat() shrinking the
+   whole screen, and at 15 ten of them do. The weight, the family, the
+   colour and the leading are .f5prose's own and do not move -- this is
+   one declaration because only one thing is wrong.
+   IT INHERITS EVERYTHING ELSE, so a change to .f5prose still reaches both
+   surfaces and the two cannot drift into two paragraph treatments. */
+.f5prose--below{ font-size:15px; }
+
 /* ITEM 8 · NOTHING ADDS .is-strip ANY MORE. The board keeps its full
    size for the whole beat and rises instead; beat5() no longer sets the
    class. The rules below are kept, unreferenced, because they are the

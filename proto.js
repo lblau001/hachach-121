@@ -376,7 +376,30 @@ function sizeStage() {
 }
 /* beat 5 is the one screen whose content can outgrow the viewport. It is
    scaled to fit rather than made scrollable — only the map and character
-   personalisation ever scroll. */
+   personalisation ever scroll.
+
+   >>> IF YOU ARE MEASURING WHETHER BEAT 5 FITS, READ THIS FIRST. <<<
+   `need` below is dominated by .b5fit's OWN padding-top, which f5Place()
+   drives and which is a different number at every stage of the beat. It
+   was measured at 0, 52, 85 and 154px on the SAME issue at the SAME
+   viewport during one session, and the resulting `slack` ranged from -35
+   to -229 — a spread of 194px that is entirely padding and has nothing to
+   do with the content. A whole session's worth of "does it fit" numbers
+   was reported off that noise before the cause was found.
+
+   THE ONLY MOMENT THE ANSWER MEANS ANYTHING is after the final placement
+   has run — f5Place(b, board, true) inside the double rAF at the foot of
+   beat5(). The marker for that is `.is-recentring` ON .b5fit, and nothing
+   else is a substitute: .f5acts being in the DOM is NOT it — the buttons
+   land before the re-centre, so a beat with its CTAs present can still be
+   holding the pre-settle padding. Test the class, not the children.
+
+   AND THAT MOMENT IS UNREACHABLE IN A BACKGROUNDED TAB, because a double
+   rAF does not run there. Anything driving this from an automated browser
+   is measuring the held state unless it forces the placement by hand. On
+   device it simply happens. If you need a comparison from a harness, do
+   an A/B in ONE state — change the thing under test and nothing else —
+   rather than trusting two absolute readings taken moments apart. */
 function fitBeat() {
   const fit = document.querySelector('.b5fit');
   if (!fit) return;
@@ -6679,12 +6702,41 @@ async function beat5() {
         '<span class="f5majlab">' + N(MAJORITY) + '</span>' +
         (mySide === 'maj'
           ? '<span class="f5slot f5slot--maj" id="f5slot"></span>' : '') +
-        '</div>' +
-      (issue.vote_result ? '<p class="f5prose f5prose--below">' + esc(issue.vote_result) + '</p>' : '')
+        '</div>'
     : '<p class="f5prose">' + esc(issue.vote_result) + '</p>';
   if (board) {
     b.appendChild(board);
     requestAnimationFrame(() => { board.classList.add('is-in'); f5Place(b, board); fitBeat(); });
+  }
+
+  /* THE PROSE GETS ITS OWN SURFACE, BELOW THE TALLY — NOT A PASSENGER
+     INSIDE IT. It was concatenated onto the end of the board's own
+     innerHTML, so it rendered inside the dark panel with the numerals and
+     the bar, and the board inflated to contain it: on g2 that is nine
+     lines of display type under a 74px scoreline, and the board became
+     the paragraph's frame rather than the count's.
+     EVERY OTHER ELEMENT ON THIS BEAT IS ITS OWN SURFACE — the outcome,
+     the further-info door — and this is built exactly the way they are:
+     .f5surf for the ground, the radius and the scanline, b5stage for the
+     arrival, is-in on the next frame. It is not .f5board: that carries
+     the 24/16/20 padding the tally and the prose-only board want, and
+     .f5surf's 11/14/12 is the padding the siblings use.
+     ONLY THE TALLY CASE. Without a tally the board IS the prose and the
+     branch above is untouched — there the display size is correct,
+     because it is then the only account of the outcome that exists. That
+     path is dead with today's data, where all twelve issues carry a
+     tally, and it has to keep working: the CMS can drop one at any time.
+     IT ARRIVES WITH THE TALLY, not after it. Roman's version was inside
+     the same innerHTML, so the two have always appeared together; holding
+     the prose back would be a change to the beat's chronology, which is
+     §S-1's and not this fix's to make. */
+  const proseBd = (tally && issue.vote_result)
+    ? el('div', 'f5prosebd f5surf b5stage',
+         '<p class="f5prose f5prose--below">' + esc(issue.vote_result) + '</p>')
+    : null;
+  if (proseBd) {
+    b.appendChild(proseBd);
+    requestAnimationFrame(() => { proseBd.classList.add('is-in'); f5Place(b, board); fitBeat(); });
   }
 
   if (tally) await runCount(board, tally);
