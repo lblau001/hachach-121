@@ -7426,6 +7426,14 @@ function flyToken(slot) {
 async function coinMoment(b, topicsWas) {
   const t = COIN_TABLES[DEV.coins];
   const gotTopic = topicsDone() > topicsWas;
+  /* THE MAP IS TOLD, FROM HERE, BECAUSE HERE IS WHERE IT IS KNOWN.
+     gotTopic was already computed and already thrown away -- it added the
+     100 and the caption's second word and nothing else. The map has no
+     way to derive it: topicsDone() is cumulative, so by the time the map
+     is built "a topic is finished" and "a topic just finished" are the
+     same true value. See MAP_PARK_TOPIC for why it is an id and why it
+     is not saved. */
+  if (gotTopic) MAP_PARK_TOPIC = topic.id;
   const now = t.round + (gotTopic ? t.topic : 0);
   const parts = [esc('הסבב')];                                       /* TAMAR */
   if (gotTopic) parts.push(esc('הנושא'));                            /* TAMAR */
@@ -7731,6 +7739,38 @@ const SAVE_VER = 1;
 let EG_CONFETTI_SPENT = false;
 let SND_DONE_FIRED = false;     /* SOUND · once per session, on top of `cf` */
 
+/* THE MAP PARKS ON WHAT JUST CLOSED, AND THIS IS THE ONLY THING THAT
+   KNOWS IT. A topic-completing round pays 100 on top of the round's 50,
+   and until now the only thing marking that on the map was the node
+   already being drawn complete before the map faded in -- while the
+   scroll moved to the NEXT topic, so the map's one gesture pointed away
+   from the thing that had just happened.
+
+   IT IS A TOPIC ID, NOT A BOOLEAN OR AN INDEX. A boolean would make
+   wireMap() re-derive which topic closed, and the answer it would reach
+   for -- the module-level `issue` -- is still the finished round's when
+   the map is built, which is true by accident rather than by contract.
+   An index would be a position in TOPICS(), which is derived from
+   data.js and can be re-cut under a running session.
+
+   IT IS DELIBERATELY NOT IN saveState(). The signal is "the arrival you
+   are about to make follows a topic closing", which is true of exactly
+   one arrival and is meaningless on a reload: a player who comes back
+   tomorrow is arriving fresh, and parking them on an old node would be
+   the map telling them something happened that did not just happen. A
+   plain `let` is the whole mechanism -- a reload constructs it null and
+   the map parks exactly as it always did.
+
+   READ AND CLEARED IN wireMap(), WHICH IS WHY ONE ARRIVAL MEANS ONE.
+   wireMap() runs on every map arrival and is reached by one path only
+   (goMap -> renderMap -> wireMap), so the flag cannot outlive the first
+   arrival after it is set, whatever route the player took to get there.
+   NOT in onMapSettled(): that fires after the arrival animation, and a
+   park applied there would fade the map in at the old scroll and then
+   snap it. The park has to be set before the fade, which is where
+   wireMap() already does it. */
+let MAP_PARK_TOPIC = null;
+
 /* ITEM 43 · THE MAP'S FIRST ARRIVAL, ONCE EVER. It goes in the save
    rather than in a key of its own — SEEN_KEY predates the save and is
    stranded there; anything added now belongs with progress and profile so
@@ -7953,10 +7993,17 @@ const TOPICS = () => DATA.topics.filter(t => topicIssues(t.id).length > 0);
    is ordinary content, not a bonus. */
 
 const issueDone  = id => PROGRESS[id] === true;
-/* HOW MANY SEGMENTS THIS TOPIC'S RING HAS. Two for most, ONE for
-   דת ומדינה, which the sheet leaves with a single issue — the ring, the
-   status line and the next-issue button all read this rather than 2, so a
-   one-issue topic can never render "1/2". */
+/* HOW MANY SEGMENTS THIS TOPIC'S RING HAS, DERIVED AND NEVER ASSUMED.
+   The ring, the status line and the next-issue button all read this
+   rather than a literal 2, so the map cannot render "1/2" for a topic
+   that does not have two issues.
+   THE NAMED EXCEPTION IS GONE FROM THIS COMMENT, NOT FROM THE CODE. It
+   used to say דת ומדינה carries a single issue; data.js now gives all six
+   topics two (r1/r2, e1/e2, b1/b2, g1/g2, a1/a2, m1/m2), so the example
+   was pointing at a topic that had stopped being one. The Math.max(1, …)
+   floor stays exactly as it was: it is there for a topic with no issues
+   at all, which TOPICS() already filters out but which this helper is
+   called with by segsDone() and topicDone() on data it does not own. */
 const SEGS       = id => Math.max(1, topicIssues(id).length);
 const segsDone   = id => topicIssues(id).filter(i => issueDone(i.id)).length;
 const topicDone  = id => { const l = topicIssues(id); return l.length > 0 && l.every(i => issueDone(i.id)); };
@@ -8851,6 +8898,19 @@ function drawPath(h) {
 function wireMap(cur, h) {
   const win = $('#mapwin'), jump = $('#mapjump');
   const curY = nodeY(cur, h);
+  /* THE PARK TARGET IS NOT ALWAYS THE CURRENT NODE, and `cur` is left
+     alone on purpose: it carries .is-current, and it is the jump pill's
+     permanent destination. Only where the scroll LANDS moves, so the two
+     are split here rather than by handing wireMap() a different index --
+     which would have silently moved the keyline and the pill with it.
+     READ AND CLEARED IN ONE PLACE. Every map arrival runs this line, so
+     the signal is spent by the first arrival after the round that set it
+     and a stale flag cannot exist. A topic id that TOPICS() no longer
+     carries resolves to -1 and falls through to the normal park, which is
+     the same answer a null gives. */
+  const pi = MAP_PARK_TOPIC ? TOPICS().findIndex(t => t.id === MAP_PARK_TOPIC) : -1;
+  MAP_PARK_TOPIC = null;
+  const parkY = pi >= 0 ? nodeY(pi, h) : curY;
   const done = $('#mapdone');
   if (done) pressable(done).addEventListener('click', () => endGame());
   /* T35 · ONE CONFIRM, TWO ENTRY POINTS. resetConfirm() is the identity
@@ -8861,8 +8921,21 @@ function wireMap(cur, h) {
 
   /* PARK THE FIRST INCOMPLETE NODE IN THE LOWER THIRD. Two thirds down the
      window, so what is above it — everything still to play — is what fills
-     the screen, and the climb reads as the point of the map. */
-  const park = () => { win.scrollTop = Math.max(0, curY - win.clientHeight * 0.667); };
+     the screen, and the climb reads as the point of the map.
+     ON A TOPIC-CLOSING ARRIVAL IT IS THE CLOSED NODE INSTEAD, at the same
+     two thirds. It points BACKWARDS, at what the player just did, and that
+     is what keeps it clear of §3.1: the free-choice rule forbids the map
+     pushing the player toward a topic, and nothing here touches the next
+     node -- no pulse, no emphasis, no scroll toward it. The next node is
+     one --node-gap up and stays exactly where it was.
+     THE BOTTOM TOPIC DOES NOT REACH THE TWO THIRDS, AND THAT IS CORRECT.
+     It is the last node on the path, so the scroll bottoms out first: at
+     390x844 it lands at 0.77 of the window rather than 0.67 (measured;
+     360x640 and 375x667 both reach it exactly, moving one full
+     --node-gap). Forcing 0.67 there would mean scrolling past the end of
+     the map, which is a worse thing than a node sitting 100px lower --
+     and it can only ever affect the first topic. Lion's call, 15 Sep. */
+  const park = () => { win.scrollTop = Math.max(0, parkY - win.clientHeight * 0.667); };
   park();
 
   /* v30c · the pill is not in the DOM on a finished map, so everything
