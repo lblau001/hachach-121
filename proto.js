@@ -7022,7 +7022,18 @@ async function beat5() {
      ever answer "is there another issue in THIS topic" and fell through
      to חזרה למפה — which is exactly the loop the end-game replaces. */
   if (gameDone()) {
-    const go = el('button', 'p-c f5go', 'סיימתם את כל הנושאים ›');   /* TAMAR */
+    const go = el('button', 'p-c f5go f5go--end', 'סיימתם את כל הנושאים ›'); /* TAMAR */
+    /* C2 -> C3 · THE POP'S OWN END IS THE HANDOFF, NOT A TIMER. The two
+       animations write the same property, so the breath must not arrive
+       while the pop is still running; animationend is the only marker
+       that cannot drift away from the stagger that launched it, and a
+       setTimeout here would be a second clock guessing at the first.
+       Under reduced motion the pop is animation:none, so this never
+       fires and the breath never starts — which is the outcome
+       startBreath() would have refused anyway. */
+    go.addEventListener('animationend', e => {
+      if (e.animationName === 'f5goPop') startBreath(go);
+    }, { once:true });
     pressable(go).addEventListener('click', () => endGame());
     acts.appendChild(go);
   } else if (next) {

@@ -3781,8 +3781,19 @@ body.no-ph .ph{ display:none !important; }
    time one of them was retuned, and the drift would be invisible: two
    buttons breathing 40ms apart on two screens nobody sees together.
    Both are .p-c, so the shadow the keyframes rebuild is already theirs. */
+/* C3 · .f5go--end JOINS, ON T21'S OWN TERMS. The finale CTA wants this
+   exact invitation, and the argument T21 makes for .pr-go is the argument
+   for this one: a second @keyframes with different numbers would drift
+   the first time either was retuned, and it would drift invisibly. The
+   numbers here are also not free-standing — 3500 is what the chair's
+   5500 float was chosen AGAINST (see the anti-sync note on .sc-chair), so
+   a third period would be a decision about two other objects as well.
+   Joining costs one selector and inherits startBreath()'s reduced-motion
+   refusal and its pointerdown cancel, which is also what keeps :active
+   reachable under an infinite `both`-filled animation. */
 .i-cta.is-breathing,
-.pr-go.is-breathing{
+.pr-go.is-breathing,
+.f5go--end.is-breathing{
   transform-origin:center;
   animation:i-cta-breathe 3500ms linear 1200ms infinite both;
 }
@@ -3810,7 +3821,8 @@ body.no-ph .ph{ display:none !important; }
    startBreath() also refuses to add the class — this is the backstop. */
 @media (prefers-reduced-motion: reduce){
   .i-cta.is-breathing,
-  .pr-go.is-breathing{ animation:none; }
+  .pr-go.is-breathing,
+  .f5go--end.is-breathing{ animation:none; }
 }
 
 /* ---- the display title, letter by letter --------------------------
@@ -6458,6 +6470,71 @@ body.no-ph .f5res .ph{ display:inline-block !important; }
 .f5acts{ margin-top:auto; padding-top:0; display:flex; flex-direction:column;
   align-items:stretch; gap:8px; flex:none; }
 .f5go{ font-size:18px; min-height:0; padding:12px 0 13px; }
+/* C1 · THE FINALE IS THE PRIMARY AT CLOSER TO FULL SIZE; THE ROUTINE ONE
+   IS THE COMPRESSED VARIANT. .f5go above takes the system primary — 25px
+   type in a 56px box, hachach.css:68 and :112 — and compresses it to
+   18/51.5 so the beat fits under fitBeat(). That compression is the right
+   call eleven times and the wrong one on the twelfth: the player has
+   pressed this exact object all round, and depth alone does not read as
+   an identity at the size the difference actually ships at.
+
+   So the finale gives the compression back. 20px in a 58.5px box is the
+   only .f5go that clears the 56px the rest of the build calls a primary,
+   and it is the same vocabulary rather than a new one — no second yellow
+   (hachach.css:40), no outer ring that could be read as :focus-visible.
+
+   ONE PROPERTY DOES THE DEPTH, AND THAT IS WHY IT IS A PROPERTY. --z-press
+   is read TWICE by .p-c: once in the resting box-shadow's extrusion and
+   once in :active's translateY. Overriding the token here moves both
+   together, so the deeper seat cannot drift out of step with the press
+   that has to travel it — restating either rule is how that drift starts.
+
+   THE LABEL DOES NOT WRAP, AND IT WAS NOT GOING TO. Measured at every
+   size considered: 'סיימתם את כל הנושאים ›' needs 196.9px at 18 and
+   240.7px at 22, in a box that is 343px at the narrowest viewport. The
+   type step was chosen on proportion, not against a wrap that is not
+   there — roughly 200px of headroom at 20px, so the ceiling on this is
+   the beat's height and never the line. */
+.p-c.f5go--end{ --z-press:7px; font-size:20px; padding:14px 0 15px; }
+
+/* C2 · THE ARRIVAL, AND THE SWEEP THAT IS NOT HERE. A diagonal light
+   sweep was proposed for this button and dropped: the CTA-breath block
+   further up this file already rejects one — "a diagonal sweep on a
+   die-cut object reads as a loading skeleton" — and .f5go--end is a
+   die-cut object, 3px edge and keyline like every other .p-c. The
+   rejection was not written about this class, but it is about this kind
+   of object, so it governs.
+
+   THE AMPLITUDE IS BORROWED, NOT CHOSEN. 1.035 is i-cta-breathe's peak
+   and 420ms is its own out-phase, so the pop and the breath that follows
+   it are the same gesture at two speeds rather than two gestures. One
+   number to retune, not three.
+
+   NO FILL, AND THAT IS THE WHOLE OF THE PRESS BUG. `both` would hold
+   scale(1) on the element forever, and a held transform beats .p-c's
+   :active translateY — the button would stop reading as pressable the
+   moment it finished arriving. Without fill the declared transform comes
+   back the instant the pop ends. The breath that follows DOES fill, and
+   startBreath()'s pointerdown cancel is what answers it there.
+
+   :not(.is-breathing) IS LOAD-BEARING, NOT TIDINESS. This selector is
+   more specific than .f5go--end.is-breathing, so while it still matched
+   it would keep setting `animation` and the breath would never play. */
+.f5acts.is-in .p-c.f5go--end:not(.is-breathing){
+  animation:f5goPop 420ms cubic-bezier(.2,.8,.2,1);
+}
+@keyframes f5goPop{
+  0%   { transform:scale(.96); }
+  55%  { transform:scale(1.035); }
+  100% { transform:scale(1); }
+}
+/* explicit, not the flattener: the flattener caps duration and leaves the
+   keyframes running, and beat5() reads this animation's END to start the
+   breath — so it is turned off here and startBreath() is never reached,
+   which is the correct reduced-motion outcome for both. */
+@media (prefers-reduced-motion: reduce){
+  .f5acts.is-in .p-c.f5go--end:not(.is-breathing){ animation:none; }
+}
 /* T34 / T34b ARE GONE WITH THE BUTTON THEY DESCRIBED. .f5back was beat
    5's secondary — חזרה למפה beside לסוגיה הבאה — and it is removed from
    beat5() rather than restyled: the round chrome's ✕ already reaches the
