@@ -155,6 +155,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);direction:rt
 .status-link:hover{text-decoration:underline}
 .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;height:60vh;color:var(--text-muted);text-align:center}
 .empty-state h2{font-size:18px;font-weight:700;color:var(--text-dim)}
+
+/* POL ENTRIES in issue form */
+.pol-entries{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;margin-bottom:8px;min-height:32px}
+.pol-entry-row{display:grid;grid-template-columns:160px 80px 46px 72px 1fr auto;gap:6px;align-items:center;padding:5px 0;border-bottom:1px solid var(--border)}
+.pol-entry-row:last-child{border-bottom:none}
+.pol-entry-row .form-input,.pol-entry-row .form-select{padding:4px 6px;font-size:12px}
+.pol-key-label{display:flex;align-items:center;gap:3px;font-size:11px;color:var(--text-dim);cursor:pointer;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -259,6 +266,24 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);direction:rt
       <div class="section-hd">
         <span class="section-hd-title">חברי כנסת</span>
         <span class="section-hd-pill" id="pol-count">0</span>
+        <span class="section-hd-spacer"></span>
+        <button class="btn btn-primary btn-sm" id="addPolBtn">+ הוסף חכ"מ</button>
+      </div>
+      <div id="new-pol-form" style="display:none;background:var(--surface);border:1px solid var(--accent);border-radius:6px;padding:16px;margin-bottom:16px">
+        <div class="form-grid thirds" style="margin-bottom:10px">
+          <div class="form-group"><label class="form-label">מפתח (slug)</label><input class="form-input ltr" id="newPolKey" placeholder="netanyahu"></div>
+          <div class="form-group"><label class="form-label">שם</label><input class="form-input" id="newPolName" placeholder="בנימין נתניהו"></div>
+          <div class="form-group"><label class="form-label">סיעה</label><input class="form-input" id="newPolParty" placeholder="הליכוד"></div>
+        </div>
+        <div class="form-grid" style="grid-template-columns:80px 1fr;margin-bottom:10px">
+          <div class="form-group"><label class="form-label">אמוג'י</label><input class="form-input" id="newPolAvatar" placeholder="👤" maxlength="4"></div>
+          <div class="form-group"><label class="form-label">MK ID</label><input class="form-input ltr" id="newPolMkId" type="number" placeholder="12345"></div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-primary btn-sm" id="saveNewPolBtn">הוסף</button>
+          <button class="btn btn-ghost btn-sm" id="cancelNewPolBtn">ביטול</button>
+          <span id="newPolError" style="font-size:12px;color:var(--danger)"></span>
+        </div>
       </div>
       <div class="pol-grid" id="pol-grid"></div>
     </div>
@@ -272,6 +297,17 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);direction:rt
 </div>
 
 <script>
+/* strip PAT from URL if somehow passed as query param — prevents token in browser history */
+(function(){
+  try{
+    var u=new URL(location.href);
+    if(u.searchParams.has('pat')||u.searchParams.has('token')){
+      u.search='';
+      history.replaceState({},'',u.toString());
+    }
+  }catch(e){}
+})();
+
 /* password hash (SHA-256 of the real password — plaintext never stored in source) */
 const PW_HASH  = '50d1751710204448941bb951d1c9974a1a29193f273d47640effc96375a84bc1';
 const REPO     = 'romangash-star/hachach-121';
@@ -402,10 +438,20 @@ function renderTopic(tid){
     document.querySelector('#row-'+CSS.escape(iss.id)+' .issue-hd')?.addEventListener('click',()=>toggleRow(iss.id));
     document.getElementById('form-'+iss.id)?.addEventListener('submit',e=>{ e.preventDefault(); saveIssueLocal(iss.id); });
     document.querySelector('[data-del-issue="'+iss.id+'"]')?.addEventListener('click',()=>{
-      if(confirm('מחק את השאלה "'+iss.title+'"?')){
-        delete issues[iss.id];
-        markDirty(); renderTopic(currentTopic); renderSidebar(); updateTabCounts();
+      if(confirm('מחק את השאלה "'+iss.title+'"?\n\nשים לב: פעולה זו אינה הפיכה ללא commit חדש.')){
+        if(confirm('אישור סופי: מחק "'+iss.title+'" (ID: '+iss.id+')?')){
+          delete issues[iss.id];
+          markDirty(); renderTopic(currentTopic); renderSidebar(); updateTabCounts();
+        }
       }
+    });
+    document.querySelector('[data-add-pol="'+iss.id+'"]')?.addEventListener('click',()=>{
+      const container=document.getElementById('pol-entries-'+iss.id);
+      container.insertAdjacentHTML('beforeend',buildPolEntry({}));
+      container.lastElementChild.querySelector('.pol-rem-btn').addEventListener('click',function(){this.closest('.pol-entry-row').remove();});
+    });
+    document.querySelectorAll('#pol-entries-'+CSS.escape(iss.id)+' .pol-rem-btn').forEach(btn=>{
+      btn.addEventListener('click',function(){this.closest('.pol-entry-row').remove();});
     });
   });
 }
@@ -474,6 +520,9 @@ function buildIssueForm(iss){
     fg('תווית 3','fl3_label','<input class="form-input" name="fl3_label" value="'+esc((iss.further_links&&iss.further_links[2]&&iss.further_links[2].label)||'')+'" placeholder="שם הקישור">')+
     fg('קישור 3','fl3_url','<input class="form-input ltr" name="fl3_url" value="'+esc((iss.further_links&&iss.further_links[2]&&iss.further_links[2].url)||'')+'" placeholder="https://...">')+
     '</div>'+
+    '<hr class="form-divider"><div class="form-section-label">ח"כים משוייכים</div>'+
+    '<div class="pol-entries" id="pol-entries-'+iss.id+'">'+(iss.politicians||[]).map(buildPolEntry).join('')+'</div>'+
+    '<button type="button" class="btn btn-ghost btn-sm" data-add-pol="'+iss.id+'" style="margin-bottom:14px">+ הוסף ח"כ</button>'+
     '<div class="form-actions"><button type="submit" class="btn btn-primary btn-sm">✓ עדכן שאלה</button>'+
     '<button type="button" class="btn btn-danger btn-sm" data-del-issue="'+iss.id+'">✕ מחק שאלה</button>'+
     '<span class="save-status" id="st-'+iss.id+'"></span></div>'+
@@ -481,6 +530,23 @@ function buildIssueForm(iss){
 }
 
 function fg(label,name,input){ return '<div class="form-group"><label class="form-label">'+label+'</label>'+input+'</div>'; }
+
+function buildPolEntry(pol){
+  pol=pol||{};
+  const polOpts=Object.entries(dataObj.politicians||{})
+    .sort((a,b)=>a[1].name.localeCompare(b[1].name,'he'))
+    .map(([k,p])=>'<option value="'+k+'"'+(k===pol.id?' selected':'')+'>'+esc(p.name)+'</option>').join('');
+  const voteOpts=['for','against','abstain','absent'].map(v=>'<option value="'+v+'"'+(v===(pol.vote||'for')?' selected':'')+'>'+{for:'בעד',against:'נגד',abstain:'נמנע',absent:'נעדר'}[v]+'</option>').join('');
+  const basisOpts=['doc','bloc','stance'].map(b=>'<option value="'+b+'"'+(b===(pol.basis||'doc')?' selected':'')+'>'+b+'</option>').join('');
+  return '<div class="pol-entry-row">'+
+    '<select class="form-select pol-id-sel">'+polOpts+'</select>'+
+    '<select class="form-select pol-vote-sel">'+voteOpts+'</select>'+
+    '<label class="pol-key-label"><input type="checkbox" class="pol-key-chk"'+(pol.key?' checked':'')+' style="accent-color:var(--accent);width:13px;height:13px"> מפ\'</label>'+
+    '<select class="form-select pol-basis-sel">'+basisOpts+'</select>'+
+    '<input class="form-input pol-note-inp" value="'+esc(pol.note||'')+'" placeholder="הערה">'+
+    '<button type="button" class="btn btn-danger btn-sm pol-rem-btn" style="padding:3px 8px;flex-shrink:0">✕</button>'+
+    '</div>';
+}
 
 function toggleRow(id){
   const row=document.getElementById('row-'+id);
@@ -492,6 +558,16 @@ function saveIssueLocal(id){
   const form=document.getElementById('form-'+id);
   const stEl=document.getElementById('st-'+id);
   const fd=new FormData(form);
+  const polContainer=document.getElementById('pol-entries-'+id);
+  const newPoliticians=polContainer ? Array.from(polContainer.querySelectorAll('.pol-entry-row')).map(row=>{
+    const polId=row.querySelector('.pol-id-sel').value;
+    if(!polId) return null;
+    const entry={id:polId,vote:row.querySelector('.pol-vote-sel').value||'for',basis:row.querySelector('.pol-basis-sel').value||'doc'};
+    if(row.querySelector('.pol-key-chk').checked) entry.key=true;
+    const note=row.querySelector('.pol-note-inp').value.trim();
+    if(note) entry.note=note;
+    return entry;
+  }).filter(Boolean) : (issues[id].politicians||[]);
   issues[id]=Object.assign({},issues[id],{
     emoji:fd.get('emoji'),title:fd.get('title'),tf:fd.get('tf'),
     tf_answer:fd.get('tf_answer'),tf_explain:fd.get('tf_explain'),
@@ -505,6 +581,7 @@ function saveIssueLocal(id){
       {label:fd.get('fl2_label'),url:fd.get('fl2_url')},
       {label:fd.get('fl3_label'),url:fd.get('fl3_url')},
     ].filter(l=>l.label&&l.url),
+    politicians:newPoliticians,
   });
   markDirty();
   stEl.textContent='✓ עודכן — לחץ "שמור ב-GitHub" לשמירה סופית';
@@ -622,6 +699,33 @@ document.getElementById('saveNewTermBtn').addEventListener('click',()=>{
   document.getElementById('newTermKey').value=''; document.getElementById('newTermVal').value='';
 });
 
+/* ── ADD POLITICIAN ── */
+document.getElementById('addPolBtn').addEventListener('click',()=>{
+  document.getElementById('new-pol-form').style.display='block';
+  document.getElementById('newPolKey').focus();
+});
+document.getElementById('cancelNewPolBtn').addEventListener('click',()=>{
+  document.getElementById('new-pol-form').style.display='none';
+  document.getElementById('newPolError').textContent='';
+});
+document.getElementById('saveNewPolBtn').addEventListener('click',()=>{
+  const key=document.getElementById('newPolKey').value.trim().toLowerCase().replace(/\s+/g,'_');
+  const name=document.getElementById('newPolName').value.trim();
+  const party=document.getElementById('newPolParty').value.trim();
+  const avatar=document.getElementById('newPolAvatar').value.trim()||'👤';
+  const mk_id=parseInt(document.getElementById('newPolMkId').value)||0;
+  const errEl=document.getElementById('newPolError');
+  if(!key){errEl.textContent='נדרש מפתח (slug)'; return;}
+  if(!name){errEl.textContent='נדרש שם'; return;}
+  if(dataObj.politicians[key]){errEl.textContent='המפתח "'+key+'" כבר קיים'; return;}
+  if(!dataObj.politicians) dataObj.politicians={};
+  dataObj.politicians[key]={name,party,avatar,mk_id};
+  markDirty(); renderPoliticians(); updateTabCounts();
+  document.getElementById('new-pol-form').style.display='none';
+  ['newPolKey','newPolName','newPolParty','newPolAvatar','newPolMkId'].forEach(id=>document.getElementById(id).value='');
+  errEl.textContent='';
+});
+
 /* ── POLITICIANS ── */
 function renderPoliticians(){
   const grid=document.getElementById('pol-grid');
@@ -681,6 +785,7 @@ async function commitToGitHub(){
       const ta=TOPIC_ORDER.indexOf(a.topic),tb=TOPIC_ORDER.indexOf(b.topic);
       return ta!==tb?ta-tb:a.id.localeCompare(b.id);
     });
+    sorted.forEach(function(iss){ delete iss._tally; delete iss.source; });
     dataObj.issues=sorted;
     const newContent='const DATA = '+JSON.stringify(dataObj)+';';
     const encoded=btoa(unescape(encodeURIComponent(newContent)));
@@ -708,6 +813,7 @@ async function commitToGitHub(){
           const ta=TOPIC_ORDER.indexOf(a.topic),tb=TOPIC_ORDER.indexOf(b.topic);
           return ta!==tb?ta-tb:a.id.localeCompare(b.id);
         });
+        sorted2.forEach(function(iss){ delete iss._tally; delete iss.source; });
         dataObj.issues=sorted2;
         const nc='const DATA = '+JSON.stringify(dataObj)+';';
         const enc=btoa(unescape(encodeURIComponent(nc)));
