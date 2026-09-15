@@ -7022,7 +7022,18 @@ async function beat5() {
      ever answer "is there another issue in THIS topic" and fell through
      to חזרה למפה — which is exactly the loop the end-game replaces. */
   if (gameDone()) {
-    const go = el('button', 'p-c f5go', 'סיימתם את כל הנושאים ›');   /* TAMAR */
+    const go = el('button', 'p-c f5go f5go--end', 'סיימתם את כל הנושאים ›'); /* TAMAR */
+    /* C2 -> C3 · THE POP'S OWN END IS THE HANDOFF, NOT A TIMER. The two
+       animations write the same property, so the breath must not arrive
+       while the pop is still running; animationend is the only marker
+       that cannot drift away from the stagger that launched it, and a
+       setTimeout here would be a second clock guessing at the first.
+       Under reduced motion the pop is animation:none, so this never
+       fires and the breath never starts — which is the outcome
+       startBreath() would have refused anyway. */
+    go.addEventListener('animationend', e => {
+      if (e.animationName === 'f5goPop') startBreath(go);
+    }, { once:true });
     pressable(go).addEventListener('click', () => endGame());
     acts.appendChild(go);
   } else if (next) {
@@ -9994,7 +10005,30 @@ const egStep = ms => wait(egReduced() ? 0 : ms);
    in THE SAVE. ?reset clears the store and therefore re-arms it, which
    is correct: that flag exists to hand a demo a clean first run.
    ===================================================================== */
-const EG_CONFETTI_N = 34;
+/* T-D · 64, NOT 34, AND MEASURED BEFORE IT WAS RAISED. The cost of a
+   piece is entirely in its creation — once it exists, egFall is
+   translate3d + opacity on a will-change'd 8x12 box, which is the
+   compositor's work and not the main thread's. So the only number that
+   moves with N is the one-time build, measured here over 7 runs per
+   value on the real loop:
+
+       34 -> 1.6ms median   48 -> 3.8ms   64 -> 6.0ms (max 8.4)
+       96 -> 9.0ms median but a 31.4ms outlier   128 -> 12.3ms
+
+   96 is where the outliers start, so the ceiling is below it. 64 is
+   roughly double the density for ~4ms more main-thread work, spent at
+   the one moment in the app where a dropped frame is cheapest: the
+   screen has just settled and nothing is being read yet.
+
+   NO SECOND BURST, AND THE REASON IS THE TEARDOWN. Splitting into two
+   waves would halve the spike, but every piece already carries its own
+   0-620ms delay, so the stagger it would buy is already there. What it
+   would also buy is a hazard: a wave at +250ms with the existing
+   delay+duration maximum finishes at 250+620+2400 = 3270ms, past the
+   3200ms cleanup below, and the last pieces would be cut mid-fall. The
+   single burst's own worst case is 620+2400 = 3020ms, which is why that
+   3200 is the number it is. Raising N does not move it. */
+const EG_CONFETTI_N = 64;
 /* v30c · THE HOST IS AN ARGUMENT NOW. Screen 1 is an overlay rather than
    a beat on #scEnd, so the layer the pieces fall into is not always the
    one #egFx names — and two elements carrying that id, even for the
@@ -11069,7 +11103,6 @@ const SH_COPY = {
   outOf:    'מתוך',                                         /* TAMAR */
   surprised:'פעמים שהכנסת הפתיעה אותי',                     /* TAMAR */
   most:     'הכי הרבה הקצאתי ל',                            /* TAMAR */
-  more:     'עוד',                              /* "עוד N" — in words, never "+N" */ /* TAMAR */
   share:    'שיתוף',                                        /* TAMAR */
   save:     'שמירה לגלריה',                                 /* TAMAR */
   sharing:  'מכינים את הכרטיס…',                            /* TAMAR */
@@ -11081,8 +11114,15 @@ const SH_COPY = {
   failed:   'לא הצלחנו',                                    /* TAMAR */
   back:     'חזרה למפה',                                    /* TAMAR */
   card:     'כרטיס',                                        /* TAMAR */
-  a916:     '9:16',
-  a45:      '4:5',
+  /* T-B · THE RATIO NAMES THE DESTINATION, NOT THE ARITHMETIC. "9:16" and
+     "4:5" are what the file is; סטורי and פוסט are what the player is
+     about to do with it, and that is the choice actually being made. The
+     drawn rectangle beside each label still carries the true proportion —
+     .sh-tgm--916 is 9x16 and .sh-tgm--45 is 13x16 — so the ratio is not
+     lost, it has stopped being the label. Order is unchanged: story
+     first, post second. */
+  a916:     'סטורי',                                        /* TAMAR */
+  a45:      'פוסט',                                         /* TAMAR */
 };
 /* S2 plane and D1 tray, as picked on the v29f board. Trailing — last in
    the DOM, so RTL puts them at the physical left edge. */
@@ -11122,17 +11162,27 @@ let SH_BUSY = false;
 
 /* ---- the pills: what the card is allowed to say ---------------------
    cardTopics() is the gate (see it). Ordered by allocation, highest
-   first; the free-text row rides along since 09 Sep. Three pills, then
-   "עוד N" IN WORDS — a leading "+" is a bidi neutral and renders as "5+",
-   which reads as "5 or more". */
-const SH_PILL_CAP = 3;
+   first; the free-text row rides along since 09 Sep.
+
+   T-A · NO CAP, AND NO "עוד N". The cap showed three pills and counted
+   the rest, which meant the card a player shares said less about them
+   the more they had to say — somebody who spread their allocation over
+   six topics got the same three names as somebody who picked three, plus
+   a chip reading "עוד 3" that names nobody. The allocation IS the
+   self-portrait; withholding most of it to protect the layout was the
+   wrong trade.
+
+   THE TIERS ALREADY HANDLED THIS. tier d's own comment called itself the
+   "7-8" step — it was written for the uncapped case and then never
+   reached, because the cap capped n at 4. The worst case is 7 (six
+   topics plus the free-text row) and cardTopics() filters v > 0, so
+   seven is a hard ceiling rather than an estimate. */
 function shPills() {
   const all = cardTopics(99);
-  const shown = all.slice(0, SH_PILL_CAP);
-  return { shown, more: all.length - shown.length, total: all.length };
+  return { shown: all, total: all.length };
 }
 /* the pill block's scale steps down as it grows — the v29e tiers, which
-   with the cap only ever reach b on 9:16 and c on 4:5 */
+   now reach d on both ratios at the 7-pill worst case */
 function shTier(n, aspect) {
   if (aspect === '45') return n <= 1 ? 'a' : n <= 3 ? 'b' : n <= 5 ? 'c' : 'd';
   return n <= 2 ? 'a' : n <= 4 ? 'b' : n <= 6 ? 'c' : 'd';
@@ -11140,7 +11190,7 @@ function shTier(n, aspect) {
 const shNum = v => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 function shPillsHTML(aspect) {
   const p = shPills();
-  const n = p.shown.length + (p.more ? 1 : 0);
+  const n = p.shown.length;
   if (!n) return '';
   let h = '<div class="ec-pills" data-t="' + shTier(n, aspect) + '">';
   p.shown.forEach(x => {
@@ -11159,7 +11209,6 @@ function shPillsHTML(aspect) {
              '<img class="coin-t ec-pill__coin" src="' + SH_SRC.coin + '" alt="" aria-hidden="true"></span>' +
          '</span>';
   });
-  if (p.more) h += '<span class="ec-pill ec-pill--more">' + esc(SH_COPY.more) + ' ' + p.more + '</span>';
   return h + '</div>';
 }
 
