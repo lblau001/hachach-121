@@ -454,6 +454,16 @@
      bottom inset; the pad grows by the whole of that rather than the bar
      overlapping the ground T23 just bought, so the last label keeps its
      59px of clear air and the bar sits below it rather than on it. */
+  /* T45 · STAYS AT 248, RE-DERIVED RATHER THAN ASSUMED. The stack is
+     37.9px taller than the row it replaces (96 against 58.1), so the
+     question was whether the token had that much slack. It does: measured
+     at the foot of the scroll with the bar back on its original 14px
+     line, the last status line clears the bar's top by 48.1px at all
+     three viewports. A brief attempt at 264 — carried over from the
+     lifted bar, which needed it — clears by 64.1 and is simply 16px of
+     scroll nobody asked for. Reverted, which also leaves the UNFINISHED
+     map's scroll length byte-identical to what shipped, since this token
+     is global and feeds pathHeight() for both states. */
   --node-pad-bot:  248px;   /* the name and status under the last node,
                                plus the map bar's own height             */
 
@@ -3929,7 +3939,34 @@ body.no-ph .ph{ display:none !important; }
    relative displacement and lifted the pill 14.3px clear of the bar it
    is supposed to sit in. The bar carries the inset now, once, for both
    controls. */
+/* T45 · AND IT IS THE ONE THAT HAS TO CARRY THE LIFT. This rule outranks
+   .map-bar's own `bottom` (0,2,0 against 0,1,0), so setting the lift there
+   alone left the bar exactly where it was — measured at 18.1px off the
+   stage floor when 66 was intended. Same value, stated once, in the rule
+   that actually wins. */
 .sc-map .map-bar{ bottom:calc(14px + env(safe-area-inset-bottom)); }
+.sc-map .map-bar.has-restart{ bottom:calc(var(--snd-inset) - 12px); }
+/* T45 · THE BAR STAYS ON THIS LINE, AND THE LIFT THAT WAS TRIED HERE IS
+   GONE. Raising it clear of the toggle cleared the corner arithmetically
+   and left a dead band across the foot of the map — 66px of empty ground
+   under the controls on a screen whose whole subject is a path running to
+   its floor. The corner is kept the way it always was, sideways, and the
+   stack is right-aligned INTO that inset rather than centred inside it.
+   Centring was what made the inset read as a mistake.
+
+   AND ON THE FINISHED MAP IT DROPS 12px ONTO THE TOGGLE'S OWN LINE. The
+   two are not measured from the same box: .snd-t is absolute to .stage,
+   so its `bottom` resolves against the PADDING box, while .map-bar is
+   absolute to .sc-map, which is a flow child ending one padding-bottom
+   higher. Equal `bottom` values therefore did NOT put them on one line —
+   measured, the secondary sat 12px above the toggle, which is exactly
+   .stage's padding-bottom.
+   THE SAFE-AREA CANCELS, WHICH IS WHY THERE IS NO env() HERE. The
+   toggle's inset is --snd-inset + the device inset and .stage's padding
+   is 12px + the same device inset; subtracting one from the other leaves
+   --snd-inset - 12px on every device, notch or none. Same argument as
+   beat 5's 46px constant: an inset that moves both boxes equally is not
+   a term in the difference. */
 .path{ position:relative; width:100%; }
 
 /* §2 THE CONNECTOR IS THE BOARD'S RIBBON, not a bead trail. The v7 path
@@ -4351,18 +4388,49 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
   pointer-events:none;                 /* the bar is a rail, not a surface */
 }
 .map-bar > *{ pointer-events:auto; }
-/* T35 · THE BAR CLEARS THE SOUND TOGGLE ON A FINISHED MAP. .snd-t is
-   pinned at left:12px, bottom:14px, 44x44 — the SAME bottom line this bar
-   uses — so a second control in the bar reached into its corner and won
-   the hit test over 40x31px of itself. Measured, not guessed.
-   THE INSET IS PHYSICAL-LEFT, not inline-start: the toggle is placed with
-   `left`, so a logical property would reserve the wrong corner in this
-   RTL document. 66px = the toggle's 12px offset plus its 44px target plus
-   a 10px gap.
-   ONLY WHEN THE RESTART IS THERE. A fresh or mid-run map carries one
-   short centred control that never came near the corner, and insetting
-   it would move that pill off centre for nothing. */
-.map-bar.has-restart{ padding-left:66px; }
+/* T45 · THE STACK IS THE FINISHED MAP'S ONLY, AND THE SCOPING IS THE WHOLE
+   FIX. Written on .map-bar itself, `width:100%` reached .map-jump too and
+   stretched a 163px pill to 358 on every mid-run map — a screen this
+   change was never meant to touch. .has-restart is exactly the two-control
+   state, so everything the stack needs hangs off it and a map that is
+   still being played renders byte-for-byte as it shipped. */
+.map-bar.has-restart{
+  flex-direction:column; align-items:stretch; gap:8px;
+  /* THE CORNER IS KEPT SIDEWAYS, AND THE STACK IS RIGHT-FLUSH INTO IT.
+     The right edge needs nothing: .sc-map settles as .stage's own CONTENT
+     box — 358 of 390, measured with the arrival transform off — so
+     right:0 already IS the app's 16px gutter, the same edge the beat-5
+     CTAs take. Only the LEFT moves, and it moves by the toggle's own
+     footprint, so the secondary ends up on the toggle's row with the
+     toggle sitting in the gap it opens.
+     DERIVED, NOT THE OLD 66. That number was measured from the STAGE
+     edge; this padding is measured from the bar's box, which already
+     starts at the 16px gutter — so it is the toggle's 12px offset plus
+     its --snd-size target plus a 10px gap, less the 16px the bar is
+     already inset by. Reading --snd-size keeps it tied to the toggle.
+     PHYSICAL LEFT, NOT INLINE-START: .snd-t is placed with `left`, so a
+     logical property would reserve the wrong corner in this RTL document.
+     That was true of the 66 and it is true of this. */
+  padding-left:calc(12px + var(--snd-size) + 10px - 16px);
+  bottom:calc(var(--snd-inset) - 12px);     /* see the note on .sc-map */
+}
+.map-bar.has-restart > *{ width:100%; }
+/* PRIMARY ON TOP, AND THAT IS HIERARCHY RATHER THAN MARKUP ORDER. The
+   summary door is where a finished player is meant to go; the restart is
+   the door they are not. Side by side at equal width the two read as a
+   pair of equal choices, which is what a destructive action must never
+   look like beside the forward path. */
+.map-bar.has-restart .map-done{ order:1; }
+.map-bar.has-restart .map-restart{ order:2; }
+/* T45 · THE 66px LEFT INSET IS GONE, REPLACED BY THE LIFT ABOVE. It read
+   "the toggle's 12px offset plus its 44px target plus a 10px gap" and it
+   was correct for a row of short pills. It cannot survive full-width
+   children: a button that is inset 66px on one side only is not full
+   width and is not centred, and the stack would sit visibly right of the
+   map it belongs to. Clearing the corner vertically costs nothing the
+   scroll does not already absorb — see --node-pad-bot. The .has-restart
+   class stays on the element; nothing styles it now, and it is left as
+   the hook the bar's two-control state is already named by. */
 
 /* min-height:44 — measured 163x36 in the running app, 8 under this file's
    own stated minimum. Already flex with align-items:center, so the arrow
@@ -7743,6 +7811,14 @@ body.no-ph .f5res .ph{ display:inline-block !important; }
 .eg-restart[hidden]{ display:none; }
 .eg-restart:active{ transform:translateY(2px); box-shadow:0 0 0 2px var(--keyline), 0 1px 0 rgba(0,0,0,.34); }
 .eg-restart svg{ display:block; }
+/* T45 · min-height:44 ON BOTH, and it is this file's own floor rather
+   than a new number — .map-jump took the same fix in the audit pass for
+   the same reason. Full width turned these from wrapping two-line pills
+   into single-line boxes 37.5px tall, which is 6.5 under the minimum, and
+   they are now the only two controls on a finished map. display:flex so
+   the label stays on the box's centre line as the box grows past its
+   padding; the 9/16 padding is untouched and still sets the floor's
+   distance from the type. */
 .map-done{
   position:relative; z-index:1;
   border:0; border-radius:var(--r-pill); cursor:pointer;
@@ -7759,13 +7835,33 @@ body.no-ph .f5res .ph{ display:inline-block !important; }
    destruction, which in this build has no colour of its own. The warning
    has to be carried by the label, which is why the label is still
    Tamar's — see the report. */
+/* T45 · THE SCRIM, AND IT IS NOT A FILL. Transparent worked while this was
+   a short pill in the middle of a bar; full width it spans the whole
+   column, and the map's discs and labels scroll straight through the
+   label — measured at 18 of 25 scroll positions with a node behind the
+   bar. The answer is the least ink that stops it: the app's own --ink at
+   55%, which is a NEUTRAL darkening of whatever the gradient is doing
+   behind it rather than a colour of its own. NOT YELLOW and not the
+   paper: the primary above it owns the fill, and a second filled button
+   in this stack would undo the hierarchy the stack exists to state. The
+   keyline ring is untouched — it is still what makes this a control. */
 .map-restart{
   position:relative; z-index:1;
   border:0; border-radius:var(--r-pill); cursor:pointer;
-  background:transparent; color:var(--paper);
+  background:rgba(19,19,16,.55); color:var(--paper);
   box-shadow:inset 0 0 0 2px rgba(251,247,238,.42);
   font-family:var(--font-display); font-weight:900; font-size:var(--fs-meta);
   padding:9px 16px;
+}
+/* min-height:44 IS THE STACK'S, NOT THE PILL'S — this file's own floor,
+   the same fix .map-jump took in the audit pass. Full width turned both
+   from wrapping two-line pills into single-line boxes 37.5px tall, 6.5
+   under the minimum, and they are the only two controls on a finished
+   map. display:flex keeps the label on the box's centre line as the box
+   grows past its padding. */
+.map-bar.has-restart > .map-done,
+.map-bar.has-restart > .map-restart{
+  min-height:44px; display:flex; align-items:center; justify-content:center;
 }
 .map-restart:active{ background:rgba(251,247,238,.10); }
 /* the marker would be hidden by the default build's body.no-ph, and an
