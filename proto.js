@@ -213,6 +213,16 @@ const DEV = {
   coins: qPick('coins', { sheet:'sheet', brief:'brief' }, 'sheet'),
   hold:  qPick('hold',  { long:'long', short:'short' }, 'long'),
   ph:    qPick('placeholders', { on:true, off:false }, false),
+  /* §V21-1 · THE INVERTED ROUND, BY ISSUE ID. It shipped hard-wired to a2
+     and was turned off there on 15 Sep (see INVERTED_ISSUE); the code is
+     kept and this is what keeps it runnable. ?inv=a2 is the variation as
+     it shipped, and any other id arms it for that issue instead — the
+     round falls back to the normal cascade by itself if the pool cannot
+     satisfy invPlan()'s constraints, so a wrong id degrades rather than
+     breaking. NOT qPick(): the value is an issue id, not one of a fixed
+     set, and an id this file does not know about is a valid thing to
+     try. Empty string when absent, which is falsy at the one gate. */
+  inv:   (Q.get('inv') || '').trim(),
   /* §5 the pinned answer's presentation, for comparison in the hand:
      band = the full-width chyron, note = a small paper scrap at one side,
      off = nothing shown. The BOX is reserved in all three, so the card is
@@ -1013,8 +1023,35 @@ function initials(name) {
    the SAME TOPIC, arriving here by לסוגיה הבאה — pattern first, break
    second. Converting any other issue would delete its topic's only
    cascade and the break would have nothing to break from.
-   DO NOT SPREAD IT. The normal cascade is already only in 6 of 11. */
-const INVERTED_ISSUE = 'a2';
+   DO NOT SPREAD IT. The normal cascade is already only in 6 of 11.
+
+   ---------------------------------------------------------------------
+   TURNED OFF 15 SEP 2026, AND EVERYTHING ABOVE IS WHY IT WAS ON.
+   Tamar's call: a2's surprise is Elkin voting against, and the slow
+   reveal does not make that land — the question it asks is "who is
+   this", which is not the question the issue is about. The treatment
+   she would rather have is not built, so a2 takes the standard cascade
+   in the meantime, exactly as the other fifteen issues do.
+
+   THE SUBSYSTEM IS INTACT, NOT DELETED. invPlan(), INV_SEED/INV_BLUR/
+   INV_BONUS/INV_STEP_MS, armInverted() and its step timers, the
+   .mf-b--inv card face, roundHits()'s person-not-vote branch and every
+   .inv-* rule in proto.css are untouched and still correct. Nothing
+   downstream reads the issue id — all of it keys on S.inv — so with the
+   gate never matching, S.inv is null and a2 runs the path the other
+   fifteen issues already run — a path fifteen issues exercise every day,
+   which is why turning this off is a constant rather than a refactor.
+
+   RESTORING 'a2' HERE RE-ENABLES IT WHOLE. There is no second switch
+   and no migration; the constant is the entire mechanism.
+
+   IT IS DEAD CODE UNTIL THEN, AND ?inv= IS HOW IT STAYS EXERCISABLE.
+   Dead code that cannot be run is dead code that rots — DEV.inv below
+   takes an issue id and re-arms the round for that issue alone, without
+   editing this file. ?screen=round&issue=a2&inv=a2 is the variation as
+   it shipped.
+   --------------------------------------------------------------------- */
+const INVERTED_ISSUE = null;
 
 /* the four held steps. Each is held INV_STEP_MS, so step i occupies
    [i*1400, (i+1)*1400) and the last lands its full hold at 5600ms — four
@@ -1186,7 +1223,11 @@ function newRound(issueId) {
      deck, the pile count and the flip are all unchanged — the card still
      turns over out of the same deck, because the break is in the QUESTION
      and pretending it is a different object would hide that. */
-  const inv = (issue.id === INVERTED_ISSUE && issue.politicians.length) ? invPlan(issue) : null;
+  /* INVERTED_ISSUE is null since 15 Sep — see the block above it. DEV.inv
+     is the only way in now, and it is read here rather than written over
+     the constant so the shipped value stays visible in the source. */
+  const invId = DEV.inv || INVERTED_ISSUE;
+  const inv = (invId && issue.id === invId && issue.politicians.length) ? invPlan(issue) : null;
 
   S = {
     beat: 1, claim: null, position: null,
@@ -11178,8 +11219,11 @@ function boot() {
   /* §7 the deep-link. `round` drops straight in without a map behind it,
      which is what makes it useful in a meeting; `map` and `intro` build
      their screen and stop. */
-  /* ?issue=<id> lets the deep-link land on a specific round, which is the
-     only way to reach the inverted a2 without playing a1 first */
+  /* ?issue=<id> lets the deep-link land on a specific round without
+     playing the ones before it. It used to be described as the only way
+     to reach the inverted a2; a2 is a normal cascade since 15 Sep, and
+     the inverted round is reached with ?inv=<id> beside this one —
+     ?screen=round&issue=a2&inv=a2 is it as it shipped. */
   if (DEV.screen === 'round')      startRound(Q.get('issue') || undefined);
   else if (DEV.screen === 'map')   goMap();
   /* §E ?screen=end drops straight into the summary, which is the only
