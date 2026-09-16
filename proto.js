@@ -4483,8 +4483,9 @@ function renderInfo(m) {
   const art = (M && M.politicians) || {};
   const ids = Object.keys(art).length ? Object.keys(art) : Object.keys(MK_CREDITS);
 
+  const safeHref = href => /^https?:\/\//i.test(href) ? href : '#';
   const link = (href, label, cls) =>
-    '<a class="' + cls + '" href="' + esc(href) + '" target="_blank" rel="noopener">' +
+    '<a class="' + cls + '" href="' + esc(safeHref(href)) + '" target="_blank" rel="noopener">' +
       esc(label) + '</a>';
 
   const rows = ids.map(id => {
@@ -7933,8 +7934,9 @@ function moreModal(text, terms, links) {
          overstatement T34b took out of the line, one layer down. One
          source of truth for "is this a video": isVideoLink(). */
       const icon = isVideoLink(l) ? '▶' : '🔗';
+      const _safeUrl = u => /^https?:\/\//i.test(u) ? u : '#';
       return l.url
-        ? '<a class="f5link" href="' + esc(l.url) + '" target="_blank" rel="noopener">' +
+        ? '<a class="f5link" href="' + esc(_safeUrl(l.url)) + '" target="_blank" rel="noopener">' +
             '<i aria-hidden="true">' + icon + '</i>' + esc(l.label) + '</a>'
         : '<span class="f5link is-missing" data-missing-url>' +
             '<i aria-hidden="true">' + icon + '</i>' + esc(l.label) + '</span>';
@@ -9155,7 +9157,7 @@ function nodeHTML(t, i, h, cur) {
   } else {
     /* no drawn object for this topic — data.js's glyph, and nothing
        substituted for it */
-    face = '<span class="node-ico" aria-hidden="true">' + t.icon + '</span>';
+    face = '<span class="node-ico" aria-hidden="true">' + esc(t.icon || '') + '</span>';
   }
 
   /* T44 · THE BASE CARRIES THE HUE, AT THE VALUE IT ALREADY HAD.
@@ -10083,7 +10085,7 @@ function endStats() {
 function topicFace(t, px) {
   const A = M.topics && M.topics[t.id];
   const art = A && (A['256'] || A['128'] || A['64']);
-  if (!art) return '<span class="eg-ico" aria-hidden="true">' + t.icon + '</span>';
+  if (!art) return '<span class="eg-ico" aria-hidden="true">' + esc(t.icon || '') + '</span>';
   const a = A.aspect || 1;
   const w = a >= 1 ? px : px * a, h = a >= 1 ? px / a : px;
   return '<img class="eg-ico" src="' + ROOT + art + '" alt="" style="width:' +

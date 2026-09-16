@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /explorations/
+Disallow: /reference/
+Disallow: /research/

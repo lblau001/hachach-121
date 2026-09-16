@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://raw.githubusercontent.com; connect-src 'self' https://api.github.com https://raw.githubusercontent.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
 <title>ח"כ 121 — CMS</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
@@ -185,17 +186,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);direction:rt
     </div>
     <form id="gateForm">
       <div>
-        <label class="gate-label">סיסמה</label>
-        <input id="pwInput" class="gate-input" type="password" placeholder="••••••••" autocomplete="off" required>
-      </div>
-      <hr class="gate-sep">
-      <div>
         <label class="gate-label">GitHub Token (PAT)</label>
-        <input id="patInput" class="gate-input" type="password" placeholder="github_pat_..." autocomplete="off">
-        <div class="gate-pat-row">
-          <input type="checkbox" id="rememberPat">
-          <label for="rememberPat">שמור את ה-token בדפדפן</label>
-        </div>
+        <input id="patInput" class="gate-input" type="password" placeholder="github_pat_..." autocomplete="off" required>
         <p class="gate-hint" style="margin-top:6px">
           צור token עם <strong>Contents: Read &amp; Write</strong> ב-<a href="https://github.com/settings/personal-access-tokens/new" target="_blank">GitHub → Fine-grained tokens</a>
         </p>
@@ -318,8 +310,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);direction:rt
   }catch(e){}
 })();
 
-/* password hash (SHA-256 of the real password — plaintext never stored in source) */
-const PW_HASH  = '50d1751710204448941bb951d1c9974a1a29193f273d47640effc96375a84bc1';
 const REPO     = 'romangash-star/hachach-121';
 const BRANCH   = 'master';
 const FILE     = 'data.js';
@@ -331,31 +321,21 @@ const MODE_LABELS   = {vote:'הצבעה',stance:'עמדות'};
 let ghPat='', fileSha='', dataObj=null, issues={}, dirty=false, currentTopic=TOPIC_ORDER[0];
 
 /* ── GATE ── */
-async function hashPw(pw){
-  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(pw));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
 (function(){
-  /* prefer sessionStorage (tab-scoped); fall back to localStorage if user checked "remember" */
-  const saved = sessionStorage.getItem('admin_gh_pat') || localStorage.getItem('admin_gh_pat');
-  if(saved){ document.getElementById('patInput').value=saved; document.getElementById('rememberPat').checked=!!localStorage.getItem('admin_gh_pat'); }
-  document.getElementById('gateForm').addEventListener('submit',async function(e){
+  const saved = sessionStorage.getItem('admin_gh_pat');
+  if(saved){ document.getElementById('patInput').value=saved; }
+  document.getElementById('gateForm').addEventListener('submit',function(e){
     e.preventDefault();
-    const pw=document.getElementById('pwInput').value.trim();
     const pat=document.getElementById('patInput').value.trim();
     const err=document.getElementById('gateError');
-    const h=await hashPw(pw);
-    if(h!==PW_HASH){err.textContent='סיסמה שגויה';return;}
     if(!pat){err.textContent='נדרש GitHub Token';return;}
     sessionStorage.setItem('admin_gh_pat',pat);
-    if(document.getElementById('rememberPat').checked) localStorage.setItem('admin_gh_pat',pat);
-    else localStorage.removeItem('admin_gh_pat');
     ghPat=pat;
     document.getElementById('gate').style.display='none';
     document.getElementById('app').classList.add('visible');
     loadFile();
   });
-  document.getElementById('pwInput').addEventListener('input',()=>{ document.getElementById('gateError').textContent=''; });
+  document.getElementById('patInput').addEventListener('input',()=>{ document.getElementById('gateError').textContent=''; });
 })();
 
 /* ── TABS ── */
@@ -439,7 +419,7 @@ function renderTopic(tid){
   const c=document.getElementById('issues-content');
   const t=(dataObj.topics||[]).find(x=>x.id===tid)||{id:tid,label:tid,icon:''};
   const topicIssues=Object.values(issues).filter(i=>i.topic===tid).sort((a,b)=>a.id.localeCompare(b.id));
-  let html='<div class="section-hd"><span class="section-hd-title">'+t.icon+' '+esc(t.label)+'</span><span class="section-hd-pill">'+topicIssues.length+' שאלות</span></div><div class="issues-list">';
+  let html='<div class="section-hd"><span class="section-hd-title">'+esc(t.icon||'')+' '+esc(t.label)+'</span><span class="section-hd-pill">'+topicIssues.length+' שאלות</span></div><div class="issues-list">';
   if(!topicIssues.length) html+='<p style="color:var(--text-muted);padding:20px">אין שאלות בנושא זה</p>';
   else topicIssues.forEach(iss=>{ html+=buildIssueRow(iss); });
   html+='</div>';
