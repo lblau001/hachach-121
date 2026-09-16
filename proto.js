@@ -3692,16 +3692,75 @@ const PROF_COPY = {
    name, a licence identifier and a URL are legal text, and normalising
    any of the three would be a defect rather than an edit. */
 const INFO_COPY = {
-  door:    'קרדיטים ומידע',        /* TAMAR · PLACEHOLDER · the quiet link at the foot of 2b */
-  title:   'קרדיטים ומידע',        /* TAMAR · PLACEHOLDER · 2d's own title */
-  credits: 'קרדיטים לתמונות',      /* TAMAR · PLACEHOLDER · section 1 */
-  method:  'איך בנינו את המשחק',   /* TAMAR · PLACEHOLDER · section 2 */
-  about:   'מי אנחנו',             /* TAMAR · PLACEHOLDER · section 3 */
+  /* T36 · THE DOOR IS אודות NOW, NOT קרדיטים ומידע. The screen
+     behind it stopped being a credits list with two notes appended and
+     became two paragraphs with a credits list under them — the door has
+     to name the first thing the reader meets, not the last. קרדיטים
+     also promised the one section a mid-game player is least likely to
+     have opened it for. */
+  /* THE DOOR CARRIES THE ATTRIBUTION, AND THAT IS A LICENCE DECISION
+     RATHER THAN A NAMING ONE. CC BY obliges attribution and this is an
+     NGO shipping 31 photographs under it; naming the credits on the
+     button face is where that obligation belongs, not one level in
+     behind a word that does not mention it. אודות alone tested well and
+     was wrong for exactly that reason.
+     THE TITLE IS THE SAME STRING ON PURPOSE. A door and the screen
+     behind it that disagree make the player check whether they arrived
+     somewhere else; one string cannot drift from itself. */
+  door:    'אודות וקרדיטים',       /* TAMAR · the quiet link at the foot of 2b */
+  title:   'אודות וקרדיטים',       /* TAMAR · 2d's own title, the door's string */
+  method:  'איך בנינו את המשחק',   /* TAMAR · section 1 */
+  about:   'מי אנחנו',             /* TAMAR · section 2 */
+  credits: 'קרדיטים לתמונות',      /* TAMAR · PLACEHOLDER · section 3, under the rule */
   source:  'מקור',                 /* TAMAR · PLACEHOLDER · the label on a credit's source link */
-  /* the two prose sections are structure today: one placeholder line
-     each, so the shape is visible and the length is not pretended at */
-  methodBody: 'כאן ייכתב הסבר על אופן איסוף הנתונים ובחירת הסוגיות.',   /* TAMAR · PLACEHOLDER */
-  aboutBody:  'כאן ייכתב הטקסט על העמותה.',                             /* TAMAR · PLACEHOLDER */
+  by:      'צילום',                /* TAMAR · the label in front of a photographer's name */
+  /* THE MODIFICATION NOTICE, AND IT IS A LICENCE REQUIREMENT AND NOT
+     COPY. CC BY and CC BY-SA both oblige us to INDICATE that the work
+     was changed. Every portrait in this game is an illustration drawn
+     FROM one of these photographs, and nothing on this screen said so.
+     ONE SENTENCE FOR ALL 31 rather than a per-row marker: the relation
+     is the same for every one of them — illustration derived from
+     photograph — so stating it once above the list covers the set
+     without 31 repetitions of the same clause. It sits under the
+     credits heading and before the list because it governs the list. */
+  derived: 'כל דמויות הח״כים במשחק הן איורים שנוצרו על בסיס התצלומים הבאים.',  /* TAMAR */
+  /* THESE TWO ARE COPY NOW, NOT STRUCTURE. They were one placeholder
+     line each, holding a shape; these are Tamar's own paragraphs and
+     they are the FIRST REAL BODY PROSE IN THE BUILD — everything else
+     the player reads here is UI copy, a label or a single line. They
+     set the length the screen has to survive, which is why the order
+     changed with them: see renderInfo(). */
+  methodBody: 'למשחק נבחרו סוגיות מרכזיות הנמצאות במחלוקת בשיח הישראלי ' +
+              'ולגביהן היתה חקיקה בשנים האחרונות והוא נועד לסייע לצעירים לבחון ' +
+              'את הפעילות של חברי הכנסת ביחס למציאות בשטח.',              /* TAMAR */
+  aboutBody:  'המגדלור הוא מרכז לחינוך פוליטי לדמוקרטיה ליברלית.',                      /* TAMAR */
+};
+
+/* THE DEED URL IS DERIVED FROM THE LICENCE, NEVER STORED BESIDE IT.
+   MK_CREDITS carried a licenceUrl field per row and it is GONE: 31 rows
+   holding a copy of one of four URLs is 31 chances to typo a legal
+   pointer, and a row whose licence says 4.0 while its URL points at 3.0
+   is a wrong statement about someone's rights that nothing would catch.
+   The licence string is the fact Tamar transcribes from the file page;
+   the deed is a lookup FROM that fact.
+
+   THE STRING IS THE KEY, EXACTLY AS THE LICENCE STATES IT. "CC BY-SA
+   3.0", not a translation and not a normalisation — see the note on
+   MK_CREDITS about why credits are not copy.
+
+   AN UNRECOGNISED STRING GETS NO LINK AND THAT IS THE DESIGNED
+   BEHAVIOUR, not a gap to fill in later. deed() returns undefined, the
+   renderer prints the licence as plain text, and the player still reads
+   the correct licence name. GUESSING A URL FROM A STRING WE DO NOT KNOW
+   IS THE ONE FAILURE THAT MATTERS HERE: a deed link is a claim about
+   what the licence permits, and a wrong one is worse than none. Four
+   entries because the file holds four licences; a fifth licence is a
+   line here, not a change to the renderer. */
+const LICENCE_DEEDS = {
+  'CC BY 2.0':    'https://creativecommons.org/licenses/by/2.0/',
+  'CC BY 4.0':    'https://creativecommons.org/licenses/by/4.0/',
+  'CC BY-SA 3.0': 'https://creativecommons.org/licenses/by-sa/3.0/',
+  'CC BY-SA 4.0': 'https://creativecommons.org/licenses/by-sa/4.0/',
 };
 
 /* THE PHOTO CREDITS, KEYED BY THE ART INDEX'S OWN ID.
@@ -3737,47 +3796,168 @@ const INFO_COPY = {
    the manifest open beside it. It is an editing aid and nothing reads
    it; the manifest is the truth on screen.
 
-   FOUR FIELDS, ALL EMPTY TODAY. author is the photographer, source the
-   page the file came from, licence the identifier as the licence states
-   it ("CC BY-SA 3.0", not a translation of it), licenceUrl the deed. A
-   row renders whatever of the four it has and nothing for what it does
-   not, so a half-filled row is visibly half-filled rather than wrong. */
+   THREE FIELDS, AND THEY ARE TAMAR'S TRANSCRIPTION FROM THE FILE PAGE.
+   author is the photographer as the page names them, source the page
+   the file came from, licence the identifier exactly as the licence
+   states it ("CC BY-SA 3.0", not a translation of it). licenceUrl IS
+   GONE — the deed is derived from licence through LICENCE_DEEDS above,
+   because a stored URL can disagree with the licence beside it and
+   nothing would catch it. A row renders whatever of the three it has
+   and nothing for what it does not, so a half-filled row is visibly
+   half-filled rather than wrong.
+
+   GENERATED FROM TAMAR'S SHEET, 16 SEP 2026, SECOND EXPORT. Not typed
+   and not patched: the whole object is regenerated from the CSV so this
+   file has one source of truth and cannot drift field by field.
+   31 of the 35 carry a credit. FOUR ARE EMPTY — edelstein, lahav,
+   michaeli, silman — four of the five the game no longer deals; their
+   fields are blank so .info-cr collapses and the row renders as a name
+   and a party alone. gantz is the fifth and he DOES carry one, which is
+   the rule this list was written for: the obligation follows what is
+   DISTRIBUTED out of assets/mk/, not what is dealt.
+   THE SECOND EXPORT CLOSED THE THREE UNFINISHED STRINGS the first one
+   had, and the note that used to stand here describing them is gone
+   with them: katz's author is 'Adi Cohen Zedek' and the backslash that
+   joined it to a second name is not there; smotrich's lost its trailing
+   full stop; son_harmelech's lost the dangling "מקור:". katz also
+   gained CC BY-SA 3.0, so the one row that rendered without a licence
+   segment now renders a complete one. NOTHING WAS TIDIED HERE TO GET
+   THERE — all four corrections came from the sheet.
+   elkin POINTS AT he.wikipedia RATHER THAN COMMONS, as given. It is the
+   page the file actually came from, which is what the field is for.
+   gallant's SOURCE IS THE COMMONS PAGE, not the en.wikipedia one that
+   stood in the sheet as the worked example; the sheet's last row is a
+   keyless correction of it and it is applied here. There is no 36th
+   entry — that row IS this one. */
 const MK_CREDITS = {
-  abbas:         { author:'', source:'', licence:'', licenceUrl:'' },   /* מנסור עבאס */
-  ben_ari_m:     { author:'', source:'', licence:'', licenceUrl:'' },   /* מירב בן-ארי */
-  ben_gvir:      { author:'', source:'', licence:'', licenceUrl:'' },   /* איתמר בן-גביר */
-  cohen_m:       { author:'', source:'', licence:'', licenceUrl:'' },   /* מירב כהן */
-  deri:          { author:'', source:'', licence:'', licenceUrl:'' },   /* אריה דרעי */
-  edelstein:     { author:'', source:'', licence:'', licenceUrl:'' },   /* יולי אדלשטיין */
-  eisenkot:      { author:'', source:'', licence:'', licenceUrl:'' },   /* גדי איזנקוט */
-  elharrar:      { author:'', source:'', licence:'', licenceUrl:'' },   /* קארין אלהרר */
-  elkin:         { author:'', source:'', licence:'', licenceUrl:'' },   /* זאב אלקין */
-  gafni:         { author:'', source:'', licence:'', licenceUrl:'' },   /* משה גפני */
-  gallant:       { author:'', source:'', licence:'', licenceUrl:'' },   /* יואב גלנט */
-  gantz:         { author:'', source:'', licence:'', licenceUrl:'' },   /* בני גנץ */
-  gila_gamliael: { author:'', source:'', licence:'', licenceUrl:'' },   /* גילה גמליאל */
-  goldknopf:     { author:'', source:'', licence:'', licenceUrl:'' },   /* יצחק גולדקנופ */
-  gotliv:        { author:'', source:'', licence:'', licenceUrl:'' },   /* טלי גוטליב */
-  kariv:         { author:'', source:'', licence:'', licenceUrl:'' },   /* גלעד קריב */
-  katz:          { author:'', source:'', licence:'', licenceUrl:'' },   /* ישראל כץ */
-  lahav:         { author:'', source:'', licence:'', licenceUrl:'' },   /* יוראי להב-הרצנו */
-  lapid:         { author:'', source:'', licence:'', licenceUrl:'' },   /* יאיר לפיד */
-  lazimi:        { author:'', source:'', licence:'', licenceUrl:'' },   /* נעמה לזימי */
-  levin:         { author:'', source:'', licence:'', licenceUrl:'' },   /* יריב לוין */
-  liberman:      { author:'', source:'', licence:'', licenceUrl:'' },   /* אביגדור ליברמן */
-  michaeli:      { author:'', source:'', licence:'', licenceUrl:'' },   /* מרב מיכאלי */
-  netanyahu:     { author:'', source:'', licence:'', licenceUrl:'' },   /* בנימין נתניהו */
-  odeh:          { author:'', source:'', licence:'', licenceUrl:'' },   /* איימן עודה */
-  ohanah:        { author:'', source:'', licence:'', licenceUrl:'' },   /* אמיר אוחנה */
-  saar:          { author:'', source:'', licence:'', licenceUrl:'' },   /* גדעון סער */
-  seglovitch:    { author:'', source:'', licence:'', licenceUrl:'' },   /* יואב סגלוביץ */
-  silman:        { author:'', source:'', licence:'', licenceUrl:'' },   /* עידית סילמן */
-  smotrich:      { author:'', source:'', licence:'', licenceUrl:'' },   /* בצלאל סמוטריץ' */
-  son_harmelech: { author:'', source:'', licence:'', licenceUrl:'' },   /* לימור סון הר-מלך */
-  strook:        { author:'', source:'', licence:'', licenceUrl:'' },   /* אורית סטרוק */
-  sukot:         { author:'', source:'', licence:'', licenceUrl:'' },   /* צבי סוכות */
-  tamno:         { author:'', source:'', licence:'', licenceUrl:'' },   /* פנינה תמנו-שטה */
-  troper:        { author:'', source:'', licence:'', licenceUrl:'' },   /* חילי טרופר */
+  abbas: {                         /* מנסור עבאס */
+    author:'U.S. Embassy Jerusalem',
+    licence:'CC BY 2.0',
+    source:'https://commons.wikimedia.org/wiki/File:Mansour_Abbas_April_3,_2023_16.jpg' },
+  ben_ari_m: {                     /* מירב בן-ארי */
+    author:'Elad Malka',
+    licence:'CC BY-SA 4.0',
+    source:'https://commons.wikimedia.org/wiki/File:%D7%9E%D7%99%D7%A8%D7%91_%D7%91%D7%9F_%D7%90%D7%A8%D7%99.jpg' },
+  ben_gvir: {                      /* איתמר בן-גביר */
+    author:'אלון נוריאל',
+    licence:'CC BY-SA 3.0',
+    source:'https://commons.wikimedia.org/wiki/File:Itamar_Ben_Gvir_3.jpg' },
+  cohen_m: {                       /* מירב כהן */
+    author:'Shlomi Amsalem / Knesset Archives',
+    licence:'CC BY-SA 4.0',
+    source:'https://commons.wikimedia.org/wiki/File:Meirav_Cohen_(SHL_9279).jpg' },
+  deri: {                          /* אריה דרעי */
+    author:'Nati Shohat / Knesset Archives',
+    licence:'CC BY-SA 4.0',
+    source:'https://commons.wikimedia.org/wiki/File:Aryeh_Deri_%28E32J1375%29.jpg' },
+  edelstein:      { author:'', source:'', licence:'' },                                 /* יולי אדלשטיין */
+  eisenkot: {                      /* גדי איזנקוט */
+    author:'Elad Malka/ דף הפייסבוק של גדי אייזנקוט',
+    licence:'CC BY-SA 3.0',
+    source:'https://commons.wikimedia.org/wiki/File:Gadi_Eisenkot_1.jpg' },
+  elharrar: {                      /* קארין אלהרר */
+    author:'Shlomi Amsalem / Knesset Archives',
+    licence:'CC BY-SA 4.0',
+    source:'https://commons.wikimedia.org/wiki/File:Karine_Elharar_%28SHL_8739%29.jpg' },
+  elkin: {                         /* זאב אלקין */
+    author:'ראובן קופיצ\'ינסקי',
+    licence:'CC BY-SA 4.0',
+    source:'https://he.wikipedia.org/wiki/%D7%A7%D7%95%D7%91%D7%A5:%D7%96%D7%90%D7%91_%D7%90%D7%9C%D7%A7%D7%99%D7%9F_%28cropped%29.png' },
+  gafni: {                         /* משה גפני */
+    author:'Nati Shohat / Knesset Archives',
+    licence:'CC BY-SA 4.0',
+    source:'https://commons.wikimedia.org/wiki/File:Moshe_Gafni_(E32J1400).jpg' },
+  gallant: {                       /* יואב גלנט */
+    author:'Avi Ohayon / Government Press Office of Israel',
+    licence:'CC BY-SA 3.0',
+    source:'https://commons.wikimedia.org/wiki/File:Yoav_Galant_1_%28cropped%29.jpg' },
+  gantz: {                         /* בני גנץ */
+    author:'Reuven Kopitchinski',
+    licence:'CC BY-SA 3.0',
+    source:'https://commons.wikimedia.org/wiki/File:Benny_Gantz_2019.jpg' },
+  gila_gamliael: {                 /* גילה גמליאל */
+    author:'Haim Zach/Government Press Office of Israel',
+    licence:'CC BY-SA 3.0',
+    source:'https://commons.wikimedia.org/wiki/File:Gila_Gamliel_1_%28cropped%29.jpg' },
+  goldknopf: {                     /* יצחק גולדקנופ */
+    author:'Avi Ohayon / Government Press Office of Israel',
+    licence:'CC BY-SA 3.0',
+    source:'https://commons.wikimedia.org/wiki/File:Yitzchak_Goldknopf_1.jpg' },
+  gotliv: {                        /* טלי גוטליב */
+    author:'Tali Gottlieb',
+    licence:'CC BY 4.0',
+    source:'https://commons.wikimedia.org/wiki/File:Tali_Gottlieb.jpg' },
+  kariv: {                         /* גלעד קריב */
+    author:'Shlomi Amsalem / Knesset Archives',
+    licence:'CC BY-SA 4.0',
+    source:'https://commons.wikimedia.org/wiki/File:Gilad_Kariv_%28SHL_9093%29.jpg' },
+  katz: {                          /* ישראל כץ */
+    author:'Adi Cohen Zedek',
+    licence:'CC BY-SA 3.0',
+    source:'https://commons.wikimedia.org/wiki/File:Herzliya_Conference_2016_3012.jpg' },
+  lahav:          { author:'', source:'', licence:'' },                                     /* יוראי להב-הרצנו */
+  lapid: {                         /* יאיר לפיד */
+    author:'Avi Ohayon / Government Press Office of Israel',
+    licence:'CC BY-SA 3.0',
+    source:'https://commons.wikimedia.org/wiki/File:Yair_Lapid_(D1237-011).jpg' },
+  lazimi: {                        /* נעמה לזימי */
+    author:'Mayan Tarabish',
+    licence:'CC BY 4.0',
+    source:'https://commons.wikimedia.org/wiki/File:Naama_lazimi_(cropped).jpg' },
+  levin: {                         /* יריב לוין */
+    author:'Avi Ohayon / Government Press Office of Israel',
+    licence:'CC BY-SA 3.0',
+    source:'https://commons.wikimedia.org/wiki/File:Yariv_Levin_1_(cropped).jpg' },
+  liberman: {                      /* אביגדור ליברמן */
+    author:'Jim Mattis',
+    licence:'CC BY 2.0',
+    source:'https://commons.wikimedia.org/wiki/File:Avigdor_Lieberman_2017.jpg' },
+  michaeli:       { author:'', source:'', licence:'' },                                  /* מרב מיכאלי */
+  netanyahu: {                     /* בנימין נתניהו */
+    author:'Avi Ohayon / Government Press Office of Israel',
+    licence:'CC BY-SA 3.0',
+    source:'https://commons.wikimedia.org/wiki/File:Benjamin_Netanyahu,_February_2023.jpg' },
+  odeh: {                          /* איימן עודה */
+    author:'Anan Maalouf - ענאן מעלוף',
+    licence:'CC BY-SA 3.0',
+    source:'https://commons.wikimedia.org/wiki/File:Ayman_Odeh_%288%29.jpg' },
+  ohanah: {                        /* אמיר אוחנה */
+    author:'Avi Ohayon / Government Press Office of Israel',
+    licence:'CC BY-SA 3.0',
+    source:'https://commons.wikimedia.org/wiki/File:Amir_Ohana_-_Official.jpg' },
+  saar: {                          /* גדעון סער */
+    author:'Sharon Gabay',
+    licence:'CC BY-SA 3.0',
+    source:'https://commons.wikimedia.org/wiki/File:Gideon_Sa%27ar_1_%28cropped%29.jpg' },
+  seglovitch: {                    /* יואב סגלוביץ */
+    author:'Ronen Horesh / Knesset Archives',
+    licence:'CC BY-SA 4.0',
+    source:'https://commons.wikimedia.org/wiki/File:Yoav_Segalovich_%28R_H_4069%29.jpg' },
+  silman:         { author:'', source:'', licence:'' },                                    /* עידית סילמן */
+  smotrich: {                      /* בצלאל סמוטריץ' */
+    author:'איתן פולד',
+    licence:'CC BY-SA 3.0',
+    source:'https://commons.wikimedia.org/wiki/File:Smotrich.jpg' },
+  son_harmelech: {                 /* לימור סון הר-מלך */
+    author:'יוסי לוגסי פלשמן',
+    licence:'CC BY-SA 3.0',
+    source:'https://commons.wikimedia.org/wiki/File:Limor_Son_Har-Melech.jpg' },
+  strook: {                        /* אורית סטרוק */
+    author:'Mark Neyman / Government Press Office of Israel',
+    licence:'CC BY-SA 3.0',
+    source:'https://commons.wikimedia.org/wiki/File:Orit_Strook.jpg' },
+  sukot: {                         /* צבי סוכות */
+    author:'Noam Moskowitz / Knesset Archives',
+    licence:'CC BY-SA 4.0',
+    source:'https://commons.wikimedia.org/wiki/File:Zvi_Sukkot_%28NOAM9127%29.jpg' },
+  tamno: {                         /* פנינה תמנו-שטה */
+    author:'חיים צח לע"מ',
+    licence:'CC BY-SA 4.0',
+    source:'https://commons.wikimedia.org/wiki/File:%D7%A4%D7%A0%D7%99%D7%A0%D7%94_%D7%AA%D7%9E%D7%A0%D7%95-%D7%A9%D7%98%D7%94.jpg' },
+  troper: {                        /* חילי טרופר */
+    author:'Yanai Yechiel',
+    licence:'CC BY-SA 4.0',
+    source:'https://commons.wikimedia.org/wiki/File:%D7%97%D7%99%D7%9C%D7%99_%D7%98%D7%A8%D7%95%D7%A4%D7%A8_-_%D7%97%D7%95%D7%A1%D7%9F_%D7%9C%D7%99%D7%A9%D7%A8%D7%90%D7%9C.jpg' },
 };
 
 /* ===== P2 · ONE HEIGHT TRANSITION FOR EVERY STICKER CONTENT SWAP =======
@@ -4293,11 +4473,22 @@ function renderInfo(m) {
        NOT. The licence is a link when there is a deed to point at and
        plain text when there is only an identifier — never the other way
        round, and never a bare URL standing in for the name of a licence. */
+    /* THE PHOTOGRAPHER IS NEVER A LINK. No author URL exists in the
+       file and none is required by any of these licences; a name that
+       looks like a link and goes nowhere is worse than a name.
+       THE LICENCE SEGMENT IS OMITTED WHOLE WHEN THERE IS NO LICENCE,
+       and its separator goes with it, because the '·' is drawn by
+       .info-cr > * + *::before rather than typed into any string — an
+       absent segment takes its own bullet with it and katz, who has an
+       author and a source and no licence yet, renders no dangling one.
+       NOTHING IS INFERRED FROM A NEIGHBOURING ROW. */
+    const deed = LICENCE_DEEDS[c.licence];
     const cr =
-      (c.author  ? '<span class="info-by">' + esc(c.author) + '</span>' : '') +
+      (c.author  ? '<span class="info-by">' + esc(INFO_COPY.by) + ': ' +
+                     esc(c.author) + '</span>' : '') +
       (c.source  ? link(c.source, INFO_COPY.source, 'info-src') : '') +
-      (c.licence ? (c.licenceUrl ? link(c.licenceUrl, c.licence, 'info-lic')
-                                 : '<span class="info-lic">' + esc(c.licence) + '</span>') : '');
+      (c.licence ? (deed ? link(deed, c.licence, 'info-lic')
+                         : '<span class="info-lic">' + esc(c.licence) + '</span>') : '');
     return '<li class="info-row">' +
         '<p class="info-who">' +
           '<span class="info-name">' + esc(a.name || id) + '</span>' +
@@ -4309,11 +4500,21 @@ function renderInfo(m) {
 
   box.innerHTML =
     '<h2 class="peel-title">' + esc(INFO_COPY.title) + '</h2>' +
+    /* T36 · METHOD, ABOUT, RULE, CREDITS — AND THE ORDER IS THE WHOLE
+       POINT. The credits led because they were the only real content on
+       this screen; the two sections under them were one placeholder line
+       each and led nowhere. With Tamar's paragraphs in, the screen has an
+       argument — why THESE issues, then who made it — and a list of
+       photographers is the appendix to it, not the opening.
+       METHODOLOGY BEFORE ORG, deliberately. A player who opens this door
+       mid-game is asking why this issue was put in front of them, not who
+       the NGO is; the answer to the question they actually have goes
+       first and the institution follows it.
+       THE RULE IS NOT A THIRD SECTION BREAK. .info-h already dashes a
+       hairline under every heading, so a fourth one of those would just
+       be another section. This one says the screen is TWO THINGS: what
+       this is, and who the art belongs to. See .info-rule. */
     '<div class="info scrolls">' +
-      '<section class="info-sec">' +
-        '<h3 class="info-h">' + esc(INFO_COPY.credits) + '</h3>' +
-        '<ul class="info-list">' + rows + '</ul>' +
-      '</section>' +
       '<section class="info-sec">' +
         '<h3 class="info-h">' + esc(INFO_COPY.method) + '</h3>' +
         '<p class="info-p">' + esc(INFO_COPY.methodBody) + '</p>' +
@@ -4321,6 +4522,18 @@ function renderInfo(m) {
       '<section class="info-sec">' +
         '<h3 class="info-h">' + esc(INFO_COPY.about) + '</h3>' +
         '<p class="info-p">' + esc(INFO_COPY.aboutBody) + '</p>' +
+      '</section>' +
+      '<hr class="info-rule">' +
+      '<section class="info-sec">' +
+        '<h3 class="info-h">' + esc(INFO_COPY.credits) + '</h3>' +
+        /* THE MODIFICATION NOTICE GOVERNS THE LIST, so it is inside
+           this section and above it — not a fourth prose block up top,
+           where it would read as a third thing the screen is about
+           rather than as the sentence that makes these 31 attributions
+           correct. .info-p is the same paragraph the two sections above
+           use; see INFO_COPY.derived for why it exists. */
+        '<p class="info-p info-p--note">' + esc(INFO_COPY.derived) + '</p>' +
+        '<ul class="info-list">' + rows + '</ul>' +
       '</section>' +
     '</div>' +
     /* THE SAME FOOT THE BUILDER'S FIRST AXIS DRAWS: one .bnav--prev

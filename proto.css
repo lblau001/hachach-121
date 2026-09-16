@@ -7950,10 +7950,14 @@ body.no-ph .f5res .ph{ display:inline-block !important; }
    box and `max-height:100%` then resolves against the box's own height —
    circular, and a no-op. It has never shown, because until 2d no profile
    content came near the ceiling: 2b is 523px tall in a 608px area at the
-   360x640 floor. The credits list is 1148px of rows, and measured before
-   this line the box went to 1296 — past the stage, with the title and
-   the חזרה pushed off it and .info never scrolling, because there was no
-   constraint for it to overflow.
+   360x640 floor. The credits list WAS 1148px of 35 empty rows when this
+   was written, and measured before this line the box went to 1296 —
+   past the stage, with the title and the חזרה pushed off it and .info
+   never scrolling, because there was no constraint for it to overflow.
+   THE NUMBER IS HISTORY AND THE RULE IS NOT. The rows carry credits
+   now and the same list measures 2506px at 375x667 — more than twice
+   what the constraint was written against, which is the argument for
+   it rather than against it.
    minmax(0,1fr) makes the track the AREA and lets the item be smaller
    than its content, which is what the 100% was always written to mean.
    SCOPED TO [data-profile] ON PURPOSE. The law and glossary stickers cap
@@ -8357,7 +8361,54 @@ button.prof-hero:focus-visible{ outline:3px solid var(--primary); outline-offset
   font-size:15px; line-height:1.25;
   padding-bottom:6px; border-bottom:1.5px dashed rgba(19,19,16,.18);
 }
+/* T36 · THIS IS THE BUILD'S BODY PARAGRAPH NOW, AND IT DID NOT MOVE TO
+   BECOME ONE. It held one placeholder line per section; it now holds
+   Tamar's two real paragraphs, which are the first prose in the game
+   that is not a label, a claim or a single line of UI copy.
+   NOT SET FROM .f5prose. That was the near miss worth recording: the
+   beat 5 explain card is the only other paragraph-shaped object in the
+   build, but .f5prosebd carries NO rule of its own — it is an unstyled
+   wrapper and its look comes from .f5surf — and the type is
+   .f5prose--below, which is 15px of the DISPLAY family at weight 900 in
+   #EFECE4. That is display type sized down onto a dark board. Bringing
+   it here would put 900-weight display on cream paper for three lines of
+   running text and invent a second body treatment to do it.
+   13/700/1.55 IS THE SCREEN'S OWN AND THE STICKER'S OWN. --fs-meta at
+   700 is what .info-name, .stmodal__meta and .prof-lbl are already set
+   in; 1.55 is the leading this rule shipped with and the only value in
+   it that was ever about reading a paragraph rather than a line. The
+   measure falls out of the sticker: ~46 Hebrew characters at the 375px
+   width, which is inside the range without a max-width pinning it. */
 .info-p{ margin:0; font-size:var(--fs-meta); font-weight:700; line-height:1.55; }
+
+/* T36 · THE SCREEN IS TWO THINGS AND THIS IS THE JOIN. Above it, what
+   the game is and who made it; below it, who the photographs belong to.
+   HEAVIER THAN .info-h's HAIRLINE, ON PURPOSE. That one is .18 and runs
+   under every heading — a fourth of them here would read as a fourth
+   section, which is the one thing this must not say. .32 at the same
+   1.5px dashed is .prof-well's pair, already in this sticker, so the
+   step up is to a weight the surface owns rather than to a new one.
+   IT IS NOT .rs__tear AND MUST NOT BECOME IT. That is 2.5px at .42 with
+   a ✂, ruled out to the sheet's edges past the box's padding, and it
+   means THIS COMES APART — it is the only one in the build and the
+   reset confirm owns it. This rule stays inside the scroller's own
+   inline box, carries no glyph, and separates rather than perforates.
+   THE MARGIN CARRIES THE CREDITS' TOP GAP. .info-sec + .info-sec no
+   longer matches the credits section now that an <hr> sits between it
+   and the about section, so the 18px that rule was giving it comes from
+   here instead; 22 above, because a break reads from the space before
+   it more than the space after. */
+.info-rule{
+  height:0; margin:22px 0 18px; border:0;
+  border-top:1.5px dashed rgba(19,19,16,.32);
+}
+/* THE MODIFICATION NOTICE, WHICH IS A PARAGRAPH AND NOT A CAPTION. It
+   takes .info-p whole — same 13/700/1.55 as the two sections above, no
+   second treatment — and this modifier adds SPACING ONLY. It has to
+   clear the list under it by more than the list's own 10px row gap, or
+   it reads as the first credit rather than as the sentence that governs
+   all 31 of them. See INFO_COPY.derived for why it exists at all. */
+.info-p--note{ margin-bottom:12px; }
 .info-list{ margin:0; padding:0; list-style:none; }
 /* NO SEPARATOR BETWEEN ROWS. 34 of them with a rule each is a table, and
    the pair of lines already groups: the name is 700 ink, the credit 400
@@ -8366,11 +8417,13 @@ button.prof-hero:focus-visible{ outline:3px solid var(--primary); outline-offset
 .info-who{ margin:0; display:flex; align-items:baseline; gap:6px; flex-wrap:wrap; }
 .info-name{ font-size:var(--fs-meta); font-weight:700; line-height:1.4; }
 .info-party{ font-size:11.5px; font-weight:400; color:var(--ink-soft); }
-/* THE CREDIT LINE COLLAPSES WHILE IT IS EMPTY. Every row is empty today
-   — MK_CREDITS ships with four blank fields per person — and an empty
-   <p> holding a line box would put a ghost gap under all 34 names. It
-   is :empty and not display:none on a flag so that the moment ONE field
-   of ONE row is filled in, that row's line appears on its own. */
+/* THE CREDIT LINE COLLAPSES WHEN IT IS EMPTY, AND FOUR ROWS NOW USE IT.
+   It was written when every row was blank, to keep a ghost gap from
+   sitting under all 35 names. The sheet landed on 16 Sep and 31 rows
+   carry a credit; the four that do not — edelstein, lahav, michaeli,
+   silman — are the reason this rule stays. :empty rather than a flag is
+   what made that transition free: no row was marked, and each one's
+   line appeared the moment its own fields were filled. */
 .info-cr{
   margin:1px 0 0; display:flex; align-items:baseline; gap:6px; flex-wrap:wrap;
   font-size:11.5px; font-weight:400; line-height:1.45; color:var(--ink-soft);
