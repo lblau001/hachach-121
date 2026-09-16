@@ -1,7 +1,7 @@
 /* hac121 · game analytics — Google Analytics 4 */
 
 (function () {
-  var G_ID = 'G-W9V7SESQJS';
+  var G_ID = 'G-0RFE7DHTP6';
 
   /* ── GA4 bootstrap ──────────────────────────────────────────────── */
   window.dataLayer = window.dataLayer || [];
