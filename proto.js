@@ -3724,16 +3724,28 @@ const INFO_COPY = {
      without 31 repetitions of the same clause. It sits under the
      credits heading and before the list because it governs the list. */
   derived: 'כל דמויות הח״כים במשחק הן איורים שנוצרו על בסיס התצלומים הבאים.',  /* TAMAR */
-  /* THESE TWO ARE COPY NOW, NOT STRUCTURE. They were one placeholder
-     line each, holding a shape; these are Tamar's own paragraphs and
-     they are the FIRST REAL BODY PROSE IN THE BUILD — everything else
-     the player reads here is UI copy, a label or a single line. They
-     set the length the screen has to survive, which is why the order
-     changed with them: see renderInfo(). */
-  methodBody: 'למשחק נבחרו סוגיות מרכזיות הנמצאות במחלוקת בשיח הישראלי ' +
-              'ולגביהן היתה חקיקה בשנים האחרונות והוא נועד לסייע לצעירים לבחון ' +
-              'את הפעילות של חברי הכנסת ביחס למציאות בשטח.',              /* TAMAR */
-  aboutBody:  'המגדלור הוא מרכז לחינוך פוליטי לדמוקרטיה ליברלית.',                      /* TAMAR */
+  /* THESE TWO ARE COPY, NOT STRUCTURE. They were one placeholder line
+     each, holding a shape; these are Tamar's own paragraphs and they
+     are the FIRST REAL BODY PROSE IN THE BUILD — everything else the
+     player reads here is UI copy, a label or a single line. They set
+     the length the screen has to survive, which is why the order
+     changed with them: see renderInfo().
+     ONE STRING EACH, ON ONE LINE, AND THAT IS DELIBERATE. The first
+     draft of methodBody was split across three source lines with `+`,
+     which reads better in the file and is the wrong trade here: every
+     join is a place a space can be lost or doubled without the diff
+     making it obvious, and these are somebody else's words that we are
+     asked not to tidy. One literal per paragraph cannot drift from what
+     was handed over. Long lines are already the norm in this file — the
+     credit source URLs run past 120.
+     SECOND PASS, 16 SEP 2026. Both bodies were replaced wholesale with
+     Tamar's finished copy and neither was edited on the way in: the
+     methodology paragraph moved from בשיח הישראלי to בחברה הישראלית and
+     split its run-on into two sentences, and מי אנחנו gained the clause
+     about what the centre actually does. Punctuation, ה/ו and the comma
+     before לגביהן are hers. */
+  methodBody: 'למשחק נבחרו סוגיות מרכזיות הנמצאות במחלוקת בחברה הישראלית, לגביהן היתה חקיקה בשנים האחרונות. הוא נועד לסייע לצעירים לבחון את הפעילות של חברי הכנסת ביחס למציאות בשטח.',  /* TAMAR */
+  aboutBody:  'המגדלור הוא מרכז לחינוך פוליטי לדמוקרטיה ליברלית, המקדם כלים לפיתוח אוריינות פוליטית ודמוקרטית בקרב צעירים.',  /* TAMAR */
 };
 
 /* THE DEED URL IS DERIVED FROM THE LICENCE, NEVER STORED BESIDE IT.
