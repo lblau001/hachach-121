@@ -54,15 +54,6 @@
       "hi_px": 1204,
       "dpr": 3.0
     },
-    "edelstein": {
-      "name": "יולי אדלשטיין",
-      "party": "הליכוד",
-      "400": "assets/mk/mk_edelstein_400.webp",
-      "128": "assets/mk/mk_edelstein_128.webp",
-      "hi": "assets/mk/mk_edelstein_659.webp",
-      "hi_px": 659,
-      "dpr": 1.64
-    },
     "eisenkot": {
       "name": "גדי איזנקוט",
       "party": "המחנה הממלכתי",
@@ -162,15 +153,6 @@
       "hi_px": 1204,
       "dpr": 3.0
     },
-    "lahav": {
-      "name": "יוראי להב-הרצנו",
-      "party": "יש עתיד",
-      "400": "assets/mk/mk_lahav_400.webp",
-      "128": "assets/mk/mk_lahav_128.webp",
-      "hi": "assets/mk/mk_lahav_474.webp",
-      "hi_px": 474,
-      "dpr": 1.18
-    },
     "lapid": {
       "name": "יאיר לפיד",
       "party": "יש עתיד",
@@ -206,15 +188,6 @@
       "hi": "assets/mk/mk_liberman_1204.webp",
       "hi_px": 1204,
       "dpr": 3.0
-    },
-    "michaeli": {
-      "name": "מרב מיכאלי",
-      "party": "העבודה",
-      "400": "assets/mk/mk_michaeli_400.webp",
-      "128": "assets/mk/mk_michaeli_128.webp",
-      "hi": "assets/mk/mk_michaeli_558.webp",
-      "hi_px": 558,
-      "dpr": 1.39
     },
     "netanyahu": {
       "name": "בנימין נתניהו",
@@ -260,15 +233,6 @@
       "hi": "assets/mk/mk_seglovitch_1204.webp",
       "hi_px": 1204,
       "dpr": 3.0
-    },
-    "silman": {
-      "name": "עידית סילמן",
-      "party": "הליכוד",
-      "400": "assets/mk/mk_silman_400.webp",
-      "128": "assets/mk/mk_silman_128.webp",
-      "hi": "assets/mk/mk_silman_590.webp",
-      "hi_px": 590,
-      "dpr": 1.47
     },
     "smotrich": {
       "name": "בצלאל סמוטריץ'",
