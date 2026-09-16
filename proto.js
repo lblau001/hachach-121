@@ -3764,14 +3764,26 @@ const LICENCE_DEEDS = {
 };
 
 /* THE PHOTO CREDITS, KEYED BY THE ART INDEX'S OWN ID.
-   35 ROWS, NOT 30. The roster in data.js deals 30 of these people; the
-   manifest holds art for 35, and all 35 .webp sets are served out of
+   31 ROWS, NOT 30. The roster in data.js deals 30 of these people; the
+   manifest holds art for 31, and all 31 .webp sets are served out of
    assets/mk/. A CC BY obligation attaches to what is DISTRIBUTED, not
    to what a player happens to be dealt, so the list is the art index.
-   FIVE of these are people the game no longer deals — edelstein, gantz,
-   lahav, michaeli, silman — and one person it DOES deal, taha, has no
-   art at all and is correctly absent: there is no photograph to credit.
-   See the manifest's `fallback` block for what he draws instead.
+   IT WAS 35 UNTIL 16 SEP 2026. Four of the five people the game no
+   longer deals — edelstein, lahav, michaeli, silman — were art-only:
+   distributed out of assets/mk/, dealt to nobody, and carrying no
+   attribution at all in Tamar's sheet. THAT COMBINATION IS THE BREACH
+   this list exists to prevent, and a collapsed credit row documented it
+   rather than fixing it. Their files, their manifest entries and their
+   rows here were DELETED; chasing four attributions for portraits no
+   player can reach was the more expensive way to reach the same
+   compliant state. See the deletion commit for the file list.
+   ONE OF THE FIVE REMAINS: gantz. He is art-only on the same test — not
+   in the roster, not in any issue — and he stays because he is the one
+   of the five that is COMPLIANT: his row is filled. The rule is not
+   "is this person dealt", it is "is what we distribute attributed".
+   One person the game DOES deal, taha, has no art at all and is
+   correctly absent: there is no photograph to credit. See the
+   manifest's `fallback` block for what he draws instead.
    gila_gamliael IS THAT SPELLING ON PURPOSE. It reads like a typo for
    gamliel and it is not: it is the roster's own key, confirmed, and the
    art is cut to match it rather than to match how the name is spelled.
@@ -3809,12 +3821,12 @@ const LICENCE_DEEDS = {
    GENERATED FROM TAMAR'S SHEET, 16 SEP 2026, SECOND EXPORT. Not typed
    and not patched: the whole object is regenerated from the CSV so this
    file has one source of truth and cannot drift field by field.
-   31 of the 35 carry a credit. FOUR ARE EMPTY — edelstein, lahav,
-   michaeli, silman — four of the five the game no longer deals; their
-   fields are blank so .info-cr collapses and the row renders as a name
-   and a party alone. gantz is the fifth and he DOES carry one, which is
-   the rule this list was written for: the obligation follows what is
-   DISTRIBUTED out of assets/mk/, not what is dealt.
+   ALL 31 CARRY A CREDIT. There are no empty rows left: the four that
+   were blank are deleted rather than filled, so .info-cr:empty has no
+   user on this screen today and the list renders 31 complete lines.
+   gantz carries one like the rest, which is the rule this list was
+   written for: the obligation follows what is DISTRIBUTED out of
+   assets/mk/, not what is dealt.
    THE SECOND EXPORT CLOSED THE THREE UNFINISHED STRINGS the first one
    had, and the note that used to stand here describing them is gone
    with them: katz's author is 'Adi Cohen Zedek' and the backslash that
@@ -3850,7 +3862,6 @@ const MK_CREDITS = {
     author:'Nati Shohat / Knesset Archives',
     licence:'CC BY-SA 4.0',
     source:'https://commons.wikimedia.org/wiki/File:Aryeh_Deri_%28E32J1375%29.jpg' },
-  edelstein:      { author:'', source:'', licence:'' },                                 /* יולי אדלשטיין */
   eisenkot: {                      /* גדי איזנקוט */
     author:'Elad Malka/ דף הפייסבוק של גדי אייזנקוט',
     licence:'CC BY-SA 3.0',
@@ -3895,7 +3906,6 @@ const MK_CREDITS = {
     author:'Adi Cohen Zedek',
     licence:'CC BY-SA 3.0',
     source:'https://commons.wikimedia.org/wiki/File:Herzliya_Conference_2016_3012.jpg' },
-  lahav:          { author:'', source:'', licence:'' },                                     /* יוראי להב-הרצנו */
   lapid: {                         /* יאיר לפיד */
     author:'Avi Ohayon / Government Press Office of Israel',
     licence:'CC BY-SA 3.0',
@@ -3912,7 +3922,6 @@ const MK_CREDITS = {
     author:'Jim Mattis',
     licence:'CC BY 2.0',
     source:'https://commons.wikimedia.org/wiki/File:Avigdor_Lieberman_2017.jpg' },
-  michaeli:       { author:'', source:'', licence:'' },                                  /* מרב מיכאלי */
   netanyahu: {                     /* בנימין נתניהו */
     author:'Avi Ohayon / Government Press Office of Israel',
     licence:'CC BY-SA 3.0',
@@ -3933,7 +3942,6 @@ const MK_CREDITS = {
     author:'Ronen Horesh / Knesset Archives',
     licence:'CC BY-SA 4.0',
     source:'https://commons.wikimedia.org/wiki/File:Yoav_Segalovich_%28R_H_4069%29.jpg' },
-  silman:         { author:'', source:'', licence:'' },                                    /* עידית סילמן */
   smotrich: {                      /* בצלאל סמוטריץ' */
     author:'איתן פולד',
     licence:'CC BY-SA 3.0',

@@ -7954,10 +7954,12 @@ body.no-ph .f5res .ph{ display:inline-block !important; }
    was written, and measured before this line the box went to 1296 —
    past the stage, with the title and the חזרה pushed off it and .info
    never scrolling, because there was no constraint for it to overflow.
-   THE NUMBER IS HISTORY AND THE RULE IS NOT. The rows carry credits
-   now and the same list measures 2506px at 375x667 — more than twice
-   what the constraint was written against, which is the argument for
-   it rather than against it.
+   THE NUMBERS ARE HISTORY AND THE RULE IS NOT. Both moved since: the
+   rows carry credits now and four art-only people were deleted, so the
+   same list measures 2332px over 31 rows at 375x667. It was 1148, then
+   2506 at 35 filled rows, now 2332 — three values for one constraint,
+   which is the argument for the constraint rather than against it. The
+   ceiling is what makes any of them scroll instead of overflow.
    minmax(0,1fr) makes the track the AREA and lets the item be smaller
    than its content, which is what the 100% was always written to mean.
    SCOPED TO [data-profile] ON PURPOSE. The law and glossary stickers cap
@@ -8417,13 +8419,20 @@ button.prof-hero:focus-visible{ outline:3px solid var(--primary); outline-offset
 .info-who{ margin:0; display:flex; align-items:baseline; gap:6px; flex-wrap:wrap; }
 .info-name{ font-size:var(--fs-meta); font-weight:700; line-height:1.4; }
 .info-party{ font-size:11.5px; font-weight:400; color:var(--ink-soft); }
-/* THE CREDIT LINE COLLAPSES WHEN IT IS EMPTY, AND FOUR ROWS NOW USE IT.
-   It was written when every row was blank, to keep a ghost gap from
-   sitting under all 35 names. The sheet landed on 16 Sep and 31 rows
-   carry a credit; the four that do not — edelstein, lahav, michaeli,
-   silman — are the reason this rule stays. :empty rather than a flag is
-   what made that transition free: no row was marked, and each one's
-   line appeared the moment its own fields were filled. */
+/* THE CREDIT LINE COLLAPSES WHEN IT IS EMPTY, AND NOTHING USES THAT
+   TODAY. It was written when all 35 rows were blank, to keep a ghost
+   gap from sitting under 35 names; the sheet filled 31 of them on 16
+   Sep and the other four were DELETED rather than filled, art and all,
+   because they were distributed with no attribution and dealt to
+   nobody. All 31 remaining rows render a line.
+   THE RULE STAYS, UNUSED AND ON PURPOSE. MK_CREDITS is filled by hand
+   from a sheet and a new portrait lands here before its attribution
+   does; this is what keeps that intermediate state from putting a
+   ghost gap under a name. :empty rather than a flag is what made the
+   first fill free — no row was marked, and each line appeared the
+   moment its own fields were filled. It will do the same for the next
+   one. If it is ever deleted, delete it for being wrong, not for
+   looking unreferenced. */
 .info-cr{
   margin:1px 0 0; display:flex; align-items:baseline; gap:6px; flex-wrap:wrap;
   font-size:11.5px; font-weight:400; line-height:1.45; color:var(--ink-soft);
