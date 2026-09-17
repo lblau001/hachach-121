@@ -9273,7 +9273,20 @@ function ringGeom(n) {
 
 function nodeHTML(t, i, h, cur) {
   const done = topicDone(t.id), segs = segsDone(t.id);
-  const cls = 'node' + (i === cur ? ' is-current' : '') + (segs === 0 ? ' is-untouched' : '');
+  /* is-done EXISTS FOR THE RING BREATH AND FOR NOTHING ELSE YET, and it
+     is a class rather than a fourth branch because `done` is already
+     computed on the line above -- the ring breath needs it in CSS, where
+     is-current lives.
+     WHY THE BREATH NEEDS IT AT ALL: currentIdx() falls back to the LAST
+     node when nextTopicIdx() returns -1, so a finished map still carries
+     .is-current. That is the same -1 the jump pill is suppressed on --
+     "when every topic is done there is no current one and the pill would
+     offer a journey to nowhere" -- and the breath is the same kind of
+     claim. It is a nudge toward a next thing; on a finished map there is
+     no next thing to nudge toward. NOT a clearance problem: the check
+     clears the fully contracted ring by 5.91px either way. */
+  const cls = 'node' + (i === cur ? ' is-current' : '') + (done ? ' is-done' : '') +
+              (segs === 0 ? ' is-untouched' : '');
   const cy  = nodeY(i, h);
   const n   = SEGS(t.id);
   const G   = ringGeom(n);
