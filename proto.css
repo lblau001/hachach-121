@@ -4418,6 +4418,100 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
   box-shadow:0 0 0 0 var(--node-base),
              0 0 0 3px var(--edge), 0 0 0 4.6px rgba(0,0,0,.45);
 }
+
+/* =====================================================================
+   THE CURRENT NODE'S RING BREATHES · one scale on the SVG box
+   Measured off a Duolingo recording at 60fps: their core never moves or
+   scales in any frame — 77x71px throughout — and only the ring's arc
+   segments travel radially, ~126 -> 135px on a 130 midpoint.
+
+   ±3.5% IS THEIR RELATIVE SCALE, NOT THEIR GAP, and the distinction is
+   the whole of this number. Their gap runs 24.5 -> 29px on a 38.5px core
+   radius; ours could not, because our ring hugs the face far tighter —
+   gap ÷ core-radius 0.368 against their 0.688 (see --ring-r, which went
+   DOWN when the cream tile went away). Copying their gap would have
+   described a different object. Copying the relative scale lands our gap
+   at 13.92 -> 18.08px, which is 4.17px of travel against their 4.5 — 93%
+   of the reference in absolute pixels, on a core 13% larger.
+
+   ON .ring, AND NOT ON THE SEGMENTS. .ring is position:absolute, so it
+   is out of flow and cannot reflow the node; the face is a SIBLING at a
+   higher z-index and .node-name is outside .ringnode altogether, so
+   neither can be reached from here. That is what satisfies "the face and
+   the label must not move".
+   ANIMATING r WAS THE OTHER CANDIDATE AND IT IS WRONG: ringGeom() derives
+   dash/rest/seg from the circumference at r=59.5, so a changing r leaves
+   the dash pattern mismatched — the arcs would change ANGULAR extent and
+   the 27.2deg gaps would drift. A uniform scale carries the dash pattern
+   with it, so every arc keeps its angle and every gap keeps its own.
+   PER-SEGMENT TRANSFORMS WERE THE THIRD, and .seg is already spoken for:
+   the topic closing owns `transition:stroke` and
+   [data-close="held"] .seg:last-of-type. Scaling the box leaves .seg to
+   the seal, with one author per element.
+   THE STROKE SCALES WITH IT — --ring-w 10px renders 9.65 -> 10.35, a
+   0.70px swing. Sub-pixel at 1x, and it reads as the ring gaining a hair
+   of weight as it opens. Removing it would mean counter-animating
+   stroke-width through an @property-typed custom property, which repaints
+   the SVG every frame; 0.70px does not buy that.
+
+   CLEARANCES AT FULL CONTRACTION, because the ring may never touch the
+   node. The segment's inner edge goes 54.50 -> 52.59, against the
+   face+base composite's 47.5 (5.09px, from 7.00) and against
+   .node-check's worst painted point at 46.68 (5.91px). At full expansion
+   the outer edge reaches 66.76, 1.76px past the 130px box — overflow is
+   already visible on .ringnode and .ring, and the nearest #mapwin edge is
+   ~40px away at the serpentine's extremes (.2955/.7045), so nothing
+   clips. These are the numbers to re-check if the amplitude is retuned.
+
+   2300ms, AND 2000 WOULD HAVE BEEN THE WORST AVAILABLE NUMBER. The
+   reference period is ~2000ms and av-beacon is 2000ms EXACTLY, on this
+   same screen — two ambient loops locked 1:1 and permanently in phase.
+   The intro's 3500/5500 pair is not a constraint here: .i-cta and
+   .i-chair are never on screen with the map. What is a constraint is
+   node-pulse, 3400ms alternate, on THIS NODE's own glow. At 2300 the
+   realignments are 46.0s against the beacon, 78.2s against the glow's
+   half-sweep and 156.4s against its full cycle — all three better than
+   the 38.5s .sc-chair's own anti-sync note settles for.
+
+   `both` IS LOAD-BEARING, the same way it is on i-cta-breathe: the
+   backwards fill paints 0% through the delay, so the ring sits at its
+   expanded rest from the very first frame instead of snapping outward
+   when the delay expires.
+   THE 900ms DELAY DE-PHASES IT FROM THE GLOW. node-pulse on this same
+   node has no delay, so a delay-free ring would be guaranteed in phase
+   with it at the one moment a player is certainly looking — arrival.
+   ===================================================================== */
+.node.is-current:not(.is-done) .ring{
+  animation:node-ring-breathe 2300ms linear 900ms infinite both;
+}
+@keyframes node-ring-breathe{
+  /* The reference is NOT a symmetric sine, and that asymmetry is what
+     makes it read as breathing rather than pulsing: it rests OUT, draws
+     in, holds briefly at the minimum, and returns. Measured at 60fps —
+     hold 570 / contract 670 / hold 80 / expand 650 = 1970ms over 118
+     frames — and rescaled x1.1675 to the 2300ms period above. */
+  /* 0 -> 665ms · at rest, out */
+  0%      { transform:scale(1.035); animation-timing-function:linear }
+  /* 665 -> 1447ms · draws in, 782ms */
+  28.913% { transform:scale(1.035); animation-timing-function:ease-in-out }
+  /* 1447 -> 1540ms · held at the minimum, 93ms */
+  62.913% { transform:scale(0.965); animation-timing-function:linear }
+  /* 1540 -> 2299ms · returns, 759ms, decelerating into the long rest */
+  66.957% { transform:scale(0.965); animation-timing-function:var(--e-out) }
+  100%    { transform:scale(1.035) }
+}
+/* NO ANIMATION AT ALL, not a 1ms one — the argument item 10 makes and
+   node-pulse repeats. `animation:none` kills the NAME, which the global
+   `*{animation-duration:1ms !important}` rule at the foot of this file
+   cannot override.
+   AND transform:none, NOT node-pulse's midpoint convention. There the
+   midpoint is a value the resting element never has; here it IS what
+   ships — r 59.5 — so the ring under reduce is the geometry every other
+   node has, which is the correct still frame for this one. */
+@media (prefers-reduced-motion: reduce){
+  .node.is-current:not(.is-done) .ring{ animation:none; transform:none; }
+}
+
 /* an untouched node is carried by its RING — two unfilled casings — and by
    the tile and art sitting a little back. The disc cannot carry it: the
    disc is the topic's identity now and is the same on every state. */
