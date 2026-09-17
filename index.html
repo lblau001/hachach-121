@@ -153,6 +153,15 @@
 
 <div class="stage" id="stage" data-screen="intro">
 
+  <!-- A11Y · WCAG 2.0 AA · 1.3.1 — the document's one h1. The game's name
+       is drawn as art on the intro and exists nowhere as text, so this is
+       the only h1 and it is visually hidden: an accessible name for the
+       document, not a second title beside the lockup. Every other heading
+       in the app is an h2 (.peel-title, .stmodal__title) or an h3
+       (.info-h), and until this line they all hung under a missing level.
+       .sr-only clips rather than display:none — see proto.css. -->
+  <h1 class="sr-only">הח״כ ה-121</h1>
+
   <!-- ONE HUD FOR THE WHOLE APP, not one per screen. The map and the round
        are the same row — coins, a centre slot, the avatar — and building it
        twice is how the two drift apart. Only the CENTRE slot swaps: the

@@ -426,7 +426,29 @@
      number here — see the node_mass note in tools/make_manifest.py.
      51/87 = 58.6% of the disc, the same proportion 44/76 was. */
   --node-ico-avg:  51px;
-  --node-gap:      199px;   /* centre to centre, up the path              */
+  /* T38 · 199 -> 219, AND THE LABEL TYPE IS WHY.  The contrast fix took
+     .node-name from 16px to 19px (see the ramp note on .stage), which grew
+     a two-line label from 39px to 47px and spent the clearance under it:
+     label-bottom to the next node's ring fell from 18px to 10px, and the
+     ASYMMETRY INVERTED with it. The label is 13px under its own ring — the
+     margin-top on .node-name — so at 18 it sat closer to the node it names
+     than to the one below, which is what makes it read as belonging to
+     one of them. At 10 it was closer to the WRONG node.
+     +20 RESTORES THE RELATION AND THEN SOME: 13 above, 30 below. 209 would
+     have put it back to 13:20, within a pixel of the 13:18 it had at 16px,
+     and that was the minimal option; 219 was taken because it also lifts
+     the top label clear of the HUD band at full scroll (see below) and
+     because the two-line labels are now the common case rather than the
+     exception — five of six, where at 16px it was three.
+     THE COST IS 100px OF PATH. pathHeight() is pad-top + pad-bot + 5*gap,
+     so every +1 here is +5 on the path and +5 on the scroll: 1353 -> 1453,
+     about 7%. Nothing else moves — the pads, the serpentine and the node
+     box are untouched.
+     THE JUMP PILL IS UNAFFECTED, MEASURED. It turns on when the current
+     node leaves the window, so its threshold rides the same distance: 266px
+     of scroll keeps node 0 visible at 199, at 209 and at 219 alike. The
+     map also still parks on the current node — 642 of a 667 maximum. */
+  --node-gap:      219px;   /* centre to centre, up the path              */
   /* §1.5 THESE TWO PADS ARE THE BLEED. The ribbon is drawn the full height
      of the path now, not from the first node to the last, so what used to
      be empty charcoal above the top node and below the bottom one is where
@@ -577,6 +599,20 @@ body{
 
 .defs{ position:absolute; width:0; height:0; }
 
+/* T38 · A11Y · THE DOCUMENT'S ONE h1.  WCAG 2.0 AA · 1.3.1
+   The app had no h1 at all: .peel-title and .stmodal__title are h2s and
+   .info-h is an h3, so every heading in the build hung under a level that
+   did not exist. The name of the game is drawn as art on the intro and
+   never exists as text, so the heading is visually hidden rather than
+   duplicated on screen — it is the accessible name of the document, not a
+   second title competing with the lockup.
+   THE CLIP RECIPE, NOT display:none. Hidden that way it would be removed
+   from the accessibility tree too, which is the whole point lost. */
+.sr-only{
+  position:absolute !important; width:1px; height:1px; overflow:hidden;
+  clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap;
+  margin:-1px; padding:0; border:0;
+}
 .stage{
   position:relative; width:100%; max-width:390px;
   /* --vh is set from window.innerHeight for Safari versions without dvh;
@@ -601,7 +637,25 @@ body{
    product. Its dark layer does most of the work on a light ground. */
 .stage[data-screen="map"]{
   background:
-    radial-gradient(120% 80% at 50% 108%, #F2B33C 0%, #E4732B 38%, #C4402E 70%, #8E2A2E 100%),
+    /* T38 · A11Y · THE LIGHT END IS DEEPER SO THE LABELS CLEAR 3:1.
+       WCAG 2.0 AA · 1.4.3.  .node-name is #EFECE4 and rides this ramp as
+       .mapwin scrolls inside a stage that does not, so every label meets
+       every stop. Computed from the CSS rather than sampled, the ramp ran
+       1.58:1 at 0%, 2.03 at 19%, 2.62 at 38%, 3.37 at 54% and 4.32 at
+       70% — five failures, not the one a rendered-pixel sample found
+       (the 0% stop sits at 50% 108%, below the viewport, so no pixel on
+       screen is ever that light).
+       THE LABEL GREW TO 19px/900 FIRST. 19 is the smallest size that
+       clears WCAG's 18.66px bold threshold and drops the bar from 4.5:1
+       to 3:1 — 18px does not qualify and buys nothing. Fixing the ramp at
+       4.5 would have meant #F2B33C -> #8F610A, half the lightness, and
+       the path ribbon and node discs are DARK on this ground: they would
+       have fallen from 8.00:1 and 7.80:1 to 2.75 and 2.68. Taking the 3:1
+       bar instead costs 37% of the light end's lightness rather than 50%
+       and leaves the ribbon and discs above 3.9:1.
+       TWO STOPS MOVE AND THE HUE IS HELD EXACTLY — 39.2deg and 23.4deg,
+       unchanged. 70% and 100% already cleared 3:1 and are untouched. */
+    radial-gradient(120% 80% at 50% 108%, #B3790C 0%, #D5631B 38%, #C4402E 70%, #8E2A2E 100%),
     #C4402E;
 }
 @supports (height: 100dvh){ .stage{ height:100dvh; } }
@@ -4003,9 +4057,19 @@ body.no-ph .ph{ display:none !important; }
    layers, no 0-blur term and no colour, so it is lift and never an
    outline or a glow. The status line gets it too and needs it more — it
    is smaller and it is --ink-faint rather than white. */
-.node-name{ margin-top:13px; font-size:16px; line-height:1.2; text-align:center;
+/* T38 · 19px, AND 19 IS THE MINIMUM THAT BUYS ANYTHING.  WCAG 2.0 AA
+   1.4.3 splits at 18.66px (14pt) for bold text: below it the bar is
+   4.5:1, at or above it the bar is 3:1. 16px/900 needed 4.5 and got 1.58
+   at the ramp's light end; 18px/900 would still need 4.5 and would buy
+   nothing at all. 19 clears the threshold with 0.34px to spare and is the
+   smallest step that does.
+   THE SHADOW IS UNCHANGED AND STILL NOT LOAD-BEARING. It sharpens the
+   glyph edge; SC 1.4.3 computes against the background and the ramp now
+   satisfies the bar without it. */
+.node-name{ margin-top:13px; font-size:19px; line-height:1.2; text-align:center;
   color:#EFECE4; font-family:var(--font-display); font-weight:900;
   text-shadow:0 1px 4px rgba(0,0,0,.92), 0 2px 14px rgba(0,0,0,.78); }
+
 /* THE STATUS LINE IS ALSO RE-INKED, and it had to be. --ink-faint is
    #BEB9AC — a light grey chosen for a dark ground — and on the gradient's
    light end it starts at 1.24:1, which no shadow can rescue: a shadow
