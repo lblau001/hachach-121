@@ -184,3 +184,77 @@ then repair 1 and 2. Until then every hand-added entry is debt that the first
 successful run destroys, and whoever repairs the script owns re-adding them.
 Two entries as of 15 Sep 2026.
 
+
+## Two accessibility items the a11y pass did not close
+
+Written 17 Sep 2026, alongside the commit that fixes the four WCAG 2.0 AA
+failures. Both of these were found by the same audit and deliberately left.
+
+### The 375x667 label / progress-pill overlap
+
+At 375x667, scrolled hard to the bottom, `כנסת, ממשלה ובג״ץ` overlaps the HUD's
+`0/6` pill — label box x 848–978 against the pill at 853–909, both inside the
+HUD's y band. The HUD is `z-index:30` and the pill is opaque, so the label is
+occluded rather than made illegible, but it reads as a collision.
+
+**It is not caused by the 19px type or by `--node-gap` 219.** Measured at every
+gap, scrolled to the bottom, at 375x667:
+
+| `--node-gap` | overlaps the pill |
+|---|---|
+| 199 (what shipped before) | yes |
+| 209 | yes |
+| 219 (now) | yes |
+| 229 | yes |
+| 239 | no |
+
+So it is pre-existing, and spacing alone would cost **239px** — another 100px of
+path on top of the 100 already spent, for a fault that has nothing to do with
+spacing. **Solve it with padding on the map window instead** — a top inset on
+`.mapwin`, or `--node-pad-top`, so the ribbon's first label cannot ride under the
+HUD band at maximum scroll. That is a smaller change and it fixes the cause.
+390x844 and 430x932 are already clear at 219.
+
+### What is still open for the accessibility statement
+
+IS 5568 requires a published statement. This is what an honest one cannot yet
+claim, and none of it is closed by the 17 Sep commit:
+
+- **No screen reader has been run.** Not VoiceOver, not NVDA, not TalkBack. Every
+  finding in the audit is static analysis plus rendered-pixel measurement. Reading
+  order, whether `aria-modal` actually isolates each dialog, and whether a Hebrew
+  voice copes with the newly-marked `lang="en"` runs are all unverified. This is
+  the largest single gap.
+- **No complete keyboard playthrough.** Controls were confirmed focusable and the
+  map's tab chain was walked, but no round has been finished by keyboard. Beats 3
+  to 5, the completion screen, coin allocation and the share flow are unverified
+  for keyboard operability.
+- **Contrast was measured on two screens only** — the map and the profile sheet.
+  Beats 1 to 5, the completion screen, coin allocation, the share screen and the
+  three exported card types have never been contrast-audited by anyone. Beat 5's
+  vote-bar palette was also explicitly out of scope for 7850fef, so it has never
+  been checked at all.
+- **1.4.4 Resize Text needs a person.** A simulated 200% showed no clipping, but
+  `zoom` is not a faithful proxy and `fitBeat()` rescales beat content to fit —
+  which under real text resize could shrink text back down and defeat it.
+- **2.2.1 Timing Adjustable needs a person.** No beat auto-advances, but the
+  reveal sequence and `runCount()` are timed animations a slower reader cannot
+  pause. Both honour `prefers-reduced-motion`, which mitigates.
+
+Two items were scoped and priced but not built:
+
+- **4.1.3 status messages for the count-up** — WCAG 2.1, so outside IS 5568, but
+  it is the payload of the game delivered silently. `runCount()` writes
+  `textContent` every animation frame with no live region, so the naive fix (an
+  `aria-live` on `#f5for`) would fire ~60 announcements a second and is worse
+  than silence. The shape: a visually hidden `<p aria-live="polite">` written
+  ONCE when `runCount()`'s promise resolves, carrying the settled sentence rather
+  than the numerals. About 15 lines. The cost is not the code — it needs a real
+  screen-reader test to confirm it fires once and at the right moment, and the
+  string is Tamar's.
+- **`.hud-you` at 40x40** — the only control still under 44x44. Target size is
+  **not a WCAG 2.0 criterion at all** (2.5.5 is 2.1 AAA, 2.5.8 is 2.2 AA), so it
+  is below the bar IS 5568 sets. The reason to do it anyway is that it is the
+  most-tapped control in the game. The fix is the `::after` technique `.pcov` and
+  `.b2title-link` already use — it grows the hit area without moving a pixel,
+  which matters because the avatar is a 40px round token by design.

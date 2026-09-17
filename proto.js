@@ -1436,6 +1436,97 @@ function buzz(event) {
    this is the single place every pressable thing in the app passes. */
 function pressable(node) { node.addEventListener('pointerdown', () => { unlockAudio(); }); return node; }
 
+/* =====================================================================
+   A11Y · ONE FOCUS CONTRACT FOR EVERY DIALOG.  WCAG 2.0 AA · 2.4.3
+   dialogFocus(root, onEscape) -> release()
+
+   THE FOUR DIALOGS ALREADY SHARED A SHAPE and this replaces the half of
+   it that was missing. firstRunIntro(), resetConfirm(), stickerModal()
+   and confirmSheet() each declared role="dialog" aria-modal="true" and
+   each answered Escape; none of them moved focus in, held it, or gave it
+   back. aria-modal hides the background from a SCREEN READER and does
+   nothing whatever to the Tab order, so a keyboard player opening the
+   profile sheet tabbed straight out of it into the map behind — the
+   dialog still open, the focus ring somewhere they could not see.
+
+   WHY ONE HELPER AND NOT FOUR HANDLERS. The Tab arithmetic is the same
+   every time and is exactly the kind of thing that rots in four copies:
+   the first one gets a fix and the other three keep the bug. Each
+   constructor now spends one line opening it and one line in close().
+
+   IT SURVIVES stickerSwap(), WHICH IS THE HARD PART. That function
+   rewrites [data-prof]'s innerHTML in place, so the element holding
+   focus is destroyed while the dialog stays open and activeElement falls
+   back to <body>. Two defences, both needed:
+     1 · THE FOCUSABLE LIST IS BUILT ON EVERY Tab, never cached. A list
+         captured at open time would name dead nodes after one swap.
+     2 · IF FOCUS HAS LEFT root, Tab pulls it back to the first control
+         rather than letting the browser resume from <body> — which is
+         what would otherwise walk the player into the page behind.
+   stickerSwap() also re-seats focus after it paints; see the note there
+   for why it only does so when focus was already inside.
+
+   THE TRIGGER IS RESTORED, NOT ASSUMED. close() can run after the
+   trigger has itself been removed — 2b's שמור closes the sticker it
+   lives in — so the restore is guarded on the node still being in the
+   document. If it is gone, focus is left alone rather than thrown to
+   <body> deliberately.
+
+   CAPTURE PHASE, so the trap sees Tab before anything inside the dialog
+   can act on it. Escape rides the same listener rather than a second
+   one: two keydown handlers per dialog is how the two get out of step. */
+const FOCUS_SEL = 'button:not([disabled]),[href],input:not([disabled]),' +
+                  'select:not([disabled]),textarea:not([disabled]),' +
+                  '[tabindex]:not([tabindex="-1"])';
+function dialogFocus(root, onEscape) {
+  if (!root) return () => {};
+  const trigger = document.activeElement;
+  /* the box itself must be able to hold focus for the one frame a swap
+     leaves it with no controls in it */
+  if (!root.hasAttribute('tabindex')) root.setAttribute('tabindex', '-1');
+
+  const list = () => Array.prototype.filter.call(
+    root.querySelectorAll(FOCUS_SEL),
+    n => n.offsetWidth || n.offsetHeight || n.getClientRects().length);
+
+  /* IDEMPOTENT ON PURPOSE — it is called twice (see below) and must not
+     drag focus back to the first control if the player has already
+     tabbed on. */
+  const seat = () => {
+    if (root.contains(document.activeElement)) return;
+    const f = list(); (f[0] || root).focus();
+  };
+
+  const onKey = e => {
+    if (e.key === 'Escape') { if (typeof onEscape === 'function') onEscape(); return; }
+    if (e.key !== 'Tab') return;
+    const f = list();
+    if (!f.length) { e.preventDefault(); root.focus(); return; }
+    const first = f[0], last = f[f.length - 1], a = document.activeElement;
+    if (!root.contains(a)) { e.preventDefault(); first.focus(); return; }
+    if (e.shiftKey && a === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && a === last) { e.preventDefault(); first.focus(); }
+  };
+  addEventListener('keydown', onKey, true);
+
+  /* AFTER THE OPENING FRAME, WITH A TIMER BEHIND IT. Every one of these
+     boxes animates in, and a focus() on a node still at opacity 0 scrolls
+     some browsers to it before it is painted — so the seat waits a frame.
+     rAF ALONE IS NOT ENOUGH: a hidden tab does not run animation frames at
+     all, so a dialog opened while the document is hidden would never seat
+     focus and the trap would hold nothing. The timer is the floor under
+     that; seat() ignores the second call once focus is inside. */
+  requestAnimationFrame(seat);
+  setTimeout(seat, 80);
+
+  return () => {
+    removeEventListener('keydown', onKey, true);
+    if (trigger && document.contains(trigger) && typeof trigger.focus === 'function') {
+      trigger.focus();
+    }
+  };
+}
+
 /* ===================== SOUND · THE FOLEY SET =========================
    FOLEY, NOT UI SOUNDS. Everything on screen is a physical object, so the
    library is paper, ink, card and wood. Ten files were cut for this in
@@ -2333,7 +2424,7 @@ function firstRunIntro(done) {
   let gone = false;
   const close = () => {
     if (gone) return; gone = true;
-    removeEventListener('keydown', onKey);
+    release();
     o.classList.remove('is-in'); o.classList.add('is-out');
     setTimeout(() => { o.remove(); done(); }, T.ovCollapse);
   };
@@ -2344,9 +2435,11 @@ function firstRunIntro(done) {
      ground and nothing else. Routed through close() rather than removing
      the node directly, so the is-out transition and done() still run
      whichever way the player leaves — the ITEM 43 rule, one hook fired on
-     every way out. */
-  const onKey = e => { if (e.key === 'Escape') close(); };
-  addEventListener('keydown', onKey);
+     every way out.
+     T38 · ESCAPE NOW RIDES dialogFocus()'s ONE LISTENER, which also traps
+     Tab and gives focus back on the way out. Two keydown handlers per
+     dialog is how the two get out of step. */
+  const release = dialogFocus($('.b1intro__box', o), close);
   /* the whole surface is the dismiss, the CTA included — pressable() only
      to give the button the same 10ms tick every other control has */
   pressable($('.b1intro__go', o));
@@ -3189,12 +3282,11 @@ function resetConfirm() {
   let gone = false;
   const close = () => {
     if (gone) return; gone = true;
-    removeEventListener('keydown', onKey);
+    release();
     sh.classList.remove('is-in'); sh.classList.add('is-out');
     setTimeout(() => sh.remove(), T.ovIn);
   };
-  const onKey = e => { if (e.key === 'Escape') close(); };
-  addEventListener('keydown', onKey);
+  const release = dialogFocus($('.exitsheet__box', sh), close);
   pressable($('.exitsheet__x', sh)).addEventListener('click', close);
   pressable($('[data-keep]', sh)).addEventListener('click', close);
   sh.addEventListener('click', e => { if (e.target === sh) close(); });
@@ -3301,7 +3393,16 @@ function stickerFill(o, nested) {
             esc(BACK_LABEL) + '">' + CHEV_R + '</button>'
         : '') +
       hero +
-      '<h2 class="stmodal__title">' + esc(o.title || '') + '</h2>' +
+      /* T38 · A11Y · NO EMPTY HEADING.  WCAG 2.0 AA · 1.3.1
+         This emitted an h2 whether or not there was a title, so the
+         profile sticker and the invitation both put an empty heading in
+         the accessibility tree — a heading that announces nothing and
+         still counts as a level. Two rules were already papering over it
+         with display:none and :empty. The element is now simply not
+         written when there is nothing to put in it; the CSS that hides it
+         is left alone because .stmodal[data-mapintro] still relies on the
+         :empty form for a title it sets later. */
+      (o.title ? '<h2 class="stmodal__title">' + esc(o.title) + '</h2>' : '') +
       /* T7 · the label is a child of the meta line, not a line of its own:
          a separate <p> would take the box's gap and read as a third block
          between the title and the body. */
@@ -3381,7 +3482,7 @@ function stickerModal(o) {
      this function. Optional; every existing caller passes nothing. */
   const close = () => {
     if (gone) return; gone = true;
-    removeEventListener('keydown', onKey);
+    release();
     m.classList.remove('is-in'); m.classList.add('is-out');
     setTimeout(() => m.remove(), T.ovCollapse);
     if (typeof o.onClose === 'function') o.onClose();
@@ -3390,8 +3491,10 @@ function stickerModal(o) {
      the sticker. `_close` rather than `close` to match the `_swipe` the
      claim card already hangs on its node. */
   m._close = close;
-  const onKey = e => { if (e.key === 'Escape') close(); };
-  addEventListener('keydown', onKey);
+  /* T38 · Escape, the Tab trap and the focus restore are one contract —
+     see dialogFocus(). The root is the BOX, not the overlay: the overlay
+     is the click-to-dismiss ground and holds no controls. */
+  const release = dialogFocus($('.stmodal__box', m), close);
   /* T34 · RE-WIRED AFTER EVERY CONTENT SWAP. Replacing the box's innerHTML
      destroys the ✕ and its listener with it, so the wiring is a function
      the swap can call again rather than a line that runs once. ✕ closes
@@ -4004,6 +4107,30 @@ const MK_CREDITS = {
    measured, not defensive noise; the comments say which. */
 function stickerSwap(m, paint) {
   if (typeof paint !== 'function') return;
+  /* T38 · A11Y · FOCUS SURVIVES THE SWAP.  WCAG 2.0 AA · 2.4.3
+     Every path below calls paint(), and paint() replaces [data-prof]'s
+     innerHTML — which destroys whatever held focus and drops
+     activeElement to <body> while the dialog is still open. dialogFocus()
+     already recovers on the next Tab, but recovering on the NEXT key is
+     not the same as never having lost it: a screen-reader user is left
+     reading nothing until they press something.
+     ONLY WHEN FOCUS WAS ALREADY INSIDE. A swap driven by a pointer must
+     not pull focus out of nowhere and start drawing focus rings at a
+     player who never left the mouse — 2.4.3 asks that focus order be
+     preserved, not that focus be invented. The test is taken BEFORE
+     paint() runs, because after it the answer is always <body>. */
+  const box0 = m && $('.stmodal__box', m);
+  const hadFocus = !!(box0 && box0.contains(document.activeElement));
+  const reseat = () => {
+    if (!hadFocus || !box0 || !document.contains(box0)) return;
+    if (box0.contains(document.activeElement)) return;   /* paint() already placed it */
+    const f = box0.querySelectorAll(FOCUS_SEL);
+    const first = Array.prototype.filter.call(f,
+      x => x.offsetWidth || x.offsetHeight || x.getClientRects().length)[0];
+    (first || box0).focus();
+  };
+  const paintOnce = paint;
+  paint = () => { paintOnce(); requestAnimationFrame(reseat); };
   const box = m && $('.stmodal__box', m);
   if (!box) { paint(); return; }
 
@@ -4484,9 +4611,12 @@ function renderInfo(m) {
   const ids = Object.keys(art).length ? Object.keys(art) : Object.keys(MK_CREDITS);
 
   const safeHref = href => /^https?:\/\//i.test(href) ? href : '#';
-  const link = (href, label, cls) =>
-    '<a class="' + cls + '" href="' + esc(safeHref(href)) + '" target="_blank" rel="noopener">' +
-      esc(label) + '</a>';
+  /* the optional 4th argument marks the LABEL's language — see the 3.1.2
+     note below. מקור stays Hebrew; a licence identifier does not. */
+  const link = (href, label, cls, lang) =>
+    '<a class="' + cls + '" href="' + esc(safeHref(href)) + '"' +
+      (lang ? ' lang="' + esc(lang) + '"' : '') +
+      ' target="_blank" rel="noopener">' + esc(label) + '</a>';
 
   const rows = ids.map(id => {
     const a = art[id] || {}, c = MK_CREDITS[id] || {};
@@ -4504,12 +4634,29 @@ function renderInfo(m) {
        author and a source and no licence yet, renders no dangling one.
        NOTHING IS INFERRED FROM A NEIGHBOURING ROW. */
     const deed = LICENCE_DEEDS[c.licence];
+    /* T38 · A11Y · LATIN RUNS ARE MARKED.  WCAG 2.0 AA · 3.1.2
+       The document is lang="he" and this list is the one place it carries
+       sustained English: photographer names and licence identifiers. A
+       Hebrew voice reads "CC BY-SA 3.0" and "Government Press Office of
+       Israel" with Hebrew phonetics and they come out as noise.
+       THE LABEL STAYS HEBREW AND ONLY THE VALUE IS MARKED. .info-by is
+       'צילום: ' + a name that may be either script — Elad Malka and
+       אלון נוריאל are both in this list — so the span cannot take
+       lang="en" whole. latinRun() tests the VALUE for Hebrew and marks
+       only what has none; a mixed name like 'Elad Malka/ דף הפייסבוק'
+       correctly stays unmarked rather than being mislabelled.
+       THE LICENCE IS ALWAYS ENGLISH. Every key in LICENCE_DEEDS is a
+       Latin identifier, and the note on MK_CREDITS says these strings are
+       legal text that may not be translated — so it is marked
+       unconditionally, on the link and on the plain-text fallback. */
+    const latinRun = t => /[\u0590-\u05FF]/.test(t)
+      ? esc(t) : '<span lang="en">' + esc(t) + '</span>';
     const cr =
       (c.author  ? '<span class="info-by">' + esc(INFO_COPY.by) + ': ' +
-                     esc(c.author) + '</span>' : '') +
+                     latinRun(c.author) + '</span>' : '') +
       (c.source  ? link(c.source, INFO_COPY.source, 'info-src') : '') +
-      (c.licence ? (deed ? link(deed, c.licence, 'info-lic')
-                         : '<span class="info-lic">' + esc(c.licence) + '</span>') : '');
+      (c.licence ? (deed ? link(deed, c.licence, 'info-lic', 'en')
+                         : '<span class="info-lic" lang="en">' + esc(c.licence) + '</span>') : '');
     return '<li class="info-row">' +
         '<p class="info-who">' +
           '<span class="info-name">' + esc(a.name || id) + '</span>' +
@@ -4569,6 +4716,7 @@ function renderInfo(m) {
   pressable($('[data-info-back]', box)).addEventListener('click',
     () => stickerSwap(m, () => renderProfile(m)));
 }
+
 /* THE CHEVRONS ARE DRAWN, NOT TYPED. › and ‹ are bidi-mirrored glyphs:
    in this RTL document a typed › renders pointing LEFT, so the back
    chevron pointed forward. An SVG path points where it is drawn. Back
@@ -8586,14 +8734,20 @@ function confirmSheet(o) {
   let gone = false;
   const close = () => {
     if (gone) return; gone = true;
-    removeEventListener('keydown', onKey);
+    release();
     sh.classList.remove('is-in'); sh.classList.add('is-out');
     setTimeout(() => sh.remove(), T.ovCollapse);
   };
-  const onKey = e => { if (e.key === 'Escape') close(); };
-  addEventListener('keydown', onKey);
+  const release = dialogFocus($('.exitsheet__box', sh), close);
+  /* T38 · THE GO PATH RELEASES THE TRAP TOO. It leaves without close() on
+     purpose — no is-out, the sheet goes at once because onGo() is about to
+     replace the screen under it — but the keydown listener is the trap's
+     now, not a bare Escape handler, and leaving it bound would keep Tab
+     captured by a sheet that is no longer in the document. release()'s
+     focus restore is guarded on the trigger still existing, so a caller
+     that tears the screen down is unaffected. */
   pressable($('[data-go]', sh)).addEventListener('click', () => {
-    removeEventListener('keydown', onKey); sh.remove();
+    release(); sh.remove();
     if (o.onGo) o.onGo();
   });
   pressable($('[data-stay]', sh)).addEventListener('click', close);
@@ -11479,7 +11633,7 @@ function shCardHTML(kind, aspect) {
         '<p class="ec-c-title">' + SH_COPY.claim + '</p>' +
         pills +
         '<div class="ec-c-foot"><img class="ec-logo" src="' + SH_SRC.logo + '" alt="">' +
-          '<span class="ec-link">' + SH_LINK + '</span></div>' +
+          '<span class="ec-link" lang="en">' + SH_LINK + '</span></div>' +
       '</div>';
   } else if (kind === 'D') {
     body =
@@ -11498,7 +11652,7 @@ function shCardHTML(kind, aspect) {
             : '') +
         '</div>' +
         '<div class="ec-d-foot">' + shAvatar() +
-          '<span class="ec-link ec-link--ink">' + SH_LINK + '</span></div>' +
+          '<span class="ec-link ec-link--ink" lang="en">' + SH_LINK + '</span></div>' +
       '</div>';
   } else {
     body =
@@ -11513,7 +11667,7 @@ function shCardHTML(kind, aspect) {
               esc(SH_COPY.outOf) + ' ' + s.asked + '</p>') +
           '<div class="ec-e-rule ec-e-rule--end"></div></div>' +
         '<div class="ec-foot"><img class="ec-logo" src="' + SH_SRC.logo + '" alt="">' +
-          '<span class="ec-link">' + SH_LINK + '</span></div>' +
+          '<span class="ec-link" lang="en">' + SH_LINK + '</span></div>' +
       '</div>';
   }
   return '<div class="' + cls + '" data-k="' + kind + '">' + body + '</div>';
