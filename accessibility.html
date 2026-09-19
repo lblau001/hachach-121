@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>הצהרת נגישות — הח"כ ה-121</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&display=swap">
+<style>
+  :root {
+    --bg: #f7f6f2;
+    --surface: #ffffff;
+    --text: #1a1a1a;
+    --muted: #5a5a5a;
+    --accent: #1a5fa8;
+    --border: #d8d6cf;
+    --ok: #1a7a3a;
+    --ok-bg: #eaf7ed;
+    --warn: #7a4800;
+    --warn-bg: #fff8e1;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141414;
+      --surface: #1f1f1f;
+      --text: #e8e6e0;
+      --muted: #999;
+      --accent: #6ca8e0;
+      --border: #333;
+      --ok: #4ccc70;
+      --ok-bg: #0d2a14;
+      --warn: #ffc04d;
+      --warn-bg: #2a2200;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #141414;
+    --surface: #1f1f1f;
+    --text: #e8e6e0;
+    --muted: #999;
+    --accent: #6ca8e0;
+    --border: #333;
+    --ok: #4ccc70;
+    --ok-bg: #0d2a14;
+    --warn: #ffc04d;
+    --warn-bg: #2a2200;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Heebo', 'Arial Hebrew', Arial, sans-serif;
+    font-size: 1rem;
+    line-height: 1.75;
+    padding: 2rem 1rem 4rem;
+  }
+  .page {
+    max-width: 680px;
+    margin: 0 auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 2.5rem 2rem;
+  }
+  .site-name { font-size: 0.85rem; color: var(--muted); margin-bottom: 1.5rem; }
+  .site-name a { color: var(--accent); text-decoration: none; }
+  .site-name a:hover { text-decoration: underline; }
+  h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 0.25rem; line-height: 1.3; }
+  .updated { font-size: 0.82rem; color: var(--muted); margin-bottom: 2rem; }
+  h2 {
+    font-size: 1.1rem; font-weight: 700;
+    margin-top: 2rem; margin-bottom: 0.6rem;
+    padding-bottom: 0.3rem; border-bottom: 1px solid var(--border);
+  }
+  p { margin-bottom: 0.9rem; }
+  a { color: var(--accent); }
+  ul { padding-right: 1.4rem; margin-bottom: 0.9rem; }
+  li { margin-bottom: 0.3rem; }
+  .status-ok {
+    background: var(--ok-bg);
+    color: var(--ok);
+    border: 1px solid var(--ok);
+    border-radius: 6px;
+    padding: 0.9rem 1.1rem;
+    margin-bottom: 1.2rem;
+    font-weight: 500;
+  }
+  .status-partial {
+    background: var(--warn-bg);
+    border: 1px solid #f0c040;
+    border-radius: 6px;
+    padding: 0.9rem 1.1rem;
+    margin-bottom: 1.2rem;
+    font-size: 0.95rem;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.2rem;
+    font-size: 0.92rem;
+  }
+  th, td {
+    text-align: right;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid var(--border);
+  }
+  th { background: var(--bg); font-weight: 700; }
+  .badge {
+    display: inline-block;
+    padding: 0.15rem 0.55rem;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+  .badge-ok { background: var(--ok-bg); color: var(--ok); }
+  .badge-partial { background: var(--warn-bg); color: var(--warn); }
+  .footer {
+    margin-top: 2.5rem; padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.82rem; color: var(--muted);
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.4rem;
+  }
+  @media (max-width: 500px) {
+    .page { padding: 1.5rem 1rem; }
+    h1 { font-size: 1.3rem; }
+    table { font-size: 0.82rem; }
+    th, td { padding: 0.4rem 0.5rem; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="site-name"><a href="/">← חזרה למשחק</a></div>
+
+  <h1>הצהרת נגישות</h1>
+  <p class="updated">עדכון אחרון: ספטמבר 2026</p>
+
+  <div class="status-ok">
+    האתר שואף לעמוד ברמת נגישות <strong>WCAG 2.0 AA</strong> ובתקן הישראלי <strong>ת"י 5568</strong>.
+  </div>
+
+  <h2>מה הרמה הנוכחית</h2>
+  <div class="status-partial">
+    עמידה חלקית: חלק מהתכנים עומדים בתקן, חלק עדיין בתהליך שיפור. ראו פירוט בטבלה למטה.
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>נושא</th>
+        <th>מצב</th>
+        <th>הערה</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>ניגודיות צבעים (טקסט)</td>
+        <td><span class="badge badge-ok">תקין</span></td>
+        <td>יחס ניגודיות ≥ 4.5:1</td>
+      </tr>
+      <tr>
+        <td>כותרות עמוד</td>
+        <td><span class="badge badge-ok">תקין</span></td>
+        <td>היררכיה תקנית (H1–H3)</td>
+      </tr>
+      <tr>
+        <td>מאפיין lang</td>
+        <td><span class="badge badge-ok">תקין</span></td>
+        <td><code>lang="he" dir="rtl"</code></td>
+      </tr>
+      <tr>
+        <td>כיוון RTL</td>
+        <td><span class="badge badge-ok">תקין</span></td>
+        <td>עברית מלאה ימין לשמאל</td>
+      </tr>
+      <tr>
+        <td>טקסט חלופי לתמונות</td>
+        <td><span class="badge badge-partial">חלקי</span></td>
+        <td>איורי ח"כים — alt כולל שם; אייקונים — בשיפור</td>
+      </tr>
+      <tr>
+        <td>ניווט מקלדת</td>
+        <td><span class="badge badge-partial">חלקי</span></td>
+        <td>פריטים ראשיים נגישים; כמה אלמנטים אינטראקטיביים בשיפור</td>
+      </tr>
+      <tr>
+        <td>תפקידי ARIA</td>
+        <td><span class="badge badge-partial">חלקי</span></td>
+        <td>מסגרת כללית קיימת; תפקידים ספציפיים בהרחבה</td>
+      </tr>
+      <tr>
+        <td>הפחתת תנועה</td>
+        <td><span class="badge badge-ok">תקין</span></td>
+        <td>כובד האנימציות מצומצם; מכבד <code>prefers-reduced-motion</code></td>
+      </tr>
+      <tr>
+        <td>גודל גופן</td>
+        <td><span class="badge badge-ok">תקין</span></td>
+        <td>גמיש; מגדיל טקסט עד 200% ללא שבירה</td>
+      </tr>
+      <tr>
+        <td>תצוגה מותאמת לנייד</td>
+        <td><span class="badge badge-ok">תקין</span></td>
+        <td>responsive לכל גודל מסך</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>מגבלות ידועות</h2>
+  <ul>
+    <li>חלק מהאלמנטים האינטראקטיביים (קלפים, אנימציות) עדיין לא נגישים במלואם דרך screen reader.</li>
+    <li>אפקטי הצליל (SFX) אינם חיוניים לשימוש, אך אין להם כיום תיאור טקסטואלי.</li>
+    <li>תוכן וידאו / תמונות עשיר אינו מלווה עדיין בתיאורים מורחבים.</li>
+  </ul>
+
+  <h2>תוכנית שיפור</h2>
+  <p>אנחנו עובדים על שיפור הנגישות בשלבים. נושאים הנמצאים בסדר העדיפות:</p>
+  <ul>
+    <li>הוספת <code>role</code> ו-<code>aria-label</code> לכל אלמנטי המשחק</li>
+    <li>ניווט מקלדת מלא לכל זרימת המשחק</li>
+    <li>טקסטים חלופיים לכל האייקונים</li>
+  </ul>
+
+  <h2>כיצד לדווח על בעיה</h2>
+  <p>נתקלת בבעיית נגישות? נשמח לדעת. ניתן לפתוח issue ב<a href="https://github.com/romangash-star/hachach-121/issues" target="_blank" rel="noopener">דף הפרויקט ב-GitHub</a>.</p>
+
+  <h2>מסמכי עזר</h2>
+  <ul>
+    <li><a href="https://www.w3.org/TR/WCAG20/" target="_blank" rel="noopener">WCAG 2.0 — W3C</a></li>
+    <li><a href="https://www.gov.il/he/departments/guides/web-accessibility" target="_blank" rel="noopener">הנחיות נגישות אתרי אינטרנט — ממשל ישראלי</a></li>
+  </ul>
+
+  <div class="footer">
+    <span>© 2025 הח"כ ה-121</span>
+    <span><a href="/privacy.html">מדיניות פרטיות</a></span>
+  </div>
+</div>
+</body>
+</html>
