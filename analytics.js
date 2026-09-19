@@ -30,7 +30,7 @@
     script.src = 'https://www.googletagmanager.com/gtag/js?id=' + G_ID;
     document.head.appendChild(script);
 
-    /* replace stub with real implementation */
+    /* replace stub with real implementation — keep beat helpers on the new fn */
     window.HAC = function (eventName, params) {
       var base = {
         game_version: 's1',
@@ -38,6 +38,8 @@
       };
       gtag('event', eventName, Object.assign(base, params || {}));
     };
+    window.HAC.beatStart = function () { _beatStart = Date.now(); };
+    window.HAC.beatMs    = function () { return Date.now() - _beatStart; };
 
     HAC('game_open', {});
 
