@@ -68,38 +68,32 @@
 
   /* ── cookie banner (injected into DOM — no index.html change) ───── */
   function showBanner() {
-    var s = document.createElement('style');
-    s.textContent = [
-      '#hac-consent{',
-        'position:fixed;bottom:0;right:0;left:0;z-index:99999;',
-        'background:#1a1a1a;color:#f0ede6;',
-        'font-family:Arial,sans-serif;font-size:14px;line-height:1.6;',
-        'padding:14px 16px;display:flex;align-items:center;flex-wrap:wrap;gap:10px;',
-        'justify-content:space-between;direction:rtl;',
-        'box-shadow:0 -2px 12px rgba(0,0,0,.35);',
-      '}',
-      '#hac-consent p{margin:0;flex:1 1 280px;}',
-      '#hac-consent a{color:#8bbde0;text-decoration:underline;}',
-      '#hac-consent .hac-btns{display:flex;gap:8px;flex-shrink:0;}',
-      '#hac-consent button{',
-        'border:none;border-radius:5px;padding:7px 18px;',
-        'font-size:13px;font-family:inherit;cursor:pointer;font-weight:600;',
-      '}',
-      '#hac-accept{background:#2a7ae2;color:#fff;}',
-      '#hac-accept:hover{background:#1a5fc0;}',
-      '#hac-decline{background:#3a3a3a;color:#ccc;}',
-      '#hac-decline:hover{background:#4a4a4a;}',
-    ].join('');
-    document.head.appendChild(s);
-
+    /* PRESENTATION LIVES IN proto.css (§CONSENT), NOT HERE. The banner
+       used to inject its own <style>; it is now the same sticker material
+       as the profile sheet and the exit sheet, drawn by the app's own
+       stylesheet, and the DOM below only carries the hooks. The ids
+       hac-accept / hac-decline are what the handlers under this look up
+       and are unchanged. The consent logic — the two handlers, the
+       localStorage key, initGA4() — is exactly as built. */
     var banner = document.createElement('div');
     banner.id = 'hac-consent';
-    banner.setAttribute('role', 'region');
-    banner.setAttribute('aria-label', 'הסכמה לעוגיות');
-    banner.innerHTML = '<p>אנחנו משתמשים ב-Google Analytics כדי לשפר את המשחק. לפרטים ראו <a href="/privacy.html">מדיניות הפרטיות</a> ו<a href="/accessibility.html">הצהרת הנגישות</a>.</p>'
-      + '<div class="hac-btns">'
-      +   '<button id="hac-accept">מסכים/ה</button>'
-      +   '<button id="hac-decline">לא מסכים/ה</button>'
+    banner.className = 'consent';
+    /* a dialog, not a region: proto.js seats focus in it and holds Tab
+       until it is answered (see wireConsent()), which is what aria-modal
+       promises a screen reader. */
+    banner.setAttribute('role', 'dialog');
+    banner.setAttribute('aria-modal', 'true');
+    banner.setAttribute('aria-labelledby', 'hac-consent-p');
+    banner.innerHTML = '<p class="consent__p" id="hac-consent-p">'
+      +   'משתמשים ב-<span lang="en">Google Analytics</span> כדי לשפר את המשחק. '   /* TAMAR */
+      +   'לפרטים ראו <a href="/privacy.html">מדיניות הפרטיות</a> '                   /* TAMAR */
+      +   'ו<a href="/accessibility.html">הצהרת הנגישות</a>.'                          /* TAMAR */
+      + '</p>'
+      + '<div class="consent__row">'
+      /* TWO OF THE SAME. Neither is the primary: both let you play, so
+         neither wears the yellow, and accept is not louder than refuse. */
+      +   '<button type="button" id="hac-accept" class="r-b consent__b">מסכימים</button>'     /* TAMAR */
+      +   '<button type="button" id="hac-decline" class="r-b consent__b">לא, תודה</button>'   /* TAMAR */
       + '</div>';
 
     document.body.appendChild(banner);

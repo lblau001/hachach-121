@@ -1504,6 +1504,13 @@ function dialogFocus(root, onEscape) {
     if (!f.length) { e.preventDefault(); root.focus(); return; }
     const first = f[0], last = f[f.length - 1], a = document.activeElement;
     if (!root.contains(a)) { e.preventDefault(); first.focus(); return; }
+    /* THE ROOT ITSELF CAN HOLD FOCUS — the consent card seats it there
+       on open, and every box holds it for a frame after a swap. From
+       the root, Tab goes forward to the first control on its own, but
+       Shift+Tab would walk out backwards into the page behind, which
+       is the exact escape this trap exists to close. Same arithmetic,
+       one more starting point. */
+    if (a === root) { if (e.shiftKey) { e.preventDefault(); last.focus(); } return; }
     if (e.shiftKey && a === first) { e.preventDefault(); last.focus(); }
     else if (!e.shiftKey && a === last) { e.preventDefault(); first.focus(); }
   };
@@ -3817,6 +3824,23 @@ const INFO_COPY = {
   credits: 'קרדיטים לתמונות',      /* TAMAR · PLACEHOLDER · section 3, under the rule */
   source:  'מקור',                 /* TAMAR · PLACEHOLDER · the label on a credit's source link */
   by:      'צילום',                /* TAMAR · the label in front of a photographer's name */
+  /* T37 · THE PRIVACY DOOR AND ITS OWN SCREEN. One string for both, for
+     the reason door/title already share one on 2d: a door and the screen
+     behind it that disagree make the player check whether they arrived
+     somewhere else, and one string cannot drift from itself. */
+  privacy:  'מדיניות פרטיות',       /* TAMAR · the third quiet link, and 2e's title */
+  /* THE TEXT ITSELF IS NOT HERE, ON PURPOSE. The policy lives in
+     privacy.html — Roman's file, the page the consent card links to —
+     and renderPrivacy() fetches and maps it at runtime, so there is ONE
+     copy of a legal document and not two to drift apart. See privacyDoc().
+     These two lines are the only privacy copy this file owns: what the
+     screen says while the fetch is in flight, and what it says if the
+     fetch fails or the page has nothing it can map. Neither is ph():
+     ph() marks copy that does not exist yet and body.no-ph hides it in
+     the default build, and a loading or failed state that is hidden in
+     the default build is an empty screen. */
+  privacyWait: 'רגע, טוענים את הנוסח…',                       /* TAMAR · the loading line */
+  privacyFail: 'הנוסח לא נטען. אפשר לקרוא אותו בדף',          /* TAMAR · precedes a link to privacy.html */
   /* THE MODIFICATION NOTICE, AND IT IS A LICENCE REQUIREMENT AND NOT
      COPY. CC BY and CC BY-SA both oblige us to INDICATE that the work
      was changed. Every portrait in this game is an illustration drawn
@@ -4207,6 +4231,10 @@ function profileModal() {
   const m = stickerModal({ hero: false, extra: '<div class="prof" data-prof></div>' });
   m.dataset.profile = '';
   renderProfile(m);
+  /* 2e · the privacy text is fetched now, while the player is still on
+     2b, so the door to it opens on a complete screen. A failure here is
+     silent on purpose — renderPrivacy() retries and owns the message. */
+  privacyDoc().catch(() => {});
   return m;
 }
 
@@ -4274,27 +4302,41 @@ function renderProfile(m) {
          קרדיטים ומידע on the right and להתחיל מחדש on the left, which is
          top-then-bottom read the way this document reads. Nothing about
          their meaning changed with the axis. */
+      /* T37 · TWO LINES, AND THE SPLIT IS BY KIND RATHER THAN BY FIT.
+         .prof-quiet holds the INFORMATIONAL doors — אודות וקרדיטים and
+         מדיניות פרטיות — and the reset is lifted OUT of it onto its own
+         line below. Three links on one row would have fitted at 375 with
+         room to spare, and would still have been wrong: it puts the one
+         control on this sheet that destroys the run in a list with two
+         that only open reading. A player scanning a row of three reads
+         them as three of a kind. They are not.
+         DOM ORDER IS READING ORDER. In an RTL row the first child lays
+         out at the physical RIGHT, so אודות וקרדיטים sits right and
+         מדיניות פרטיות left of it. */
       '<div class="prof-quiet">' +
         /* 2d · THE INFO DOOR, AND IT IS A LINK FOR THE SAME REASON THE
            RESET IS. שמור is the only primary on this sheet; a third
            bordered control here would compete with it and read as a
-           third thing the sheet is for. It comes FIRST — the reset is
-           destructive and keeps the end of the row, as it kept the
-           bottom of the column. */
+           third thing the sheet is for. */
         '<button type="button" class="prof-info" data-info>' +
           esc(INFO_COPY.door) + '</button>' +
-        /* T35 · v30c · THE RESET DOOR, AFTER THE PRIMARY. It sat between
-           the builder's door and שמור, which put a destructive link above
-           the one button on the sheet that is safe to press — the quiet
-           thing was in the loud position and the player read past it to
-           reach שמור. Below both, and now beside the other quiet door,
-           is where it belongs: it is not one of the two things this
-           sheet is for. Still a link and not a button, so שמור remains
-           the only primary; it opens a confirm and never resets on its
-           own. */
-        '<button type="button" class="prof-reset" data-reset>' +
-          esc(PROF_COPY.reset) + '</button>' +
+        /* 2e · THE PRIVACY DOOR, BESIDE THE OTHER READING DOOR. Same
+           .prof-info treatment — it is the same kind of thing and must
+           not look like a different one. */
+        '<button type="button" class="prof-info" data-privacy>' +
+          esc(INFO_COPY.privacy) + '</button>' +
       '</div>' +
+      /* T35 · v30c · THE RESET, AND T37 PUT IT ON ITS OWN LINE. It sat
+         between the builder's door and שמור, which put a destructive
+         link above the one button on the sheet that is safe to press;
+         it then moved beside the info door, which was right while there
+         was one reading door and wrong the moment there were two. Alone
+         on the last line it is still the quietest thing here and is no
+         longer one of a list. Still a link and not a button, so שמור
+         remains the only primary; it opens a confirm and never resets
+         on its own. */
+      '<button type="button" class="prof-reset" data-reset>' +
+        esc(PROF_COPY.reset) + '</button>' +
     '</div>';
   const paint = () => $$('.gchip', box).forEach(c => {
     const on = c.dataset.g === PROFILE.gender;
@@ -4317,6 +4359,11 @@ function renderProfile(m) {
      rather than jumping. See the P2 block above stickerSwap(). */
   pressable($('[data-info]', box)).addEventListener('click',
     () => stickerSwap(m, () => renderInfo(m)));
+  /* 2e goes through stickerSwap for the same reason 2d does — the box
+     eases between 2b's height and the privacy screen's rather than
+     jumping. One mechanism for every content change in this sticker. */
+  pressable($('[data-privacy]', box)).addEventListener('click',
+    () => stickerSwap(m, () => renderPrivacy(m)));
   pressable($('[data-close]', box)).addEventListener('click', () => $('.stmodal__x', m).click());
   const nm = $('#profName', box);
   nm.addEventListener('input', () => setProfile({ name: cleanName(nm.value) }));
@@ -4715,6 +4762,148 @@ function renderInfo(m) {
 
   pressable($('[data-info-back]', box)).addEventListener('click',
     () => stickerSwap(m, () => renderProfile(m)));
+}
+/* =====================================================================
+   2e · THE PRIVACY SCREEN — THE SAME SHELL AS 2d, AND ROMAN'S TEXT IN IT.
+   This is renderInfo()'s silhouette: the pinned .peel-title, ONE
+   .info.scrolls container, the pinned .bfoot foot carrying the same
+   .bnav--prev / CHEV_R / PROF_COPY.back the builder and 2d both draw.
+   It is the FOURTH thing .prof swaps to — 2a, 2b, 2d and this — through
+   the same stickerSwap() the other three use.
+
+   THE TEXT IS FETCHED FROM privacy.html, NOT COPIED INTO THIS FILE.
+   privacy.html is the policy — the consent card links to it, Roman
+   maintains it — and a second copy of a legal document in INFO_COPY is
+   two copies that drift the first time one is corrected. privacyDoc()
+   fetches it (connect-src 'self' allows it), privacyMap() walks its
+   flat .page and lays h2 / p / ul onto .info-h / .info-p / .info-ul, and
+   the result is cached for the session. Roman's file is not edited and
+   needs nothing from us: the mapping reads the structure he already has.
+
+   THREE STATES, NONE OF THEM EMPTY. Cached: the screen paints complete
+   in one swap. Not yet: it paints INFO_COPY.privacyWait, and when the
+   fetch settles the content lands through stickerSwap() so the box
+   eases to its new height rather than jumping — the same mechanism as
+   every other content change in this sticker. Failed, or nothing to
+   map: INFO_COPY.privacyFail with a link to privacy.html, which is the
+   policy in the one form that cannot fail to render. profileModal()
+   starts the fetch when the sticker opens, so by the time the door is
+   tapped the cached path is the common one.
+
+   NOT A NEW COMPONENT AND NOT A NEW MODAL. Every class here already
+   exists and is already styled; .info--doc adds only what a multi-
+   paragraph document needs that the credits screen never did — space
+   between consecutive paragraphs, a real bulleted list, and the link
+   on paper. */
+const PRIVACY_URL = ROOT + 'privacy.html';
+let PRIVACY_DOC = null;      /* the mapped markup, once a fetch has succeeded */
+let PRIVACY_REQ = null;      /* the in-flight fetch, so two callers share one */
+
+/* the inline subset that survives the mapping: text, links, emphasis,
+   line breaks. Everything else contributes its text and nothing more,
+   and an href that is not http(s), site-relative or mailto is dropped
+   to text — the file is ours, but the walk is the only sanitiser. */
+function privacyInline(el) {
+  let out = '';
+  el.childNodes.forEach(n => {
+    if (n.nodeType === 3) { out += esc(n.textContent); return; }
+    if (n.nodeType !== 1) return;
+    const t = n.tagName;
+    if (t === 'BR') { out += '<br>'; return; }
+    if (t === 'A') {
+      const href = n.getAttribute('href') || '';
+      const safe = /^(https?:\/\/|\/|\.\/|#|mailto:)/i.test(href);
+      out += safe
+        ? '<a href="' + esc(href) + '" target="_blank" rel="noopener">' + privacyInline(n) + '</a>'
+        : privacyInline(n);
+      return;
+    }
+    if (t === 'STRONG' || t === 'B') { out += '<strong>' + privacyInline(n) + '</strong>'; return; }
+    if (t === 'EM' || t === 'I')     { out += '<em>' + privacyInline(n) + '</em>'; return; }
+    out += privacyInline(n);
+  });
+  return out;
+}
+
+/* privacy.html's .page is flat: page chrome, then h2 / p / ul in reading
+   order. An h2 opens a section; p and ul join the open one; the four
+   chrome elements — the back link, the h1 our title already says, the
+   footer — are skipped. The "last updated" line is kept: it is part of
+   the policy, not of the page. Returns '' when nothing mapped, which the
+   caller treats as a failure. */
+function privacyMap(html) {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const page = doc.querySelector('.page') || doc.body;
+  const secs = [];
+  const add = h => { if (!secs.length) secs.push(''); secs[secs.length - 1] += h; };
+  Array.prototype.forEach.call(page.children, el => {
+    if (el.matches('.site-name, h1, .footer, script, style')) return;
+    const t = el.tagName;
+    if (t === 'H2') { secs.push('<h3 class="info-h">' + privacyInline(el) + '</h3>'); return; }
+    if (t === 'UL' || t === 'OL') {
+      const items = Array.prototype.map.call(el.children,
+        li => '<li class="info-p">' + privacyInline(li) + '</li>').join('');
+      if (items) add('<ul class="info-ul">' + items + '</ul>');
+      return;
+    }
+    const text = privacyInline(el).trim();
+    if (text) add('<p class="info-p">' + text + '</p>');
+  });
+  return secs.filter(Boolean).map(h => '<section class="info-sec">' + h + '</section>').join('');
+}
+
+function privacyDoc() {
+  if (PRIVACY_DOC) return Promise.resolve(PRIVACY_DOC);
+  if (PRIVACY_REQ) return PRIVACY_REQ;
+  PRIVACY_REQ = fetch(PRIVACY_URL, { credentials: 'same-origin' })
+    .then(r => { if (!r.ok) throw new Error('privacy.html ' + r.status); return r.text(); })
+    .then(html => {
+      const doc = privacyMap(html);
+      if (!doc) throw new Error('privacy.html: nothing to map');
+      PRIVACY_DOC = doc;
+      return doc;
+    })
+    .finally(() => { PRIVACY_REQ = null; });   /* a failure is retried on the next door */
+  return PRIVACY_REQ;
+}
+
+function renderPrivacy(m) {
+  const box = $('[data-prof]', m);
+  box.classList.remove('prof--bld');
+  box.classList.add('prof--info');
+
+  const pending =
+    '<section class="info-sec"><p class="info-p">' + esc(INFO_COPY.privacyWait) + '</p></section>';
+  const failed =
+    '<section class="info-sec"><p class="info-p">' + esc(INFO_COPY.privacyFail) + ' ' +
+      '<a href="' + esc(PRIVACY_URL) + '" target="_blank" rel="noopener">' +
+        esc(INFO_COPY.privacy) + '</a>.</p></section>';
+
+  box.innerHTML =
+    '<h2 class="peel-title">' + esc(INFO_COPY.privacy) + '</h2>' +
+    '<div class="info info--doc scrolls" data-privacy-doc>' +
+      (PRIVACY_DOC || pending) +
+    '</div>' +
+    '<div class="bfoot info-foot">' +
+      '<button type="button" class="bnav bnav--prev" data-info-back>' +
+        CHEV_R + esc(PROF_COPY.back) + '</button>' +
+    '</div>';
+
+  pressable($('[data-info-back]', box)).addEventListener('click',
+    () => stickerSwap(m, () => renderProfile(m)));
+
+  if (PRIVACY_DOC) return;
+  const host = $('[data-privacy-doc]', box);
+  /* THE SETTLE IS GUARDED ON THE HOST STILL BEING IN THE DOCUMENT. The
+     player can tap חזרה before the fetch returns; renderProfile() has
+     then replaced [data-prof]'s innerHTML and this host is detached.
+     Painting into it would be harmless and pointless; swapping the box
+     for it would move a sticker that is showing something else. */
+  const settle = html => {
+    if (!host.isConnected) return;
+    stickerSwap(m, () => { host.innerHTML = html; });
+  };
+  privacyDoc().then(settle, () => settle(failed));
 }
 
 /* THE CHEVRONS ARE DRAWN, NOT TYPED. › and ‹ are bidi-mirrored glyphs:
@@ -12166,6 +12355,47 @@ function boot() {
      numbers are honestly zero rather than invented. */
   else if (DEV.screen === 'end')   endGame();
   else                             renderIntro();
+
+  /* §CONSENT · the cookie card is the first thing a first-run player
+     meets, and it is the fifth dialog in the app, so it gets the fifth
+     line of dialogFocus() and nothing of its own. */
+  wireConsent();
+}
+
+/* =====================================================================
+   §CONSENT · FOCUS AND THE KEYBOARD, FOR A DIALOG THIS FILE DID NOT BUILD
+   analytics.js appends #hac-consent to body synchronously, before this
+   script runs, whenever no choice is stored — so by boot() it is either
+   in the DOM or it never will be. Its two handlers, its storage key and
+   initGA4() are untouched; this only does what every other dialog here
+   does: seats focus inside, holds Tab, and answers Escape.
+   ESCAPE IS "לא, תודה", not a third outcome. A dismissal that stored
+   nothing would bring the card back on the next load, and the player
+   who pressed Escape has said no. It goes through the refuse button's
+   own click so the one handler Roman wrote stays the only path.
+   THE TRAP LETS GO WHEN THE CARD DOES. Both handlers remove the node
+   without telling anyone, so the release is hung on the DOM: the first
+   childList mutation that finds the card gone ends the trap and puts
+   focus back where dialogFocus() found it. */
+function wireConsent() {
+  const c = $('#hac-consent');
+  if (!c) return;
+  const release = dialogFocus(c, () => { const d = $('#hac-decline', c); if (d) d.click(); });
+  /* FOCUS LANDS ON THE CARD, NOT ON THE FIRST LINK. dialogFocus() seats
+     the first control by default, and on a fresh load with no pointer
+     input yet the browser treats that as keyboard focus and draws the
+     ring — so the first thing a player saw was מדיניות הפרטיות outlined
+     in ink. The dialog is what should be announced; the controls are
+     what Tab reaches. dialogFocus() has already given the card
+     tabindex="-1", and its own seat() is idempotent — it finds focus
+     inside and leaves it — so this runs first and wins. .consent:focus
+     carries no outline: a container is not a target. */
+  c.focus({ preventScroll: true });
+  const mo = new MutationObserver(() => {
+    if (document.contains(c)) return;
+    mo.disconnect(); release();
+  });
+  mo.observe(document.body, { childList: true });
 }
 
 /* the topic's own label out of data.js. topic is resolved in newRound(),
