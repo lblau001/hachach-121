@@ -1,0 +1,184 @@
+/* =====================================================================
+   styles/legal.css · THE TWO DOCUMENT PAGES — privacy.html, accessibility.html
+   Roman's pages, in the game's visual language. Presentation only: the
+   text in both files is his and is not restyled into anything else.
+
+   TOKENS COME FROM styles/hachach.css, LINKED BEFORE THIS FILE. Nothing
+   here restates a colour, a size, a radius or a duration — every one is
+   var(--…) from the handoff sheet, which is the same sheet index.html
+   loads before proto.css. That is the drift guard: there is one place a
+   token lives, and this file cannot disagree with the game about --ink
+   because it does not know what --ink is.
+   TWO THINGS ARE MIRRORED FROM proto.css, AND BOTH ARE MARKED "MIRRORS":
+   the @font-face pair (proto.css declares them, hachach.css does not)
+   and the stage ground — #403E3A with the dot grid — which is a .stage
+   literal, not a token. grep MIRRORS when either changes in proto.css.
+   WHY NOT LOAD proto.css. 9,000 lines of screens for a page with none
+   of them; and its first rule fixes html and body at position:fixed and
+   overflow:hidden, which a document page must not inherit.
+   NO DARK MODE. The game has one palette — ink on paper, on the dark
+   ground — and so do these pages now.
+   ===================================================================== */
+
+/* MIRRORS proto.css @font-face — same files, same weights */
+@font-face{
+  font-family:'SimplerPro';
+  src:url('../fonts/SimplerPro_HLAR-Black.woff2') format('woff2');
+  font-weight:900; font-style:normal; font-display:swap;
+}
+@font-face{
+  font-family:'SimplerPro';
+  src:url('../fonts/SimplerPro_HLAR-Regular.woff2') format('woff2');
+  font-weight:400; font-style:normal; font-display:swap;
+}
+
+*, *::before, *::after{ box-sizing:border-box; }
+html{ -webkit-text-size-adjust:100%; }
+
+/* THE GROUND: the stage's, so the sheet sits on the same table the game
+   is played on. MIRRORS proto.css .stage and .stage::before. */
+body{
+  margin:0; min-height:100vh;
+  background-color:#403E3A;
+  background-image:
+    radial-gradient(rgba(255,255,255,.07) .5px,transparent .6px),
+    radial-gradient(rgba(0,0,0,.34) .5px,transparent .6px);
+  background-size:4px 4px, 7px 7px; background-position:0 0, 2px 3px;
+  color:var(--ink);
+  /* THE BODY IS THE REGULAR FACE. The credits screen sets its paragraphs
+     at --fs-meta/700, which on a family with a 400 and a 900 resolves to
+     the Black — right for three lines on a 312px sticker, a display face
+     at document length. Here the reading treatment keeps the idiom — ink
+     on paper, display heads over dashed hairlines — and sets the running
+     text in the Regular, at the size a page rather than a sticker wants. */
+  font-family:var(--font-display); font-weight:400;
+  font-size:15px; line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  padding:calc(20px + env(safe-area-inset-top, 0px))
+          calc(16px + env(safe-area-inset-right, 0px))
+          calc(32px + env(safe-area-inset-bottom, 0px))
+          calc(16px + env(safe-area-inset-left, 0px));
+}
+
+/* THE SHEET: the sticker's material — paper, the white die-cut, the
+   keyline, the flat extrusion — at document width, laid square. */
+.page{
+  max-width:680px; margin:0 auto;
+  background:var(--paper);
+  border:5px solid var(--edge); border-radius:18px;
+  box-shadow:0 0 0 2px var(--keyline), 0 8px 0 rgba(0,0,0,.4);
+  padding:var(--sp-5) var(--sp-5) var(--sp-6);
+}
+@media (max-width:500px){
+  .page{ padding:var(--sp-4) var(--sp-4) var(--sp-5); }
+}
+
+/* THE WAY BACK IS THE MODAL'S חזרה: the .bnav paper chip with the drawn
+   right chevron. Back points RIGHT in this RTL document — the chevron is
+   the game's own path (proto.js CHEV_R, 'M9 5l7 7-7 7'), drawn by CSS so
+   the anchor holds nothing but its words. */
+.site-name{ margin:0 0 var(--sp-5); font-size:16px; }
+.site-name a{
+  display:inline-flex; align-items:center; gap:3px;
+  min-height:44px; padding:0 12px 0 16px;
+  background:var(--paper); color:var(--ink); text-decoration:none;
+  border-radius:var(--r-chip);
+  box-shadow:0 0 0 2px var(--keyline), 0 3px 0 rgba(0,0,0,.34);
+  font-weight:900; line-height:1;
+}
+.site-name a::before{
+  content:""; width:22px; height:22px; flex:none; background:currentColor;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 5l7 7-7 7'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 5l7 7-7 7'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.site-name a:active{ transform:translateY(2px); box-shadow:0 0 0 2px var(--keyline), 0 1px 0 rgba(0,0,0,.34); }
+
+/* TYPE: the credits screen's reading treatment at page scale. h1 is the
+   sticker's .peel-title; h2 is .info-h — display weight over the .18
+   dashed hairline; the meta line is --fs-meta/700 in --ink-soft. */
+h1{ margin:0 0 4px; font-weight:900; font-size:24px; line-height:1.22; }
+.updated{ margin:0 0 var(--sp-5); font-size:var(--fs-meta); font-weight:700; color:var(--ink-soft); }
+h2{
+  margin:var(--sp-6) 0 var(--sp-3); font-weight:900; font-size:17px; line-height:1.25;
+  padding-bottom:6px; border-bottom:1.5px dashed rgba(19,19,16,.18);
+}
+p{ margin:0 0 var(--sp-3); }
+ul{ margin:0 0 var(--sp-3); padding-inline-start:20px; }
+li{ margin-bottom:6px; }
+/* the family has no italic and no 700: emphasis of either kind is the
+   Black, which is how the game itself emphasises. */
+strong, em{ font-weight:900; font-style:normal; }
+code{
+  font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:.9em;
+  background:rgba(19,19,16,.07); padding:1px 5px; border-radius:4px;
+  direction:ltr; unicode-bidi:isolate;
+}
+
+/* LINKS: the app's link on paper — the running ink, underlined. Focus is
+   the ink ring the consent card and the credits screen use on paper. */
+a{ color:var(--ink); text-decoration:underline; text-underline-offset:3px; }
+a:focus-visible{ outline:3px solid var(--ink); outline-offset:3px; border-radius:2px; }
+.site-name a:focus-visible{ outline-offset:4px; border-radius:var(--r-chip); }
+
+/* CALLOUTS: THE GAME'S CARD, NOT A TRAFFIC LIGHT. Green and yellow are
+   outside the palette and, in this system, colour codes correctness and
+   nothing else. A disclaimer and a statement of intent are neither
+   correct nor surprising — they are cards laid on the sheet: the kraft
+   surface with its grid, the white die-cut, the keyline, the chip's
+   extrusion. The partial-compliance note is the same card with the
+   sheet's dashed "attention" edge instead of the die-cut. */
+.disclaimer-box, .status-ok, .status-partial{
+  margin:0 0 var(--sp-4); padding:var(--sp-3) var(--sp-4);
+  background:var(--card-surface); color:var(--ink);
+  border:3px solid var(--edge); border-radius:var(--r-chip);
+  box-shadow:0 0 0 1.5px var(--keyline), var(--shadow-press);
+}
+.status-partial{
+  background:transparent; border:2px dashed var(--ink); box-shadow:none;
+}
+
+/* STATUS CHIPS: תקין IS THE VERDICT LIME — colour coding correctness is
+   exactly what this system's colour is for. חלקי is NOT the magenta:
+   surprise means wrong, and partial is not wrong. It is the ink-ring
+   chip, the same secondary ring the exit sheet's outline carries. */
+.badge{
+  display:inline-block; padding:2px 10px; border-radius:var(--r-pill);
+  font-weight:900; font-size:var(--fs-meta); line-height:1.6; white-space:nowrap;
+}
+.badge-ok{ background:var(--verdict-correct); color:var(--verdict-correct-ink); }
+.badge-partial{ background:transparent; color:var(--ink); box-shadow:inset 0 0 0 2px rgba(19,19,16,.38); }
+
+/* THE TABLE: three columns at every width, no horizontal scroll. Fixed
+   layout with the note column widest; words that cannot wrap — the
+   <code> tokens — break rather than push the table past the sheet. Rows
+   are separated by the sheet's dashed hairline, the header by a solid
+   ink rule; no vertical borders, which is what turned it into a grid. */
+table{
+  width:100%; border-collapse:collapse; table-layout:fixed;
+  margin:0 0 var(--sp-4); font-size:14px; line-height:1.45;
+}
+th, td{
+  text-align:start; vertical-align:top; padding:8px 10px;
+  border-bottom:1.5px dashed rgba(19,19,16,.18); overflow-wrap:anywhere;
+}
+th{ font-weight:900; border-bottom:2px solid var(--ink); }
+th:nth-child(1){ width:34%; }
+th:nth-child(2){ width:20%; }
+th:nth-child(3){ width:46%; }
+@media (max-width:500px){
+  table{ font-size:13px; }
+  th, td{ padding:8px 6px; }
+  th:nth-child(1){ width:33%; }
+  th:nth-child(2){ width:23%; }
+  th:nth-child(3){ width:44%; }
+  .badge{ font-size:12px; padding:1px 8px; }
+}
+
+/* THE FOOT: the credits screen's heavier rule, .32, above the quiet line. */
+.footer{
+  margin-top:var(--sp-6); padding-top:var(--sp-3);
+  border-top:1.5px dashed rgba(19,19,16,.32);
+  font-size:var(--fs-meta); font-weight:700; color:var(--ink-soft);
+  display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;
+}
+.footer a{ color:var(--ink-soft); }
