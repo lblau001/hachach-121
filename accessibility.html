@@ -5,133 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>הצהרת נגישות — הח"כ ה-121</title>
 <meta name="robots" content="noindex">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&display=swap">
-<style>
-  :root {
-    --bg: #f7f6f2;
-    --surface: #ffffff;
-    --text: #1a1a1a;
-    --muted: #5a5a5a;
-    --accent: #1a5fa8;
-    --border: #d8d6cf;
-    --ok: #1a7a3a;
-    --ok-bg: #eaf7ed;
-    --warn: #7a4800;
-    --warn-bg: #fff8e1;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #141414;
-      --surface: #1f1f1f;
-      --text: #e8e6e0;
-      --muted: #999;
-      --accent: #6ca8e0;
-      --border: #333;
-      --ok: #4ccc70;
-      --ok-bg: #0d2a14;
-      --warn: #ffc04d;
-      --warn-bg: #2a2200;
-    }
-  }
-  :root[data-theme="dark"] {
-    --bg: #141414;
-    --surface: #1f1f1f;
-    --text: #e8e6e0;
-    --muted: #999;
-    --accent: #6ca8e0;
-    --border: #333;
-    --ok: #4ccc70;
-    --ok-bg: #0d2a14;
-    --warn: #ffc04d;
-    --warn-bg: #2a2200;
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Heebo', 'Arial Hebrew', Arial, sans-serif;
-    font-size: 1rem;
-    line-height: 1.75;
-    padding: 2rem 1rem 4rem;
-  }
-  .page {
-    max-width: 680px;
-    margin: 0 auto;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 2.5rem 2rem;
-  }
-  .site-name { font-size: 0.85rem; color: var(--muted); margin-bottom: 1.5rem; }
-  .site-name a { color: var(--accent); text-decoration: none; }
-  .site-name a:hover { text-decoration: underline; }
-  h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 0.25rem; line-height: 1.3; }
-  .updated { font-size: 0.82rem; color: var(--muted); margin-bottom: 2rem; }
-  h2 {
-    font-size: 1.1rem; font-weight: 700;
-    margin-top: 2rem; margin-bottom: 0.6rem;
-    padding-bottom: 0.3rem; border-bottom: 1px solid var(--border);
-  }
-  p { margin-bottom: 0.9rem; }
-  a { color: var(--accent); }
-  ul { padding-right: 1.4rem; margin-bottom: 0.9rem; }
-  li { margin-bottom: 0.3rem; }
-  .status-ok {
-    background: var(--ok-bg);
-    color: var(--ok);
-    border: 1px solid var(--ok);
-    border-radius: 6px;
-    padding: 0.9rem 1.1rem;
-    margin-bottom: 1.2rem;
-    font-weight: 500;
-  }
-  .status-partial {
-    background: var(--warn-bg);
-    border: 1px solid #f0c040;
-    border-radius: 6px;
-    padding: 0.9rem 1.1rem;
-    margin-bottom: 1.2rem;
-    font-size: 0.95rem;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 1.2rem;
-    font-size: 0.92rem;
-  }
-  th, td {
-    text-align: right;
-    padding: 0.55rem 0.75rem;
-    border: 1px solid var(--border);
-  }
-  th { background: var(--bg); font-weight: 700; }
-  .badge {
-    display: inline-block;
-    padding: 0.15rem 0.55rem;
-    border-radius: 4px;
-    font-size: 0.78rem;
-    font-weight: 600;
-  }
-  .badge-ok { background: var(--ok-bg); color: var(--ok); }
-  .badge-partial { background: var(--warn-bg); color: var(--warn); }
-  .footer {
-    margin-top: 2.5rem; padding-top: 1rem;
-    border-top: 1px solid var(--border);
-    font-size: 0.82rem; color: var(--muted);
-    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.4rem;
-  }
-  @media (max-width: 500px) {
-    .page { padding: 1.5rem 1rem; }
-    h1 { font-size: 1.3rem; }
-    table { font-size: 0.82rem; }
-    th, td { padding: 0.4rem 0.5rem; }
-  }
-</style>
+<link rel="stylesheet" href="styles/hachach.css">
+<link rel="stylesheet" href="styles/legal.css">
 </head>
 <body>
 <div class="page">
-  <div class="site-name"><a href="/">← חזרה למשחק</a></div>
+  <div class="site-name"><a href="/">חזרה למשחק</a></div>
 
   <h1>הצהרת נגישות</h1>
   <p class="updated">עדכון אחרון: ספטמבר 2026</p>
@@ -148,9 +27,9 @@
   <table>
     <thead>
       <tr>
-        <th>נושא</th>
-        <th>מצב</th>
-        <th>הערה</th>
+        <th scope="col">נושא</th>
+        <th scope="col">מצב</th>
+        <th scope="col">הערה</th>
       </tr>
     </thead>
     <tbody>
