@@ -8423,12 +8423,53 @@ button.prof-hero:focus-visible{ outline:3px solid var(--primary); outline-offset
    it. (12 was the first guess, against a line box assumed to be 20; it
    measured 42.) Inline stays the 8px .prof-reset already had. */
 .prof-quiet{ gap:28px; }
+/* T37 · THE RESET IS NO LONGER INSIDE .prof-quiet, so it needs the row's
+   own exemption in its own right. `.prof-actions > *` sets min-height:52px
+   for the two BUTTONS above — see its comment — and the reset is a link,
+   not a button; left alone it would stand 52px tall on its own line and
+   read as a third control in that stack. 44 is this app's minimum and the
+   same floor .prof-quiet carries. */
+.prof-actions > .prof-reset{ min-height:44px; }
 .prof-quiet > .prof-info,
-.prof-quiet > .prof-reset{
-  align-self:auto; margin-top:0; padding-block:13px;
+.prof-actions > .prof-reset{
+  margin-top:0; padding-block:13px;
 }
+/* T37b · THE RESET IS CAPPED TO ITS OWN WIDTH, NOT THE ROW'S.
+   .prof-actions is a flex COLUMN, so its default align-items:stretch was
+   pulling the reset to the full 261px the moment it left .prof-quiet and
+   became a direct child. That undid the thing .prof-quiet's own comment
+   was written to protect: each link is its own target, and the row is not
+   one wide target with two labels in it. A 261px strip is a worse version
+   of that again — it is the ONE control on this sheet that erases the run,
+   and a destructive target has no business being the largest thing in the
+   stack. The confirm behind it is not a licence to make it easy to hit.
+   align-self:center SHRINKS IT TO CONTENT AND CENTRES IT in one
+   declaration — no width, no max-width, no margin:auto. It lands at its
+   natural 92.6px, the same content-plus-8px-inline treatment the two
+   reading links get at 99.1 and 98.2, so the three read as one kind of
+   object at one size rather than two sizes.
+   THE 44px FLOOR IS UNTOUCHED. min-height above still holds, and
+   padding-block:13px is still what fills it; only the cross-axis
+   stretch is refused. */
+.prof-actions > .prof-reset{ align-self:center; }
+.prof-quiet > .prof-info{ align-self:auto; }
 /* the one primary. Everything on this sheet applied the moment it was
    tapped; this closes, and its copy is the player's model, not the code's. */
+/* T37 · THE SPACE UNDER THE LAST LINE, TIGHTENED. Three things stacked
+   under the final link's baseline: its own 13px bottom padding (the tap
+   target — untouchable), .prof's 6px, and the sticker's 16px inset. 35px
+   of nothing below a quiet link, and the row is two lines now rather than
+   one, so the sheet grew 50px at the same time.
+   ONLY .prof's SHARE MOVES: 6 -> 0. The link's 13px is what makes it a
+   44px target and may not be spent, and .stmodal__box's 16px is the
+   STICKER'S inset — the law modal, the glossary and the invitation all sit
+   in it, and pulling it in here to tidy one sheet would move three
+   surfaces to fix none of them. The 16px still separates the last line
+   from the die-cut edge, which is the job that padding was doing; what is
+   gone is the 6px that was doing it a second time.
+   SCOPED TO THE PROFILE STICKER. .prof is 2a, 2b, 2d and 2e — the top and
+   inline padding are untouched, so nothing above the actions moves. */
+.stmodal[data-profile] .prof{ padding-bottom:0; }
 .prof-save{ font-size:19px; }
 /* ITEM 16 · `.prof-tweak{ min-height:46px }` IS GONE. .prof-actions > *
    sets 52px for exactly the reason its own comment gives — "so P-C and
@@ -8673,6 +8714,30 @@ button.prof-hero:focus-visible{ outline:3px solid var(--primary); outline-offset
    it reads as the first credit rather than as the sentence that governs
    all 31 of them. See INFO_COPY.derived for why it exists at all. */
 .info-p--note{ margin-bottom:12px; }
+/* =====================================================================
+   §2e · .info--doc — WHAT A FETCHED DOCUMENT NEEDS THAT THE CREDITS DID NOT
+   The privacy screen paints privacy.html's sections into the same
+   .info-sec / .info-h / .info-p the credits screen uses, and those were
+   built for one paragraph per section. A policy has runs of paragraphs
+   and lists, so this modifier adds exactly three things and nothing
+   about type: the space between consecutive blocks, a real bulleted
+   list at the same 13/700/1.55 as the paragraph, and the link on paper.
+   THE LINK IS THE INVITATION'S, NOT THE CREDITS'. .info-src is
+   --ink-soft because a source line is the quietest thing in a credit;
+   a link inside running legal text is part of the sentence and is set
+   in the sentence's ink, underlined — the same rule .inv-link and the
+   consent card's links already carry. */
+.info--doc .info-p + .info-p,
+.info--doc .info-p + .info-ul,
+.info--doc .info-ul + .info-p,
+.info--doc .info-ul + .info-ul{ margin-top:8px; }
+.info-ul{ margin:0; padding-inline-start:18px; list-style:disc; }
+.info-ul > li + li{ margin-top:4px; }
+.info--doc a{ color:var(--ink); text-decoration:underline; text-underline-offset:3px; }
+/* the paragraph is already 700, so <strong> inside it is a no-op by
+   design — Roman's emphasis is kept in the markup for a reader, not
+   redrawn as a third weight the sticker does not have. */
+.info--doc strong{ font-weight:inherit; }
 .info-list{ margin:0; padding:0; list-style:none; }
 /* NO SEPARATOR BETWEEN ROWS. 34 of them with a rule each is a table, and
    the pair of lines already groups: the name is 700 ink, the credit 400
