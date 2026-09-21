@@ -8738,6 +8738,10 @@ button.prof-hero:focus-visible{ outline:3px solid var(--primary); outline-offset
    design — Roman's emphasis is kept in the markup for a reader, not
    redrawn as a third weight the sticker does not have. */
 .info--doc strong{ font-weight:inherit; }
+/* and <em> is not an italic: the family has none, so the browser would
+   slant the Black. The page (styles/legal.css) sets emphasis upright in
+   the Black; the modal renders the same text and says the same. */
+.info--doc em{ font-style:normal; }
 .info-list{ margin:0; padding:0; list-style:none; }
 /* NO SEPARATOR BETWEEN ROWS. 34 of them with a rule each is a table, and
    the pair of lines already groups: the name is 700 ink, the credit 400
