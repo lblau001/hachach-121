@@ -1504,6 +1504,13 @@ function dialogFocus(root, onEscape) {
     if (!f.length) { e.preventDefault(); root.focus(); return; }
     const first = f[0], last = f[f.length - 1], a = document.activeElement;
     if (!root.contains(a)) { e.preventDefault(); first.focus(); return; }
+    /* THE ROOT ITSELF CAN HOLD FOCUS — the consent card seats it there
+       on open, and every box holds it for a frame after a swap. From
+       the root, Tab goes forward to the first control on its own, but
+       Shift+Tab would walk out backwards into the page behind, which
+       is the exact escape this trap exists to close. Same arithmetic,
+       one more starting point. */
+    if (a === root) { if (e.shiftKey) { e.preventDefault(); last.focus(); } return; }
     if (e.shiftKey && a === first) { e.preventDefault(); last.focus(); }
     else if (!e.shiftKey && a === last) { e.preventDefault(); first.focus(); }
   };
@@ -12166,6 +12173,47 @@ function boot() {
      numbers are honestly zero rather than invented. */
   else if (DEV.screen === 'end')   endGame();
   else                             renderIntro();
+
+  /* §CONSENT · the cookie card is the first thing a first-run player
+     meets, and it is the fifth dialog in the app, so it gets the fifth
+     line of dialogFocus() and nothing of its own. */
+  wireConsent();
+}
+
+/* =====================================================================
+   §CONSENT · FOCUS AND THE KEYBOARD, FOR A DIALOG THIS FILE DID NOT BUILD
+   analytics.js appends #hac-consent to body synchronously, before this
+   script runs, whenever no choice is stored — so by boot() it is either
+   in the DOM or it never will be. Its two handlers, its storage key and
+   initGA4() are untouched; this only does what every other dialog here
+   does: seats focus inside, holds Tab, and answers Escape.
+   ESCAPE IS "לא, תודה", not a third outcome. A dismissal that stored
+   nothing would bring the card back on the next load, and the player
+   who pressed Escape has said no. It goes through the refuse button's
+   own click so the one handler Roman wrote stays the only path.
+   THE TRAP LETS GO WHEN THE CARD DOES. Both handlers remove the node
+   without telling anyone, so the release is hung on the DOM: the first
+   childList mutation that finds the card gone ends the trap and puts
+   focus back where dialogFocus() found it. */
+function wireConsent() {
+  const c = $('#hac-consent');
+  if (!c) return;
+  const release = dialogFocus(c, () => { const d = $('#hac-decline', c); if (d) d.click(); });
+  /* FOCUS LANDS ON THE CARD, NOT ON THE FIRST LINK. dialogFocus() seats
+     the first control by default, and on a fresh load with no pointer
+     input yet the browser treats that as keyboard focus and draws the
+     ring — so the first thing a player saw was מדיניות הפרטיות outlined
+     in ink. The dialog is what should be announced; the controls are
+     what Tab reaches. dialogFocus() has already given the card
+     tabindex="-1", and its own seat() is idempotent — it finds focus
+     inside and leaves it — so this runs first and wins. .consent:focus
+     carries no outline: a container is not a target. */
+  c.focus({ preventScroll: true });
+  const mo = new MutationObserver(() => {
+    if (document.contains(c)) return;
+    mo.disconnect(); release();
+  });
+  mo.observe(document.body, { childList: true });
 }
 
 /* the topic's own label out of data.js. topic is resolved in newRound(),
