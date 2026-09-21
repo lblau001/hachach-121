@@ -670,6 +670,87 @@ body{
   .stage{ max-width:none; }
 }
 
+/* =====================================================================
+   §DESKTOP GROUND · THE SIDES FOLLOW THE COLUMN
+   Above 480px the stage is a 390px preview frame (see just above), and
+   the body's #6E6C68 showed either side of it. The body now carries the
+   CURRENT SCREEN'S ground instead, so the column sits on a table of its
+   own material rather than in a grey mount. Nothing inside .stage moves:
+   these rules select on the body and paint the body, and the stage's own
+   background, gradient and dot grid are untouched — the map ramp the
+   label contrast was measured against is the same declaration it was.
+   THE SCREEN IS READ OFF THE STAGE. showScreen() writes data-screen on
+   #stage and nowhere else, so body:has(.stage[data-screen=…]) follows it
+   with no second attribute to keep in step. A browser without :has()
+   keeps the round's ground on every screen, which is a quieter fallback
+   than the grey.
+   THE DEFAULT IS THE ROUND'S GROUND, and the intro's and the end's: all
+   three stand on .stage's #403E3A, so the body takes the same literal.
+   ONLY ABOVE THE BREAKPOINT. At 480px and below the stage fills the
+   viewport and there are no sides to paint; the media query is the same
+   line as the one that takes the frame off, so mobile never sees any of
+   this. */
+@media (min-width: 481px){
+  body{ background:#403E3A; }
+  /* THE SHADOW WAS THE FRAME'S EDGE. 0 3px 20px around the column on a
+     grey mount said "a phone, on a desk"; on a ground the same colour as
+     the column it is a dark halo — a seam — and the column edge is now
+     meant to be invisible. It is the one declaration this section
+     removes, and it removes it from the surround, not from the column. */
+  .stage{ box-shadow:none; }
+
+  /* THE DOT GRID, PHASE-LOCKED TO THE STAGE. .stage::before tiles from
+     the stage's own top-left: 4px and 7px cells, the second offset
+     2px 3px. The stage's left edge is at 50% - 195px, so this layer
+     starts there too — minus 5600px, which is 200 whole periods of the
+     28px common cycle, so the tiling is in phase at the join and the
+     layer reaches 5600px each side of the column. Both layers run at the
+     stage's own positions inside it. z-index:-1 puts it above the body's
+     ground and under everything else; body is position:fixed, so it is
+     the stacking context this resolves in. */
+  body::before{
+    content:""; position:absolute; top:0; bottom:0; z-index:-1; pointer-events:none;
+    left:calc(50% - 195px - 5600px); width:11200px;
+    background-image:
+      radial-gradient(rgba(255,255,255,.07) .5px,transparent .6px),
+      radial-gradient(rgba(0,0,0,.34) .5px,transparent .6px);
+    background-size:4px 4px, 7px 7px; background-position:0 0, 2px 3px;
+  }
+
+  /* THE MAP: THE SAME ELLIPSE, IN THE SAME PLACE, WRITTEN IN PIXELS.
+     .stage[data-screen="map"] draws radial-gradient(120% 80% at 50% 108%)
+     — an ellipse whose horizontal radius is 120% of the stage's 390px
+     and whose vertical radius is 80% of its height, centred at the
+     stage's 50% / 108%. On the body: 468px is that horizontal radius
+     exactly; 80% is the same vertical radius because the stage is the
+     viewport's height; 50% is the same centre because the stage is
+     centred. The four stops and the fill are the stage's, verbatim. The
+     stage's own gradient is not restated — the body's simply continues
+     it, so there is nothing to join. */
+  body:has(.stage[data-screen="map"]){
+    background:
+      radial-gradient(468px 80% at 50% 108%, #B3790C 0%, #D5631B 38%, #C4402E 70%, #8E2A2E 100%),
+      #C4402E;
+  }
+
+  /* THE INTRO: THE PLAZA BAND, AT THE SAME HEIGHT. .sc-intro::before is
+     a linear ramp — uniform across x, so it continues sideways with no
+     join — 62% of the SECTION's height up from the stage's bottom edge.
+     The section is the stage less its 10px top and 12px bottom padding
+     (no safe-area inset on a desktop), so 62% of it is 62% of the
+     viewport less 13.64px. Painted after ::before so it lies over the
+     dots, which is the order the stage paints them in (.screen is
+     z-index:1 above .stage::before at 0). It fades with the section's
+     loading state so the sides never show the plaza before the column
+     does. */
+  body:has(.stage[data-screen="intro"])::after{
+    content:""; position:absolute; left:0; right:0; bottom:0; z-index:-1; pointer-events:none;
+    height:calc(62% - 13.64px);
+    background:linear-gradient(to top,#6E6242 0%,#514A38 38%,rgba(64,62,58,0) 100%);
+  }
+  body:has(.sc-intro.is-loading)::after{ opacity:0; }
+}
+
 .stage::before{
   content:""; position:absolute; inset:0; z-index:0; pointer-events:none;
   background-image:
