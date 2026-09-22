@@ -66,53 +66,22 @@
     return;
   }
 
-  /* ── cookie banner (injected into DOM — no index.html change) ───── */
-  function showBanner() {
-    /* PRESENTATION LIVES IN proto.css (§CONSENT), NOT HERE. The banner
-       used to inject its own <style>; it is now the same sticker material
-       as the profile sheet and the exit sheet, drawn by the app's own
-       stylesheet, and the DOM below only carries the hooks. The ids
-       hac-accept / hac-decline are what the handlers under this look up
-       and are unchanged. The consent logic — the two handlers, the
-       localStorage key, initGA4() — is exactly as built. */
-    var banner = document.createElement('div');
-    banner.id = 'hac-consent';
-    banner.className = 'consent';
-    /* a dialog, not a region: proto.js seats focus in it and holds Tab
-       until it is answered (see wireConsent()), which is what aria-modal
-       promises a screen reader. */
-    banner.setAttribute('role', 'dialog');
-    banner.setAttribute('aria-modal', 'true');
-    banner.setAttribute('aria-labelledby', 'hac-consent-p');
-    banner.innerHTML = '<p class="consent__p" id="hac-consent-p">'
-      +   'משתמשים ב-<span lang="en">Google Analytics</span> כדי לשפר את המשחק. '   /* TAMAR */
-      +   'לפרטים ראו <a href="/privacy.html">מדיניות הפרטיות</a> '                   /* TAMAR */
-      +   'ו<a href="/accessibility.html">הצהרת הנגישות</a>.'                          /* TAMAR */
-      + '</p>'
-      + '<div class="consent__row">'
-      /* TWO OF THE SAME. Neither is the primary: both let you play, so
-         neither wears the yellow, and accept is not louder than refuse. */
-      +   '<button type="button" id="hac-accept" class="r-b consent__b">מסכימים</button>'     /* TAMAR */
-      +   '<button type="button" id="hac-decline" class="r-b consent__b">לא, תודה</button>'   /* TAMAR */
-      + '</div>';
-
-    document.body.appendChild(banner);
-
-    document.getElementById('hac-accept').addEventListener('click', function () {
+  /* ── the consent choice (asked in the game's first-run sticker) ──── */
+  /* THE BANNER IS GONE; THE CHOICE IS ASKED BY proto.js. The question now
+     sits at the foot of the map's first-arrival sticker ("אז איך זה
+     עובד?"), so this file no longer builds any DOM. It hands the two
+     handlers to the game instead of wiring them to its own buttons.
+     The consent logic — the two handler bodies below, the localStorage
+     key and initGA4() — is exactly as built; only who calls them, and
+     when, has changed. The object exists only while no answer is
+     stored, which is how proto.js knows the question is still open. */
+  window.HAC_CONSENT = {
+    accept: function () {
       try { localStorage.setItem(CONSENT_KEY, 'yes'); } catch (e) {}
-      banner.parentNode.removeChild(banner);
       initGA4();
-    });
-
-    document.getElementById('hac-decline').addEventListener('click', function () {
+    },
+    decline: function () {
       try { localStorage.setItem(CONSENT_KEY, 'no'); } catch (e) {}
-      banner.parentNode.removeChild(banner);
-    });
-  }
-
-  if (document.body) {
-    showBanner();
-  } else {
-    document.addEventListener('DOMContentLoaded', showBanner);
-  }
+    }
+  };
 })();
