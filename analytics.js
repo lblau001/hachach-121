@@ -74,7 +74,7 @@
     document.head.appendChild(s);
     var a = document.createElement('a');
     a.id = 'hac-bug';
-    a.href = 'mailto:roman.gash@gmail.com?subject=' + encodeURIComponent('תקלה באתר הח"כ ה-121');
+    a.href = 'mailto:tamar@idea.org.il?subject=' + encodeURIComponent('תקלה באתר הח"כ ה-121');
     a.textContent = '🐞 דיווח על תקלה';
     a.setAttribute('aria-label', 'דיווח על תקלה');
     document.body.appendChild(a);
