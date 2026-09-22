@@ -1504,9 +1504,8 @@ function dialogFocus(root, onEscape) {
     if (!f.length) { e.preventDefault(); root.focus(); return; }
     const first = f[0], last = f[f.length - 1], a = document.activeElement;
     if (!root.contains(a)) { e.preventDefault(); first.focus(); return; }
-    /* THE ROOT ITSELF CAN HOLD FOCUS — the consent card seats it there
-       on open, and every box holds it for a frame after a swap. From
-       the root, Tab goes forward to the first control on its own, but
+    /* THE ROOT ITSELF CAN HOLD FOCUS — every box holds it for a frame
+       after a swap. From the root, Tab goes forward to the first control on its own, but
        Shift+Tab would walk out backwards into the page behind, which
        is the exact escape this trap exists to close. Same arithmetic,
        one more starting point. */
@@ -3830,7 +3829,7 @@ const INFO_COPY = {
      somewhere else, and one string cannot drift from itself. */
   privacy:  'מדיניות פרטיות',       /* TAMAR · the third quiet link, and 2e's title */
   /* THE ACCESSIBILITY STATEMENT'S PERMANENT DOOR. The consent card was
-     the only way to reach accessibility.html and the card is going away;
+     the only way to reach accessibility.html and the card is gone;
      the statement has to stay one tap from anywhere in the game, and the
      profile sheet is where the other reading doors already live. It
      LINKS OUT rather than opening a screen of its own: the page is
@@ -3851,7 +3850,7 @@ const INFO_COPY = {
      opens nothing at all, so the address is also printed, selectable. */
   reportAlt:     'או במייל:',                                               /* TAMAR */
   /* THE TEXT ITSELF IS NOT HERE, ON PURPOSE. The policy lives in
-     privacy.html — Roman's file, the page the consent card links to —
+     privacy.html — Roman's file, the page the game's consent line opens —
      and renderPrivacy() fetches and maps it at runtime, so there is ONE
      copy of a legal document and not two to drift apart. See privacyDoc().
      These two lines are the only privacy copy this file owns: what the
@@ -4862,7 +4861,7 @@ function renderInfo(m) {
    the same stickerSwap() the other three use.
 
    THE TEXT IS FETCHED FROM privacy.html, NOT COPIED INTO THIS FILE.
-   privacy.html is the policy — the consent card links to it, Roman
+   privacy.html is the policy — the first-run consent line opens it, Roman
    maintains it — and a second copy of a legal document in INFO_COPY is
    two copies that drift the first time one is corrected. privacyDoc()
    fetches it (connect-src 'self' allows it), privacyMap() walks its
@@ -10031,6 +10030,14 @@ const MAP_INTRO_COPY = {                                              /* TAMAR *
   title: 'אז איך זה עובד?',                                          /* TAMAR · T16 */
   line: 'הכנסו לנושא הראשון במפה, ענו על השאלות והמשיכו להתקדם במשחק לאורך מפת הנושאים ולצבור מטבעות',            /* TAMAR */
   go:   'מתחילים',
+  /* A3 · THE CONSENT QUESTION, ASKED HERE AND NOWHERE ELSE. The bottom
+     card is gone; a first-time player is asked once, at the foot of
+     this sticker, and each button states its own choice — neither one
+     means both "continue" and "accept". */
+  consentQ:   'נוכל לאסוף נתוני שימוש לשיפור המשחק?',    /* TAMAR */
+  consentPol: 'מדיניות הפרטיות',                      /* TAMAR · the link under the question */
+  yes:        'כן, מאשרים',                            /* TAMAR */
+  no:         'לא, תודה',                              /* TAMAR */
 };
 function seenMapIntro() {
   if (DEV.mapIntro !== null) return !DEV.mapIntro;
@@ -10245,7 +10252,13 @@ function syncSndToggle(screen) {
 }
 
 function maybeMapIntro() {
-  if (seenMapIntro()) return false;
+  /* A3 · SEEN IS NOT ENOUGH WHILE THE QUESTION IS STILL OPEN. Two ways
+     leave a player who has seen this sticker and never answered: the
+     banner era, when the card did not block play and anyone could reach
+     the map without tapping it, and closing the tab while this sticker
+     is up (markMapIntroSeen() saves on open, before any answer). Either
+     way they are asked here, once, on their next arrival. */
+  if (seenMapIntro() && !consentOpen()) return false;
   if ($('#stage').dataset.screen !== 'map') return false;
   /* never on top of another sheet — the same guard the invitation uses */
   if ($('.stmodal') || $('.exitsheet')) return false;
@@ -10253,7 +10266,64 @@ function maybeMapIntro() {
   mapIntroModal();
   return true;
 }
+/* A3 · IS THE CONSENT QUESTION STILL OPEN? analytics.js exposes
+   HAC_CONSENT only while no answer is stored; once the player has said
+   yes or no on any earlier visit it is never defined, and the sticker
+   below is exactly what it was before A3. */
+/* CONSENT_DONE COVERS THE REST OF THIS SESSION. HAC_CONSENT is decided
+   once, at load; after an answer it is still defined until the next
+   load, and without this the next map arrival — back from a round —
+   would ask again. */
+let CONSENT_DONE = false;
+function consentOpen() { return !!window.HAC_CONSENT && !CONSENT_DONE; }
+
 function mapIntroModal() {
+  const ask = consentOpen();
+  /* A3 · THE CONSENT SECTION REPLACES מתחילים, IT DOES NOT SIT UNDER IT.
+     Both of its buttons close the sticker and go into the game, so a
+     third "go" button would be one that means continue without saying
+     which answer it gives. The rule above it is .info-rule — the dashed
+     separator the credits screen already uses, which SEPARATES; the ✂
+     perforation (.rs__tear) means "this comes apart" and belongs to the
+     reset. כן is first in the DOM, so it lays out on the RIGHT.
+     BOTH YELLOW, BOTH FORWARD. Both answers lead into the game, so both
+     wear the forward action and the forward chevron; neither reads as
+     cancel, and yes is not louder than no. */
+  const consent = !ask ? '' :
+    '<hr class="info-rule mi-rule">' +
+    '<p class="mi-q" id="mi-q">' + esc(MAP_INTRO_COPY.consentQ) + '</p>' +
+    '<p class="mi-ga"><span lang="en" dir="ltr">Google Analytics</span> · ' +
+      '<button type="button" class="mi-pol" data-mi-privacy>' +
+        esc(MAP_INTRO_COPY.consentPol) + '</button></p>' +
+    '<div class="mi-row" role="group" aria-labelledby="mi-q">' +
+      '<button type="button" class="p-c mi-c" data-consent="yes">' +
+        esc(MAP_INTRO_COPY.yes) + CHEV_L + '</button>' +
+      '<button type="button" class="p-c mi-c" data-consent="no">' +
+        esc(MAP_INTRO_COPY.no) + CHEV_L + '</button>' +
+    '</div>';
+
+  /* ONE ANSWER, WHICHEVER WAY OUT. The buttons answer for themselves;
+     the ✕, the ground and Escape all arrive in onClose() unanswered and
+     are a NO — the decline handler runs and the choice is stored, so the
+     question does not come back. The handlers are Roman's, called as
+     they are. */
+  let answered = false;
+  const answer = yes => {
+    if (!ask || answered) return;
+    answered = true; CONSENT_DONE = true;
+    if (yes) {
+      window.HAC_CONSENT.accept();
+      /* THE FIRST map_view, RECOVERED. renderMap() fired it into the
+         no-op stub before this question was answered, so an accepting
+         player would otherwise enter the funnel without ever reaching
+         the map. Once, here, only on yes, only on this first arrival;
+         the same params renderMap() sends. */
+      if (window.HAC) HAC('map_view', { issues_done: Object.keys(PROGRESS).length, score: wallet });
+    } else {
+      window.HAC_CONSENT.decline();
+    }
+  };
+
   const m = stickerModal({
     /* T16 · the title slot has a string again. It was left out in T2
        because the copy was one sentence; the :empty rule that collapsed
@@ -10265,19 +10335,58 @@ function mapIntroModal() {
        the .is-titlelg rule and has never taken the bigger size. */
     art: ROOT + HERO.howto,
     heroKey: 'mapintro',
-    extra: '<button type="button" class="p-c mi-go">' +
-             esc(MAP_INTRO_COPY.go) + '</button>',                    /* TAMAR */
+    extra: ask ? consent :
+      '<button type="button" class="p-c mi-go">' +
+        esc(MAP_INTRO_COPY.go) + '</button>',                        /* TAMAR */
     /* EVERY WAY OUT LEADS TO THE SAME PLACE. The suggestion follows the
        sticker however it was dismissed — button, ✕, ground or Escape —
        because it is the answer to "so where do I start", and a player who
        closed the sticker with the ✕ asked that question just as much as
        one who pressed the button. */
-    onClose: () => breatheFirstNode(),
+    onClose: () => { answer(false); breatheFirstNode(); },
   });
   m.dataset.mapintro = '';
   const go = $('.mi-go', m);
   if (go) pressable(go).addEventListener('click', () => m._close());
+  if (!ask) return m;
+
+  /* DELEGATED, BECAUSE THE BOX IS REPAINTED. The policy link pushes the
+     privacy text into this same sticker and its back control restores
+     the markup, which drops any listener bound to these buttons. One
+     listener on the overlay survives every swap. unlockAudio() is what
+     pressable() would have given each of them. */
+  m.addEventListener('pointerdown', e => { if (e.target.closest('[data-consent],[data-mi-privacy]')) unlockAudio(); });
+  m.addEventListener('click', e => {
+    const c = e.target.closest('[data-consent]');
+    if (c) { answer(c.dataset.consent === 'yes'); m._close(); return; }
+    if (e.target.closest('[data-mi-privacy]')) miPolicy(m);
+  });
+  privacyDoc().catch(() => {});
   return m;
+}
+/* THE POLICY, IN THE SAME STICKER. stickerPush() is the one nested
+   surface this app has — one level, a back chevron, the ✕ still closing
+   the whole sticker (which here is still a NO). The text is the same
+   mapped privacy.html the profile's privacy screen shows, in the same
+   .info--doc type; this box scrolls it. While the fetch is in flight it
+   says so, and a failure falls back to the page itself. */
+function miPolicy(m) {
+  const failed = '<p class="info-p">' + esc(INFO_COPY.privacyFail) + ' ' +
+    '<a href="' + esc(PRIVACY_URL) + '" target="_blank" rel="noopener">' +
+      esc(INFO_COPY.privacy) + '</a>.</p>';
+  stickerPush(m, {
+    hero: false,
+    title: INFO_COPY.privacy,
+    extra: '<div class="info info--doc scrolls mi-doc" data-mi-doc>' +
+      (PRIVACY_DOC || '<p class="info-p">' + esc(INFO_COPY.privacyWait) + '</p>') + '</div>',
+  });
+  if (PRIVACY_DOC) return;
+  const host = $('[data-mi-doc]', m);
+  const settle = html => {
+    if (!host || !host.isConnected) return;
+    stickerSwap(m, () => { host.innerHTML = html; });
+  };
+  privacyDoc().then(settle, () => settle(failed));
 }
 /* ---- the suggestion, and it is only ever that ----------------------
    ONE node breathes: the FIRST TOPIC IN THE MAP'S EXISTING ORDER. No
@@ -12446,46 +12555,6 @@ function boot() {
   else if (DEV.screen === 'end')   endGame();
   else                             renderIntro();
 
-  /* §CONSENT · the cookie card is the first thing a first-run player
-     meets, and it is the fifth dialog in the app, so it gets the fifth
-     line of dialogFocus() and nothing of its own. */
-  wireConsent();
-}
-
-/* =====================================================================
-   §CONSENT · FOCUS AND THE KEYBOARD, FOR A DIALOG THIS FILE DID NOT BUILD
-   analytics.js appends #hac-consent to body synchronously, before this
-   script runs, whenever no choice is stored — so by boot() it is either
-   in the DOM or it never will be. Its two handlers, its storage key and
-   initGA4() are untouched; this only does what every other dialog here
-   does: seats focus inside, holds Tab, and answers Escape.
-   ESCAPE IS "לא, תודה", not a third outcome. A dismissal that stored
-   nothing would bring the card back on the next load, and the player
-   who pressed Escape has said no. It goes through the refuse button's
-   own click so the one handler Roman wrote stays the only path.
-   THE TRAP LETS GO WHEN THE CARD DOES. Both handlers remove the node
-   without telling anyone, so the release is hung on the DOM: the first
-   childList mutation that finds the card gone ends the trap and puts
-   focus back where dialogFocus() found it. */
-function wireConsent() {
-  const c = $('#hac-consent');
-  if (!c) return;
-  const release = dialogFocus(c, () => { const d = $('#hac-decline', c); if (d) d.click(); });
-  /* FOCUS LANDS ON THE CARD, NOT ON THE FIRST LINK. dialogFocus() seats
-     the first control by default, and on a fresh load with no pointer
-     input yet the browser treats that as keyboard focus and draws the
-     ring — so the first thing a player saw was מדיניות הפרטיות outlined
-     in ink. The dialog is what should be announced; the controls are
-     what Tab reaches. dialogFocus() has already given the card
-     tabindex="-1", and its own seat() is idempotent — it finds focus
-     inside and leaves it — so this runs first and wins. .consent:focus
-     carries no outline: a container is not a target. */
-  c.focus({ preventScroll: true });
-  const mo = new MutationObserver(() => {
-    if (document.contains(c)) return;
-    mo.disconnect(); release();
-  });
-  mo.observe(document.body, { childList: true });
 }
 
 /* the topic's own label out of data.js. topic is resolved in newRound(),

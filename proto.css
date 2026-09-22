@@ -1292,110 +1292,6 @@ body{
 }
 .exitsheet .r-b:active{ box-shadow:inset 0 0 0 2.5px rgba(19,19,16,.65); }
 
-/* =====================================================================
-   §CONSENT · THE COOKIE CARD, GLASS ON THE INTRO
-   analytics.js builds the DOM (it must: consent gates GA4 before proto.js
-   runs) and this file draws it. It is laid at the bottom of the viewport,
-   inset to .stage's own gutter, and it is GLASS: a paper tint over a
-   blurred backdrop, so the intro stays visible through it and the card
-   reads as a note on the screen rather than a sheet over it.
-   PAPER TINT WITH INK, NOT DARK TINT WITH CREAM — measured, not chosen.
-   The card sits over the intro's yellow CTA, and a dark tint has to be
-   nearly opaque before cream type over a blurred yellow smear reaches
-   4.5:1; a paper tint's worst backdrop is the kraft ground, and a
-   moderate tint lifts that to where ink passes everywhere. It also keeps
-   the buttons' ink ring, which is the app's secondary on paper.
-   THE TINT ALPHA IS A TOKEN AND IT IS A MEASURED VALUE. --consent-tint
-   was set by sampling the composited pixels behind the type (text made
-   transparent, card in place, blur on) at 390x844, 430x932 and 375x667
-   over the plaza, the building and the CTA, and raising the alpha until
-   the WORST pixel held 4.5:1 against --ink. At .6 the worst pixel
-   measured 8.0:1 (21 Sep 2026); .76 measured 11.1:1 and .9 14.7:1, so
-   .6 is the clearest glass with a margin, not the edge. Lower it and
-   the number is no longer true.
-   NO DIE-CUT, NO EXTRUSION. The sticker's 5px white edge and its flat
-   8px drop say "a paper object laid on top", which is the one thing
-   glass is not; on a translucent surface the hard drop reads as a
-   rendering fault. The edge is a 1.5px inner highlight, which is how
-   glass shows its own edge, and the shadow is soft.
-   @supports FALLS BACK TO PAPER. A browser without backdrop-filter would
-   otherwise draw a 60%-alpha wash with no blur, which is the blurred
-   variable ground the map labels taught us not to put type on.
-   INSET TO THE STAGE'S GUTTER. .stage pads 16px + the safe inset each
-   side, and the card sits in a fixed layer OUTSIDE #stage (analytics.js
-   appends it to body), so the same arithmetic is repeated here rather
-   than inherited: 16px in from each side, capped at the stage's own
-   390px, centred by auto margins so it lands over the stage on a wide
-   screen. The bottom is .stage's 12px + the safe inset.
-   HEIGHT IS BUDGETED AGAINST THE TAGLINE, ON A REAL PHONE. The card's
-   top has to clear the tagline's last line, and Safari's viewport is
-   shorter than the nominal one (390x844 is 390x664 with the toolbar
-   up), which is where Lion saw the top edge cut through להצביע ולשתף
-   עם כולם. 13.5px is the size at which the paragraph sets in TWO lines
-   at the 358px card (14px still broke to three), and the padding and
-   gap came down with it — 12/14/9 rather than 14/16/10 — so the card
-   is 125px rather than 155 and clears the tagline by ~28px at 390x664.
-   13px was the floor agreed for this copy; 13.5 stays above it. */
-.consent{
-  --consent-tint:.6;
-  --consent-fs:13.5px; --consent-lh:1.45; --consent-pad-b:12px; --consent-pad-i:14px; --consent-gap:9px;
-  position:fixed; z-index:70;
-  inset-inline:0; margin-inline:auto;
-  bottom:calc(12px + env(safe-area-inset-bottom, 0px));
-  width:calc(100% - 32px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
-  max-width:calc(390px - 32px);
-  box-sizing:border-box;
-  color:var(--ink);
-  background:rgba(251,247,238,var(--consent-tint));
-  -webkit-backdrop-filter:blur(16px);
-  backdrop-filter:blur(16px);
-  border:0; border-radius:18px;
-  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.62), 0 10px 28px rgba(0,0,0,.35);
-  padding:var(--consent-pad-b) var(--consent-pad-i);
-  display:flex; flex-direction:column;
-  direction:rtl; text-align:start;
-}
-/* THE SPACE ABOVE THE ROW IS A MARGIN, NOT A FLEX GAP. The card holds
-   focus, and a focused element is where browser extensions put their
-   own nodes — Grammarly's desktop integration appended a zero-height
-   element inside it on the test machine, and a column gap paid 9px for
-   a child that draws nothing. A margin on the row is spent once,
-   whatever else lands in the card. */
-.consent__row{ margin-top:var(--consent-gap); }
-/* the card holds focus on open (see wireConsent()); a container shows no
-   ring — the ring belongs to the control Tab reaches next. */
-.consent:focus, .consent:focus-visible{ outline:0; }
-@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
-  .consent{ background:var(--paper); }
-}
-/* the body: the sticker's own paragraph voice, one size up from .info-p's
-   13 because this is read once, standing, before anything else — and the
-   links are the app's link on paper (.inv-link): the running ink,
-   underlined, offset 3, not the browser's blue. */
-.consent__p{
-  margin:0; font-family:var(--font-body); font-size:var(--consent-fs); font-weight:700; line-height:var(--consent-lh);
-}
-.consent__p a{ color:var(--ink); text-decoration:underline; text-underline-offset:3px; }
-.consent__p [lang="en"]{ direction:ltr; unicode-bidi:isolate; }
-/* THE ROW: TWO OF THE SAME CONTROL. .r-b is the app's secondary and it is
-   re-inked for paper exactly as .exitsheet .r-b is — the same ring at
-   the same alpha — so this is that control and not a lookalike. Equal
-   flex, equal height, equal type: nothing here may tell the two apart
-   but their labels. */
-.consent__row{ display:flex; gap:8px; }
-.consent__row .r-b{
-  flex:1 1 0; width:auto; min-height:52px; padding-block:0;
-  display:flex; align-items:center; justify-content:center;
-  font-size:17px;
-  color:var(--ink); box-shadow:inset 0 0 0 2.5px rgba(19,19,16,.38);
-  -webkit-tap-highlight-color:transparent;
-}
-.consent__row .r-b:active{ box-shadow:inset 0 0 0 2.5px rgba(19,19,16,.65); }
-/* focus on paper is ink, not the yellow the dark-ground controls use:
-   --primary on --paper is under 1.5:1 and would not be a ring at all. */
-.consent__row .r-b:focus-visible,
-.consent__p a:focus-visible{ outline:3px solid var(--ink); outline-offset:2px; }
-
 /* §C THE ONE HELPER LINE. Not a pill: plain type on the ground, low
    contrast, between the HUD and the chyron. Its box is reserved on every
    beat — is-empty hides the text, never the space — so turning it on for
@@ -5786,6 +5682,65 @@ span.node-ico{ font-size:44px; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,
 .stmodal[data-mapintro] .mi-go{ margin-top:12px; }
 
 /* =====================================================================
+   A3 · THE CONSENT QUESTION, AT THE FOOT OF THE FIRST-ARRIVAL STICKER
+   Shown only while no answer is stored (see consentOpen()); it replaces
+   .mi-go. The box is a flex column with an 8px gap and centred items, so
+   everything here that must span the content says align-self:stretch.
+   THE RULE IS .info-rule, NOT A NEW ONE. Its own 22/18 margin is spent
+   here as 14/10 because the box's 8px gap sits on either side of it.
+   THE QUESTION IS THE DISPLAY FACE AT 16, one step under the title's 18:
+   it is a second question on the sticker and must read as one, not as
+   another line of the explanation.
+   THE POLICY LINK IS A BUTTON DRESSED AS THE APP'S LINK ON PAPER (ink,
+   underlined, offset 3) because it opens a screen inside the sticker,
+   not a page. The negative margin gives it a 44px target without moving
+   the line.
+   TWO YELLOWS AT THE PAIR SIZE. 52/17 rather than P-C's 56+/25: at half
+   width כן, מאשרים and its chevron must not wrap, and 52 is the height
+   every other side-by-side pair in the build uses. 12px between them,
+   not 8: each yellow carries 4.6px of white-and-keyline ring outside its
+   box, and at 8 the two rings would touch.
+   THE POLICY SCREEN SCROLLS IN THE BOX. The sticker caps at 76% of the
+   stage; the doc is the one child allowed to shrink (min-height:0), so
+   the title and back chevron stay and the text scrolls under them. */
+.stmodal[data-mapintro] .mi-rule{ align-self:stretch; margin:14px 0 10px; }
+.mi-q{
+  margin:0; font-family:var(--font-display); font-weight:900;
+  font-size:16px; line-height:1.3; text-align:center;
+  /* balanced, so the question does not leave המשחק? alone on a line */
+  text-wrap:balance;
+}
+.mi-ga{
+  margin:-2px 0 0; font-family:var(--font-body); font-size:var(--fs-meta);
+  font-weight:700; line-height:1.55; color:var(--ink-soft); text-align:center;
+}
+.mi-ga [lang="en"]{ unicode-bidi:isolate; }
+.mi-pol{
+  appearance:none; border:0; background:none; cursor:pointer;
+  font:inherit; color:var(--ink); text-decoration:underline; text-underline-offset:3px;
+  padding:12px 4px; margin:-12px -4px;
+  -webkit-tap-highlight-color:transparent;
+}
+.mi-pol:focus-visible{ outline:3px solid var(--ink); outline-offset:2px; }
+.mi-row{ align-self:stretch; display:flex; gap:12px; margin-top:6px; }
+.mi-row > .mi-c{
+  flex:1 1 0; width:auto; min-height:52px; padding:0 8px;
+  display:flex; align-items:center; justify-content:center; gap:3px;
+  font-size:17px; white-space:nowrap;
+}
+.mi-doc{ align-self:stretch; margin-top:2px; }
+/* THE CEILING IS [data-profile]'s, FOR THE SAME REASON. The 76% cap on
+   .stmodal__box resolves against an auto grid track and never binds, so
+   the pushed policy (1389px of text) grew the box past the stage instead
+   of scrolling — measured 22 Sep 2026 at all four sizes. minmax(0,1fr)
+   makes the track the area and 100% then means it; .mi-doc is .info,
+   already min-height:0 and flex:1, so it is the child that gives. The
+   sticker at rest (422px with the question) is well under the ceiling
+   and does not move. */
+.stmodal[data-mapintro]{ grid-template-rows:minmax(0, 1fr); }
+.stmodal[data-mapintro] .stmodal__box{ max-height:100%; }
+
+/* =====================================================================
    B2-4 · THE ASK STICKER
    One component, two copy strings: the claim card asks אמת או שקר? and
    the first cascade card asks מה הוא/היא הצביע/ה?. Nothing else about it
@@ -8829,8 +8784,8 @@ button.prof-hero:focus-visible{ outline:3px solid var(--primary); outline-offset
    THE LINK IS THE INVITATION'S, NOT THE CREDITS'. .info-src is
    --ink-soft because a source line is the quietest thing in a credit;
    a link inside running legal text is part of the sentence and is set
-   in the sentence's ink, underlined — the same rule .inv-link and the
-   consent card's links already carry. */
+   in the sentence's ink, underlined — the same rule .inv-link already
+   carries. */
 .info--doc .info-p + .info-p,
 .info--doc .info-p + .info-ul,
 .info--doc .info-ul + .info-p,
