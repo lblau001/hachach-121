@@ -8498,11 +8498,14 @@ button.prof-hero:focus-visible{ outline:3px solid var(--primary); outline-offset
    column above centres its own full-width controls, and this keeps the
    sheet's one vertical axis rather than hanging a quiet link off an
    edge nothing else aligns to.
-   THE BLOCK PADDING IS THE TAP TARGET, AND IT IS 13 BECAUSE THE LINE
-   BOX IS 18. 13 + 18 + 13 is 44 per link, so each one is its own
-   44-high target and the row is not one wide target with two labels in
-   it. (12 was the first guess, against a line box assumed to be 20; it
-   measured 42.) Inline stays the 8px .prof-reset already had. */
+   THE BLOCK PADDING IS THE TAP TARGET. It is 13 on the assumption of an
+   18px line box, and the line box MEASURES 17 — so each link is 43 high,
+   not 44 (measured 22 Sep 2026, all four sizes; the reset, alone on its
+   line, gets the row's 44 floor). Each one is still its own target and
+   the row is not one wide target with two labels in it. 43 is accepted
+   as it stands; do not read this comment as a 44 guarantee. (12 was the
+   first guess, against a line box assumed to be 20; it measured 42.)
+   Inline stays the 8px .prof-reset already had. */
 .prof-quiet{ gap:28px; }
 /* T37 · THE RESET IS NO LONGER INSIDE .prof-quiet, so it needs the row's
    own exemption in its own right. `.prof-actions > *` sets min-height:52px
@@ -8534,6 +8537,26 @@ button.prof-hero:focus-visible{ outline:3px solid var(--primary); outline-offset
    stretch is refused. */
 .prof-actions > .prof-reset{ align-self:center; }
 .prof-quiet > .prof-info{ align-self:auto; }
+/* THE TWO THAT ARE <a>, NOT <button>. הצהרת נגישות and דיווח על תקלה
+   leave the game, so they are links, and a link does not take the
+   button's UA box: it is inline, it inherits the line-height, and it
+   has no white-space rule. These three lines give it the button's box
+   back so all four doors measure the same — block for the padding,
+   line-height:normal for the same 17px line box the buttons get (43px
+   with the 13px padding, as the pair above measures), nowrap because no label here may break mid-phrase. */
+.prof-quiet > a.prof-info{ display:block; line-height:normal; }
+.prof-quiet > .prof-info{ white-space:nowrap; }
+/* THE ADDRESS, PRINTED. A mailto on a desktop with no mail client opens
+   nothing, so the address is on the sheet as plain text too. It is not
+   a control: `.prof-actions > *` gives every child the buttons' 52px
+   and flex centring, and this takes both back. Micro size, ink-soft, no
+   underline — it must not read as a fifth link. The address alone is
+   user-select:all, so one click selects the whole of it. */
+.prof-actions > .prof-mail{
+  min-height:0; display:block; margin:-6px 0 0; text-align:center;
+  font-family:var(--font-body); font-size:12px; line-height:1.4; color:var(--ink-soft);
+}
+.prof-mail__addr{ unicode-bidi:isolate; -webkit-user-select:all; user-select:all; }
 /* the one primary. Everything on this sheet applied the moment it was
    tapped; this closes, and its copy is the player's model, not the code's. */
 /* T37 · THE SPACE UNDER THE LAST LINE, TIGHTENED. Three things stacked
