@@ -58,42 +58,69 @@
   var stored;
   try { stored = localStorage.getItem(CONSENT_KEY); } catch (e) { stored = null; }
 
+  /* ── bug-report button (always visible, bottom-left) ───────────── */
+  function showBugButton() {
+    var s = document.createElement('style');
+    s.textContent = '#hac-bug{'
+      + 'position:fixed;bottom:10px;left:10px;z-index:80;'
+      + 'background:rgba(20,20,20,.6);color:#aaa;'
+      + 'font-family:Arial,sans-serif;font-size:11px;'
+      + 'border:1px solid rgba(255,255,255,.1);border-radius:20px;'
+      + 'padding:4px 10px;cursor:pointer;text-decoration:none;'
+      + '-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);'
+      + 'transition:background .15s,color .15s;'
+      + '}'
+      + '#hac-bug:hover{background:rgba(40,40,40,.85);color:#ddd;}';
+    document.head.appendChild(s);
+    var a = document.createElement('a');
+    a.id = 'hac-bug';
+    a.href = 'mailto:roman.gash@gmail.com?subject=' + encodeURIComponent('תקלה באתר הח"כ ה-121');
+    a.textContent = '🐞 דיווח על תקלה';
+    a.setAttribute('aria-label', 'דיווח על תקלה');
+    document.body.appendChild(a);
+  }
+
   if (stored === 'yes') {
     initGA4();
+    if (document.body) { showBugButton(); }
+    else { document.addEventListener('DOMContentLoaded', showBugButton); }
     return;
   }
   if (stored === 'no') {
+    if (document.body) { showBugButton(); }
+    else { document.addEventListener('DOMContentLoaded', showBugButton); }
     return;
   }
 
   /* ── cookie banner (injected into DOM — no index.html change) ───── */
   function showBanner() {
-    /* PRESENTATION LIVES IN proto.css (§CONSENT), NOT HERE. The banner
-       used to inject its own <style>; it is now the same sticker material
-       as the profile sheet and the exit sheet, drawn by the app's own
-       stylesheet, and the DOM below only carries the hooks. The ids
-       hac-accept / hac-decline are what the handlers under this look up
-       and are unchanged. The consent logic — the two handlers, the
-       localStorage key, initGA4() — is exactly as built. */
+    /* Override .consent position: pin to bottom-right, narrow width.
+       Leon's glass-card look (blur, radius, shadow) is kept intact;
+       only inset and width are changed so the banner clears the
+       play-button in the centre of the stage. */
+    var s = document.createElement('style');
+    s.textContent = '#hac-consent.consent{'
+      + 'inset-inline:auto;'      /* clear the 0/0 shorthand */
+      + 'right:12px;left:auto;'   /* pin to physical right */
+      + 'margin-inline:0;'
+      + 'width:200px;max-width:200px;'
+      + '}';
+    document.head.appendChild(s);
+
+    /* PRESENTATION LIVES IN proto.css (§CONSENT), NOT HERE. */
     var banner = document.createElement('div');
     banner.id = 'hac-consent';
     banner.className = 'consent';
-    /* a dialog, not a region: proto.js seats focus in it and holds Tab
-       until it is answered (see wireConsent()), which is what aria-modal
-       promises a screen reader. */
     banner.setAttribute('role', 'dialog');
     banner.setAttribute('aria-modal', 'true');
     banner.setAttribute('aria-labelledby', 'hac-consent-p');
     banner.innerHTML = '<p class="consent__p" id="hac-consent-p">'
-      +   'משתמשים ב-<span lang="en">Google Analytics</span> כדי לשפר את המשחק. '   /* TAMAR */
-      +   'לפרטים ראו <a href="/privacy.html">מדיניות הפרטיות</a> '                   /* TAMAR */
-      +   'ו<a href="/accessibility.html">הצהרת הנגישות</a>.'                          /* TAMAR */
+      +   'משתמשים ב-<span lang="en">Google Analytics</span> כדי לשפר.'
+      +   ' <a href="/privacy.html">מדיניות פרטיות</a>.'
       + '</p>'
       + '<div class="consent__row">'
-      /* TWO OF THE SAME. Neither is the primary: both let you play, so
-         neither wears the yellow, and accept is not louder than refuse. */
-      +   '<button type="button" id="hac-accept" class="r-b consent__b">מסכימים</button>'     /* TAMAR */
-      +   '<button type="button" id="hac-decline" class="r-b consent__b">לא, תודה</button>'   /* TAMAR */
+      +   '<button type="button" id="hac-accept" class="r-b consent__b">מסכימים</button>'
+      +   '<button type="button" id="hac-decline" class="r-b consent__b">לא, תודה</button>'
       + '</div>';
 
     document.body.appendChild(banner);
@@ -102,11 +129,13 @@
       try { localStorage.setItem(CONSENT_KEY, 'yes'); } catch (e) {}
       banner.parentNode.removeChild(banner);
       initGA4();
+      showBugButton();
     });
 
     document.getElementById('hac-decline').addEventListener('click', function () {
       try { localStorage.setItem(CONSENT_KEY, 'no'); } catch (e) {}
       banner.parentNode.removeChild(banner);
+      showBugButton();
     });
   }
 
