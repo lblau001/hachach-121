@@ -3829,6 +3829,27 @@ const INFO_COPY = {
      behind it that disagree make the player check whether they arrived
      somewhere else, and one string cannot drift from itself. */
   privacy:  'מדיניות פרטיות',       /* TAMAR · the third quiet link, and 2e's title */
+  /* THE ACCESSIBILITY STATEMENT'S PERMANENT DOOR. The consent card was
+     the only way to reach accessibility.html and the card is going away;
+     the statement has to stay one tap from anywhere in the game, and the
+     profile sheet is where the other reading doors already live. It
+     LINKS OUT rather than opening a screen of its own: the page is
+     Roman's file and legal text, and unlike privacy.html there is no
+     second copy of it in here to drift. */
+  a11y:     'הצהרת נגישות',          /* TAMAR · the fourth quiet link */
+  /* REPORT A PROBLEM IS A mailto AND NOTHING ELSE. The game collects
+     nothing, so there is no form and no endpoint: the report is an
+     email the player writes, from their own client, to one address. */
+  report:   'דיווח על תקלה',          /* TAMAR · the fifth quiet link */
+  reportSubject: 'דיווח על תקלה — הח״כ ה-121',                               /* TAMAR */
+  reportBody:    'ספרו לנו מה קרה: מה עשיתם, מה ציפיתם שיקרה ומה קרה בפועל.',  /* TAMAR */
+  /* THE DEVICE LINE SITS IN THE PLAYER'S OWN DRAFT, labelled, so they
+     can see exactly what it says and edit or delete it before sending.
+     Nothing is sent by the game. */
+  reportDevice:  'פרטי המכשיר (אפשר למחוק):',                                /* TAMAR */
+  /* THE ADDRESS AS TEXT. On a desktop with no mail app set up a mailto
+     opens nothing at all, so the address is also printed, selectable. */
+  reportAlt:     'או במייל:',                                               /* TAMAR */
   /* THE TEXT ITSELF IS NOT HERE, ON PURPOSE. The policy lives in
      privacy.html — Roman's file, the page the consent card links to —
      and renderPrivacy() fetches and maps it at runtime, so there is ONE
@@ -4242,6 +4263,52 @@ function profileModal() {
    dashed well, die-cut. The chips are three-state: none, m, f — tapping
    the selected chip again clears it, because null is a real state (the
    plural) and the way back to it has to be one tap too. */
+/* ---- 2b · REPORT A PROBLEM: THE mailto ------------------------------
+   Technical issues only — bugs and accessibility problems. The device
+   line is built at the moment of the tap, not at render, so the window
+   size is the one the player is actually looking at.
+   READ FROM THE USER AGENT, NOT FROM A LIBRARY, and deliberately coarse:
+   device, OS, browser and the two sizes are what a bug report needs, and
+   the raw UA string is 150 characters nobody would recognise as theirs in
+   their own draft. iPadOS reports itself as a Mac; touch points tell the
+   two apart.
+   ENCODING. encodeURIComponent writes the Hebrew as UTF-8 percent
+   escapes, which is what RFC 6068 asks for; line breaks go in as CRLF
+   (%0D%0A) because some clients drop a bare LF. */
+const REPORT_TO = 'tamar@idea.org.il';
+function deviceLine() {
+  const ua = navigator.userAgent || '';
+  const touchMac = /Macintosh/.test(ua) && navigator.maxTouchPoints > 1;
+  let m, os = '', dev = '';
+  if ((m = ua.match(/(iPhone|iPad|iPod).*? OS (\d+)[_.](\d+)/))) { dev = m[1]; os = 'iOS ' + m[2] + '.' + m[3]; }
+  else if (touchMac) { dev = 'iPad'; os = 'iPadOS'; }
+  else if ((m = ua.match(/Android (\d+(?:\.\d+)?)/))) { dev = 'Android'; os = 'Android ' + m[1]; }
+  else if (/Windows/.test(ua)) os = 'Windows';
+  else if (/Mac OS X/.test(ua)) os = 'macOS';
+  else if (/CrOS/.test(ua)) os = 'ChromeOS';
+  else if (/Linux/.test(ua)) os = 'Linux';
+  const br = [
+    [/FBAN|FBAV/, 'Facebook'], [/Instagram/, 'Instagram'],
+    [/EdgiOS\/([\d.]+)|EdgA?\/([\d.]+)/, 'Edge'], [/SamsungBrowser\/([\d.]+)/, 'Samsung Internet'],
+    [/OPR\/([\d.]+)/, 'Opera'], [/CriOS\/([\d.]+)/, 'Chrome'], [/FxiOS\/([\d.]+)|Firefox\/([\d.]+)/, 'Firefox'],
+    [/Chrome\/([\d.]+)/, 'Chrome'], [/Version\/([\d.]+).*Safari/, 'Safari'],
+  ];
+  let browser = '';
+  for (const [re, name] of br) {
+    const b = ua.match(re);
+    if (b) { const v = b.slice(1).find(Boolean); browser = name + (v ? ' ' + v.split('.')[0] : ''); break; }
+  }
+  const dpr = window.devicePixelRatio || 1;
+  return [dev, os, browser].filter(Boolean).join(' · ') +
+    ' · ' + screen.width + '×' + screen.height + ' @' + Math.round(dpr * 100) / 100 + 'x' +
+    ' · window ' + innerWidth + '×' + innerHeight;
+}
+function reportHref() {
+  const body = INFO_COPY.reportBody + '\n\n\n\n' + INFO_COPY.reportDevice + '\n' + deviceLine();
+  const enc = s => encodeURIComponent(s.replace(/\r?\n/g, '\r\n'));
+  return 'mailto:' + REPORT_TO + '?subject=' + enc(INFO_COPY.reportSubject) + '&body=' + enc(body);
+}
+
 function renderProfile(m) {
   const box = $('[data-prof]', m);
   box.classList.remove('prof--bld', 'prof--info');
@@ -4326,6 +4393,23 @@ function renderProfile(m) {
         '<button type="button" class="prof-info" data-privacy>' +
           esc(INFO_COPY.privacy) + '</button>' +
       '</div>' +
+      /* THE SECOND READING ROW — the statement and the report. Same
+         .prof-quiet row, same .prof-info treatment: four doors of one
+         kind in two rows of two, and the reset still alone below them.
+         These two are LINKS, not buttons, because both leave the game:
+         the statement opens Roman's page in a new tab (the run stays
+         where it was), and the report hands off to the mail client.
+         The report's href is rebuilt on every tap — see reportHref(). */
+      '<div class="prof-quiet">' +
+        '<a class="prof-info" data-a11y href="accessibility.html" target="_blank" rel="noopener">' +
+          esc(INFO_COPY.a11y) + '</a>' +
+        '<a class="prof-info" data-report href="mailto:' + REPORT_TO + '">' +
+          esc(INFO_COPY.report) + '</a>' +
+      '</div>' +
+      /* the address, printed, for the desktop with no mail app. The
+         address alone is user-select:all, so one click takes all of it. */
+      '<p class="prof-mail">' + esc(INFO_COPY.reportAlt) + ' ' +
+        '<span class="prof-mail__addr" dir="ltr">' + REPORT_TO + '</span></p>' +
       /* T35 · v30c · THE RESET, AND T37 PUT IT ON ITS OWN LINE. It sat
          between the builder's door and שמור, which put a destructive
          link above the one button on the sheet that is safe to press;
@@ -4364,6 +4448,12 @@ function renderProfile(m) {
      jumping. One mechanism for every content change in this sticker. */
   pressable($('[data-privacy]', box)).addEventListener('click',
     () => stickerSwap(m, () => renderPrivacy(m)));
+  /* the draft is built at the tap, so the device line carries the window
+     the player is looking at now; click runs before the navigation */
+  const rp = $('[data-report]', box);
+  rp.href = reportHref();
+  pressable(rp).addEventListener('click', () => { rp.href = reportHref(); });
+  pressable($('[data-a11y]', box));
   pressable($('[data-close]', box)).addEventListener('click', () => $('.stmodal__x', m).click());
   const nm = $('#profName', box);
   nm.addEventListener('input', () => setProfile({ name: cleanName(nm.value) }));
