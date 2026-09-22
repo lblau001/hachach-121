@@ -3828,13 +3828,12 @@ const INFO_COPY = {
      behind it that disagree make the player check whether they arrived
      somewhere else, and one string cannot drift from itself. */
   privacy:  'מדיניות פרטיות',       /* TAMAR · the third quiet link, and 2e's title */
-  /* THE ACCESSIBILITY STATEMENT'S PERMANENT DOOR. The consent card was
-     the only way to reach accessibility.html and the card is gone;
-     the statement has to stay one tap from anywhere in the game, and the
-     profile sheet is where the other reading doors already live. It
-     LINKS OUT rather than opening a screen of its own: the page is
-     Roman's file and legal text, and unlike privacy.html there is no
-     second copy of it in here to drift. */
+  /* THE ACCESSIBILITY STATEMENT'S PERMANENT DOOR, AND 2f's TITLE. The
+     consent card was the only way to reach accessibility.html and the
+     card is gone; the statement has to stay one tap from anywhere in the
+     game, and the profile sheet is where the other reading doors already
+     live. It opens as a screen in the sticker, fetched from Roman's page
+     at runtime exactly as 2e is — one copy of the legal text. */
   a11y:     'הצהרת נגישות',          /* TAMAR · the fourth quiet link */
   /* REPORT A PROBLEM IS A mailto AND NOTHING ELSE. The game collects
      nothing, so there is no form and no endpoint: the report is an
@@ -3846,9 +3845,6 @@ const INFO_COPY = {
      can see exactly what it says and edit or delete it before sending.
      Nothing is sent by the game. */
   reportDevice:  'פרטי המכשיר (אפשר למחוק):',                                /* TAMAR */
-  /* THE ADDRESS AS TEXT. On a desktop with no mail app set up a mailto
-     opens nothing at all, so the address is also printed, selectable. */
-  reportAlt:     'או במייל:',                                               /* TAMAR */
   /* THE TEXT ITSELF IS NOT HERE, ON PURPOSE. The policy lives in
      privacy.html — Roman's file, the page the game's consent line opens —
      and renderPrivacy() fetches and maps it at runtime, so there is ONE
@@ -4255,6 +4251,7 @@ function profileModal() {
      2b, so the door to it opens on a complete screen. A failure here is
      silent on purpose — renderPrivacy() retries and owns the message. */
   privacyDoc().catch(() => {});
+  a11yDoc().catch(() => {});
   return m;
 }
 
@@ -4395,20 +4392,16 @@ function renderProfile(m) {
       /* THE SECOND READING ROW — the statement and the report. Same
          .prof-quiet row, same .prof-info treatment: four doors of one
          kind in two rows of two, and the reset still alone below them.
-         These two are LINKS, not buttons, because both leave the game:
-         the statement opens Roman's page in a new tab (the run stays
-         where it was), and the report hands off to the mail client.
-         The report's href is rebuilt on every tap — see reportHref(). */
+         The statement is a BUTTON: it opens 2f, a screen in this sticker,
+         the way the privacy door opens 2e. The report is a LINK, because
+         it leaves the game for the mail client; its href is rebuilt on
+         every tap — see reportHref(). */
       '<div class="prof-quiet">' +
-        '<a class="prof-info" data-a11y href="accessibility.html" target="_blank" rel="noopener">' +
-          esc(INFO_COPY.a11y) + '</a>' +
+        '<button type="button" class="prof-info" data-a11y>' +
+          esc(INFO_COPY.a11y) + '</button>' +
         '<a class="prof-info" data-report href="mailto:' + REPORT_TO + '">' +
           esc(INFO_COPY.report) + '</a>' +
       '</div>' +
-      /* the address, printed, for the desktop with no mail app. The
-         address alone is user-select:all, so one click takes all of it. */
-      '<p class="prof-mail">' + esc(INFO_COPY.reportAlt) + ' ' +
-        '<span class="prof-mail__addr" dir="ltr">' + REPORT_TO + '</span></p>' +
       /* T35 · v30c · THE RESET, AND T37 PUT IT ON ITS OWN LINE. It sat
          between the builder's door and שמור, which put a destructive
          link above the one button on the sheet that is safe to press;
@@ -4452,7 +4445,8 @@ function renderProfile(m) {
   const rp = $('[data-report]', box);
   rp.href = reportHref();
   pressable(rp).addEventListener('click', () => { rp.href = reportHref(); });
-  pressable($('[data-a11y]', box));
+  pressable($('[data-a11y]', box)).addEventListener('click',
+    () => stickerSwap(m, () => renderA11y(m)));
   pressable($('[data-close]', box)).addEventListener('click', () => $('.stmodal__x', m).click());
   const nm = $('#profName', box);
   nm.addEventListener('input', () => setProfile({ name: cleanName(nm.value) }));
@@ -4907,6 +4901,16 @@ function privacyInline(el) {
         : privacyInline(n);
       return;
     }
+    /* accessibility.html's status chips, carried as chips: תקין is the
+       verdict lime, חלקי the ink ring — styles/legal.css's own reading,
+       drawn in .info--doc from the same tokens. privacy.html has none. */
+    if (t === 'SPAN' && n.classList.contains('badge')) {
+      const k = n.classList.contains('badge-ok') ? ' info-chip--ok'
+              : n.classList.contains('badge-partial') ? ' info-chip--partial' : '';
+      out += '<span class="info-chip' + k + '">' + privacyInline(n) + '</span>';
+      return;
+    }
+    if (t === 'CODE') { out += '<code>' + privacyInline(n) + '</code>'; return; }
     if (t === 'STRONG' || t === 'B') { out += '<strong>' + privacyInline(n) + '</strong>'; return; }
     if (t === 'EM' || t === 'I')     { out += '<em>' + privacyInline(n) + '</em>'; return; }
     out += privacyInline(n);
@@ -4929,6 +4933,22 @@ function privacyMap(html) {
     if (el.matches('.site-name, h1, .footer, script, style')) return;
     const t = el.tagName;
     if (t === 'H2') { secs.push('<h3 class="info-h">' + privacyInline(el) + '</h3>'); return; }
+    /* A REAL TABLE, NOT ROWS OF TEXT. accessibility.html's status table
+       keeps its structure: the thead's cells stay column headers, and
+       each row's first cell becomes its row header, so a screen reader
+       announces "ניווט מקלדת, מצב, חלקי" rather than three loose cells. */
+    if (t === 'TABLE') {
+      const cell = (c, tag, scope) =>
+        '<' + tag + (scope ? ' scope="' + scope + '"' : '') + '>' + privacyInline(c).trim() + '</' + tag + '>';
+      const head = Array.prototype.map.call(el.querySelectorAll('thead th'),
+        c => cell(c, 'th', 'col')).join('');
+      const rows = Array.prototype.map.call(el.querySelectorAll('tbody tr'),
+        tr => '<tr>' + Array.prototype.map.call(tr.children,
+          (c, i) => i === 0 ? cell(c, 'th', 'row') : cell(c, 'td')).join('') + '</tr>').join('');
+      if (rows) add('<table class="info-tbl">' +
+        (head ? '<thead><tr>' + head + '</tr></thead>' : '') + '<tbody>' + rows + '</tbody></table>');
+      return;
+    }
     if (t === 'UL' || t === 'OL') {
       const items = Array.prototype.map.call(el.children,
         li => '<li class="info-p">' + privacyInline(li) + '</li>').join('');
@@ -4941,22 +4961,57 @@ function privacyMap(html) {
   return secs.filter(Boolean).map(h => '<section class="info-sec">' + h + '</section>').join('');
 }
 
+/* ONE FETCH-AND-MAP FOR BOTH LEGAL PAGES. privacy.html and
+   accessibility.html are the same kind of file — Roman's, flat, .page —
+   and privacyMap() now reads both (it gained tables, chips and code for
+   the second). Each keeps its own cache and in-flight request. */
+function legalFetch(url) {
+  return fetch(url, { credentials: 'same-origin' })
+    .then(r => { if (!r.ok) throw new Error(url + ' ' + r.status); return r.text(); })
+    .then(html => {
+      const doc = privacyMap(html);
+      if (!doc) throw new Error(url + ': nothing to map');
+      return doc;
+    });
+}
 function privacyDoc() {
   if (PRIVACY_DOC) return Promise.resolve(PRIVACY_DOC);
   if (PRIVACY_REQ) return PRIVACY_REQ;
-  PRIVACY_REQ = fetch(PRIVACY_URL, { credentials: 'same-origin' })
-    .then(r => { if (!r.ok) throw new Error('privacy.html ' + r.status); return r.text(); })
-    .then(html => {
-      const doc = privacyMap(html);
-      if (!doc) throw new Error('privacy.html: nothing to map');
-      PRIVACY_DOC = doc;
-      return doc;
-    })
+  PRIVACY_REQ = legalFetch(PRIVACY_URL)
+    .then(doc => { PRIVACY_DOC = doc; return doc; })
     .finally(() => { PRIVACY_REQ = null; });   /* a failure is retried on the next door */
   return PRIVACY_REQ;
 }
+/* THE ACCESSIBILITY STATEMENT, THE SAME WAY. Zero edits to
+   accessibility.html: the profile door opens it as a screen in the
+   sticker, fetched and mapped at runtime, one source of truth. */
+const A11Y_URL = ROOT + 'accessibility.html';
+let A11Y_DOC = null;
+let A11Y_REQ = null;
+function a11yDoc() {
+  if (A11Y_DOC) return Promise.resolve(A11Y_DOC);
+  if (A11Y_REQ) return A11Y_REQ;
+  A11Y_REQ = legalFetch(A11Y_URL)
+    .then(doc => { A11Y_DOC = doc; return doc; })
+    .finally(() => { A11Y_REQ = null; });
+  return A11Y_REQ;
+}
 
-function renderPrivacy(m) {
+/* 2e AND 2f · ONE DOCUMENT SCREEN, TWO DOCUMENTS. The privacy policy and
+   the accessibility statement render the same way — the door's string as
+   the title, the mapped page in .info--doc, חזרה at the foot back to 2b —
+   so they are one function with the document passed in. The pending and
+   failed lines are the privacy screen's own two strings, which say
+   nothing privacy-specific; the failure link names and opens the page. */
+const LEGAL_DOCS = {
+  privacy: { attr: 'data-privacy-doc', title: () => INFO_COPY.privacy, url: () => PRIVACY_URL,
+             cached: () => PRIVACY_DOC, load: () => privacyDoc() },
+  a11y:    { attr: 'data-a11y-doc',    title: () => INFO_COPY.a11y,    url: () => A11Y_URL,
+             cached: () => A11Y_DOC,    load: () => a11yDoc() },
+};
+function renderPrivacy(m) { renderDoc(m, LEGAL_DOCS.privacy); }
+function renderA11y(m)    { renderDoc(m, LEGAL_DOCS.a11y); }
+function renderDoc(m, d) {
   const box = $('[data-prof]', m);
   box.classList.remove('prof--bld');
   box.classList.add('prof--info');
@@ -4965,13 +5020,13 @@ function renderPrivacy(m) {
     '<section class="info-sec"><p class="info-p">' + esc(INFO_COPY.privacyWait) + '</p></section>';
   const failed =
     '<section class="info-sec"><p class="info-p">' + esc(INFO_COPY.privacyFail) + ' ' +
-      '<a href="' + esc(PRIVACY_URL) + '" target="_blank" rel="noopener">' +
-        esc(INFO_COPY.privacy) + '</a>.</p></section>';
+      '<a href="' + esc(d.url()) + '" target="_blank" rel="noopener">' +
+        esc(d.title()) + '</a>.</p></section>';
 
   box.innerHTML =
-    '<h2 class="peel-title">' + esc(INFO_COPY.privacy) + '</h2>' +
-    '<div class="info info--doc scrolls" data-privacy-doc>' +
-      (PRIVACY_DOC || pending) +
+    '<h2 class="peel-title">' + esc(d.title()) + '</h2>' +
+    '<div class="info info--doc scrolls" ' + d.attr + '>' +
+      (d.cached() || pending) +
     '</div>' +
     '<div class="bfoot info-foot">' +
       '<button type="button" class="bnav bnav--prev" data-info-back>' +
@@ -4981,8 +5036,8 @@ function renderPrivacy(m) {
   pressable($('[data-info-back]', box)).addEventListener('click',
     () => stickerSwap(m, () => renderProfile(m)));
 
-  if (PRIVACY_DOC) return;
-  const host = $('[data-privacy-doc]', box);
+  if (d.cached()) return;
+  const host = $('[' + d.attr + ']', box);
   /* THE SETTLE IS GUARDED ON THE HOST STILL BEING IN THE DOCUMENT. The
      player can tap חזרה before the fetch returns; renderProfile() has
      then replaced [data-prof]'s innerHTML and this host is detached.
@@ -4992,7 +5047,7 @@ function renderPrivacy(m) {
     if (!host.isConnected) return;
     stickerSwap(m, () => { host.innerHTML = html; });
   };
-  privacyDoc().then(settle, () => settle(failed));
+  d.load().then(settle, () => settle(failed));
 }
 
 /* THE CHEVRONS ARE DRAWN, NOT TYPED. › and ‹ are bidi-mirrored glyphs:

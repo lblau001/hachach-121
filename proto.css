@@ -8492,26 +8492,27 @@ button.prof-hero:focus-visible{ outline:3px solid var(--primary); outline-offset
    stretch is refused. */
 .prof-actions > .prof-reset{ align-self:center; }
 .prof-quiet > .prof-info{ align-self:auto; }
-/* THE TWO THAT ARE <a>, NOT <button>. הצהרת נגישות and דיווח על תקלה
-   leave the game, so they are links, and a link does not take the
+/* THE ONE THAT IS AN <a>, NOT A <button>. דיווח על תקלה leaves the game
+   for the mail client, so it is a link, and a link does not take the
    button's UA box: it is inline, it inherits the line-height, and it
-   has no white-space rule. These three lines give it the button's box
-   back so all four doors measure the same — block for the padding,
+   has no white-space rule. These lines give it the button's box back so
+   all four doors measure the same — block for the padding,
    line-height:normal for the same 17px line box the buttons get (43px
-   with the 13px padding, as the pair above measures), nowrap because no label here may break mid-phrase. */
+   with the 13px padding), nowrap because no label here may break
+   mid-phrase. */
 .prof-quiet > a.prof-info{ display:block; line-height:normal; }
 .prof-quiet > .prof-info{ white-space:nowrap; }
-/* THE ADDRESS, PRINTED. A mailto on a desktop with no mail client opens
-   nothing, so the address is on the sheet as plain text too. It is not
-   a control: `.prof-actions > *` gives every child the buttons' 52px
-   and flex centring, and this takes both back. Micro size, ink-soft, no
-   underline — it must not read as a fifth link. The address alone is
-   user-select:all, so one click selects the whole of it. */
-.prof-actions > .prof-mail{
-  min-height:0; display:block; margin:-6px 0 0; text-align:center;
-  font-family:var(--font-body); font-size:12px; line-height:1.4; color:var(--ink-soft);
-}
-.prof-mail__addr{ unicode-bidi:isolate; -webkit-user-select:all; user-select:all; }
+/* THE QUIET STACK CLOSES UP. .prof-actions spaces its children 8px
+   apart for the two stacked BUTTONS; between the two link rows and the
+   reset that 8px was pure air on top of each link's own 13px of padding,
+   and it is where the sheet's height went. The rows and the reset now
+   sit edge to edge — every tap target keeps its full height (43 per
+   link, 44 per row and for the reset), and the visible space between
+   one line of type and the next is the targets' own padding, even all
+   the way down. Written as a margin that cancels the column gap, so the
+   gap above the rows — between שמור and the first row — is untouched. */
+.prof-actions > .prof-quiet + .prof-quiet,
+.prof-actions > .prof-quiet + .prof-reset{ margin-top:calc(var(--sp-2) * -1); }
 /* the one primary. Everything on this sheet applied the moment it was
    tapped; this closes, and its copy is the player's model, not the code's. */
 /* T37 · THE SPACE UNDER THE LAST LINE, TIGHTENED. Three things stacked
@@ -8801,6 +8802,45 @@ button.prof-hero:focus-visible{ outline:3px solid var(--primary); outline-offset
    slant the Black. The page (styles/legal.css) sets emphasis upright in
    the Black; the modal renders the same text and says the same. */
 .info--doc em{ font-style:normal; }
+/* 2f · THE ACCESSIBILITY STATEMENT'S TABLE AND CHIPS, AT STICKER WIDTH.
+   styles/legal.css's reading of the same table, at its narrow setting:
+   fixed layout, three columns with the note widest, dashed hairline
+   rows under a solid ink header rule, no vertical borders, and
+   overflow-wrap:anywhere so a <code> token breaks rather than pushing
+   the table past the sheet — no horizontal scroll at 260px. The chips
+   are legal.css's .badge: תקין the verdict lime (correctness is what
+   this system's colour is for), חלקי the ink ring, never the magenta.
+   Every colour, radius and size is a hachach.css token, as in legal.css. */
+.info--doc .info-tbl{
+  width:100%; border-collapse:collapse; table-layout:fixed;
+  margin:10px 0 0; font-size:var(--fs-meta); font-weight:700; line-height:1.45;
+}
+.info--doc .info-tbl th,
+.info--doc .info-tbl td{
+  text-align:start; vertical-align:top; padding:7px 4px;
+  border-bottom:1.5px dashed rgba(19,19,16,.18); overflow-wrap:anywhere;
+}
+.info--doc .info-tbl tbody th{ font-weight:700; }
+.info--doc .info-tbl thead th{
+  font-family:var(--font-display); font-weight:900; border-bottom:2px solid var(--ink);
+}
+.info--doc .info-tbl thead th:nth-child(1){ width:33%; }
+.info--doc .info-tbl thead th:nth-child(2){ width:24%; }
+.info--doc .info-tbl thead th:nth-child(3){ width:43%; }
+.info--doc .info-tbl + .info-p,
+.info--doc .info-tbl + .info-ul{ margin-top:8px; }
+.info-chip{
+  display:inline-block; padding:1px 8px; border-radius:var(--r-pill);
+  font-family:var(--font-display); font-weight:900; font-size:12px;
+  line-height:1.6; white-space:nowrap;
+}
+.info-chip--ok{ background:var(--verdict-correct); color:var(--verdict-correct-ink); }
+.info-chip--partial{ background:transparent; color:var(--ink); box-shadow:inset 0 0 0 2px rgba(19,19,16,.38); }
+.info--doc code{
+  font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:.9em;
+  background:rgba(19,19,16,.07); padding:1px 4px; border-radius:4px;
+  direction:ltr; unicode-bidi:isolate; overflow-wrap:anywhere;
+}
 .info-list{ margin:0; padding:0; list-style:none; }
 /* NO SEPARATOR BETWEEN ROWS. 34 of them with a rule each is a table, and
    the pair of lines already groups: the name is 700 ink, the credit 400
